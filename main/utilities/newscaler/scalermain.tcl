@@ -173,8 +173,81 @@ proc yScaleChanged {newValue} {
 #
 # @param newValue - the new value of the strip chart ymin.k
 proc yMinChanged {newValue} {
-    $::stripcharts configure -ymin $newValue
+    set ymin [$::stripcharts cget -ymin]
+    set ymax [$::stripcharts cget -ymax]
+    set dy   [expr {$ymax - $ymin}]
+    
+    $::stripcharts configure -ymin $newValue -ymax [expr {$newValue + $dy}]
 }
+#------------------------------------------------------------------------------
+# strip chart x axis scaling.
+#
+##
+# setXaxis
+#
+#   Set new values for the x axis limits
+#
+# @param min - xmin
+# @param zoom - Zoom factor.
+#
+proc setXaxis {min zoom} {
+        # Figure out the new range:
+        
+        set newRange  [expr {$::scalerconfig::stripChartOptions(-timeaxis)/$zoom}]
+        $::stripcharts configure -xmin $min -xmax [expr {$min + $newRange}]
+            
+}
+
+##
+# xScaleChanged
+#
+#   Called when the zoom settings for the xscale changed.
+#   Determine the original range (that's a config parameter)
+#   and set a new xmin/xmax range basd on the scaled range.
+#
+proc xScaleChanged {min value} {
+    
+    # Auto just sets the xmin -0 and xmax to the initial range.  This will
+    #  slide next time there's an update:
+    
+    if {$value eq "Auto"} {
+        $::stripcharts configure -xmin 0 -xmax $::scalerconfig::stripChartOptions(-timeaxis)'
+        
+    } else {
+        if {$value eq "Custom..."} {
+            
+            #Need to prompt for a custom zoom range
+            
+            set zoom  [getNewZoom]
+            if {$zoom eq ""} return;              # Zoom not accepted.
+        } else {
+            set zoom [string range $value  0 end-1]
+            
+            
+        }
+        setXaxis $min $zoom
+        
+    }
+}
+##
+# xMinChanged
+#
+#   Called when the xmin changed
+#
+# @param min - new minimum value
+#
+proc xMinChanged {min} {
+    
+    # Figure out the current extent:
+    
+    set xmin [$::stripcharts cget -xmin]
+    set xmax [$::stripcharts cget -xmax]
+    set dx   [expr {$xmax - $xmin}]
+    
+    $::stripcharts configure -xmin $xmin -xmax [expr {$xmin + $dx}]
+}
+    
+
 
 #---------------------------------------------------------------------------
 # Internal private procs
@@ -270,7 +343,14 @@ proc clearStripcharts {} {
 
 	#  Reset the ymax to 1 so autoscale will start up again.:
 	
-	$::stripcharts configure -ymax 1 -xmin 0 -xmax $::scalerconfig::stripChartOptions(-timeaxis)
+        if {$::autoY} {
+            $::stripcharts configure -ymax 1 
+        }
+        #  Reset the X axis to the current zoom but xmin = 0.
+        
+        set xmin [$::stripcharts cget -xmin]
+        set xmax [$::stripcharts cget -xmax]
+        set dx   [expr {$xmax - $xmin}]
 
 	# Create empty series...to re-establish colors.
 	#
@@ -281,6 +361,9 @@ proc clearStripcharts {} {
 	    $series clear;                          # Invalidate the time.
 	    $::stripcharts series [$series name] [list] [list] $color
 	}
+        #  Reset the zooms:
+        
+        
 
     }
 }
@@ -607,6 +690,8 @@ proc setupStripchart charts {
     ScaleControl    .alarmcontrol.x.s -menulist [list 1x 2x 4x 8x 16x 32x Custom... Auto]
     .alarmcontrol.x.s configure -zoomrange [list 0 5]
     .alarmcontrol.x.s configure -current Auto
+    .alarmcontrol.x.s configure -command [list xScaleChanged %M %S] \
+        -mincommand [list xMinChanged %M]
     
     
     pack .alarmcontrol.y.s -fill both -expand 1
