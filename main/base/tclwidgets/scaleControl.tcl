@@ -65,6 +65,7 @@ package require snit
 #                     configuration or by modifying the Min entry.
 #   - -command     -  Script invoked when -current changes.
 #   - -mincommand  -  Script invoked when -min is changed.
+#   - -enablemin   -  If true, min is enabled otherwise not.
 #
 #
 #  SUBSTITUTIONS
@@ -87,6 +88,7 @@ snit::widgetadaptor ScaleControl {
     option -min         -default 0      -configuremethod _configMin
     option -command     [list]
     option -mincommand  [list]
+    option -enablemin   -default true   -configuremethod _configMinWidget
 
     typeconstructor  {
         ttk::style configure flat.TButton -relief flat -padx 2
@@ -133,7 +135,31 @@ snit::widgetadaptor ScaleControl {
     }
     #--------------------------------------------------------------------------
     #  Private methods:
-    
+    ##
+    # _configMinWidget
+    #    turn on/off the min widget's presence.
+    #
+    # @param optname - name of the option being configured.
+    # @param value   - New boolean value - true min is displayed, false, not.
+    #
+    method _configMinWidget {optname value} {
+        if {![string is boolean -strict $value]} {
+            error "$optname must be configured with a boolean, was configured with $value"
+        }
+        
+        
+        # Only configure changes.
+        if {$value != $options($optname)} {
+            if {$value} {
+                grid $win.minlbl -row 0 -column 3
+                grid $min -row 0 -column 4
+            } else {
+                grid forget $min $win.minlbl
+            }
+        }
+        set options($optname) $value
+        
+    }
     ##
     # _configureMenu
     #   Called when -menulist is configures.  The existing menu is
