@@ -285,10 +285,10 @@ TestStateTransitions::populateDb()
     // Define the data types:
     
     CVarMgrApi::EnumValues tf;
-    tf.push_back("true");
-    tf.push_back("false");
     
-    m_pApi->defineEnum("boolean", tf);
+    
+    
+   
     
     CVarMgrApi::StateMap transitions;
     m_pApi->addTransition(transitions, "0Initial", "NotReady");
@@ -330,7 +330,7 @@ TestStateTransitions::populateDb()
     m_pApi->declare("/RunState/RunNumber", "integer");
     m_pApi->declare("/RunState/Title", "string");
     m_pApi->declare("/RunState/State","RunStateMachine", "0Initial");   // Good enough for testing.
-    m_pApi->declare("/RunState/Recording", "boolean", "false");
+    m_pApi->declare("/RunState/Recording", "bool", "false");
     m_pApi->declare("/RunState/Timeout", "integer", "60");
     m_pApi->declare("/RunState/ReadoutParentDir", "string");
     
@@ -338,8 +338,8 @@ TestStateTransitions::populateDb()
     
     m_pApi->mkdir("/RunState/test");
     m_pApi->declare("/RunState/test/State", "RunStateMachine", "0Initial");
-    m_pApi->declare("/RunState/test/enable", "boolean", "true");
-    m_pApi->declare("/RunState/test/standalone", "boolean", "false");
+    m_pApi->declare("/RunState/test/enable", "bool", "true");
+    m_pApi->declare("/RunState/test/standalone", "bool", "false");
     m_pApi->declare("/RunState/test/path", "string", "/bin/false");
     m_pApi->declare("/RunState/test/host", "string", "localhost");
     m_pApi->declare("/RunState/test/outring", "string", "output");

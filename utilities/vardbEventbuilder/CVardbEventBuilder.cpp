@@ -95,17 +95,6 @@ CVardbEventBuilder::createSchema()
         }
         m_pApi->defineEnum("TimestampPolicy", policies);
         
-        // boolean is a very common data type so we define it in a try block
-        // in case it's already defined.
-        
-        CVarMgrApi::EnumValues boolTexts;
-        boolTexts.push_back("true");
-        boolTexts.push_back("false");
-        
-        try {
-            m_pApi->defineEnum("bool", boolTexts);
-        }
-        catch(...) {}
         
     }
 }

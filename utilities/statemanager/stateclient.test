@@ -87,7 +87,6 @@ proc createRunDir h {
          Pausing [list Paused NotReady] Paused [list Ending Resuming NotReady] \
          Resuming [list Active NotReady] Ending [list Ready NotReady]           \
     ]
-    varmgr::enum $h bool [list true false]
     
     varmgr::var create $h /RunState/State RunStateMachine
     varmgr::var create $h /RunState/RunNumber integer

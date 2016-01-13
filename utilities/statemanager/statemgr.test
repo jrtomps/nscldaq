@@ -99,12 +99,12 @@ proc createRunDir h {
          Pausing [list Paused NotReady] Paused [list Ending Resuming NotReady] \
          Resuming [list Active NotReady] Ending [list Ready NotReady]           \
     ]
-    varmgr::enum $h boolean [list true false]
+    
     
     varmgr::var create $h /RunState/State RunStateMachine
     varmgr::var create $h /RunState/RunNumber integer
     varmgr::var create $h /RunState/Title     string
-    varmgr::var create $h /RunState/Recording boolean false
+    varmgr::var create $h /RunState/Recording bool false
     varmgr::var create $h /RunState/Timeout   integer  60
     varmgr::var create $h /RunState/ReadoutParentDir string
     
@@ -115,8 +115,8 @@ proc createProgram {h name} {
     set dir /RunState/$name
     varmgr::mkdir $h $dir
     varmgr::var create $h $dir/State RunStateMachine
-    varmgr::var create $h $dir/enable boolean   true
-    varmgr::var create $h $dir/standalone boolean false
+    varmgr::var create $h $dir/enable bool   true
+    varmgr::var create $h $dir/standalone bool false
     varmgr::var create $h $dir/path  string "/some/test/path"
     varmgr::var create $h $dir/host string "somehost.nscl.msu.edu"
     varmgr::var create $h $dir/outring string "output"

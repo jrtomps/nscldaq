@@ -56,7 +56,7 @@ ignoreError statemachine RunStateMachine [dict create                       \
     Resuming    [list Active NotReady]                                      \
     Ending      [list Ready NotReady]                                       \
 ]
-ignoreError enum boolean [list true false]
+
 
 
 # Now create the variables in /RunState:

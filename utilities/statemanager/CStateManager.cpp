@@ -131,8 +131,8 @@ CStateManager::addProgram(const char* name, const pProgramDefinition def)
         
         pApi->declare("State", "RunStateMachine");  // Default -- 0Initial.
         pApi->declare("path", "string", def->s_path.c_str());
-        pApi->declare("enable", "boolean", def->s_enabled ? "true" : "false");
-        pApi->declare("standalone", "boolean", def->s_standalone ? "true" : "false");
+        pApi->declare("enable", "bool", def->s_enabled ? "true" : "false");
+        pApi->declare("standalone", "bool", def->s_standalone ? "true" : "false");
         pApi->declare("host", "string", def->s_host.c_str());
         pApi->declare("outring", "string", def->s_outRing.c_str());
         pApi->declare("inring", "string", def->s_inRing.c_str());

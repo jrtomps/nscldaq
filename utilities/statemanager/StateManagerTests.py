@@ -47,7 +47,7 @@ class StateManagerTests(testBase.TestBase):
         
         # Run state:
         
-        api.defineEnum('boolean', ('true', 'false'))
+        
         api.defineStateMachine(
             'RunStateMachine',
             {
@@ -61,7 +61,7 @@ class StateManagerTests(testBase.TestBase):
         api.mkdir("/RunState")
         api.declare("/RunState/RunNumber", "integer")
         api.declare("/RunState/Title", "string")
-        api.declare("/RunState/Recording", "boolean", "false")
+        api.declare("/RunState/Recording", "bool", "false")
         api.declare('/RunState/Timeout', 'integer', '60')
         api.declare('/RunState/ReadoutParentDir', 'string')
         api.declare('/RunState/State', 'RunStateMachine')
@@ -69,8 +69,8 @@ class StateManagerTests(testBase.TestBase):
         # Make the test program:
         
         api.mkdir("/RunState/test")
-        api.declare('/RunState/test/standalone', 'boolean', 'false')
-        api.declare('/RunState/test/enable', 'boolean')
+        api.declare('/RunState/test/standalone', 'bool', 'false')
+        api.declare('/RunState/test/enable', 'bool')
         api.declare('/RunState/test/path', 'string')
         api.declare('/RunState/test/host', 'string')
         api.declare('/RunState/test/outring', 'string')
