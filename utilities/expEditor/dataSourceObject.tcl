@@ -70,6 +70,7 @@ snit::type DataSourceObject {
     delegate method bind          to gui
     
     variable eventBuilder  "";                   # Name of target event builder.
+    variable ring          "";                   # ring buffer data source.
     
     ##
     # typeconstructor
@@ -98,6 +99,12 @@ snit::type DataSourceObject {
     #  Private methods.
     #
     
+    ##
+    # Glue a host and name together to a tcp uri:
+    #
+    method _makeRingUri {host name} {
+        return [format tcp://%s/%s $host $name]    
+    }
     
     #---------------------------------------------------------------------------
     # Public methods
@@ -135,6 +142,13 @@ snit::type DataSourceObject {
         return $new
     }
     ##
+    # type
+    #   @return string - dataSource - object type.
+    #
+    method type {} {
+        return datasource
+    }
+    ##
     # connect
     #   Called when the user attempts to connect this object to another.
     #   We have severe restriction on what we can be connected to:
@@ -149,6 +163,102 @@ snit::type DataSourceObject {
     #                    attempted.
     #
     method connect {direction object} {
-        
+        if {$direction eq "from"} {
+            
+            # Object must be an event builder.
+            
+            if {[$object type] ne "eventbuilder"} {
+                error "Ring data sources can only send data to event builders"
+            }
+            # isConnectable would have told the client if we can't actually
+            # connect but we'll be defensive too:
+            
+            if {$eventBuilder ne ""} {
+                error "This data source is already connected to an event builder.  Disconnect first."
+            }
+            set eventBuilder $objectsd
+            
+        } else {
+            # Object must be a ring buffer:
+            #
+            if {[$object type] ne "ring"} {
+                error "Ring data sources can only get data from ring buffers"
+            }
+            if {$ring ne ""} {
+                error "This data source is already connected to a ringbuffer. Disconnect first"
+            }
+            #  - Set the ring property to the URI of the object and make it not
+            #    editable.
+            
+            set properties [$data getProperties]
+            set ringProp   [$properties find ring]
+            
+            set objectProps [$object getProperties]
+            set ringName    [$objectProps find name]
+            set ringHost    [$objectProps find host]
+            set host [$ringHost cget -value]
+            set name [$ringName cget -value]
+            
+            $ringProp configure -value [$self _makeRingUri host name]
+            
+            set ring $object           
+            
+        }
+    }
+    ##
+    # disconnect
+    #   Remove a connection from $self.
+    #
+    # @param object   - the object that we will no longer be connected to.
+    #
+    method disconnect object {
+        if {$object eq $eventBuilder} {
+            set eventBuilder ""
+        } elseif {$object eq $ring} {
+            set ring ""
+        } else {
+            error "Object being disconnected is not actually connected to us.."
+        }
+    }
+    ##
+    # isConnectable
+    #    Called prior to a connection to see if $self can accept this sort of
+    #    connection at this time.
+    #
+    # @param direction from | to - Direction of connection.
+    # @return bool -true if we can accept this sort of connection, false if not.
+    #
+    method isConnectable direction {
+        if {$direction eq "from"} {
+            return [expr {$eventBuilder eq ""}]
+        } elseif {$direction eq "to"} {
+            return [expr {$ring eq ""}]
+        } else {
+            error "Invalid direction keywords  $direction is not in {from, to}"
+        }
+    }
+    ##
+    # connectionPropertyChanged
+    #  Called if an item we are connected to had a property change.
+    #  We only care about the ring buffer connection.  If that had a property
+    #  change we  need to update our ring URI.
+    #
+    # @param object - object whose property changed.
+    #
+    method connectionPropertyChanged object {
+        if {$object eq $ring} {
+            # Fetch the ring name and host:
+            
+            set ringProps [$ring getProperties]
+            set hostProp  [$ringProps find host]
+            set nameProp  [$ringProps find name]
+            set host [$hostProp cget -value]
+            set name [$nameProp cget -value]
+            
+            set ourring [$data getProperties]
+            set ourringProp [$ourring find ring]
+            $ourringProp configure -value [$self _makeRingUri $host $name]
+            
+        }
     }
 }
