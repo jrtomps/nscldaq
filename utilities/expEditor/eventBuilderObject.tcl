@@ -26,7 +26,7 @@ exec tclsh "$0" ${1+"$@"}
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 
-package provide eventBulderObject 1.0
+package provide eventBuilderObject 1.0
 package require Tk
 package require snit
 package require eventBuilder
@@ -210,7 +210,11 @@ snit::type EventBuilderObject {
             set outputRing $object
             $self _disableRingEditing
             $self _disableHostEditing
-        }
+        } else {
+            if {[$object type] ne "datasource"} {
+                error "Event builder inputs can only be event sources"
+            }
+         }
         
     }
     ##
@@ -250,13 +254,13 @@ snit::type EventBuilderObject {
     #  object is our output ring, refresh our host and ring name from the
     #  object.
     #
-    # @param obj - Connected object after it's been changed.
+    # @param object - Connected object after it's been changed.
     #
-    method connectionPropertyChanged obj {
+    method connectionPropertyChanged object {
         if {$object eq $outputRing} {
             set host [$self _findProperty host]
             set ring [$self _findProperty ring]
-            set objprops [$obj getProperties]
+            set objprops [$object getProperties]
             
             # Update host
             

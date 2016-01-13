@@ -122,7 +122,7 @@ snit::type DataSourceObject {
     # @return EventBuilderObject name - copy of $self.
     #
     method clone {} {
-        set new [DataSourceObject %AUTO]
+        set new [DataSourceObject %AUTO%]
         
         # Copy properties:
         
@@ -131,7 +131,7 @@ snit::type DataSourceObject {
         
         #   TODO:  Need to copy editable state too?
         
-        foreach p $oldProps {
+        $oldProps foreach p {
             set name [$p cget -name]
             set v    [$p cget -value]
             
@@ -176,7 +176,7 @@ snit::type DataSourceObject {
             if {$eventBuilder ne ""} {
                 error "This data source is already connected to an event builder.  Disconnect first."
             }
-            set eventBuilder $objectsd
+            set eventBuilder $object
             
         } else {
             # Object must be a ring buffer:
@@ -199,7 +199,7 @@ snit::type DataSourceObject {
             set host [$ringHost cget -value]
             set name [$ringName cget -value]
             
-            $ringProp configure -value [$self _makeRingUri host name]
+            $ringProp configure -value [$self _makeRingUri host name] -editable 0
             
             set ring $object           
             
@@ -216,6 +216,9 @@ snit::type DataSourceObject {
             set eventBuilder ""
         } elseif {$object eq $ring} {
             set ring ""
+            set props [$data getProperties]
+            set ringProp [$props find ring]
+            $ringProp configure -value "" -editable 1
         } else {
             error "Object being disconnected is not actually connected to us.."
         }

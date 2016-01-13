@@ -38,6 +38,8 @@ package require Service
 package require objectInstaller
 package require tool
 package require connectorObject
+package require eventBuilderObject
+package require dataSourceObject
 
 # Make the tool bar:
 
@@ -61,8 +63,15 @@ tool ring [RingBufferObject %AUTO%] $os
 tool statePgm [StateProgram %AUTO%] $os
 .t add statePgm
 
+tool eventbuilder [EventBuilderObject %AUTO%] $os
+.t add eventbuilder
+tool dsource      [DataSourceObject %AUTO%] $os
+.t add dsource
+
 tool service [Service %AUTO%] $os
 .t add service
+
+
 
 # Connector
 
