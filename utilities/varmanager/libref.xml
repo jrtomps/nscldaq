@@ -4067,7 +4067,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
     <methodsynopsis>
         
         <type>integer</type>
-        <methodname>gerRootId</methodname>
+        <methodname>getRootId</methodname>
         <void />
     </methodsynopsis>
     
@@ -5513,6 +5513,10 @@ CREATE TABLE state_transitions (
             a discrete set of values.  The default value of an instance of
             an enumerated type is the one with the smallest primary key in the
             <literal>enumerated_values</literal> table.
+        </para>
+        <para>
+          A predefined enum, <literal>bool</literal> is created automatically
+          with the legal values <literal>true</literal> and <literal>false</literal>.
         </para>
         <para>
             The <literal>enumerated_values</literal> table has the folowing

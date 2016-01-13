@@ -274,6 +274,13 @@ pwd
                         provides a value used to intialize the variable.
                         If not provided, the default value for the type is used.
                      </para>
+                     <para>
+                      The following primitive types:  <literal>integer</literal>,
+                      <literal>real</literal>, an <literal>strign</literal> are
+                      defined for all databases.  The predefined enumerated
+                      data type <literal>bool</literal> is also defined with
+                      legal values; <literal>true</literal>, and <literal>false</literal>
+                     </para>
                  </listitem>
              </varlistentry>
              <varlistentry>

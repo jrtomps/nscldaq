@@ -295,7 +295,9 @@ let i $i
             In addition to the primitive data types (integer, real, and string),
             the variable database shell can create new data types with discrete
             values. These are called <literal>enums</literal>.  Once an enum
-            type is created variables with that type can be created.
+            type is created variables with that type can be created.  The
+            <literal>bool</literal> pre-defined enum type has the legal values
+            <literal>true</literal> and <literal>false</literal>.
         </para>
         <para>
             The <command>let</command> command will then not allow an enum
