@@ -21,7 +21,7 @@
 */
 
 #include "CEnumeration.h"
-#include "CVariableDb.h"
+#include "CSqlite.h"
 #include "CSqliteStatement.h"
 #include "CSqliteTransaction.h"
 
@@ -46,7 +46,7 @@
  */
 int
 CEnumeration::create(
-    CVariableDb& db, const char* pTypeName, std::vector<std::string> values
+    CSqlite& db, const char* pTypeName, std::vector<std::string> values
 )
 {
     // Make sure we're good to go:
@@ -83,7 +83,7 @@ CEnumeration::create(
  *  @return int - the id of the data type.
  */
 int
-CEnumeration::id(CVariableDb& db, const char* pEnumName)
+CEnumeration::id(CSqlite& db, const char* pEnumName)
 {
     // It's the inner join here that ensures the type we got was actually
     // an enumerated type; Limit ensures we don't get all value rows.
@@ -118,7 +118,7 @@ CEnumeration::id(CVariableDb& db, const char* pEnumName)
  * @param value     - New value.
  */
 void
-CEnumeration::addValue(CVariableDb& db, const char* pTypeName, const char* value)
+CEnumeration::addValue(CSqlite& db, const char* pTypeName, const char* value)
 {
     int enumId = id(db, pTypeName);
     
@@ -141,7 +141,7 @@ CEnumeration::addValue(CVariableDb& db, const char* pTypeName, const char* value
  *   @return std::vector<std::string> - vector of legal values.
  */
 std::vector<std::string>
-CEnumeration::listValues(CVariableDb& db, const char* pTypeName)
+CEnumeration::listValues(CSqlite& db, const char* pTypeName)
 {
    std::vector<std::string> result;
    
@@ -168,7 +168,7 @@ CEnumeration::listValues(CVariableDb& db, const char* pTypeName)
  * @return std::vector<std::string>  Each element is an enumerated type name.
  */
 std::vector<std::string>
-CEnumeration::listEnums(CVariableDb& db)
+CEnumeration::listEnums(CSqlite& db)
 {
     std::vector<std::string> result;
     
@@ -197,7 +197,7 @@ CEnumeration::listEnums(CVariableDb& db)
  * @throw CException - if there's no match.
  */
 int
-CEnumeration::getValueId(CVariableDb& db, int typeId, const char* pValue)
+CEnumeration::getValueId(CSqlite& db, int typeId, const char* pValue)
 {
     CSqliteStatement finder(
         db,
@@ -223,7 +223,7 @@ CEnumeration::getValueId(CVariableDb& db, int typeId, const char* pValue)
  *    @return bool - true if the type exists.
  */
 bool
-CEnumeration::typeExists(CVariableDb& db, const char* pTypeName)
+CEnumeration::typeExists(CSqlite& db, const char* pTypeName)
 {
     CSqliteStatement typeFind(
         db,
@@ -243,7 +243,7 @@ CEnumeration::typeExists(CVariableDb& db, const char* pTypeName)
  *  @return int      - Id of the new type.
  */
 int
-CEnumeration::addType(CVariableDb& db, const char* pTypeName)
+CEnumeration::addType(CSqlite& db, const char* pTypeName)
 {
     CSqliteStatement add(
         db,
@@ -261,7 +261,7 @@ CEnumeration::addType(CVariableDb& db, const char* pTypeName)
  *  @param value  - the new value.
  */
 void
-CEnumeration::addValue(CVariableDb& db, int typeId, const char* value)
+CEnumeration::addValue(CSqlite& db, int typeId, const char* value)
 {
     CSqliteStatement add(
         db,
@@ -299,7 +299,7 @@ CEnumeration::noDups(std::vector<std::string> values)
  *  @return std::set<std::string>
  */
 std::set<std::string>
-CEnumeration::values(CVariableDb& db, int typeId)
+CEnumeration::values(CSqlite& db, int typeId)
 {
     std::set<std::string> result;
     CSqliteStatement vals(

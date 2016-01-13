@@ -333,6 +333,8 @@ void VarTests::typeContents() {
         "SELECT type_name FROM variable_types ORDER BY type_name ASC"
     );
     ++stmt;
+    EQ(0, strcmp("bool", reinterpret_cast<const char*>(stmt.getText(0))));
+    ++stmt;
     EQ(0, strcmp("integer", reinterpret_cast<const char*>(stmt.getText(0))));
     ++stmt;
     EQ(0, strcmp("real", reinterpret_cast<const char*>(stmt.getText(0))));

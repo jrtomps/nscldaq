@@ -28,7 +28,7 @@
 #include <string>
 #include <stdexcept>
 
-class CVariableDb;
+class CSqlite;
 
 /**
  * @class CEnumeration
@@ -40,28 +40,29 @@ class CEnumeration {
     
 public:
     static int create(
-        CVariableDb& db, const char* pTypeName, std::vector<std::string> values
+        CSqlite& db, const char* pTypeName, std::vector<std::string> values
     );
-    static int id(CVariableDb& db, const char* pEnumName);
+    static int id(CSqlite& db, const char* pEnumName);
     static void addValue(
-        CVariableDb& db, const char* pTypeName, const char* value
+        CSqlite& db, const char* pTypeName, const char* value
     );
     static std::vector<std::string> listValues(
-        CVariableDb& db, const char* pTypeName
+        CSqlite& db, const char* pTypeName
     );
-    static std::vector<std::string> listEnums(CVariableDb& db);
+    static std::vector<std::string> listEnums(CSqlite& db);
     
-    static int getValueId(CVariableDb& db, int typeId, const char* pValue);
+    static int getValueId(CSqlite& db, int typeId, const char* pValue);
+
+    static bool typeExists(CSqlite& db, const char* pTypeName);
     
     // Utilities
 
 private:
     
-    static bool typeExists(CVariableDb& db, const char* pTypeName);
-    static int  addType(CVariableDb& db, const char* pTypeName);
-    static void addValue(CVariableDb& db, int typeId, const char* value);
+    static int  addType(CSqlite& db, const char* pTypeName);
+    static void addValue(CSqlite& db, int typeId, const char* value);
     static bool noDups(std::vector<std::string> values);
-    static std::set<std::string> values(CVariableDb& db, int typeId);
+    static std::set<std::string> values(CSqlite& db, int typeId);
     
     // nested classes:
 public:

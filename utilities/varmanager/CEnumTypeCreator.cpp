@@ -25,7 +25,7 @@
 #include "CEnumeration.h"
 #include "CEnumType.h"
 
-class CVariableDb;
+#include "CVariableDb.h"
 
 /**
  * construtor

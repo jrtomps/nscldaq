@@ -456,8 +456,9 @@ void EnumTests::listEnumsNone()
 {
     std::vector<std::string> empty;
     std::vector<std::string> list = CEnumeration::listEnums(*m_db);
-    
-    ASSERT(empty == list);
+    EQ(size_t(1), list.size());
+    EQ(std::string("bool"), list[0]);
+
 }
 // List enums when there are some to list:
 
@@ -482,6 +483,7 @@ void EnumTests::listEnumsSome()
     // Create the enums and stock the sActualNames set:
     
     pName = names;
+    sActualNames.insert("bool");   // There's always the predefined bool type.
     while (*pName) {
 
         CEnumeration::create(*m_db, *pName, vValues);
@@ -586,10 +588,11 @@ void EnumTests::getvidOk()
        newOk();                   // Makes an enum named myenum.
        int typeId = CEnumeration::id(*m_db, "myenum");
        
-       // "first" is the first value of the first created enum so it should
-       // have a pk of 1:
+       // "first" is the first value of the first created enum after the
+       //  predefined enum 'bool' with value true and false (Pks 1,2)
+       // so the value id of this guy should be 3.
        
-       EQ(1, CEnumeration::getValueId(*m_db, typeId, "first"));
+       EQ(3, CEnumeration::getValueId(*m_db, typeId, "first"));
        
 }
 void EnumTests::getvidFail()

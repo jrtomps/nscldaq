@@ -99,10 +99,11 @@ class EnumTest(unittest.TestCase):
         nscldaq.vardb.enum.create(self._db, 'stooges', ('larry', 'curly', 'moe', 'shemp'))
         nscldaq.vardb.enum.create(self._db, 'abbott-costello', ('bud', 'lou'))
         enums = nscldaq.vardb.enum.listEnums(self._db)
+        self.assertTrue('bool' in enums)            # Predefined type.
         self.assertTrue('colors' in enums)
         self.assertTrue('stooges' in enums)
         self.assertTrue('abbott-costello' in enums)
-        self.assertEquals(3, len(enums))
+        self.assertEquals(4, len(enums))
         
     def test_list_enums_musthavedb(self):
         with self.assertRaises(nscldaq.vardb.enum.error):

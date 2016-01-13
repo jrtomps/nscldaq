@@ -24,6 +24,7 @@
 
 #include "CSqlite.h"
 #include "CSqliteStatement.h"
+#include "CEnumeration.h"
 
 /**
  * constructor
@@ -41,6 +42,14 @@ CEnumTypeFamilyHandler::CEnumTypeFamilyHandler(CSqlite& db)
             value             VARCHAR(256) NOT NULL             \
         )"
     );
+    // Create the default bool type:
+    
+    if(! CEnumeration::typeExists(db, "bool")) {
+        std::vector<std::string> values;
+        values.push_back("true");
+        values.push_back("false");
+        CEnumeration::create(db, "bool", values);        
+    }
 
 }
 

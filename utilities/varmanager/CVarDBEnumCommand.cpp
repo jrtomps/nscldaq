@@ -28,7 +28,7 @@
 #include "TCLObject.h"
 #include <exception>
 
-
+#include "CVariableDb.h"
 /**
  * constructor
  *    Creates the command.
