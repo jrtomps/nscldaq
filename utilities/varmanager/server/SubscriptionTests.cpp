@@ -256,7 +256,7 @@ void SubTests::constructPortOk() {
 void SubTests::constructPortBadHost()
 {
     CPPUNIT_ASSERT_THROW(
-        CVarMgrSubscriptions("no.such.host", m_serverSubPort),
+        CVarMgrSubscriptions("no.such.host.nscl.msu.edu", m_serverSubPort),
         CVarMgrSubscriptions::CException
     );
 }
@@ -278,7 +278,7 @@ void SubTests::constructSvcBadSvc()
 void SubTests::constructSvcBadHost()
 {
     CPPUNIT_ASSERT_THROW(
-        CVarMgrSubscriptions("no.such.host", subServiceName.c_str()),
+        CVarMgrSubscriptions("no.such.host.nscl.msu.edu", subServiceName.c_str()),
         CVarMgrSubscriptions::CException
     );
 }
