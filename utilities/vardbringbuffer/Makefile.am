@@ -19,7 +19,7 @@ libvardbRingBuffer_la_LDFLAGS=$(COMMONLDFLAGS)
 
 noinst_PROGRAMS=unittests
 
-unittests_SOURCES = TestRunner.cpp Asserts.h
+unittests_SOURCES = TestRunner.cpp Asserts.h apitests.cpp
 unittests_CPPFLAGS=$(COMMONCPPFLAGS) @CPPUNIT_CFLAGS@
 unittests_LDFDLAGS= libvardbRingBuffer.la $(COMMONLDFLAGS) @CPPUNIT_LDFLAGS@
 
