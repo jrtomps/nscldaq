@@ -65,20 +65,26 @@ public:
     void createSchema();
     
     void create(
-        const char* name const char* host, unsigned maxData = 8*1024*1024,
-        maxConsumers = 100
+        const char* name, const char* host, unsigned maxData = 8*1024*1024,
+        unsigned maxConsumers = 100
     );
     void destroy(const char* name, const char* host);
-    void setMaxData(unsigned newValue);
-    void setMaxConsumers(unsigned newValue);
+    void setMaxData(const char* name, const char* host, unsigned newValue);
+    void setMaxConsumers(const char* name, const char* host, unsigned newValue);
     RingInfo ringInfo(const char* name, const char* host);
     std::vector<RingInfo> list();
     
     // utility methods:
     
 private:
-    std::string ringDir(const char* name, const char* host);
-    std::string ringParentDir();
+    std::string ringDir(const char* name, const char* host) const;
+    std::string ringParentDir() const;
+    
+    std::string usToString(unsigned val);
+    void rmTree(std::string dirName);
+    
+    std::string ringDirToName(std::string dirName);
+    std::string ringDirToHost(std::string dirName);
 };
 
 

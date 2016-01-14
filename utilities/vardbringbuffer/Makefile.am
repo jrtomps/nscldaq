@@ -12,7 +12,7 @@ COMMONCPPFLAGS= -I@top_srcdir@/utilities/varmanager/server 	\
 #  C++ API:
 
 libvardbRingBuffer_la_SOURCES = CVardbRingBuffer.cpp
-libvardbRingBuffer_la_CPPFLAGS=$(COMMONCPPLFAGS)
+libvardbRingBuffer_la_CPPFLAGS=$(COMMONCPPFLAGS)
 libvardbRingBuffer_la_LDFLAGS=$(COMMONLDFLAGS)
 
 # C++ API tests:
@@ -21,6 +21,6 @@ noinst_PROGRAMS=unittests
 
 unittests_SOURCES = TestRunner.cpp Asserts.h apitests.cpp
 unittests_CPPFLAGS=$(COMMONCPPFLAGS) @CPPUNIT_CFLAGS@
-unittests_LDFDLAGS= libvardbRingBuffer.la $(COMMONLDFLAGS) @CPPUNIT_LDFLAGS@
+unittests_LDFLAGS= libvardbRingBuffer.la $(COMMONLDFLAGS) @CPPUNIT_LDFLAGS@
 
 TESTS=@builddir@/unittests
