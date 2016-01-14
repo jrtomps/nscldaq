@@ -26,7 +26,8 @@ SUBDIRS = 				daqstart \
 					vardbEventbuilder   \
 					dumpend		\
 					expEditor	\
-					fileanalyzer	
+					fileanalyzer	\
+					vardbringbuffer
 
 
 # scalerdisplay - removed in favor of newscaler

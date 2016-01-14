@@ -455,6 +455,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/varmanager/scripts/rmrdo
 		 utilities/varmanager/scripts/resetrdo
 		 utilities/varmanager/scripts/rdosalone
+		 utilities/vardbringbuffer/Makefile
 		 utilities/statemanager/Makefile
 		 utilities/runcontrol/Makefile
 		 utilities/bootmanager/Makefile
