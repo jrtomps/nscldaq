@@ -1,0 +1,481 @@
+<!-- manpage 3daq -->
+
+<refentry id="daq3_cvardbringbuffer">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='cvardbringbuffer_title'>CVardbRingBuffer</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CVardbRingBuffer</refname>
+     <refpurpose>C++ API to create/manipulate ring buffer descriptions</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CVardbRingBuffer.h&gt;
+       class <ooclass><classname>CVardbRingBuffer</classname></ooclass>
+{
+public:
+    typedef struct _RingInfo {
+        std::string s_name;
+        std::string s_host;
+        unsigned    s_dataSize;
+        unsigned    s_maxConsumers;
+    } RingInfo, *pRingInfo;
+    
+    <constructorsynopsis>
+       <methodname>CVardbRingBuffer</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>pDbUri</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>haveSchema</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>createSchema</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>create</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char*</type>
+                <parameter> name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>host</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>unsigned </type>
+                <parameter>maxData </parameter>
+                <initializer>8*1024*1024</initializer>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>unsigned </type>
+                <parameter>maxConsumers </parameter>
+                <initializer>100</initializer>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>destroy</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>host</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setMaxData</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>host</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>unsigned </type>
+                <parameter>newValue</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setMaxConsumers</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char*</type>
+                <parameter> host</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>unsigned </type>
+                <parameter>newValue</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>RingInfo </type>
+        <methodname>ringInfo</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>host</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;RingInfo&gt; </type>
+        <methodname>list</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    
+    
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class provides an API for defining, querying and modifying
+        ring buffer definitions in a variable database.    The boot manager
+        uses these definitions to know which ring buffers to create when the
+        system boots.  When the system shuts down, these ringbuffers are also
+        destroyed.  Note that no attempt is made to destroy proxy rings on
+        systems remote to the ring's host
+     </para>
+     <para>
+        <link linkend='daq5_vardbringbuffer' endterm='daq5_vardbringbuffer_title' />
+        describes how ring buffers are represented in a variable database.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CVardbRingBuffer</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>pDbUri</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    When constructing a <classname>CVardbRingBuffer</classname>
+                    object you must supply a <parameter>pDbUri</parameter> which
+                    is a null terminated string that is a URI describing which
+                    database will be manipulated and how that database
+                    will be accessed.
+                </para>
+                <para>
+                    <literal>file:</literal> protocol URI's specify direct
+                    access to a variable data base file.
+                    <literal>tcp:</literal> protocol URI's specify a server
+                    and port or service that through which database operations
+                    will be performed.  If access is via a database server,
+                    clients that have subcribed to the ringbuffer description
+                    part of the database will be notified when that section changes.
+                </para>
+            </listitem>
+        </varlistentry>    
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>haveSchema</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Returns <literal>true</literal> if the database the
+                    object is connected to has the ring buffer schema.
+                    If not returns <literal>false</literal>.  See
+                    <methodname>createSchema</methodname> below.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>createSchema</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Creates the infrastructure into which the ring buffer
+                    descriptions will be placed.  This method only does anything
+                    if <methodname>haveSchema</methodname> returns
+                    <literal>false</literal>.  It is therefore safe, after
+                    creating a <classname>CVardbRingBuffer</classname> to immediately
+                    invoke<methodname>createSchema</methodname> on it.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>create</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>maxData </parameter>
+                            <initializer>8*1024*1024</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>maxConsumers </parameter>
+                            <initializer>100</initializer>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Creates a new ring buffer definition.  The ringbuffer
+                    will be named <parameter>name</parameter> and be located
+                    in <parameter>host</parameter>.  
+                 </para>
+                 <para>
+                    If provided <parameter>maxData</parameter> overrides the
+                    default size of the data section of the ring buffer.  If
+                    not provided, this defaults to 8Mbytes.
+                 </para>
+                 <para>
+                    Similarly, if provided, <parameter>maxConsumers</parameter>
+                    overrides the default maximum of 100 simultaneously connected
+                    consumers.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>destroy</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Destroys the existing ring buffer identified by
+                    <parameter>name</parameter>@<parameter>host</parameter>.
+                    This destroys all variables associated with the ring buffer
+                    by recursively destroying all items in the directory that
+                    contains the ring buffer description.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setMaxData</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>newValue</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Given an existing ring buffer definition identified
+                    by <parameter>name</parameter>@<parameter>host</parameter>,
+                    modifies the data size of the ring.  The data size is the
+                    number of bytes of data that can be held by the ringbuffer.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setMaxConsumers</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> host</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>newValue</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Given an existing ringbuffer identified by
+                    <parameter>name</parameter>@<parameter>host</parameter>,
+                    sets a new value for the maximum number of simultaneously
+                    connected local consumers to <parameter>newValue</parameter>.
+                    Note that each remote proxy ring uses one consumer slot.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>RingInfo </type>
+                    <methodname>ringInfo</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Returns information about the ring identified by
+                    <parameter>name</parameter> and <parameter>host</parameter>.
+                    See
+                    <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    below for information about the contents of the
+                    <classname>CVardbRingBuffer::RingInfo</classname> data
+                    structure.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;RingInfo&gt; </type>
+                    <methodname>list</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Returns a vector with information about all defined ring
+                    buffers.
+                 </para>
+             </listitem>
+         </varlistentry>       
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        The <classname>CVardbRingBuffer</classname> class has an internally
+        defined data type: <classname>CVardbRingBuffer::RingInfo</classname>
+        which is used to describe ring buffers.
+        This data type has the following fields: 
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+                <type>std::string</type> <structfield>s_name</structfield>
+            </term>
+            <listitem>
+                <para>
+                    Contains the name of the ring buffer.  This is a name,
+                    not a URI.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>std::string</type> <structfield>s_host</structfield></term>
+            <listitem>
+                <para>
+                    Contains the host in which the ring buffer will be created.
+                    The <structfield>s_host</structfield> and
+                    <structfield>s_name</structfield> fields can be used
+                    to construct the ring URI.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>unsigned</type> <structfield>s_dataSize</structfield></term>
+            <listitem>
+                <para>
+                    Capacity of the ring buffer in bytes.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>unsigned</type> <structfield>s_maxConsumers</structfield></term>
+            <listitem>
+                <para>
+                    Maximum number of simultaneously connected consumers.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+   </refsect1>
+</refentry>
+
+<!-- /manpage -->

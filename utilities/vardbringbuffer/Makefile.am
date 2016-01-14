@@ -24,3 +24,12 @@ unittests_CPPFLAGS=$(COMMONCPPFLAGS) @CPPUNIT_CFLAGS@
 unittests_LDFLAGS= libvardbRingBuffer.la $(COMMONLDFLAGS) @CPPUNIT_LDFLAGS@
 
 TESTS=@builddir@/unittests
+
+# Documentation
+
+DOCFILES=man3.xml man5.xml
+
+# Extra files in the distro tarball
+
+
+EXTRA_DIST=$(DOCFILES)

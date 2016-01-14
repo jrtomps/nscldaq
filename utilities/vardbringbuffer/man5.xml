@@ -1,0 +1,73 @@
+<!-- manpage 5daq -->
+      <refentry id="daq5_vardbringbuffer">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq5_vardbringbuffer_title'>Ringbuffer schema</refentrytitle>
+           <manvolnum>5daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>Ringbuffer schema</refname>
+           <refpurpose>Variable database representation of ring buffers.</refpurpose>
+        </refnamediv>
+        
+ 
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This page describes how the variable database is used to represent
+            ring buffers.  A ringbuffer is a one to many data distribution
+            scheme.  Remote processes can gain access to data via a proxy
+            ringbuffer whose feeder mechanism also provides traffic concentration.
+           </para>
+           <para>
+            The variable database uses the directory <literal>/RingBuffers</literal>
+            to hold all information about the ring buffers it uses.  The information
+            for each ring buffer is held in a directory below
+            <filename>/RingBuffers</filename>.  The name of the directory is of
+            the form <replaceable>ringname@host</replaceable> where
+            <replaceable>ringname</replaceable> is the raw name of the
+            ringbuffer and <replaceable>host</replaceable> is the name of the host
+            in which the ring buffer is created.
+           </para>
+           <para>
+            The following variables are then defined within each ring buffer
+            directory:
+           </para>
+           <segmentedlist>
+            <segtitle>Variable: </segtitle>
+            <segtitle>Data Type: </segtitle>
+            <segtitle>Contents</segtitle>
+            <seglistitem>
+                <seg>datasize</seg>
+                <seg>integer (unsigned)</seg>
+                <seg>
+                    The number of bytes of data buffer in the ring buffer.
+                    This value defines the largest item that can be put in the
+                    ringbuffer.  The size does not include the amount of storage
+                    required for headers etc.
+                </seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>maxconsumers</seg>
+                <seg>integer (unsigned)</seg>
+                <seg>
+                    The maximum number of consumers that can simultaneously
+                    acquire data from the ringbuffer.
+                </seg>
+            </seglistitem>
+           </segmentedlist>
+        </refsect1>
+
+      </refentry>
+
+<!-- /manpage -->
