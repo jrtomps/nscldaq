@@ -11,9 +11,11 @@ COMMONCPPFLAGS= -I@top_srcdir@/utilities/varmanager/server 	\
 
 #  C++ API:
 
-libvardbRingBuffer_la_SOURCES = CVardbRingBuffer.cpp
+libvardbRingBuffer_la_SOURCES = CVardbRingBuffer.cpp 
 libvardbRingBuffer_la_CPPFLAGS=$(COMMONCPPFLAGS)
 libvardbRingBuffer_la_LDFLAGS=$(COMMONLDFLAGS)
+
+include_HEADERS=CVardbRingBuffer.h
 
 # C++ API tests:
 
