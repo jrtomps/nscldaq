@@ -44,12 +44,28 @@ proc destroyDb file {
     tcltest::removeFile $file
 }
 
-tcltest::test test-pkg-1 {We should be able to require the package} \
+# Returna  dict that describes a ring
+
+proc ringToDict {file name host} {
+    set h [vardb::open $file]
+    set result [dict create name $name host $host]
+    
+    vardb::cd $h /RingBuffers/$name@$host
+    dict set result datasize [vardb::var get $h datasize]
+    dict set result maxconsumers [vardb::var get $h maxconsumers]
+    
+    vardb::close $h
+    
+    return $result
+    
+}
+
+tcltest::test pkg-1 {We should be able to require the package} \
 -body {
     catch {package require vardbringbuffer}
 } -result 0
 
-tcltest::test test-pkg-2 {Package should create the namespace ::nscldaq} \
+tcltest::test pkg-2 {Package should create the namespace ::nscldaq} \
 -setup {
     package require vardbringbuffer
 } \
@@ -57,7 +73,7 @@ tcltest::test test-pkg-2 {Package should create the namespace ::nscldaq} \
     namespace exists ::nscldaq
 } -result 1
 
-tcltest::test test-pkg-3 {Package should create ::nscldaq::vardbringbuffer} \
+tcltest::test pkg-3 {Package should create ::nscldaq::vardbringbuffer} \
 -setup {
     package require vardbringbuffer
 } \
@@ -66,7 +82,7 @@ tcltest::test test-pkg-3 {Package should create ::nscldaq::vardbringbuffer} \
 } -result ::nscldaq::vardbringbuffer
 
 
-tcltest::test test-subcommand-needed {The command needs to have a subcommand} \
+tcltest::test subcommand-needed {The command needs to have a subcommand} \
 -setup {
     package require vardbringbuffer
 } \
@@ -74,7 +90,7 @@ tcltest::test test-subcommand-needed {The command needs to have a subcommand} \
     catch {::nscldaq::vardbringbuffer}
 } -result 1
 
-tcltest::test test-create {Creating will make a new command} \
+tcltest::test create {Creating will make a new command} \
 -setup {
     package require vardbringbuffer
     set file [makeEmptyDb]
@@ -88,7 +104,7 @@ tcltest::test test-create {Creating will make a new command} \
     info commands api
 } -result api
 
-tcltest::test test-destroy {Destroy should make the command go away} \
+tcltest::test destroy {Destroy should make the command go away} \
 -setup {
     package require vardbringbuffer
     set file [makeEmptyDb]
@@ -103,7 +119,7 @@ tcltest::test test-destroy {Destroy should make the command go away} \
     
 } -result [list]
 
-tcltest::test test-create-dup {Duplicate command not allowed} \
+tcltest::test create-dup {Duplicate command not allowed} \
 -setup {
      package require vardbringbuffer
      set file [makeEmptyDb]
@@ -115,6 +131,213 @@ tcltest::test test-create-dup {Duplicate command not allowed} \
 -body {
     ::nscldaq::vardbringbuffer create anapi file://$file
     catch {::nscldaq::vardbringbuffer create anapi file://$file}
+} -result 1
+
+tcltest::test api-needop {API command need an operation} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    catch {api}
+} -result 1
+
+tcltest::test api-noschema {Initial databases don't have the ring schema} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    api haveSchema
+} -result 0
+
+tcltest::test make-schema1 {Create the schema shows that it's created} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    api createSchema
+    api haveSchema
+} -result 1
+
+tcltest::test create-1 {Create a ring with default parameters} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    api create fox charlie
+    ringToDict $file fox charlie
+} -result [dict create \
+    name fox host charlie datasize [expr 8*1024*1024] maxconsumers 100]
+
+tcltest::test create-2 {Create ring overiding default parameters} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    api create fox charlie [dict create datasize [expr 4*1024*1024] maxconsumers 10]
+    ringToDict $file fox charlie
+} -result [dict create name fox host charlie datasize [expr 4*1024*1024] maxconsumers 10]
+
+tcltest::test destroy {Destroy a ring after creating it} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    api create fox charlie
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    api destroy fox charlie
+    set h [vardb::open $file]
+    set status [catch {vardb::cd $h /RingBuffers/fox@charlie}]
+    vardb::close $h
+    
+    set status
+} -result 1
+
+tcltest::test setmaxdata-1 {Set maximum data with a legal value} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    api create fox charlie
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    api setMaxData fox charlie [expr 4*1024*1024]
+    dict get [ringToDict $file fox charlie] datasize
+} -result [expr 4*1024*1024]
+
+tcltest::test setmaxdata-2 {Set maximum data with a illegal value} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    api create fox charlie
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    catch {api setMaxData fox charlie [expr -4*1024*1024]}
+} -result 1
+
+
+tcltest::test setmaxclients-1 {set maximum clients to a legal value} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    api create fox charlie
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    api setMaxConsumers fox charlie 10
+    dict get [ringToDict $file fox charlie ] maxconsumers
+} -result 10
+
+tcltest::test setmaxclients-2 {Set maximum consumers to an illegal value} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    api create fox charlie
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    catch {api setMaxConsumers fox charlie 0}
+    
+} -result 1
+
+tcltest::test ringInfo {get info about a ring} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    api create fox charlie
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    set apiValue [api ringInfo fox charlie]
+    set rawValue [ringToDict $file fox charlie]
+    
+    expr {$apiValue == $rawValue}
+} -result 1
+
+tcltest::test list {get list of dicts about all rings} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    api create fox charlie
+    api create built charlie [dict create datasize 1000000 maxconsumers 10]
+    
+    set listing [api list]
+    
+    lappend sb [ringToDict $file built charlie]
+    lappend sb [ringToDict $file fox charlie]
+
+    
+    expr {$sb == $listing}
 } -result 1
 
 #-------------------------------------------------------------------------------

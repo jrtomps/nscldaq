@@ -24,10 +24,12 @@
 #include <vector>
 
 #include <TCLObjectProcessor.h>
+#include "CVardbRingBuffer.h"
+
 class CTCLInterpreter;
 class CTCLObject;
-class CVardbRingBuffer;
 
+struct Tcl_Obj;
 
 
 /**
@@ -46,6 +48,35 @@ public:
     
 public:
     int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    
+    // subcommand handlers:
+    
+private:
+    void haveSchema(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void createSchema(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void destroy(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void setMaxData(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void setMaxConsumers(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void ringInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void list(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    
+    // Utilities:
+private:  
+    void getDictUnsigned(
+        CTCLInterpreter& interp, Tcl_Obj* dict, const char* key,
+        unsigned* pValue
+    );
+    unsigned sizeValue(CTCLObject& obj);
+    Tcl_Obj* ringDict(CTCLInterpreter& interp, CVardbRingBuffer::pRingInfo pInfo);
+    
+    void putDict(
+        CTCLInterpreter& interp, Tcl_Obj* pDict, const char* pKey,
+        std::string value
+    );
+    void putDict(
+        CTCLInterpreter& interp, Tcl_Obj* pDict, const char* pKey, unsigned value
+    );
  };
 
 #endif
