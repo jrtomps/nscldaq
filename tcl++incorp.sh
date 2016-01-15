@@ -16,9 +16,15 @@
 baseURL="git://git.code.sf.net/p/nscldaq/git"
 
 tag="$1"
+uri="$2"
+
+if [ "$uri" = "" ]
+then
+   uri=$baseURL
+fi
 
 rm -rf libtcl 
 
-git clone $baseURL libtcl
+git clone $uri libtcl
 (cd libtcl; git checkout tags/$1)
 (cd libtcl; autoreconf -i)
