@@ -1,0 +1,131 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file tclapitest.test
+# @brief Test tcl bindings to the ringbuffer database api.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+package require tcltest
+package require vardb
+
+# Make an empty database file in the test tmp dir.
+# return the full path to the file:
+
+proc makeEmptyDb {} {
+    set path [tcltest::makeFile "" testing.db]
+    file delete $path
+    
+    vardb::create $path
+    return $path
+    
+}
+
+proc destroyDb file {
+    tcltest::removeFile $file
+}
+
+tcltest::test test-pkg-1 {We should be able to require the package} \
+-body {
+    catch {package require vardbringbuffer}
+} -result 0
+
+tcltest::test test-pkg-2 {Package should create the namespace ::nscldaq} \
+-setup {
+    package require vardbringbuffer
+} \
+-body {
+    namespace exists ::nscldaq
+} -result 1
+
+tcltest::test test-pkg-3 {Package should create ::nscldaq::vardbringbuffer} \
+-setup {
+    package require vardbringbuffer
+} \
+-body {
+    info commands ::nscldaq::vardbringbuffer
+} -result ::nscldaq::vardbringbuffer
+
+
+tcltest::test test-subcommand-needed {The command needs to have a subcommand} \
+-setup {
+    package require vardbringbuffer
+} \
+-body {
+    catch {::nscldaq::vardbringbuffer}
+} -result 1
+
+tcltest::test test-create {Creating will make a new command} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+} \
+-body {
+    ::nscldaq::vardbringbuffer create api file://$file
+    info commands api
+} -result api
+
+tcltest::test test-destroy {Destroy should make the command go away} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+} \
+-cleanup {
+    destroyDb $file
+} \
+-body {
+    ::nscldaq::vardbringbuffer create anapi file://$file
+    ::nscldaq::vardbringbuffer destroy anapi
+    info commands anapi
+    
+} -result [list]
+
+tcltest::test test-create-dup {Duplicate command not allowed} \
+-setup {
+     package require vardbringbuffer
+     set file [makeEmptyDb]
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy anapi
+    destroyDb $file
+} \
+-body {
+    ::nscldaq::vardbringbuffer create anapi file://$file
+    catch {::nscldaq::vardbringbuffer create anapi file://$file}
+} -result 1
+
+#-------------------------------------------------------------------------------
+#
+#   Global test teardown/reporting.
+
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests
