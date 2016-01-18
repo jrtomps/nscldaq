@@ -60,7 +60,7 @@ TEST_EXENSTIONS=.test .py
 TEST_LOG_COMPILER=@TCLSH@
 PY_LOG_COMPILER=@PYTHON@
 TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
-	PYTHONPAH=@prefix@/pythonLibs; export PYTHONPATH;
+	PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
 
 TESTFILES=tclapitest.test pyapitests.py
 
