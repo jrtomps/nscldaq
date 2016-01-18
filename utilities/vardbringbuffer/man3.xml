@@ -477,5 +477,332 @@ public:
       </variablelist>
    </refsect1>
 </refentry>
+<!-- /manpage -->
+<!-- manpage 3tcl -->
+
+      <refentry id="tcl3-vardbringbuffer">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3-vardbringbuffer-title'>vardbringbuffer</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>vardbringbuffer</refname>
+           <refpurpose>Tcl bindings to the CVardbRingBuffer class</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          
+          <cmdsynopsis>
+            <command>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+            </command>
+        <command>
+package require vardbringbuffer
+        </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+          <command>
+nscldaq::vardbringbuffer create <replaceable>name db-uri</replaceable>          
+          </command>
+          <command>
+nscldaq::vardbringbuffer destroy <replaceable>name</replaceable>
+          </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+          <command>
+<replaceable>name</replaceable>  haveSchema
+          </command>
+          <command>
+<replaceable>name</replaceable>  createSchema
+          </command>
+          <command>
+<replaceable>name</replaceable>  create <replaceable>name host ?option-dict?</replaceable>
+          </command>
+          <command>
+<replaceable>name</replaceable> destroy <replaceable>name host</replaceable>
+          </command>
+          <command>
+<replaceable>name</replaceable>  setMaxData <replaceable>name host datasize</replaceable>
+          </command>
+          <command>
+<replaceable>name</replaceable>  setMaxConsumers <replaceable>name host maxconsumers</replaceable>
+          </command>
+          <command>
+<replaceable>name</replaceable>  ringInfo <replaceable>name host</replaceable>
+          </command>
+          <command>
+<replaceable>name</replaceable>  list
+          </command>
+        </cmdsynopsis>
+        
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This package provides an object oriented interface to the API that
+            maintains ring buffer definitions in a variable database.  These
+            descriptions are used to create and destroy ring buffers as a
+            data acqusition system starts up and shuts down.
+           </para>
+           <para>
+            The package consists of a command ensemble that constructs and
+            destroys objects that encapsulate an API connected to a single
+            database via a database URI.  The database URI may be either a
+            <literal>file:</literal> or <literal>tcp:</literal> protocol URI
+            depending on whether or not direct or server based access is desired.
+            Using server based access allows notification of changes to this part
+            of the database to subscribing programs, while direct access does not.
+           </para>
+           <para>
+            The <command>::nscldaq::vardbringbuffer create</command> subcommand
+            accepts an object name and a URI.  This is a constructor for a new
+            command ensembled specified by the object name connected to the database
+            described by the URI.  <command>::nscldaq::vardbringbuffer destroy</command>
+            accepts the name of a an object created by
+            <command>::nscldaq::vardbringbuffer create</command> and destroys that
+            command ensemble.
+           </para>
+           
+        </refsect1>
+        <refsect1>
+           <title>
+              API Objects
+           </title>
+           <para>
+            This section describes the sub commands recognized by API objects
+            created with <command>::nscldaq::vardbringbuffer create</command>.
+            In the descriptions below it is understood that each subcommand is
+            preceeded by its object name for example;
+           </para>
+           <informalexample>
+              <programlisting>
+
+package require vardbringbuffer
+::nscldaq::vardbringbuffer create rings file://$::env(HOME)/myexperiment.db
+if {![rings haveSchema]} {
+  rings createSchema
+}
+              </programlisting>
+              <para>
+                Uses two subcommands of the <command>rings</command>,  object;
+                <command>haveSchema</command> and
+                <command>createSchema</command>.  In the subcommand descriptions
+                below the <command>rings</command> command is understood and not
+                shown.
+              </para>
+           </informalexample>
+           <variablelist>
+            <varlistentry>
+                <term>
+                <command>
+                  haveSchema
+                </command>                  
+                </term>
+                <listitem>
+                    <para>
+                      Tests to see if the directory tree needed to represent
+                      ring buffer descriptions has been made.  If so, returns
+                      a boolean <literal>true</literal> value.  If not,
+                      returns a boolean <literal>fals</literal> value.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <command>
+       createSchema
+                </command>
+                </term>
+                <listitem>
+                    <para>
+                      Creates the subdirectory tree needed by the variable
+                      database to represent ring buffer descriptions.  If
+                      the <command>haveSchema</command> would return <literal>true</literal>
+                      when this subcommand is invoked, it does nothing silently.
+                      It is therefore safe (though perhaps not efficient)
+                      to write scripts assuming that the schema does not
+                      exist.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>
+       create <replaceable>name host ?option-dict?</replaceable>
+                </command>
+                </term>
+                <listitem>
+                    <para>
+                      Creates a new ring buffer definition for a ring
+                      named <parameter>name</parameter>.
+                      This ring buffer will be created in <parameter>host</parameter>.
+                      The optional <parameter>option-dict</parameter> is a dict
+                      whose key/value pairs can override some of the default
+                      values for ring buffer creation.
+                    </para>
+                    <para>
+                      If the dict is present and has a <literal>datasize</literal>
+                      key, that key's value must be an integer strictly greater
+                      than zero and will be the size of the databuffer section of
+                      the ring buffer.  While a  value as small as
+                      <literal>1</literal> is strictly legal, that will not work
+                      with data as normally formatted in a ring buffer as that size
+                      won't accomodate a ring item header.  If not overridden, the
+                      default value is 8Mbytes (<literal>8*1024*1024</literal>)
+                    </para>
+                    <para>
+                      If the dict is present and has a <literal>maxconsumers</literal>
+                      key, that keys' value must be an integer strictly greater
+                      than zero and will be the maximum number of consumer
+                      programs that can simlutaneously connect.  If not provided,
+                      this defaults to <literal>100</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>  
+      destroy <replaceable>name host</replaceable>
+                </command>
+                </term>
+                <listitem>
+                    <para>
+                      Destroys the ring buffer definition identified by
+                      <parameter>name</parameter> and <parameter>host</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>
+      setMaxData <replaceable>name host datasize</replaceable>
+                </command>  
+                </term>
+                <listitem>
+                    <para>
+                      Changes the data buffer size for a ring buffer definition
+                      identified by
+                      <parameter>name</parameter> and <parameter>host</parameter>
+                      to <parameter>datasize</parameter>.  <parameter>datasize</parameter>
+                      must be an integer number that is srictly greater than zero.
+                      In practice it should be something quite a bit larger than this.
+                    </para>
+                </listitem>
+            </varlistentry>     
+            <varlistentry>
+                <term>
+                  <command>
+                    setMaxConsumers <replaceable>name host maxconsumers</replaceable>            
+                  </command>
+                </term>
+                <listitem>
+                    <para>
+                      Sets the maximum number of consumers for the ring
+                      identified by <parameter>name</parameter> and
+                      <parameter>host</parameter> to
+                      <parameter>maxconsumers</parameter>.   Note
+                      that <parameter>maxconsumers</parameter> must be strictly
+                      greater than zero.  The overhead of a consumer slot in a
+                      ring buffer is really quite small, since it only contains
+                      a <type>pid_t</type> identifying the consumer when one
+                      is connected and a get offset into the data buffer.
+                    </para>
+                    <para>
+                      There is, however some overhead associated with making this
+                      large in determinining the free space available for a put
+                      as that
+                      must be computed as the smallest free space available for
+                      all connected consumers.
+                    </para>
+                </listitem>
+            </varlistentry>    
+            <varlistentry>
+                <term>
+                  <command>
+      ringInfo <replaceable>name host</replaceable>
+                </command>  
+                </term>
+                <listitem>
+                    <para>
+                      Returns a dict that describes the definition of a
+                      ringbuffer identified by <parameter>name</parameter>
+                      and <parameter>host</parameter>.   The dict has the
+                      following key/value pairs:
+                    </para>
+                    <variablelist>
+                      <varlistentry>
+                          <term><literal>name</literal></term>
+                          <listitem>
+                              <para>
+                                The name of the ring buffer.  For this case
+                                that will be the same as the <parameter>ring</parameter>
+                                command line parameter.
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                          <term><literal>host</literal></term>
+                          <listitem>
+                              <para>
+                                The host in which the ring buffer is to live.
+                                For this case, that will be the same as the
+                                <parameter>host</parameter> command line
+                                parameter.
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                          <term><literal>datasize</literal></term>
+                          <listitem>
+                              <para>
+                                An integer that is the number of bytes of
+                                data the ring buffer will have.
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                          <term><literal>maxconsumers</literal></term>
+                          <listitem>
+                              <para>
+                                An integer that is the maximum number of
+                                simlutaneously connected consumers a ring
+                                buffer will have.
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                    </variablelist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <command>
+      list
+                </command>
+                </term>
+                <listitem>
+                    <para>
+                      Produces a Tcl list that describes all of the
+                      ring buffer definitions.  Each list element is a dict of the
+                      form produced by <command>ringInfo</command>.  
+                    </para>
+                </listitem>
+            </varlistentry>    
+      
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
 
 <!-- /manpage -->
