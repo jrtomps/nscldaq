@@ -80,7 +80,7 @@ let State 0Initial
 
 # Initialize to not recording data.
 
-ignoreError declare Recording           boolean
+ignoreError declare Recording           bool
 let Recording       false
 
 

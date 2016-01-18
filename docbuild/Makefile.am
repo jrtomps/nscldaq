@@ -108,6 +108,8 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/libtcl/exception 	\
 						@top_srcdir@/utilities/varmanager \
 						@top_srcdir@/utilities/varmanager/server \
+						@top_srcdir@/utilities/statemanager	\
+						@top_srcdir@/utilities/services		\
 						@top_srcdir@/utilities/vardbEventbuilder	\
 						@top_srcdir@/utilities/vardbringbuffer
 
