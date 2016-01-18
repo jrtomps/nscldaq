@@ -12,7 +12,7 @@
     <productnumber></productnumber>
   </refentryinfo>
   <refmeta>
-     <refentrytitle id='cvardbringbuffer_title'>CVardbRingBuffer</refentrytitle>
+     <refentrytitle id='daq3_cvardbringbuffer_title'>CVardbRingBuffer</refentrytitle>
      <manvolnum>3daq</manvolnum>
          <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
@@ -804,5 +804,257 @@ if {![rings haveSchema]} {
 
       </refentry>
 
+
+<!-- /manpage -->
+<!-- manpage 3python -->
+      <refentry id="python3_VardbRingbuffer">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='python3_VardbRingbuffer_title'>VardbRingbuffer</refentrytitle>
+           <manvolnum>3python</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>VardbRingbuffer</refname>
+           <refpurpose>Python bindings to CVardbRingBuffer API class.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+        <command>
+from nscldaq.vardb import VardbRingbuffer
+        </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+          <command>
+api = VardbRingbuffer.api(uri)
+          </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+          <command>
+api.haveSchema()
+          </command>
+          <command>
+api.createSchema
+          </command>
+
+            <command>
+api.create(name, host<optional>, <optional>datasize=n</optional><optional>, maxconsumers=m</optional></optional>)
+            </command>
+            <command>
+api.destroy(name, host)
+            </command>
+            <command>
+api.setMaxData(name, host, datasize)
+            </command>
+            <command>
+api.setMaxConsumers(name, host, maxconsumers)
+            </command>
+            <command>
+api.ringInfo(name, host)
+            </command>
+            <command>
+api.list()
+            </command>
+          
+        </cmdsynopsis>
+        
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This module provides a Python binding to the API that uses the
+            variable database to describe ring buffers.  The native, C++ API
+            is described in
+            <link linkend='daq3_cvardbringbuffer' endterm='daq3_cvardbringbuffer_title' />.
+           </para>
+           <para>
+            The module provides a single type, the <classname>VardbRingbuffer.api</classname>
+            type, which encapsulates an API instance connected to a database. In
+            addition, errors are signalled by
+            raising <classname>VardbRingbuffer.exception</classname> objets.
+           </para>
+           <para>
+            The <classname>VardbRingbuffer.api</classname> constructor accepts a
+            single parameter, the URI that describes the connection to the
+            database being manipulated.  The URi can be either a
+            <literal>file:</literal> or a <literal>tcp:</literal> protocol
+            URI.  <literal>file:</literal> URI's directly open a database file
+            while <literal>tcp:</literal> URIs describe a variable database
+            server through which all actions will proceed.
+           </para>
+           <para>
+            If a <literal>tcp:</literal> URI is used to specify the database
+            connection, applications that subscribe to changes in the
+            ring buffer descriptions will receive change notifications.
+            <literal>file:</literal> URI connections won't signal notifications.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              API METHODS
+           </title>
+           <para>
+            This section assumes you have created an API object named
+            <varname>api</varname>.  All methods are shown as methods
+            calld on that object.
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term>
+                  <command>api.haveSchema()</command>
+                </term>
+                <listitem>
+                    <para>
+                      Returns <literal>True</literal> if the directory structure
+                      used to manage ring buffer descriptions has already been
+                      created in the variable database.  If not returns
+                      <literal>False</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>api.createSchema()</command></term>
+                <listitem>
+                    <para>
+                      Creates the directory structure needed to manage
+                      ring buffer descriptions.  If the directory structure
+                      already exists, this method silently does nothing.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>api.create(name, host <optional><optional>, datasize=n</optional> <optional>, maxconsumers=m</optional></optional></command></term>
+                <listitem>
+                    <para>
+                      Creates a new ringbuffer definition.  The parameters
+                      <parameter>name</parameter> and <parameter>host</parameter>
+                      provide the ring bufer name an the host in which it lives.
+                      These two parameters are positional and mandatory.
+                    </para>
+                    <para>
+                      The keyword parameters allow you to override some default
+                      parameter values for the ring buffer.
+                    </para>
+                    <variablelist>
+                      <varlistentry>
+                          <term><literal>datasize</literal></term>
+                          <listitem>
+                              <para>
+                                Provides the numer of bytes of buffering
+                                the ring buffer provides.  If omitted,
+                                <literal>8Mbytes</literal> of buffering are
+                                created (note 8Mbytes = 8*1024*1024).
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                          <term><literal>maxconsumers</literal></term>
+                          <listitem>
+                              <para>
+                                Provides the maximum number of consumers that
+                                can simultaneously receive data from the ring.
+                                This defaults to <literal>100</literal>
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                    </variablelist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>api.destroy(name, host)</command></term>
+                <listitem>
+                    <para>
+                      Destroys the ring buffer definition identified by
+                      <parameter>name</parameter> and <parameter>host</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>api.setMaxData(name, host, value)</command></term>
+                <listitem>
+                    <para>
+                      Sets a new value for the size of the data buffer of the
+                      ring definition selected by <parameter>name</parameter>
+                      and <parameter>host</parameter> to <parameter>value</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>api.setMaxConsumers(name, host, max)</command></term>
+                <listitem>
+                    <para>
+                      Sets the maximum number of simultaneous consumers for the
+                      ring selecte by <parameter>name</parameter> and
+                      <parameter>host</parameter> to <parameter>max</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>api.ringInfo(name, host)</command></term>
+                <listitem>
+                    <para>
+                      Returns a dict that describes the ring
+                      <parameter>name</parameter>@<parameter>host</parameter>.
+                      The dict has the following keys:
+                    </para>
+                    <variablelist>
+                      <varlistentry>
+                          <term><literal>name</literal></term>
+                          <listitem>
+                              <para>
+                                Name of the ring.
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                          <term><literal>host</literal></term>
+                          <listitem>
+                              <para>
+                                Host in which the ring is created.
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                          <term><literal>datasize</literal></term>
+                          <listitem>
+                              <para>
+                                Number fo bytes of ring buffering provided.
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                          <term><literal>maxconsumers</literal></term>
+                          <listitem>
+                              <para>
+                                Maximum number of simlutaneous consumers.
+                              </para>
+                          </listitem>
+                      </varlistentry>
+                    </variablelist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>api.list()</command></term>
+                <listitem>
+                    <para>
+                      Returns a tuple whose elements are dicts.  These dicts
+                      are described above in the discssion of api.ringInfo().
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
 
 <!-- /manpage -->
