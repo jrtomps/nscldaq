@@ -1288,6 +1288,7 @@ VardbEvb_init(PyObject* self, PyObject* args, PyObject* kargs)
     }
     catch(std::exception& e) {
         PyErr_SetString(exception, e.what());
+        return -1;
     }
     
     
