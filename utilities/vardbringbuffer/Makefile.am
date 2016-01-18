@@ -1,4 +1,4 @@
-lib_LTLIBRARIES=libvardbRingBuffer.la libtclvardbringbuffer.la
+lib_LTLIBRARIES=libvardbRingBuffer.la libtclvardbringbuffer.la libPyVardbRingBuffer.la
 
 COMMONLDFLAGS = @top_builddir@/utilities/varmanager/server/libvarmgr.la \
 		@top_builddir@/utilities/varmanager/libvardb.la         \
@@ -27,6 +27,13 @@ libtclvardbringbuffer_la_CPPFLAGS = $(COMMONCPPFLAGS) @LIBTCLPLUS_CFLAGS@ @TCL_C
 libtclvardbringbuffer_la_LDFLAGS = $(COMMONLDFLAGS) @builddir@/libvardbRingBuffer.la \
 	@LIBTCLPLUS_LDFLAGS@  @TCL_LDFLAGS@
 
+# Python API:
+
+libPyVardbRingBuffer_la_SOURCES=PyVardbRingbuffer.cpp
+libPyVardbRingBuffer_la_CPPFLAGS=$(COMMONCPPFLAGS) @PYTHON_CPPFLAGS@
+libPyVardbRingBuffer_la_LDFLAGS=$(COMMONLDFLAGS) libvardbRingBuffer.la @PYTHON_LDFLAGS@
+
+
 # Installation automake doesn't know how to do:
 
 install-exec-hook:
@@ -35,6 +42,9 @@ install-exec-hook:
 	ln -s @libdir@/libtclvardbringbuffer.so \
 		@prefix@/TclLibs/vardbringbuffer/libtclvardbringbuffer.so
 	echo "pkg_mkIndex -verbose @prefix@/TclLibs/vardbringbuffer *.so" | @TCLSH@
+	$(mkinstalldirs) @prefix/pythonLibs/nscldaq/vardb
+	rm -f @prefix@/pythonLibs/nscldaq/vardb/VardbRingbuffer.so
+	ln -s @libdir@/libPyVardbRingBuffer.so @prefix@/pythonLibs/nscldaq/vardb/VardbRingbuffer.so
 
 # C++ API tests:
 
@@ -52,7 +62,7 @@ PY_LOG_COMPILER=@PYTHON@
 TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
 	PYTHONPAH=@prefix@/pythonLibs; export PYTHONPATH;
 
-TESTFILES=tclapitest.test
+TESTFILES=tclapitest.test pyapitests.py
 
 TESTS=@builddir@/unittests $(TESTFILES)
 
