@@ -212,6 +212,22 @@ CStateTransitionMonitor::getNotifications(int max, int timeout)
     }
     return result;
 }
+/**
+ * updateProgramParentPath
+ *    - Set our new cached parent.
+ *    - Kill the monitor thread
+ *    - Start a new monitor thread with the updated info.
+ * @param path - new parent dir path
+ */
+void
+CStateTransitionMonitor::updateProgramParentPath(const char* path)
+{
+    m_pMonitor->scheduleExit();
+    m_pMonitor->join();
+    delete m_pMonitor;
+    m_programParentPath = path;
+    startMonitorThread();
+}
 
 /** postNotification
  *   Post a new notification to the queue.
@@ -404,6 +420,12 @@ CStateTransitionMonitor::MonitorThread::MonitorThread(
     m_pApi(pApi),
     m_pParent(parent)
 {
+}
+
+CStateTransitionMonitor::MonitorThread::~MonitorThread()
+{
+    m_pApi->unsubscribe("/RunState/State");
+    m_pApi->unsubscribe(m_parentDir.c_str());
 }
 /**
  *  init

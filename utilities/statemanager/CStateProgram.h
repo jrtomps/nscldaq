@@ -82,7 +82,16 @@ public:
     std::vector<std::string> listInactivePrograms();
     std::vector<std::string> listActivePrograms();
     void               deleteProgram(const char* name);  
+private:
+    std::string getProgramDirectoryPath(const char* name);
+    std::string  getVarpath(const char* program, const char* name);
+    void         setProgramVar(
+        const char* program, const char* var, const char* value
+    );
+    std::string getProgramVar(const char* program, const char* var);
+    bool        getProgramBool(const char* program, const char* var);
     
+
 };
 
 #endif

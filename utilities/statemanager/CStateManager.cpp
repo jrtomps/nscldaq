@@ -24,6 +24,7 @@
 #include "CStateManager.h"
 #include "CStateTransitionMonitor.h"
 #include <CVarMgrApi.h>
+#include <CStateProgram.h>
 #include <stdio.h>
 #include <stdexcept>
 #include <set>
@@ -41,7 +42,7 @@ CStateManager::CStateManager(const char* requestURI, const char* subscriptionURI
     m_subURI(subscriptionURI)
 {
     m_pMonitor = new CStateTransitionMonitor(m_reqURI.c_str(), m_subURI.c_str());
-    
+    m_pPrograms = new CStateProgram(m_pMonitor->getApi());    
     // For each new global state, m_finalStates provides the
     // final program and global states expected.
     // For now we don't worry about intermediate states from the programs:
@@ -64,6 +65,7 @@ CStateManager::CStateManager(const char* requestURI, const char* subscriptionURI
  */
 CStateManager::~CStateManager()
 {
+    delete m_pPrograms;
     delete m_pMonitor;
 }
 /*-----------------------------------------------------------------------------
@@ -91,21 +93,8 @@ CStateManager::getProgramParentDir()
 void
 CStateManager::setProgramParentDir(const char* path)
 {
-    // Get the API, ensure the dir exists and set the ReadoutParentPath to it
-    // if so.
-    CVarMgrApi* pApi = m_pMonitor->getApi();
-    std::string wd = pApi->getwd();
-    try {
-        pApi->cd(path);    
-    } catch (...) {
-        pApi->cd(wd.c_str());
-        throw;
-    
-    }
-    pApi->set("/RunState/ReadoutParentDir", path);
-    
-    delete m_pMonitor;
-    m_pMonitor = new CStateTransitionMonitor(m_reqURI.c_str(), m_subURI.c_str());
+    m_pPrograms->setProgramParentDir(path);
+    m_pMonitor->updateProgramParentPath(path);
 }
 /**
  * addProgram
@@ -117,32 +106,7 @@ CStateManager::setProgramParentDir(const char* path)
 void
 CStateManager::addProgram(const char* name, const pProgramDefinition def)
 {
-    std::string directory = getProgramDirectoryPath(name);
-
-    CVarMgrApi* pApi = m_pMonitor->getApi();
-    std::string wd = pApi->getwd();
-    try {
-        // Make the program directory and cd to it:
-        
-        pApi->mkdir(directory.c_str());
-        pApi->cd(directory.c_str());
-        
-        // Stock with the contents according to def:
-        
-        pApi->declare("State", "RunStateMachine");  // Default -- 0Initial.
-        pApi->declare("path", "string", def->s_path.c_str());
-        pApi->declare("enable", "bool", def->s_enabled ? "true" : "false");
-        pApi->declare("standalone", "bool", def->s_standalone ? "true" : "false");
-        pApi->declare("host", "string", def->s_host.c_str());
-        pApi->declare("outring", "string", def->s_outRing.c_str());
-        pApi->declare("inring", "string", def->s_inRing.c_str());
-        
-    }
-    catch(...) {
-        pApi->cd(wd.c_str());    // Be sure we are back to normal.
-        throw;
-    }
-    pApi->cd(wd.c_str());
+    m_pPrograms->addProgram(name, def);
 }
 /**
  * getProgramDefinition
@@ -156,29 +120,7 @@ CStateManager::addProgram(const char* name, const pProgramDefinition def)
 CStateManager::ProgramDefinition
 CStateManager::getProgramDefinition(const char* name)
 {
-    std::string directory = getProgramDirectoryPath(name);
-    
-    CVarMgrApi* pApi = m_pMonitor->getApi();
-    std::string wd = pApi->getwd();
-    ProgramDefinition result;
-    
-    try {
-        pApi->cd(directory.c_str());             // Also tests for exists.
-        result.s_enabled    = pApi->get("enable") == "true" ? true : false;
-        result.s_standalone = pApi->get("standalone") == "true" ? true : false;
-        result.s_path       = pApi->get("path");
-        result.s_host       = pApi->get("host");
-        result.s_outRing    = pApi->get("outring");
-        result.s_inRing     = pApi->get("inring");
-    }
-    catch (...) {
-        pApi->cd(wd.c_str());
-        throw;
-    }
-    
-    pApi->cd(wd.c_str());
-    
-    return result;
+    return m_pPrograms->getProgramDefinition(name);
 }
 /**
  *  modifyProgramDefinition
@@ -191,25 +133,7 @@ CStateManager::getProgramDefinition(const char* name)
 void
 CStateManager::modifyProgram(const char* name, const pProgramDefinition def)
 {
-    CVarMgrApi* pApi = m_pMonitor->getApi();
-    std::string directory = getProgramDirectoryPath(name);
-    
-    std::string wd = pApi->getwd();
-    try {
-        pApi->cd(directory.c_str());
-        
-        pApi->set("path",  def->s_path.c_str());
-        pApi->set("enable",  def->s_enabled ? "true" : "false");
-        pApi->set("standalone",  def->s_standalone ? "true" : "false");
-        pApi->set("host",  def->s_host.c_str());
-        pApi->set("outring",  def->s_outRing.c_str());
-        pApi->set("inring",  def->s_inRing.c_str());
-    }
-    catch(...) {
-        pApi->cd(wd.c_str());
-        throw;
-    }
-    pApi->cd(wd.c_str());
+    m_pPrograms->modifyProgram(name, def);
 }
 /**
  * enableProgram
@@ -220,7 +144,7 @@ CStateManager::modifyProgram(const char* name, const pProgramDefinition def)
 void
 CStateManager::enableProgram(const char* name)
 {
-    setProgramVar(name, "enable", "true");
+    m_pPrograms->enableProgram(name);
 }
 /**
  * disableProgram
@@ -231,7 +155,7 @@ CStateManager::enableProgram(const char* name)
 void
 CStateManager::disableProgram(const char* name)
 {
-    setProgramVar(name, "enable", "false");
+    m_pPrograms->disableProgram(name);
 
 }
 /**
@@ -243,7 +167,7 @@ CStateManager::disableProgram(const char* name)
 void
 CStateManager::setProgramStandalone(const char* name)
 {
-    setProgramVar(name, "standalone", "true");
+    m_pPrograms->setProgramStandalone(name);
 }
 /**
  * setProgramNoStandalone
@@ -254,7 +178,7 @@ CStateManager::setProgramStandalone(const char* name)
 void
 CStateManager::setProgramNoStandalone(const char* name)
 {
-    setProgramVar(name, "standalone", "false");
+    m_pPrograms->setProgramNoStandalone(name);
 }
 /**
  * isProgramEnabled:
@@ -266,7 +190,7 @@ CStateManager::setProgramNoStandalone(const char* name)
 bool
 CStateManager::isProgramEnabled(const char* name)
 {
-    return getProgramBool(name, "enable");
+    return m_pPrograms->isProgramEnabled(name);
 }
 /**
  * isProgramStandalone
@@ -277,7 +201,7 @@ CStateManager::isProgramEnabled(const char* name)
 bool
 CStateManager::isProgramStandalone(const char* name)
 {
-    return getProgramBool(name, "standalone");
+    return m_pPrograms->isProgramStandalone(name);
 }
 /**
  * listPrograms
@@ -287,18 +211,7 @@ CStateManager::isProgramStandalone(const char* name)
 std::vector<std::string>
 CStateManager::listPrograms()
 {
-    std::vector<std::string> result;
-    
-    // We are just going to return the names of the sub-directories
-    // in the program directory.  The claim is that users shouldn not
-    // put additional stuff there.  If this claim is false then we'll
-    // need to check for the variables that make each subdir a program.
-    
-    std::string dir = getProgramParentDir();
-    CVarMgrApi* pApi = m_pMonitor->getApi();
-    result           = pApi->ls(dir.c_str());
-    
-    return result;
+    return m_pPrograms->listPrograms();
 }
 /**
  * listEnabledPrograms
@@ -308,18 +221,7 @@ CStateManager::listPrograms()
 std::vector<std::string>
 CStateManager::listEnabledPrograms()
 {
-    std::vector<std::string> result;
-    std::vector<std::string> all  = listPrograms();
-    
-    // Filter that down to the set that are enabled:
-    
-    for (int i = 0; i < all.size(); i++) {
-        if (getProgramBool(all[i].c_str(), "enable")) {
-            result.push_back(all[i]);
-        }
-    }
-    
-    return result;
+    return m_pPrograms->listEnabledPrograms();
 }
 /**
  * listStandalonePrograms
@@ -330,18 +232,7 @@ CStateManager::listEnabledPrograms()
 std::vector<std::string>
 CStateManager::listStandalonePrograms()
 {
-    std::vector<std::string> result;
-    std::vector<std::string> all  = listPrograms();
-    
-    // Filter that down to the set that are enabled:
-    
-    for (int i = 0; i < all.size(); i++) {
-        if (getProgramBool(all[i].c_str(), "standalone")) {
-            result.push_back(all[i]);
-        }
-    }
-    
-    return result;
+    return m_pPrograms->listStandalonePrograms();
 }
 /**
  * listInactivePrograms
@@ -353,19 +244,7 @@ CStateManager::listStandalonePrograms()
 std::vector<std::string>
 CStateManager::listInactivePrograms()
 {
-    std::vector<std::string> result;
-    std::vector<std::string> all  = listPrograms();
-    
-    // Filter that down to the set that are enabled:
-    
-    for (int i = 0; i < all.size(); i++) {
-        if (getProgramBool(all[i].c_str(), "standalone") ||
-            (!getProgramBool(all[i].c_str(), "enable"))) {
-            result.push_back(all[i]);
-        }
-    }
-    
-    return result;
+    return m_pPrograms->listInactivePrograms();
 }
 /**
  * listActivePrograms
@@ -376,19 +255,8 @@ CStateManager::listInactivePrograms()
 std::vector<std::string>
 CStateManager::listActivePrograms()
 {
-    std::vector<std::string> result;
-    std::vector<std::string> all  = listPrograms();
+    return m_pPrograms->listActivePrograms();
     
-    // Filter that down to the set that are enabled:
-    
-    for (int i = 0; i < all.size(); i++) {
-        if ((!getProgramBool(all[i].c_str(), "standalone")) &&
-            (getProgramBool(all[i].c_str(), "enable"))) {
-            result.push_back(all[i]);
-        }
-    }
-    
-    return result;
 }
 /**
  * deleteProgram
@@ -398,34 +266,8 @@ CStateManager::listActivePrograms()
 void
 CStateManager::deleteProgram(const char* name)
 {
-    // Get the name of the directory to delete:
-    
-    std::string progDir = getProgramDirectoryPath(name);
-    
-    // Delete all the variables in that directory:
-    
-    CVarMgrApi* pApi                      = m_pMonitor->getApi();
-    std::vector<CVarMgrApi::VarInfo> vars =
-        pApi->lsvar(progDir.c_str());
-    
-    // Step into that directory and delete them:
-    
-    std::string wd = pApi->getwd();
-    try {
-        pApi->cd(progDir.c_str());
-        for (int i = 0; i < vars.size(); i++) {
-            pApi->rmvar(vars[i].s_name.c_str());
-        }
-    }
-    catch(...) {
-        pApi->cd(wd.c_str());
-        throw;
-    }
-    pApi->cd(wd.c_str());
-    
-    // Delete the directory too:
-    
-    pApi->rmdir(progDir.c_str());
+    m_pPrograms->deleteProgram(name);
+
 }
 /**
  * getParticipantStates

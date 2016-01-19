@@ -106,6 +106,7 @@ public:
     std::vector<Notification>  getNotifications(
         int maxNotifixcations = -1, int timeout = -1
     );
+    void updateProgramParentPath(const char* path);
     
     // Communication methods that are not intended for use by external clients:
     
@@ -135,6 +136,7 @@ private:
         MonitorThread(
             CVarMgrSubscriptions* psubAPI, CStateTransitionMonitor* parent
         );
+        ~MonitorThread();
         void init();
         void operator()();
         void scheduleExit() {m_exiting = true;}

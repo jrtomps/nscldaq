@@ -23,6 +23,7 @@
 #include "CStateProgram.h"
 #include <CVarMgrApi.h>
 #include <CVarMgrApiFactory.h>
+#include <string>
 
 
 /**
@@ -62,23 +63,467 @@ CStateProgram::~CStateProgram()
     }
     
 }
+/**
+ * getProgramParentDir
+ *    Retrieve the directory that holds the state programs.
+ *
+ * @return std::string - Path to the directory in which state programs are defined.
+ */
+std::string
+CStateProgram::getProgramParentDir()
+{
+    std::string parent = m_pApi->get("/RunState/ReadoutParentDir");
+    if (parent == "") parent = "/RunState";
+    
+    return parent;
+}
+/**
+ * setProgramParentDir
+ *    Set a new program parent dir.  The caller must have ensured this
+ *    directory already exists else an error will be thrown.
+ *
+ * @paran path - Path to new parent directory
+ */
+void
+CStateProgram::setProgramParentDir(const char* path)
+{
+    CVarMgrApi* pApi = m_pApi;                  // Used to get this from monitor.
+    std::string wd = pApi->getwd();
+    try {
+        pApi->cd(path);    
+    } catch (...) {
+        pApi->cd(wd.c_str());
+        throw;
+    
+    }
+    pApi->set("/RunState/ReadoutParentDir", path);    
+}
+/**
+ * addProgram
+ *   Add a new program to the system.
+ *
+ *  @param name - new program name (must be unique).
+ *  @param def  - Pointer to the program's definition.
+ */
+void
+CStateProgram::addProgram(const char* name, const pProgramDefinition def)
+{
+    std::string directory = getProgramDirectoryPath(name);
+
+    CVarMgrApi* pApi = m_pApi;
+    std::string wd = pApi->getwd();
+    try {
+        // Make the program directory and cd to it:
+        
+        pApi->mkdir(directory.c_str());
+        pApi->cd(directory.c_str());
+        
+        // Stock with the contents according to def:
+        
+        pApi->declare("State", "RunStateMachine");  // Default -- 0Initial.
+        pApi->declare("path", "string", def->s_path.c_str());
+        pApi->declare("enable", "bool", def->s_enabled ? "true" : "false");
+        pApi->declare("standalone", "bool", def->s_standalone ? "true" : "false");
+        pApi->declare("host", "string", def->s_host.c_str());
+        pApi->declare("outring", "string", def->s_outRing.c_str());
+        pApi->declare("inring", "string", def->s_inRing.c_str());
+        
+    }
+    catch(...) {
+        pApi->cd(wd.c_str());    // Be sure we are back to normal.
+        throw;
+    }
+    pApi->cd(wd.c_str());
+}
+/**
+ * getProgramDefinition
+ *    Return a program definition struct for the specified program.
+ *    Note that if the program does not exist, an exception is thrown
+ *
+ *  @param name - program name.
+ *  @return CStateManager::ProgramDefinition
+ *  @throw std::runtime_error
+ */
+CStateProgram::ProgramDefinition
+CStateProgram::getProgramDefinition(const char* name)
+{
+    std::string directory = getProgramDirectoryPath(name);
+    
+    CVarMgrApi* pApi = m_pApi;
+    std::string wd = pApi->getwd();
+    ProgramDefinition result;
+    
+    try {
+        pApi->cd(directory.c_str());             // Also tests for exists.
+        result.s_enabled    = pApi->get("enable") == "true" ? true : false;
+        result.s_standalone = pApi->get("standalone") == "true" ? true : false;
+        result.s_path       = pApi->get("path");
+        result.s_host       = pApi->get("host");
+        result.s_outRing    = pApi->get("outring");
+        result.s_inRing     = pApi->get("inring");
+    }
+    catch (...) {
+        pApi->cd(wd.c_str());
+        throw;
+    }
+    
+    pApi->cd(wd.c_str());
+    
+    return result;
+}
+/**
+ *  modifyProgramDefinition
+ *     Modify the definition of a program.
+ *
+ *  @param name  - Name of the program.
+ *  @param def   - New definition.
+ *  @throw std::runtime_error - if there are problems.
+ */
+void
+CStateProgram::modifyProgram(const char* name, const pProgramDefinition def)
+{
+    CVarMgrApi* pApi = m_pApi;
+    std::string directory = getProgramDirectoryPath(name);
+    
+    std::string wd = pApi->getwd();
+    try {
+        pApi->cd(directory.c_str());
+        
+        pApi->set("path",  def->s_path.c_str());
+        pApi->set("enable",  def->s_enabled ? "true" : "false");
+        pApi->set("standalone",  def->s_standalone ? "true" : "false");
+        pApi->set("host",  def->s_host.c_str());
+        pApi->set("outring",  def->s_outRing.c_str());
+        pApi->set("inring",  def->s_inRing.c_str());
+    }
+    catch(...) {
+        pApi->cd(wd.c_str());
+        throw;
+    }
+    pApi->cd(wd.c_str());
+    
+}
+/**
+ * enableProgram
+ *    Enable a program.  Enabling a program that is already enabled is a no-op.
+ *
+ * @param name - program name.
+ */
+void
+CStateProgram::enableProgram(const char* name)
+{
+    setProgramVar(name, "enable", "true");
+}
+
+/**
+ * enableProgram
+ *    Enable a program.  Enabling a program that is already enabled is a no-op.
+ *
+ * @param name - program name.
+ */
+void
+CStateProgram::disableProgram(const char* name)
+{
+    setProgramVar(name, "enable", "false");
+}
+/**
+ * setProgramStandalone
+ *    Puts a program into standalone mode.
+ *
+ * @param name - name of the program.
+ */
+void
+CStateProgram::setProgramStandalone(const char* name)
+{
+    setProgramVar(name, "standalone", "true");
+}
+/**
+ * setProgramNoStandalone
+ *    Takes a program out of standalone mode.
+ *
+ *    @param name - name of the program.
+ */
+void
+CStateProgram::setProgramNoStandalone(const char* name)
+{
+    setProgramVar(name, "standalone", "false");
+}
+/**
+ * isProgramEnabled:
+ *     True if the specified program is enabled:
+ *
+ *  @param name - name of the program.
+ *  @return bool
+ */
+bool
+CStateProgram::isProgramEnabled(const char* name)
+{
+    return getProgramBool(name, "enable");
+}
+/**
+ * isProgramStandalone
+ *
+ *   @param name - program name.
+ *   @return bool - true if the named program is set standalone.
+ */
+bool
+CStateProgram::isProgramStandalone(const char* name)
+{
+    return getProgramBool(name, "standalone");
+}
+/**
+ * listPrograms
+ *    Returns a list of all programs.
+ * @return std::vector<string>
+ */
+std::vector<std::string>
+CStateProgram::listPrograms()
+{
+    std::vector<std::string> result;
+    
+    // We are just going to return the names of the sub-directories
+    // in the program directory.  The claim is that users shouldn not
+    // put additional stuff there.  If this claim is false then we'll
+    // need to check for the variables that make each subdir a program.
+    
+    std::string dir = getProgramParentDir();
+    CVarMgrApi* pApi = m_pApi;
+    result           = pApi->ls(dir.c_str());
+    
+    return result;
+}
+/**
+ * listEnabledPrograms
+ *    List programs for which enabled is set.
+ * @return std::vector<std::string> names of enabled programs (possibly empty)
+ */
+std::vector<std::string>
+CStateProgram::listEnabledPrograms()
+{
+    std::vector<std::string> result;
+    std::vector<std::string> all  = listPrograms();
+    
+    // Filter that down to the set that are enabled:
+    
+    for (int i = 0; i < all.size(); i++) {
+        if (getProgramBool(all[i].c_str(), "enable")) {
+            result.push_back(all[i]);
+        }
+    }
+    
+    return result;
+}
+/**
+ * listStandalonePrograms
+ *   Return only those programs that have the standalone flag set:
+ *
+ *  @return std::vector<std::string>
+ */
+std::vector<std::string>
+CStateProgram::listStandalonePrograms()
+{
+    std::vector<std::string> result;
+    std::vector<std::string> all  = listPrograms();
+    
+    // Filter that down to the set that are enabled:
+    
+    for (int i = 0; i < all.size(); i++) {
+        if (getProgramBool(all[i].c_str(), "standalone")) {
+            result.push_back(all[i]);
+        }
+    }
+    
+    return result;
+}
+/**
+ * listInactivePrograms
+ *   Return only those programs that are inactive.
+ *   A program is inactive if either it is disabled or standalone.
+ *
+ * @return std::vector<std::string>
+ */
+std::vector<std::string>
+CStateProgram::listInactivePrograms()
+{
+    std::vector<std::string> result;
+    std::vector<std::string> all  = listPrograms();
+    
+    // Filter that down to the set that are enabled:
+    
+    for (int i = 0; i < all.size(); i++) {
+        if (getProgramBool(all[i].c_str(), "standalone") ||
+            (!getProgramBool(all[i].c_str(), "enable"))) {
+            result.push_back(all[i]);
+        }
+    }
+    
+    return result;
+}
+/**
+ * listActivePrograms
+ *    Lists programs that are enabled and not standalone:
+ *
+ * @return std::vector<std::string>
+ */
+std::vector<std::string>
+CStateProgram::listActivePrograms()
+{
+    std::vector<std::string> result;
+    std::vector<std::string> all  = listPrograms();
+    
+    // Filter that down to the set that are enabled:
+    
+    for (int i = 0; i < all.size(); i++) {
+        if ((!getProgramBool(all[i].c_str(), "standalone")) &&
+            (getProgramBool(all[i].c_str(), "enable"))) {
+            result.push_back(all[i]);
+        }
+    }
+    
+    return result;
+}
+/**
+ * deleteProgram
+ *    Delete a specified program.
+ * @param name - name of the program to delete.
+ */
+void
+CStateProgram::deleteProgram(const char* name)
+{
+    // Get the name of the directory to delete:
+    
+    std::string progDir = getProgramDirectoryPath(name);
+    
+    // Delete all the variables in that directory:
+    
+    CVarMgrApi* pApi                      = m_pApi;
+    std::vector<CVarMgrApi::VarInfo> vars =
+        pApi->lsvar(progDir.c_str());
+    
+    // Step into that directory and delete them:
+    
+    std::string wd = pApi->getwd();
+    try {
+        pApi->cd(progDir.c_str());
+        for (int i = 0; i < vars.size(); i++) {
+            pApi->rmvar(vars[i].s_name.c_str());
+        }
+    }
+    catch(...) {
+        pApi->cd(wd.c_str());
+        throw;
+    }
+    pApi->cd(wd.c_str());
+    
+    // Delete the directory too:
+    
+    pApi->rmdir(progDir.c_str());
+}
 
 #ifdef NOTDEFINED
-std::string       getProgramParentDir();
-void              setProgramParentDir(const char* path);
-void              addProgram(const char* name, const pProgramDefinition def);
-ProgramDefinition getProgramDefinition(const char* name);
-void              modifyProgram(const char* name, const pProgramDefinition def);
-void              enableProgram(const char* name);
-void              disableProgram(const char* name);
-bool              isProgramEnabled(const char* name);
-void              setProgramStandalone(const char* name);
-void              setProgramNoStandalone(const char* name);
-bool              isProgramStandalone(const char* name);
-std::vector<std::string> listPrograms();
-std::vector<std::string> listEnabledPrograms();
-std::vector<std::string> listStandalonePrograms();
-std::vector<std::string> listInactivePrograms();
-std::vector<std::string> listActivePrograms();
+
+;
+;
+;
+;
+;
 void               deleteProgram(const char* name);
 #endif
+/*---------------------------------------------------------------------------
+ * Private utilities
+ */
+
+/**
+ * getProgramDirectory
+ *
+ *  @param name - name of a program.
+ *  @return std::string - directory in whih that program lives.
+ *  @note - no determination is done to ensure the program/dir exists.
+ */
+std::string
+CStateProgram::getProgramDirectoryPath(const char* name)
+{
+    std::string directory = getProgramParentDir();
+    directory           += "/";
+    directory           += name;
+    
+    return directory;
+}
+
+/**
+ * getVarPath
+ *    Returns the path to a variable in a program.
+ *
+ *  @param program - the program in which to return the path.
+ *  @param name    - Name of the value.
+ *  @return std::string - full path to the variable.
+ */
+std::string
+CStateProgram::getVarpath(const char* program, const char* name)
+{
+    std::string path = getProgramDirectoryPath(program);
+    path += "/";
+    path += name;
+    
+    return path;
+}
+/**
+ * setProgramVar
+ *    set a new value for a program variable.
+ *
+ *  @param program - name of the program.
+ *  @param var     - name of the variable.
+ *  @param value   - New value for the variable.
+ */
+void
+CStateProgram::setProgramVar(
+    const char* program, const char* var, const char* value
+)
+{
+    std::string varPath = getVarpath(program, var);
+    CVarMgrApi* pApi    = m_pApi;
+    
+    pApi->set(varPath.c_str(), value);
+}
+
+/**
+ * getProgramVar
+ *    Returns the value of a program variable:
+ *
+ *  @param program - name of the program.
+ *  @param var     - Name of the variable.
+ *  @return std::string - value of the variable.
+ */
+std::string
+CStateProgram::getProgramVar(const char* program, const char* var)
+{
+    std::string path = getVarpath(program, var);
+    CVarMgrApi* pApi = m_pApi;
+    return pApi->get(path.c_str());
+}
+/**
+ * getProgramBool
+ *    Returns the value of a program boolean variable:
+ *  @param program - name of the program.
+ *  @param var     - Name of the variable.
+ *  @return bool   - Value.
+ */
+bool
+CStateProgram::getProgramBool(const char* program, const char* var)
+{
+    std::string value = getProgramVar(program, var);
+    
+    if (value == "true") return true;
+    if (value == "false") return false;
+    
+    // Not a bool value:
+    
+    
+    std::string errorMessage("Variable: ");
+    errorMessage += var;
+    errorMessage += " for program ";
+    errorMessage += program;
+    errorMessage += " does not have a boolean value: ";
+    errorMessage += value;
+    throw std::runtime_error(errorMessage);
+}

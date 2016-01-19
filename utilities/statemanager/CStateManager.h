@@ -29,6 +29,7 @@
 #include <map>
 
 #include "CStateTransitionMonitor.h"
+#include "CStateProgram.h"
 
 class CVarMgrApi;
 
@@ -67,19 +68,13 @@ private:
     std::string               m_reqURI;
     std::string               m_subURI;
     std::map<std::string, std::string> m_finalStates;
-
+    CStateProgram*            m_pPrograms;
     
     // Public data types:
     
 public:
-    typedef struct _ProgramDefinition {
-        bool        s_enabled;
-        bool        s_standalone;
-        std::string s_path;
-        std::string s_host;
-        std::string s_outRing;
-        std::string s_inRing;
-    } ProgramDefinition, *pProgramDefinition;
+    typedef CStateProgram::ProgramDefinition
+        ProgramDefinition, *pProgramDefinition;
     
     typedef void (*TransitionCallback)(
         CStateManager& mgr, std::string program, std::string state, void* cd
