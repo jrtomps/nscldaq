@@ -345,7 +345,9 @@ TEST_EXENSTIONS=.test .py
 TEST_LOG_COMPILER=@TCLSH@
 PY_LOG_COMPILER=@PYTHON@
 TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
-	PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
+	PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH; \
+	DAQBIN=@prefix@/bin; export DAQBIN; DAQROOT=@prefix@; export DAQROOT; \
+	DAQLIB=@prefix@/lib; export DAQLIB;
 TESTS = unittests stateTests \
 	stateclient.test statemgr.test \
 	StateClientTests.py StateManagerTests.py
