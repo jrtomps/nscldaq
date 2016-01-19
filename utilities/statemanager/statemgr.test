@@ -48,17 +48,17 @@ package require Thread
 # so all tests get run.
 
 tcltest::test statemgr-exists {State manager command exists} \
--constraints oldTest -body {
+ -body {
     info command ::nscldaq::statemanager
 } -result ::nscldaq::statemanager
 
 tcltest::test statemgr-needs-subcommand {state manager cmd by itself is error} \
--constraints oldTest -body {
+ -body {
     catch nscldaq::statemanager
 } -result 1
 
 tcltest::test statemgr-noxdelete {Delete of nonexistent is error} \
--constraints oldTest -body {
+ -body {
     catch {nscldaq::statemanager -delete junk}
 
 } -result 1
@@ -181,7 +181,7 @@ proc programList {name} {
 # Very basic create/delete/instance tests
 
 tcltest::test create-delete-ok {Can delete created instancde} \
--constraints oldTest -setup {
+ -setup {
     setup
 } \
 -cleanup {
@@ -194,7 +194,7 @@ tcltest::test create-delete-ok {Can delete created instancde} \
 
 
 tcltest::test instance-is-ensemble {Instance commands need subcommands} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -212,7 +212,7 @@ tcltest::test instance-is-ensemble {Instance commands need subcommands} \
 #  programParentDir command:
 
 tcltest::test pgmparent-initial {Gets the initial program parent dir} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -226,7 +226,7 @@ tcltest::test pgmparent-initial {Gets the initial program parent dir} \
 } -result "/RunState"
 
 tcltest::test pgmparent-changed {Gets program parent dir after changed} \
--constraints oldTest -setup {
+ -setup {
     setup
     
     set h [varmgr::open  tcp://localhost]
@@ -246,7 +246,7 @@ tcltest::test pgmparent-changed {Gets program parent dir after changed} \
 } -result "/programs"
 
 tcltest::test pgmparent-set {Can modify the program parent dir} \
--constraints oldTest -setup {
+ -setup {
     setup
     
     set h [varmgr::open  tcp://localhost]
@@ -266,7 +266,7 @@ tcltest::test pgmparent-set {Can modify the program parent dir} \
 } -result /programs
 
 tcltest::test pgmparent-toomany {Too many parameters to programParentDir errs} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -282,7 +282,7 @@ tcltest::test pgmparent-toomany {Too many parameters to programParentDir errs} \
 # Test for invalid subcommand:
 
 tcltest::test invsubcommand {Invalid subcommand is an error} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -298,7 +298,7 @@ tcltest::test invsubcommand {Invalid subcommand is an error} \
 #  Tests for addProgram.
 
 tcltest::test addProgram-name {addProgram needs a name} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -312,7 +312,7 @@ tcltest::test addProgram-name {addProgram needs a name} \
 } -result 1
 
 tcltest::test addProgram-dict {addProgram needs a dict} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -326,7 +326,7 @@ tcltest::test addProgram-dict {addProgram needs a dict} \
 } -result 1
 
 tcltest::test addProgram-toomany {add program has too many params} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -340,7 +340,7 @@ tcltest::test addProgram-toomany {add program has too many params} \
 } -result 1
 
 tcltest::test addProgram-success {Add a program fullspec.} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -359,7 +359,7 @@ tcltest::test addProgram-success {Add a program fullspec.} \
 } -result [list true false /home/fox/test a.b.c test tcp://b.d.c/fox]
 
 tcltest::test addProgram-defaults {Map applies default values} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -376,7 +376,7 @@ tcltest::test addProgram-defaults {Map applies default values} \
 } -result [list true false /home/fox/test a.b.c "" ""]
 
 tcltest::test addProgram-missingMandatory1 {Mandatory parameter missing} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -391,7 +391,7 @@ tcltest::test addProgram-missingMandatory1 {Mandatory parameter missing} \
 
 
 tcltest::test addProgram-missingMandatory2 {Mandatory parameter missing} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -407,7 +407,7 @@ tcltest::test addProgram-missingMandatory2 {Mandatory parameter missing} \
 #  getProgram
 
 tcltest::test getProgram-ok {Can get info about the 'test' program} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -430,7 +430,7 @@ tcltest::test getProgram-ok {Can get info about the 'test' program} \
     output tcp://localhost/ring]
 
 tcltest::test getProgram-badprog {Invalid programname -> error} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -444,7 +444,7 @@ tcltest::test getProgram-badprog {Invalid programname -> error} \
 } -result 1
 
 tcltest::test getProgram-needsprogram {needs a program parameter} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -458,7 +458,7 @@ tcltest::test getProgram-needsprogram {needs a program parameter} \
 } -result 1
 
 tcltest::test getProgram-extraparams {Error if extra params} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -474,7 +474,7 @@ tcltest::test getProgram-extraparams {Error if extra params} \
 # modifyProgram:
 
 tcltest::test modify-enabled {Modify the enable state} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -494,7 +494,7 @@ tcltest::test modify-enabled {Modify the enable state} \
 } -result [list true false]
 
 tcltest::test modify-standalone {Modify the standalone state} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -514,7 +514,7 @@ tcltest::test modify-standalone {Modify the standalone state} \
 } -result [list true false]
 
 tcltest::test modify-path {Modify the path variable} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -530,7 +530,7 @@ tcltest::test modify-path {Modify the path variable} \
 
 
 tcltest::test modify-host {Modify the host} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -546,7 +546,7 @@ tcltest::test modify-host {Modify the host} \
 
 
 tcltest::test modify-oring {Modify output ring} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -561,7 +561,7 @@ tcltest::test modify-oring {Modify output ring} \
 } -result some-outring
 
 tcltest::test modify-inring {modify input ring} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -576,7 +576,7 @@ tcltest::test modify-inring {modify input ring} \
 } -result tcp://some.host/somering
 
 tcltest::test modify-needprogram {Need a program name} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -590,7 +590,7 @@ tcltest::test modify-needprogram {Need a program name} \
 } -result 1
 
 tcltest::test modify-needdict {modify program needs modify dict} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -604,7 +604,7 @@ tcltest::test modify-needdict {modify program needs modify dict} \
 } -result 1
 
 tcltest::test modify-needexistingprog {Modify program prog must exist} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -621,7 +621,7 @@ tcltest::test modify-needexistingprog {Modify program prog must exist} \
 # enableProgram
 
 tcltest::test enable-ok {Enable program works} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -637,7 +637,7 @@ tcltest::test enable-ok {Enable program works} \
 } -result true
 
 tcltest::test enable-badprogram {Enable requires a good program} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -651,7 +651,7 @@ tcltest::test enable-badprogram {Enable requires a good program} \
 } -result 1
 
 tcltest::test enable-needsprogram {Enable requires a program arg} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -668,7 +668,7 @@ tcltest::test enable-needsprogram {Enable requires a program arg} \
 #  Tests for disbable program
 
 tcltest::test disable-ok {Disable program works} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -684,7 +684,7 @@ tcltest::test disable-ok {Disable program works} \
 
 
 tcltest::test disable-badProgram {Program must exist} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -698,7 +698,7 @@ tcltest::test disable-badProgram {Program must exist} \
 } -result 1
 
 tcltest::test disable-needProgram {program must be supplied} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -714,7 +714,7 @@ tcltest::test disable-needProgram {program must be supplied} \
 #  isProgramEnabled test:
 
 tcltest::test isenabled-initial {It starts out enabled} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -730,7 +730,7 @@ tcltest::test isenabled-initial {It starts out enabled} \
 # set standalone.
 
 tcltest::test setstandalone-ok {set a program to standalone mode} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -749,7 +749,7 @@ tcltest::test setstandalone-ok {set a program to standalone mode} \
 } -result true
 
 tcltest::test setstandalone-needprogram {setStanadlone needs a program} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -763,7 +763,7 @@ tcltest::test setstandalone-needprogram {setStanadlone needs a program} \
 } -result 1
 
 tcltest::test setstandalone-needonly-program {setStandalone  too many params} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -777,7 +777,7 @@ tcltest::test setstandalone-needonly-program {setStandalone  too many params} \
 } -result 1
 
 tcltest::test setstandalone-program-exists {program must exist} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -793,7 +793,7 @@ tcltest::test setstandalone-program-exists {program must exist} \
 # setNoStandalone:
 
 tcltest::test setnostandalone-ok {setnoStandalone - does what it should} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -813,7 +813,7 @@ tcltest::test setnostandalone-ok {setnoStandalone - does what it should} \
 } -result false    
    
 tcltest::test setnostandalone-needsprogram {Must have program parameter} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -827,7 +827,7 @@ tcltest::test setnostandalone-needsprogram {Must have program parameter} \
 } -result 1
 
 tcltest::test setnostandalone-extraparams {Must have only program param} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -841,7 +841,7 @@ tcltest::test setnostandalone-extraparams {Must have only program param} \
 } -result 1
 
 tcltest::test setnostandalone-exitingprogram {Must specify existing program} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -855,7 +855,7 @@ tcltest::test setnostandalone-exitingprogram {Must specify existing program} \
 } -result 1
 
 tcltest::test isStandalone-no {Program is not standalone} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -869,7 +869,7 @@ tcltest::test isStandalone-no {Program is not standalone} \
 } -result 0
 
 tcltest::test isStandalone-yes {Program is standalone} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -884,7 +884,7 @@ tcltest::test isStandalone-yes {Program is standalone} \
 } -result 1
 
 tcltest::test isStandalone-needprogram {isStandalone needs program param} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -898,7 +898,7 @@ tcltest::test isStandalone-needprogram {isStandalone needs program param} \
 } -result 1
 
 tcltest::test isStandalone-needonlyprogram {isStandalone with extra params} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -912,7 +912,7 @@ tcltest::test isStandalone-needonlyprogram {isStandalone with extra params} \
 } -result 1
 
 tcltest::test isStandalone-existingprogram {isStandalone program must exist} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -928,7 +928,7 @@ tcltest::test isStandalone-existingprogram {isStandalone program must exist} \
 # listPrograms
 
 tcltest::test listPrograms-1 {List initial program set (test)} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -943,7 +943,7 @@ tcltest::test listPrograms-1 {List initial program set (test)} \
 
 
 tcltest::test listPrograms-several {list programs when several} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -964,7 +964,7 @@ tcltest::test listPrograms-several {list programs when several} \
 
 
 tcltest::test listPrograms-none {list programs when none present} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -984,7 +984,7 @@ tcltest::test listPrograms-none {list programs when none present} \
     
 
 tcltest::test listPrograms-extraparam {list programs - extra parameter} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1001,7 +1001,7 @@ tcltest::test listPrograms-extraparam {list programs - extra parameter} \
 #
 
 tcltest::test listenabled-1 {List initial program, enabled} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1015,7 +1015,7 @@ tcltest::test listenabled-1 {List initial program, enabled} \
 } -result test
 
 tcltest::test listenabled-0-from-1 {disable initial program} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1030,7 +1030,7 @@ tcltest::test listenabled-0-from-1 {disable initial program} \
 } -result [list]
 
 tcltest::test listenabled-many {enabled with all enabled} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
     set h [varmgr::open tcp://localhost]
@@ -1050,7 +1050,7 @@ tcltest::test listenabled-many {enabled with all enabled} \
 } -result [list atest btest test ztest]
 
 tcltest::test listenabled-mixed {enabled with some enabled} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
     set h [varmgr::open tcp://localhost]
@@ -1072,7 +1072,7 @@ tcltest::test listenabled-mixed {enabled with some enabled} \
 } -result [list atest test]
 
 tcltest::test listenabled-extraparam {extra parameter} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1088,7 +1088,7 @@ tcltest::test listenabled-extraparam {extra parameter} \
 # listStandalonePrograms those with the standalone flag set.
 
 tcltest::test listStandalone-0  {Initially there are no standalone programs} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1102,7 +1102,7 @@ tcltest::test listStandalone-0  {Initially there are no standalone programs} \
 } -result [list]
 
 tcltest::test listStandalone-1 {set test to standalone -list} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1117,7 +1117,7 @@ tcltest::test listStandalone-1 {set test to standalone -list} \
 } -result test
 
 tcltest::test listStandalone-many {Many programs all standalone} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -1142,7 +1142,7 @@ tcltest::test listStandalone-many {Many programs all standalone} \
 } -result [list atest btest test ztest]
     
 tcltest::test listStandalone-some-from-many {Mix of standalone/non} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
     set h [varmgr::open tcp://localhost]
@@ -1164,7 +1164,7 @@ tcltest::test listStandalone-some-from-many {Mix of standalone/non} \
 } -result [list atest test]
 
 tcltest::test listStandalone-extraparams {extra parameters} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1180,7 +1180,7 @@ tcltest::test listStandalone-extraparams {extra parameters} \
 # listInactivePrograms - probrams with either enabled off or standalone on.
 
 tcltest::test listInactivePrograms-0 {nothing inactive to begin with} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1194,7 +1194,7 @@ tcltest::test listInactivePrograms-0 {nothing inactive to begin with} \
 } -result [list]
 
 tcltest::test listInactivePrograms-dis1 {Disable test} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1209,7 +1209,7 @@ tcltest::test listInactivePrograms-dis1 {Disable test} \
 } -result test
 
 tcltest::test listInactivePrograms-sa1 {standalone test} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1224,7 +1224,7 @@ tcltest::test listInactivePrograms-sa1 {standalone test} \
 } -result test
 
 tcltest::test listInactivePrograms-mixed {inactive mixed bag} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
     set h [varmgr::open tcp://localhost]
@@ -1249,7 +1249,7 @@ tcltest::test listInactivePrograms-mixed {inactive mixed bag} \
 } -result [list atest btest ztest]
 
 tcltest::test listInactivePrograms-extraarg {listInactive with extra parameter} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1265,7 +1265,7 @@ tcltest::test listInactivePrograms-extraarg {listInactive with extra parameter} 
 # listActivePrograms - those programs that are enabled and not standalone.
 
 tcltest::test listactive-1   {test initially is active} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1278,7 +1278,7 @@ tcltest::test listactive-1   {test initially is active} \
 } -result test
 
 tcltest::test listactive-0-disabled {test becomes inactive via disable} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1293,7 +1293,7 @@ tcltest::test listactive-0-disabled {test becomes inactive via disable} \
 } -result [list]
 
 tcltest::test listinactive-0-standalone {test becomes inactive via standalone} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1308,7 +1308,7 @@ tcltest::test listinactive-0-standalone {test becomes inactive via standalone} \
 } -result [list]
 
 tcltest::test listinactive-several {several programs some inactive for whatever} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
     set h [varmgr::open tcp://localhost]
@@ -1333,7 +1333,7 @@ tcltest::test listinactive-several {several programs some inactive for whatever}
 } -result test
 
 tcltest::test listinactive-extraparam {Extra parameter on listInactive} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1349,7 +1349,7 @@ tcltest::test listinactive-extraparam {Extra parameter on listInactive} \
 # deleteProgram
 
 tcltest::test delete-exists {Delete an existing program} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1365,7 +1365,7 @@ tcltest::test delete-exists {Delete an existing program} \
 } -result [list]
 
 tcltest::test delete-nox    {Delete a program that does not exist} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1379,7 +1379,7 @@ tcltest::test delete-nox    {Delete a program that does not exist} \
 } -result 1
 
 tcltest::test delete-needprogram {Delete without a program fails} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1393,7 +1393,7 @@ tcltest::test delete-needprogram {Delete without a program fails} \
 } -result 1
 
 tcltest::test delete-extraparam {delete with extra param fails} \
--constraints oldTest -setup {
+ -setup {
    setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1409,7 +1409,7 @@ tcltest::test delete-extraparam {delete with extra param fails} \
 #  setGlobalState  - can set the global state.
 
 tcltest::test setgblstate-ok {set to valid next state} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1429,7 +1429,7 @@ tcltest::test setgblstate-ok {set to valid next state} \
 } -result NotReady
 
 tcltest::test setgblstate-badnext {Invalid next state} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1443,7 +1443,7 @@ tcltest::test setgblstate-badnext {Invalid next state} \
 } -result 1
 
 tcltest::test setgblstate-needstate {Need a state parameter} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1457,7 +1457,7 @@ tcltest::test setgblstate-needstate {Need a state parameter} \
 } -result 1
 
 tcltest::test setgblstate-extraparam {extra parameter} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1475,7 +1475,7 @@ tcltest::test setgblstate-extraparam {extra parameter} \
 # getGlobalState:
 
 tcltest::test getgblState-initial {initial value is correct} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1491,7 +1491,7 @@ tcltest::test getgblState-initial {initial value is correct} \
 
 
 tcltest::test getgblState-changed {Global state after change} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1508,7 +1508,7 @@ tcltest::test getgblState-changed {Global state after change} \
 
 
 tcltest::test getgblState-ExtraParam {extra parameter on getGlobalState} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1524,7 +1524,7 @@ tcltest::test getgblState-ExtraParam {extra parameter on getGlobalState} \
 # getParticipantStates
 
 tcltest::test getpartstates-initial {Initial participant state} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1538,7 +1538,7 @@ tcltest::test getpartstates-initial {Initial participant state} \
 } -result [list [list test 0Initial]]
 
 tcltest::test getpartstates-changed {Participant state changed} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
     ::nscldaq::stateclient  cl  tcp://localhost tcp://localhost test
@@ -1556,7 +1556,7 @@ tcltest::test getpartstates-changed {Participant state changed} \
 } -result [list [list test NotReady]]
 
 tcltest::test getpartstate-several {more than one participant state} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
     ::nscldaq::stateclient  test  tcp://localhost tcp://localhost test
@@ -1581,7 +1581,7 @@ tcltest::test getpartstate-several {more than one participant state} \
 } -result [list [list atest 0Initial] [list test NotReady]]
 
 tcltest::test getpartstates-extraparam {Extra parameter provided} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1598,7 +1598,7 @@ tcltest::test getpartstates-extraparam {Extra parameter provided} \
 # title getting/setting
 
 tcltest::test title-initial {Initial value of Title} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1612,7 +1612,7 @@ tcltest::test title-initial {Initial value of Title} \
 } -result {}
 
 tcltest::test title-change-get {Set a new title and get it back} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1627,7 +1627,7 @@ tcltest::test title-change-get {Set a new title and get it back} \
 } -result {This is a new title}
 
 tcltest::test title-extra-param {Extra parameters} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1643,7 +1643,7 @@ tcltest::test title-extra-param {Extra parameters} \
 # timeout - get/set the run state transition timeout.
 
 tcltest::test timeout-get-initial {Get initial timeout value} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1657,7 +1657,7 @@ tcltest::test timeout-get-initial {Get initial timeout value} \
 } -result 60
 
 tcltest::test timeout-set-get {Modify timeout and get it back} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1672,7 +1672,7 @@ tcltest::test timeout-set-get {Modify timeout and get it back} \
 } -result 35
 
 tcltest::test timeout-extra-param {Too many params is a fail} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1686,7 +1686,7 @@ tcltest::test timeout-extra-param {Too many params is a fail} \
 } -result 1
 
 tcltest::test timeout-mbint {timeout must be an integer} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1702,7 +1702,7 @@ tcltest::test timeout-mbint {timeout must be an integer} \
 # set/get recording status.
 
 tcltest::test recording-initial {Get initial recording status} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1716,7 +1716,7 @@ tcltest::test recording-initial {Get initial recording status} \
 } -result 0
 
 tcltest::test recording-set-get {Change the state and get it} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1731,7 +1731,7 @@ tcltest::test recording-set-get {Change the state and get it} \
 } -result 1
 
 tcltest::test recording-set-off-ok {Boolean keywords for off are ok} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1747,7 +1747,7 @@ tcltest::test recording-set-off-ok {Boolean keywords for off are ok} \
 } -result 0
 
 tcltest::test recording-extra-params {Extra parameters to recording} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1763,7 +1763,7 @@ tcltest::test recording-extra-params {Extra parameters to recording} \
 # runNumber - set/get new run number.
 
 tcltest::test runnumber-initial {Get the initial run number} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1777,7 +1777,7 @@ tcltest::test runnumber-initial {Get the initial run number} \
 } -result 0
 
 tcltest::test runnumber-setget {Change/get run number.} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1792,7 +1792,7 @@ tcltest::test runnumber-setget {Change/get run number.} \
 } -result 1234
 
 tcltest::test runnumber-mbint {Run number must be an integer} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1806,7 +1806,7 @@ tcltest::test runnumber-mbint {Run number must be an integer} \
 } -result 1
 
 tcltest::test runnumber-extraparam {runNumber cannot have extra params} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -1906,7 +1906,7 @@ proc recordChange {program newstate} {
 
 
 tcltest::test  waitTransition-ok-nocallback {Wait for transitions without cb} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -1926,7 +1926,7 @@ tcltest::test  waitTransition-ok-nocallback {Wait for transitions without cb} \
 } -result 1
 
 tcltest::test waitTransition-ok-callback {Wait for transitions with cb} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -1948,7 +1948,7 @@ tcltest::test waitTransition-ok-callback {Wait for transitions with cb} \
 
 
 tcltest::test waitTransition-timeout {Wait for transitions that timeout} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -1966,7 +1966,7 @@ tcltest::test waitTransition-timeout {Wait for transitions that timeout} \
 } -result 0
 
 tcltest::test waitTransition-extra-param {Extra parameter fails} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -1989,7 +1989,7 @@ proc processCallback info {
 }
 
 tcltest::test processMessages-0  {No messages to process.} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::messages [list]
     set ::stateChangeRecord [list]
@@ -2006,7 +2006,7 @@ tcltest::test processMessages-0  {No messages to process.} \
 
 
 tcltest::test processMessages-1 {One message to process} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::messages [list]
     set ::stateChangeRecord [list]
@@ -2036,7 +2036,7 @@ tcltest::test processMessages-1 {One message to process} \
         ]
 
 tcltest::test processMessages-extraparams {extra parameters are errors} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -2052,7 +2052,7 @@ tcltest::test processMessages-extraparams {extra parameters are errors} \
 #  isActive
 
 tcltest::test isActive-yes {test initially is active} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2066,7 +2066,7 @@ tcltest::test isActive-yes {test initially is active} \
 } -result 1
 
 tcltest::test isActive-notenabled {test is disabled -> inactive} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2080,7 +2080,7 @@ tcltest::test isActive-notenabled {test is disabled -> inactive} \
 } -result 0
 
 tcltest::test isActive-standalone {test is standalone ->inactive} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2094,7 +2094,7 @@ tcltest::test isActive-standalone {test is standalone ->inactive} \
 } -result 0
 
 tcltest::test isActive-needs-program {need a program name} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2107,7 +2107,7 @@ tcltest::test isActive-needs-program {need a program name} \
 } -result 1
 
 tcltest::test isActive-extraParams {extra param is an error} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2120,7 +2120,7 @@ tcltest::test isActive-extraParams {extra param is an error} \
 } -result 1
 
 tcltest::test isActive-mustexist {program must exist} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2135,7 +2135,7 @@ tcltest::test isActive-mustexist {program must exist} \
 #  setProgramState
 
 tcltest::test setProgState-ok {Set a program state} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2153,7 +2153,7 @@ tcltest::test setProgState-ok {Set a program state} \
 }  -result NotReady
 
 tcltest::test setProgState-badState {Invalid state transition fails} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2166,7 +2166,7 @@ tcltest::test setProgState-badState {Invalid state transition fails} \
 } -result 1
 
 tcltest::test setProgState-badProgram {program must exist}  \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2179,7 +2179,7 @@ tcltest::test setProgState-badProgram {program must exist}  \
 } -result 1
 
 tcltest::test setProgState-need-all-params {All params must be provided} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2192,7 +2192,7 @@ tcltest::test setProgState-need-all-params {All params must be provided} \
 } -result 1
 
 tcltest::test setProgState-extra-params {Must not have extra parameters} \
--constraints oldTest -setup {
+ -setup {
     setup
     set ::stateChangeRecord [list]
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
@@ -2207,7 +2207,7 @@ tcltest::test setProgState-extra-params {Must not have extra parameters} \
 #  getProgramState
 
 tcltest::test getProgState-initial {Get initial program state} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -2219,7 +2219,7 @@ tcltest::test getProgState-initial {Get initial program state} \
 } -result 0Initial
 
 tcltest::test getProgState-changed {Get program state after change} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -2232,7 +2232,7 @@ tcltest::test getProgState-changed {Get program state after change} \
 } -result NotReady
 
 tcltest::test getProgState-need-progname {get program state needs program name} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -2244,7 +2244,7 @@ tcltest::test getProgState-need-progname {get program state needs program name} 
 } -result 1
 
 tcltest::test getProgState-extraparams {Extra parameters are bad} \
--constraints oldTest -setup {
+ -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \

@@ -339,10 +339,13 @@ EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py Sta
 
 EXTRA_DIST+= stateclient.xml statemanager.xml
 
-check-TESTS:
-	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/unittests
-	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/stateTests
-	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/stateclient.test
-	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/statemgr.test	-constraints "{oldTest newtest}"
-	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ @srcdir@/StateClientTests.py
-	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ @srcdir@/StateManagerTests.py
+# Test setup and specification.
+
+TEST_EXENSTIONS=.test .py
+TEST_LOG_COMPILER=@TCLSH@
+PY_LOG_COMPILER=@PYTHON@
+TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
+	PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
+TESTS = unittests stateTests \
+	stateclient.test statemgr.test \
+	StateClientTests.py StateManagerTests.py
