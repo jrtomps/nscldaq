@@ -25,7 +25,8 @@ COMMON_LOADFLAGS= @top_builddir@/utilities/varmanager/server/libvarmgr.la \
 
 #
 
-libstateclient_la_SOURCES=CStateClientApi.cpp CStateTransitionMonitor.cpp CStateManager.cpp
+libstateclient_la_SOURCES=CStateClientApi.cpp CStateTransitionMonitor.cpp CStateManager.cpp \
+			CStateProgram.cpp
 libstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS)
 libstateclient_la_LDFLAGS=$(COMMON_LOADFLAGS)
 
@@ -57,7 +58,7 @@ libPyStateManager_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS)
 
 # Headers for public APIS:
 
-include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h
+include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h CStateProgram.h
 
 
 
