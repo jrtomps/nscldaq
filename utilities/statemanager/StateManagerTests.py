@@ -1161,6 +1161,20 @@ class ProgramStates(StateManagerTests):
         with self.assertRaises(nscldaq.vardb.statemanager.error) :
             api.getProgramState('test', 0) # Extra param.
     
+
+# Where the api only uses one URI
+
+
+class ProgramOnlyTests(StateManagerTests):
+    def test_setprogramDir(self):
+        api = nscldaq.vardb.statemanager.Api('tcp://localhost')
+        api.setProgramParentDir('/')
+        self.assertEqual('/', api.getProgramParentDir())
+
+    def test_badmethod(self):
+        api = nscldaq.vardb.statemanager.Api('tcp://localhost')
+        with self.assertRaises(nscldaq.vardb.statemanager.error):
+            api.setGlobalState('NotReady')
     
 # Run the tests if this is main:
 

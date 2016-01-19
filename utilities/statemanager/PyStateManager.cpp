@@ -26,6 +26,7 @@
 #include <string>
 
 #include "CStateManager.h"
+#include "CStateProgram.h"
 
 
 /* Module specific error: */
@@ -47,6 +48,8 @@ typedef struct {
     PyObject_HEAD
     
     CStateManager*  m_pApi;
+    CStateProgram*  m_pPrograms;
+    
 } statemanager_ApiObject;
 
 
@@ -78,6 +81,19 @@ getApi(PyObject* self)
     statemanager_ApiObject* pThis =
         reinterpret_cast<statemanager_ApiObject*>(self);
     return pThis->m_pApi;
+}
+/**
+ * getProgramApi
+ *    Get the api associated with program management:
+ * @param self  - object pointer as a PyObject*
+ */
+static CStateProgram*
+getProgramApi(PyObject* self)
+{
+     statemanager_ApiObject* pThis =
+        reinterpret_cast<statemanager_ApiObject*>(self);
+    
+    return pThis->m_pPrograms;
 }
 
 /**
@@ -327,6 +343,7 @@ Api_new(PyTypeObject* type, PyObject* args, PyObject* kwargs)
         reinterpret_cast<statemanager_ApiObject*>(type->tp_alloc(type, 0));
     if (self) {
         self->m_pApi = NULL;
+        self->m_pPrograms = NULL;
         return reinterpret_cast<PyObject*>(self);
     } else {
         PyErr_SetString(error,"Could not allocate an api object");
@@ -350,17 +367,38 @@ static int
 Api_init(statemanager_ApiObject* self, PyObject* args, PyObject* kwds)
 {
     const char* reqUri;
-    const char* subUri;
+    const char* subUri(0);
     
-    if (!PyArg_ParseTuple(args, "ss", &reqUri, &subUri)) {
-        PyErr_SetString(error, "need requri and suburi");
-        return -1;
+    // Could be one or two URIs:
+    
+    if (PyTuple_Size(args) == 1)  {
+        if (!PyArg_ParseTuple(args, "s", &reqUri)) {
+            PyErr_SetString(error, "Failed to extract URI from parameter list");
+            return -1;
+        }
+    } else {
+        if (!PyArg_ParseTuple(args, "ss", &reqUri, &subUri)) {
+            PyErr_SetString(error, "need requri and suburi");
+            return -1;
+        }        
     }
+    
+
     /* Destroy any pre-existing m_pApi and create a new one. */
     
-    delete self->m_pApi;
+    if (self->m_pApi) {
+        delete self->m_pApi;
+    } else {
+        delete self->m_pPrograms;
+    }
+
     try {
-        self->m_pApi = new CStateManager(reqUri, subUri);
+        if (subUri) {
+            self->m_pApi = new CStateManager(reqUri, subUri);
+            self->m_pPrograms = self->m_pApi->getProgramApi();
+        } else {
+            self->m_pPrograms = new CStateProgram(reqUri);
+        }
     }
     catch(std::exception& e) {
         PyErr_SetString(error, e.what());
@@ -379,7 +417,11 @@ Api_init(statemanager_ApiObject* self, PyObject* args, PyObject* kwds)
 static void
 Api_delete(statemanager_ApiObject* self)
 {
-    delete self->m_pApi;
+    if (self->m_pApi) {
+        delete self->m_pApi;
+    } else {
+        delete self->m_pPrograms;
+    }
     self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
@@ -400,9 +442,14 @@ getProgramParentDir(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    CStateProgram* pPrograms = getProgramApi(self);
     std::string dir;
     try {
-        dir = pApi->getProgramParentDir();
+        if (pApi) {
+            dir = pApi->getProgramParentDir();   // Has special caching logic.
+        } else {
+            dir = pPrograms->getProgramParentDir();
+        }
     }
     catch(std::exception& e) {
         return raise(e.what());
@@ -428,9 +475,14 @@ setProgramParentDir(PyObject* self, PyObject* args)
         return raise("setProgramParentDir needs a directory name parameter");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateManager* pApi      = getApi(self);
+    CStateProgram* pPrograms = getProgramApi(self);
     try {
-        pApi->setProgramParentDir(newDir);
+        if (pApi) {
+            pApi->setProgramParentDir(newDir);   // Actions with monitor thread needed.
+        } else {
+            pPrograms->setProgramParentDir(newDir);
+        }
     }
     catch (std::exception& e) {
         return raise(e.what());
@@ -466,7 +518,8 @@ addProgram(PyObject* self, PyObject* args)
         return raise("addProgram program def must be a dict.");
     }
     
-    CStateManager* pApi = getApi(self);
+    
+    CStateProgram* pApi = getProgramApi(self);
     
     // Marshall the dict into the CStateManager::ProgramDefinition.
     
@@ -506,7 +559,7 @@ getProgramDefinition(PyObject* self, PyObject* args)
         return raise("getProgramDefinition needs the name of a program (only).");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     CStateManager::ProgramDefinition def;
     
     try {
@@ -564,7 +617,7 @@ modifyProgram(PyObject* self, PyObject* args)
     
     try {
         CStateManager::ProgramDefinition progDef = marshallDefinitionDict(def);
-        CStateManager* pApi = getApi(self);
+        CStateProgram* pApi = getProgramApi(self);
         pApi->modifyProgram(name, &progDef);
     }
     catch (std::exception& e) {
@@ -590,7 +643,7 @@ enableProgram(PyObject* self, PyObject* args)
         return raise("enableProgram needs (only) a program name.");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     try {
         pApi->enableProgram(progName);
     }
@@ -617,7 +670,7 @@ disableProgram(PyObject* self, PyObject* args)
         return raise("enableProgram needs (only) a program name.");
     }
 
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     
     try {
         pApi->disableProgram(progName);
@@ -646,7 +699,7 @@ isProgramEnabled(PyObject* self, PyObject* args)
         return raise("isProgEnabled needs (only) a program name");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     bool enabled;
     try {
         enabled = pApi->isProgramEnabled(progName);
@@ -680,7 +733,7 @@ setProgramStandalone(PyObject* self, PyObject* args)
         return raise("setProgramNoStandalone needs (only) a program name");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
 
     try {
         pApi->setProgramStandalone(progName);
@@ -709,7 +762,7 @@ setProgramNoStandalone(PyObject* self, PyObject* args)
         return raise("setProgramNoStandalone needs (only) a program name");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
 
     try {
         pApi->setProgramNoStandalone(progName);
@@ -739,7 +792,7 @@ isProgramStandalone(PyObject* self, PyObject* args)
         return raise("isProgramStandalone needs (only) a program name");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     bool enabled;
     try {
         enabled = pApi->isProgramStandalone(progName);
@@ -773,7 +826,7 @@ listPrograms(PyObject* self, PyObject* args)
         return raise("listPrograms  does not have any parameters");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     std::vector<std::string> programs;
     try {
         programs = pApi->listPrograms();
@@ -801,7 +854,7 @@ listEnabledPrograms(PyObject* self, PyObject* args)
         return raise("listPrograms  does not have any parameters");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     std::vector<std::string> programs;
     try {
         programs = pApi->listEnabledPrograms();
@@ -828,7 +881,7 @@ listStandalonePrograms(PyObject* self, PyObject* args)
         return raise("listPrograms  does not have any parameters");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     std::vector<std::string> programs;
     try {
         programs = pApi->listStandalonePrograms();
@@ -857,7 +910,7 @@ listInactivePrograms(PyObject* self, PyObject* args)
         return raise("listPrograms  does not have any parameters");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     std::vector<std::string> programs;
     try {
         programs = pApi->listInactivePrograms();
@@ -884,7 +937,7 @@ listActivePrograms(PyObject* self, PyObject* args)
         return raise("listPrograms  does not have any parameters");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     std::vector<std::string> programs;
     try {
         programs = pApi->listActivePrograms();
@@ -913,7 +966,7 @@ deleteProgram(PyObject* self, PyObject* args)
         return raise("deleteProgram needs a program name (only)");
     }
     
-    CStateManager* pApi = getApi(self);
+    CStateProgram* pApi = getProgramApi(self);
     
     try {
         pApi->deleteProgram(programName);
@@ -943,7 +996,9 @@ setGlobalState(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
-    
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
     try {
         pApi->setGlobalState(newState);
     }
@@ -970,6 +1025,10 @@ getGlobalState(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     std::string result;
     try {
         result = pApi->getGlobalState();
@@ -998,6 +1057,13 @@ getParticipantStates(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     std::vector<std::pair<std::string, std::string> > states;
     try  {
         states = pApi->getParticipantStates();
@@ -1034,6 +1100,10 @@ getTitle(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     std::string title;
     try {
         title = pApi->title();
@@ -1062,7 +1132,10 @@ setTitle(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
-    
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     try {
         pApi->title(title);
     }
@@ -1089,6 +1162,10 @@ getTimeout(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     unsigned timeout;
     
     try {
@@ -1121,6 +1198,10 @@ setTimeout(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     try {
         pApi->timeout(timeout);
     }
@@ -1147,6 +1228,10 @@ isRecording(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     bool recording;
     try {
         recording = pApi->recording();
@@ -1183,6 +1268,10 @@ setRecording(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     bool state = (newState == Py_True) ? true : false;
     
     try {
@@ -1211,6 +1300,10 @@ getRunNumber(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     unsigned       runNum;
     
     try {
@@ -1241,6 +1334,10 @@ setRunNumber(PyObject* self, PyObject* args)
         return raise("Run Numbers must be positive");
     }
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     
     try {
         pApi->runNumber(newRun);
@@ -1299,6 +1396,10 @@ waitTransition(PyObject* self, PyObject* args)
     PyErr_Clear();       /* Clear any get_item index errors. */
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     bool success;
     try {
         pApi->waitTransition(
@@ -1359,6 +1460,10 @@ processMessages(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     try {
         pApi->processMessages(relayNotificationCallbacks, &info);
     }
@@ -1387,6 +1492,10 @@ isActive(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     bool           isActive;
     try {
         isActive = pApi->isActive(program);
@@ -1422,6 +1531,10 @@ setProgramState(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     try {
         pApi->setProgramState(program, state);
     }
@@ -1449,6 +1562,10 @@ getProgramState(PyObject* self, PyObject* args)
     }
     
     CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+
     std::string state;
     try {
         state = pApi->getProgramState(program);
