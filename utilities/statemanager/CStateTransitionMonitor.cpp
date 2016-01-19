@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
 static const std::string DefaultSubscriptionService("vardb-changes");
 
 /**

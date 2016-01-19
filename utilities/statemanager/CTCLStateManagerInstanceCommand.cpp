@@ -24,6 +24,8 @@
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include "CStateManager.h"
+#include "CStateProgram.h"
+
 #include <stdexcept>
 #include <iostream>
 /**
@@ -37,16 +39,37 @@ CTCLStateManagerInstanceCommand::CTCLStateManagerInstanceCommand(
     CTCLInterpreter& interp, std::string name,
     std::string requrl, std::string suburl
 ) : CTCLObjectProcessor(interp, name.c_str(), true),
-    m_pApi(0)
+    m_pApi(0), m_pPrograms(0)
 {
     m_pApi = new CStateManager(requrl.c_str(), suburl.c_str());
+    m_pPrograms = m_pApi->getProgramApi();
+}
+/**
+ * constructor - without the state transition capability:
+ *
+ *   @param interp - interpreter on which the command is registered.
+ *   @param name   - The command to register.
+ *   @param requrl - URI for the request port of the server.
+ */
+CTCLStateManagerInstanceCommand::CTCLStateManagerInstanceCommand(
+     CTCLInterpreter& interp, std::string name,
+     std::string requrl
+) :
+    CTCLObjectProcessor(interp, name.c_str(), true),
+    m_pApi(0), m_pPrograms(0)
+{
+    m_pPrograms = new CStateProgram(requrl.c_str());
 }
 /**
  * destructor:
  */
 CTCLStateManagerInstanceCommand::~CTCLStateManagerInstanceCommand()
 {
-    delete m_pApi;
+    if (m_pApi) {
+        delete m_pApi;
+    } else {
+        delete m_pPrograms;
+    }
 }
 
 /**
@@ -98,29 +121,33 @@ CTCLStateManagerInstanceCommand::operator()(
             listActivePrograms(interp, objv);
         } else if (subCommand == "deleteProgram") {
             deleteProgram(interp, objv);
-        } else if (subCommand == "setGlobalState") {
+            
+            // The remainder of the subcommands are only legal if both URI's
+            // were provided at construction time.
+            
+        } else if (m_pApi && (subCommand == "setGlobalState")) {
             setGlobalState(interp, objv);
-        } else if (subCommand == "getGlobalState") {
+        } else if (m_pApi && (subCommand == "getGlobalState")) {
             getGlobalState(interp, objv);
-        } else if (subCommand == "getParticipantStates") {
+        } else if (m_pApi && (subCommand == "getParticipantStates")) {
             getParticipantStates(interp, objv);
-        } else if (subCommand == "title") {
+        } else if (m_pApi && (subCommand == "title")) {
             title(interp, objv);
-        } else if (subCommand == "timeout") {
+        } else if (m_pApi && (subCommand == "timeout")) {
             timeout(interp, objv);
-        } else if (subCommand == "recording"){
+        } else if (m_pApi&& (subCommand == "recording")) {
             recording(interp, objv);
-        } else if (subCommand == "runNumber") {
+        } else if (m_pApi && (subCommand == "runNumber")) {
             runNumber(interp, objv);
-        } else if (subCommand == "waitTransition") {
+        } else if (m_pApi && (subCommand == "waitTransition")) {
             waitTransition(interp, objv);
-        } else if (subCommand == "processMessages") {
+        } else if (m_pApi && (subCommand == "processMessages")) {
             processMessages(interp, objv);
-        } else if (subCommand == "isActive"){
+        } else if (m_pApi && (subCommand == "isActive")) {
             isActive(interp, objv);
-        } else if (subCommand == "setProgramState") {
+        } else if (m_pApi && (subCommand == "setProgramState")) {
             setProgramState(interp, objv);
-        } else if (subCommand == "getProgramState") {
+        } else if (m_pApi && (subCommand == "getProgramState")) {
             getProgramState(interp, objv);
         } else {
             throw std::invalid_argument("Invalid subcommand keyword");
@@ -145,26 +172,7 @@ CTCLStateManagerInstanceCommand::operator()(
 
     return TCL_OK;
 }
-/**
- * setProgramState
- *    Set the state of an individual program  This is normally used if
- *    the program is standalone or if the program has died and its state machine
- *    needs to be set to a known condition.
- *
- * @param interp - interpreter executing the command.
- * @param objv   - Command words.
- */
-void
-CTCLStateManagerInstanceCommand::setProgramState(
-    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
-)
-{
-    requireExactly(objv, 4, "setProgramState needs program name and new state");
-    std::string name(objv[2]);
-    std::string state(objv[3]);
-    
-    m_pApi->setProgramState(name.c_str(), state.c_str());
-}
+
 
 /*-----------------------------------------------------------------------
  *  Subcommand execution.
@@ -182,11 +190,26 @@ CTCLStateManagerInstanceCommand::programParentDir(
     CTCLInterpreter& interp, std::vector<CTCLObject>& objv
 )
 {
+    
+    // Because there's a bit of tomfoolery in the state manager wrapped around
+    // the set/get program dir, we need to use the monitor if that's been
+    // created ... otherwise the program api is fine:
+    
     if (objv.size() == 2) {
-        interp.setResult(m_pApi->getProgramParentDir());
+        std::string result;
+        if (m_pApi) {
+            result = m_pApi->getProgramParentDir();
+        } else {
+            result = m_pPrograms->getProgramParentDir();
+        }
+        interp.setResult(result);
     } else if (objv.size() == 3) {
         std::string newdir = objv[2];
-        m_pApi->setProgramParentDir(newdir.c_str());
+        if (m_pApi) {
+            m_pApi->setProgramParentDir(newdir.c_str());
+        } else {
+            m_pPrograms->setProgramParentDir(newdir.c_str());
+        }
     } else {
         throw std::invalid_argument("Too many parameters for programParentDir");
     }
@@ -241,7 +264,7 @@ CTCLStateManagerInstanceCommand::addProgram(
     programDef.s_outRing = programDefMap["outring"];
     programDef.s_inRing  = programDefMap["inring"];
     
-    m_pApi->addProgram(name.c_str(), &programDef);
+    m_pPrograms->addProgram(name.c_str(), &programDef);
 }
 
 /**
@@ -257,7 +280,7 @@ CTCLStateManagerInstanceCommand::getProgram(
 {
     requireExactly(objv, 3, "getProgram needs program name (and only that)");
     
-    CStateManager::ProgramDefinition def = m_pApi->getProgramDefinition(
+    CStateManager::ProgramDefinition def = m_pPrograms->getProgramDefinition(
         std::string(objv[2]).c_str()
     );
     
@@ -311,7 +334,7 @@ CTCLStateManagerInstanceCommand::modifyProgram(
     std::string name = objv[2];
     std::map<std::string, std::string> modDef = dictToMap(interp, objv[3]);
     
-    CStateManager::ProgramDefinition desc = m_pApi->getProgramDefinition(
+    CStateManager::ProgramDefinition desc = m_pPrograms->getProgramDefinition(
         name.c_str()
     );
     
@@ -346,7 +369,7 @@ CTCLStateManagerInstanceCommand::modifyProgram(
     // Update the program (no attempt is made to optimize for an
     // empty dict).
     
-    m_pApi->modifyProgram(name.c_str(), &desc);
+    m_pPrograms->modifyProgram(name.c_str(), &desc);
 }
 /**
  * enableProgram
@@ -362,7 +385,7 @@ CTCLStateManagerInstanceCommand::modifyProgram(
     requireExactly(objv, 3, "enableProgram needs exactly the program name");
     
     std::string name = std::string(objv[2]);
-    m_pApi->enableProgram(name.c_str());
+    m_pPrograms->enableProgram(name.c_str());
  }
  /**
   * disableProgram
@@ -378,7 +401,7 @@ CTCLStateManagerInstanceCommand::modifyProgram(
     requireExactly(objv, 3, "disableProgram needs exactly the program name");
     
     std::string name = std::string(objv[2]);
-    m_pApi->disableProgram(name.c_str());
+    m_pPrograms->disableProgram(name.c_str());
  }
  
  /**
@@ -397,7 +420,7 @@ CTCLStateManagerInstanceCommand::modifyProgram(
     );
 
     interp.setResult(
-        m_pApi->isProgramEnabled(std::string(objv[2]).c_str()) ? "1" : "0"
+        m_pPrograms->isProgramEnabled(std::string(objv[2]).c_str()) ? "1" : "0"
     );
     
  }
@@ -416,7 +439,7 @@ CTCLStateManagerInstanceCommand::setStandalone(
     requireExactly(objv, 3, "setStandalone requires exactly the program name");
     std::string program = objv[2];
     
-    m_pApi->setProgramStandalone(program.c_str());
+    m_pPrograms->setProgramStandalone(program.c_str());
     
 }
 /**
@@ -433,7 +456,7 @@ CTCLStateManagerInstanceCommand::setNoStandalone(
     requireExactly(objv, 3, "setNoStandalone requires exactly the program name");
     std::string program = objv[2];
     
-    m_pApi->setProgramNoStandalone(program.c_str());
+    m_pPrograms->setProgramNoStandalone(program.c_str());
 }
 /**
  * isStandalone
@@ -449,7 +472,7 @@ CTCLStateManagerInstanceCommand::isStandalone(
    requireExactly(objv, 3, "isStandalone needs exactly a program name");
    
    std::string program = objv[2];
-   interp.setResult(m_pApi->isProgramStandalone(program.c_str()) ? "1" : "0");
+   interp.setResult(m_pPrograms->isProgramStandalone(program.c_str()) ? "1" : "0");
 }
 /**
  * listPrograms.
@@ -464,7 +487,7 @@ CTCLStateManagerInstanceCommand::listPrograms(
 {
     requireExactly(objv, 2, "listPrograms takes no additional parameters");
     
-    std::vector<std::string> progs = m_pApi->listPrograms();
+    std::vector<std::string> progs = m_pPrograms->listPrograms();
     vectorToResult(interp, progs);
 }
 /**
@@ -480,7 +503,7 @@ CTCLStateManagerInstanceCommand::listEnabledPrograms(
 {
     requireExactly(objv, 2, "listEnabledPrograms needs no other parameters");
     
-    std::vector<std::string> progs = m_pApi->listEnabledPrograms();
+    std::vector<std::string> progs = m_pPrograms->listEnabledPrograms();
     vectorToResult(interp, progs);
 
 }
@@ -498,7 +521,7 @@ CTCLStateManagerInstanceCommand::listStandalonePrograms(
 {
     requireExactly(objv, 2, "listStandalonePrograms needs no other parameter");
     
-    std::vector<std::string> progs = m_pApi->listStandalonePrograms();
+    std::vector<std::string> progs = m_pPrograms->listStandalonePrograms();
     vectorToResult(interp, progs);
 }
 /**
@@ -514,7 +537,7 @@ CTCLStateManagerInstanceCommand::listInactivePrograms(
 {
     requireExactly(objv, 2, "listInactivePrograms needs no other parameter");
     
-    std::vector<std::string> progs = m_pApi->listInactivePrograms();
+    std::vector<std::string> progs = m_pPrograms->listInactivePrograms();
     vectorToResult(interp, progs);
 }
 /**
@@ -530,7 +553,7 @@ CTCLStateManagerInstanceCommand::listActivePrograms(
 {
     requireExactly(objv, 2, "listActivePrograms needs no other parameters");
     
-    std::vector<std::string> progs = m_pApi->listActivePrograms();
+    std::vector<std::string> progs = m_pPrograms->listActivePrograms();
     vectorToResult(interp, progs);
 }
 
@@ -549,7 +572,7 @@ CTCLStateManagerInstanceCommand::deleteProgram(
     requireExactly(objv, 3, "deleteProgram needs only a program name");
     
     std::string program = objv[2];
-    m_pApi->deleteProgram(program.c_str());
+    m_pPrograms->deleteProgram(program.c_str());
 }
 
 /**
@@ -812,7 +835,26 @@ CTCLStateManagerInstanceCommand::isActive(
     std::string programName(objv[2]);
     interp.setResult(m_pApi->isActive(programName.c_str()) ? "1" : "0");
 }
-
+/**
+ * setProgramState
+ *    Set the state of an individual program  This is normally used if
+ *    the program is standalone or if the program has died and its state machine
+ *    needs to be set to a known condition.
+ *
+ * @param interp - interpreter executing the command.
+ * @param objv   - Command words.
+ */
+void
+CTCLStateManagerInstanceCommand::setProgramState(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 4, "setProgramState needs program name and new state");
+    std::string name(objv[2]);
+    std::string state(objv[3]);
+    
+    m_pApi->setProgramState(name.c_str(), state.c_str());
+}
 /**
  * getProgramState
  *    Set the interpreter result with the state of a program.

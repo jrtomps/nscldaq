@@ -32,6 +32,7 @@ package require portAllocator
 package require tcltest
 package require Thread
 
+# tcltest::configure -verbose [list start body error]
 
 # A quick note on -constraints below.  In tcltest a test with constraints is
 # only run if its constraints are true. Since the setup/teardown of most tests
@@ -251,7 +252,7 @@ tcltest::test pgmparent-set {Can modify the program parent dir} \
     
     set h [varmgr::open  tcp://localhost]
     varmgr::mkdir $h /programs
-     varmgr::close $h
+    varmgr::close $h
     
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -2254,6 +2255,41 @@ tcltest::test getProgState-extraparams {Extra parameters are bad} \
 } -body {
     catch {mgr getProgramState test junk}
 } -result 1
+
+#  Tests for the version of the manager that uses one URI;
+
+tcltest::test pgmparent-set-nomgr {Set program directory with no  state manager} \
+-setup {
+   setup
+
+   set h [varmgr::open  tcp://localhost]
+   varmgr::mkdir $h /programs
+   varmgr::close $h
+
+   ::nscldaq::statemanager mgr tcp://localhost 
+} \
+-cleanup {
+   ::nscldaq::statemanager -delete mgr
+   cleanup
+} \
+-body {
+   
+   mgr programParentDir /programs
+   mgr programParentDir
+} -result /programs
+
+tcltest::test program-only-nosuch {Check that state manager only cmds are illegal} \
+-setup {
+   setup
+   ::nscldaq::statemanager mgr tcp://localhost 
+} \
+-cleanup {
+   ::nscldaq::statemanager -delete mgr
+} \
+-body {
+   set status [catch {mgr setGlobalState NotReady} msg]
+   list $status $msg
+} -result [list 1 {Invalid subcommand keyword}]
 
 #
 #------------------------------------------------------------------

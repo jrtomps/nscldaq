@@ -118,14 +118,21 @@ CTCLStateManagerCommand::create(
     CTCLInterpreter& interp, std::vector<CTCLObject>& objv
 )
 {
-    requireExactly(objv, 4, "Exactly 4 parameters are required");
+    requireAtLeast(objv, 3, "At least 3 parameters required.");
+    requireAtMost(objv, 4, "At most 4 parameters required");
     
+    CTCLStateManagerInstanceCommand* pCommand;
+    
+
     std::string name   = objv[1];
     std::string requrl = objv[2];
-    std::string suburl = objv[3];
-    
-    CTCLStateManagerInstanceCommand* pCommand =
-        new CTCLStateManagerInstanceCommand(interp, name, requrl, suburl);
+    if (objv.size() == 3) {
+        pCommand = new CTCLStateManagerInstanceCommand(interp, name, requrl);
+    } else {
+        std::string suburl = objv[3];
+        pCommand = new CTCLStateManagerInstanceCommand(interp, name, requrl, suburl);
+    }
+        
     m_instances[name] = pCommand;
 }
 /**

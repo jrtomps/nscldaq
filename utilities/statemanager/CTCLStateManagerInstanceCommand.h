@@ -28,6 +28,7 @@
 class CTCLInterpreter;
 class CTCLObject;
 class CStateManager;
+class CStateProgram;
 
 #include <map>
 
@@ -51,12 +52,17 @@ private:
     } CallbackInfo, *pCallbackInfo;
 private:
     CStateManager* m_pApi;
+    CStateProgram* m_pPrograms;
     
     // canonicals
 public:
     CTCLStateManagerInstanceCommand(
         CTCLInterpreter& interp, std::string name,
         std::string requrl, std::string suburl
+    );
+    CTCLStateManagerInstanceCommand(
+        CTCLInterpreter& interp, std::string name,
+        std::string dburl
     );
     virtual ~CTCLStateManagerInstanceCommand();
     

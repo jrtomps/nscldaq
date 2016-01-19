@@ -106,6 +106,7 @@ public:
     std::vector<std::string> listInactivePrograms();
     std::vector<std::string> listActivePrograms();
     void               deleteProgram(const char* name);
+    CStateProgram*     getProgramApi() {return m_pPrograms;}
     
     
     // Global state control:
