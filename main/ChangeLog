@@ -1043,4 +1043,4 @@ Work on 11.0-rc11 begins
 	
 11.1-001 
 	*  Feature #4849 - add offline scaler sum program.
-	
+	*  Feature #4885 - Strip chart axis controls for scaler display program.
