@@ -38,12 +38,16 @@ EXTRA_DIST=TclServices.test apiTests.py services.xml ServiceWizard.py \
 	addsysprogram.in lsservices.in modsysprogram.in rmsysprogram.in \
 	svcwiz.in svcpropset.in svcmanager.py
 
-check-TESTS:
-	@builddir@/unittest
-	DAQBIN=@prefix@/bin PYTHONPATH=@prefix@/pythonLibs: \
-	   TCLLIBPATH=@prefix@/TclLibs @TCLSH@ @srcdir@/TclServices.test
-	DAQBIN=@prefix@/bin PYTHONPATH=@prefix@/pythonLibs: \
-	   TCLLIBPATH=@prefix@/TclLibs @PYTHON@ @srcdir@/apiTests.py
+EST_EXENSTIONS=.test .py
+TEST_LOG_COMPILER=@TCLSH@
+PY_LOG_COMPILER=@PYTHON@
+TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
+	PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH; \
+	DAQBIN=@prefix@/bin; export DAQBIN; DAQROOT=@prefix@; export DAQROOT; \
+	DAQLIB=@prefix@/lib; export DAQLIB;
+
+TESTS=unittest TclServices.test apiTests.py
+
 
 
 install-exec-hook:
