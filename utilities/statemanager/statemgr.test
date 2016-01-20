@@ -2285,6 +2285,7 @@ tcltest::test program-only-nosuch {Check that state manager only cmds are illega
 } \
 -cleanup {
    ::nscldaq::statemanager -delete mgr
+   cleanup
 } \
 -body {
    set status [catch {mgr setGlobalState NotReady} msg]
