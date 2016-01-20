@@ -614,6 +614,791 @@ $DAQBIN/ReadoutGui <replaceable>requestURI subscriptionURI</replaceable>
 
 <!-- manpage 3daq -->
 
+<refentry id="daq3_CStateProgram">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_CStateProgram_title'>CStateProgram</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CStateProgram</refname>
+     <refpurpose>API for manipulating state sensitive program definitions</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CStateProgram.h&gt;
+class <ooclass><classname>CStateProgram</classname></ooclass>
+{
+public:
+    typedef struct _ProgramDefinition {
+        bool        s_enabled;
+        bool        s_standalone;
+        std::string s_path;
+        std::string s_host;
+        std::string s_outRing;
+        std::string s_inRing;
+    } ProgramDefinition, *pProgramDefinition;
+
+public:
+    <constructorsynopsis>
+       <methodname>CStateProgram</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>uri</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <constructorsynopsis>
+       <methodname>CStateProgram</methodname>
+       <methodparam>
+        <modifier></modifier><type>CVarMgrApi*</type>
+            <parameter> pApi</parameter>
+       </methodparam>
+    </constructorsynopsis>
+
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string</type>
+        <methodname>getProgramParentDir</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setProgramParentDir</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char*</type>
+                <parameter> path</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>addProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>pProgramDefinition</type>
+                <parameter> def</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>ProgramDefinition </type>
+        <methodname>getProgramDefinition</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>modifyProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>pProgramDefinition </type>
+                <parameter>def</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>enableProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname> disableProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool</type>
+        <methodname>isProgramEnabled</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setProgramStandalone</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void</type>
+        <methodname>setProgramNoStandalone</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool</type>
+        <methodname>isProgramStandalone</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listPrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listEnabledPrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listStandalonePrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listInactivePrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listActivePrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void  </type>
+        <methodname>deleteProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <classname>CStateProgram</classname> provides an API that allows you to
+        define and modify the definitions of state sensitive programs.  By state
+        sensitive, we mean programs that participate in global state transitions
+        (see <link linkend='daq3_cstatemanager' endterm='daq3_cstatemanager_title').
+     </para>
+     <para>
+        The <classname>CStateManager</classname> class provides this functinoality
+        as well, however its instantitation requires providing a PUB/SUB
+        URI in addition to a request URI.  This class only requires a request
+        URI and can, therefore, operate directly on a database file.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CStateProgram</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>uri</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Normal constructor of for <classname>CStateProgram</classname>
+                    objects.  The <parameter>uri</parameter> parameter provides
+                    a URI that indicates how to connect with the database.
+                    A <literal>file:</literal> protocol URI will directly open
+                    the database file.  A <literal>tcp:</literal> protocol
+                    URI will connect to a database server.
+                </para>
+                <para>
+                    If there are programs running
+                    that subscribe to changes in the program
+                    configuration, the server must be used to provide these
+                    notifications.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CStateProgram</methodname>
+                   <methodparam>
+                    <modifier></modifier><type>CVarMgrApi*</type>
+                        <parameter> pApi</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This is the constructor used by the
+                    <link linkend='daq3_cstatemanager'
+                          endterm='daq3_cstatemanager_title' /> class.  It uses
+                    this constructor to be able to implement its state
+                    program API as mostly a thin wrapper around the
+                    <classname>CStateProgram</classname> api.
+                </para>
+                <para>
+                    <parameter>pApi</parameter> points to an instance of
+                    a variable manager API.  Obviously this can also be
+                    used to share api instances between a program that uses
+                    several APIs.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string</type>
+                    <methodname>getProgramParentDir</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+             </term>
+             <listitem>
+                 <para>
+                    All program definitions are directories that live beneath
+                    a parent directory.  This method returns the path to the
+                    program parent directory.
+                 </para>
+             </listitem>
+         </varlistentry>   
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setProgramParentDir</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> path</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+             </term>
+             <listitem>
+                 <para>
+                    Changes the parent directory in which program definitions are
+                    made.  Note that no existing definitions are copied over.
+                    This allows you to configure several state sensitive
+                    configurations which you can then easily switch between.
+                    <parameter>path</parameter> will be the path to the new
+                    parent directory. This should be an absolute path.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>addProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>pProgramDefinition</type>
+                            <parameter> def</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+             </term>
+             <listitem>
+                 <para>
+                     Adds a new state sensitive program.  <parameter>name</parameter>
+                     provides a name for the program which can be used to refer
+                     to it in subsequent API calls.  <parameter>def</parameter>
+                     describes the configuration of the program.
+                     See <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                     for information about the <type>pProgramDefinition</type>
+                     type which is a pointer to a <type>ProgramDefinition</type>
+                     struct.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>ProgramDefinition </type>
+                    <methodname>getProgramDefinition</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Returns the <type>ProgramDefinition</type> struct for
+                    an already defined program; <parameter>name</parameter>.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>modifyProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>pProgramDefinition </type>
+                            <parameter>def</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Modifies the definition of an existing program; <parameter>name</parameter>
+                    to bring it in line with the description in
+                    <parameter>def</parameter>.
+                    To only partially modify a program definition, first use
+                    <methodmame>getPogtramDefinition</methodmame> to get its
+                    definition, then simply change the fields you want modified
+                    and pass a pointer to the resulting <type>ProgramDefinition</type>
+                    struct to <methodname>modifyProgram</methodname>.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>enableProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Sets the <literal>enable</literal> flag 
+                    for the program <parameter>name</parameter> to
+                    <literal>true</literal>.  If this flag is <literal>false</literal>,
+                    the program is not expected to participate in global state
+                    transitions.  If <literal>true</literal> it is expected
+                    to participate.  See also <methodname>disableProgram</methodname>.
+                 </para>
+             </listitem>
+         </varlistentry>       
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname> disableProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                    Sets the <literal>enable</literal> flag for the
+                    program <parameter>name</parameter> to
+                    <literal>false</literal>.If this flag is <literal>false</literal>,
+                    the program is not expected to participate in global state
+                    transitions.  If <literal>true</literal> it is expected
+                    to participate.  See also <methodname>enableProgramm</methodname>
+                 </para>
+             </listitem>
+         </varlistentry>           
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool</type>
+                    <methodname>isProgramEnabled</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+             </term>
+             <listitem>
+                 <para>
+                    Examines the <literal>enable</literal> flag for the program
+                    <parameter>name</parameter>.  Returns
+                    <literal>true</literal> if the program is enabled and
+                    <literal>false</literal> if not.  See
+                    <methodname>enableProgram</methodname> and
+                    <methodname>disableProgram</methodname> which modify
+                    the state of this flag.  It is, of course, also possible
+                    to modify the state of the flag using
+                    <methodname>modifyProgram</methodname> as well.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setProgramStandalone</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+             </term>
+             <listitem>
+                 <para>
+                    Sets the program <parameter>name</parameter>'s
+                    <literal>standalone</literal>
+                    flag to <literal>true</literal>.  Programs whose
+                    <literal>standalone</literal> flag is <literal>true</literal>
+                    are
+                 </para>
+                 <itemizedlist>
+                    <listitem><para>
+                        Not expected to partipate in global state transitions.
+                    </para></listitem>
+                    <listitem><para>
+                        Are expected to take their state transition requests
+                        from their local state variable rather than the
+                        global state variable.   This allows them to be
+                        controlled independently of the global state control
+                        system.
+                    </para></listitem>
+                 </itemizedlist>
+                 <para>
+                    If the <literal>standalone</literal> flag for a program
+                    is <literal>false</literal>, its enable state follows the
+                    state of its <literal>enable</literal> flag and is
+                    expected to take state transition requests from the global
+                    state variable.
+                 </para>
+                 <para>
+                    See also <methodname>setProgramNoStandalone</methodname>
+                    below
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>setProgramNoStandalone</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+             </term>
+             <listitem>
+                 <para>
+                    Sets the <literal>standalone</literal> flag for the program
+                    <parameter>name</parameter> to <literal>false</literal>.
+                    See <methodname>setProgramStandalone</methodname> for a
+                    discussion of this flag and what its possible values imply.
+                 </para>
+             </listitem>
+         </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool</type>
+                    <methodname>isProgramStandalone</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the state of the <literal>standalone</literal> flag
+                    for the program <parameter>name</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listPrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector containing the name of all programs defined
+                    in the current program directory. 
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listEnabledPrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector containing the name of all programs for
+                    which the <literal>enabled</literal> flag is
+                    <literal>true</literal>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listStandalonePrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector containing the names of all programs
+                    that have <literal>standalone</literal> flag set to
+                    <literal>true</literal>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listInactivePrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of the names of programs that won't
+                    participate in global state transitions.  These
+                    are programs for which either the <literal>enable</literal>
+                    flag is <literal>false</literal> or the
+                    <literal>standalone</literal> flag is <literal>true</literal>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listActivePrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of the names of programs that will participate
+                    in state transitions.  These are programs that have their
+                    <literal>enable</literal> flag <literal>true</literal> and
+                    their <literal>standalone</literal> flag <literal>false</literal>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void  </type>
+                    <methodname>deleteProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Removes the program definition for the program
+                    <parameter>name</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>               
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        The <classname>CStateProgram</classname> class defines a nested struct
+        type  <type>CStateProgram::ProgramDefinition</type> and a typedef for a
+        pointer to that struct <type>CStateProgram::pProgramDefinition</type>.
+        The <type>CStateProgram::ProgramDefinition</type> strut has the following
+        fields:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+                <type>bool</type> <structfield>s_enabled</structfield>
+            </term>
+            <listitem>
+                <para>
+                    The program's <literal>enabled</literal> flag.  See
+                    the description of e.g. <methodname>enableProgram</methodname>
+                    for a description of what this flag does.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <type>bool</type> <structfield>s_standalone</structfield>
+            </term>
+            <listitem>
+                <para>
+                    The program's <literal>standalone</literal> flag.
+                    See the description of
+                    <methodname>setProgramStandalone</methodname> for a description
+                    of this flag.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <type>std::string</type> <structfield>s_path</structfield>        
+            </term>
+            <listitem>
+                <para>
+                    Contains the filesystem path to the program image.  When
+                    the boot manager starts boots the data acqusition system,
+                    this field describes what it actually runs for this
+                    program.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <type>std::string</type> <structfield>s_host</structfield>        
+            </term>
+            <listitem>
+                <para>
+                    Contains the name or IP address of the host in which the
+                    program will be started by the boot manager.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <type>std::string</type> <structfield>s_outRing</structfield>
+            </term>
+            <listitem>
+                <para>
+                    If non empty, the program will be the producer for the
+                    ring name contained by this variable.  Note this must be
+                    the name of a ring in the same host as the program.
+                    The experiment editor will enforce this constraint.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <type>std::string</type> <structfield>s_inRing</structfield>        
+            </term>
+            <listitem>
+                <para>
+                    If non empty, the program will consume data from the'
+                    ring whose URI is in this field.  Note that while it's
+                    legal for a program to consume data from more than one
+                    ring, at present this cannot be described in this schema.
+                </para>
+                <para>
+                    Note that programs can be ring to ring filters in the
+                    sense that a program can have both an input an an output
+                    ring.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    
+
+      </variablelist>
+   </refsect1>
+</refentry>     
+
 <refentry id="daq3_cstatemanager">
   <refentryinfo>
     <author>
@@ -2036,7 +2821,7 @@ $DAQBIN/ReadoutGui <replaceable>requestURI subscriptionURI</replaceable>
 lappend auto_path [file join $::env(DAQROOT) TclLibs]
 package require stateclient
 
-::nscldaq::statemanager mgr requri suburi
+::nscldaq::statemanager mgr requri ?suburi?
 ::nscldaq::statemanager -destroy mgr
 
 mgr programParentDir ?newpath?
@@ -2101,7 +2886,7 @@ set state [mgr getProgramState name]
            <informalexample>
             <cmdsynopsis>
             <command>
-::nscldaq::statemanager <replaceable>mgr requri suburi</replaceable>
+::nscldaq::statemanager <replaceable>mgr requri ?suburi?</replaceable>
             </command>
             </cmdsynopsis>
            </informalexample>
@@ -2112,6 +2897,14 @@ set state [mgr getProgramState name]
             are the URI's that describe the REQ and SUB ports respectively
             of a variable database server that is managing the variable
             database that we want to connect to.
+           </para>
+           <para>
+            If only the REQ URI is provided, the api ensemble can connect to
+            a <literal>file:</literal> URI designating the database file.
+            If only the REQ URI is provided
+            only some of the subcommands described are legal.
+            See <literal>ENSEMBLE SUBCOMMANDS</literal> for information
+            about which commands are not legal when a single URI is used.
            </para>
            <para>
             An ensemble created in this way is destroyed by:
@@ -2409,6 +3202,9 @@ set state [mgr getProgramState name]
                 </term>
                 <listitem>
                     <para>
+                        Only legal on a two URI construction
+                    </para>
+                    <para>
                         Set the global state to <parameter>newState</parameter>.
                         The <parameter>newState</parameter> must be a legal
                         next state for the current global state value.
@@ -2425,6 +3221,9 @@ set state [mgr getProgramState name]
                 </term>
                 <listitem>
                     <para>
+                        Only legal on a two URI construction
+                    </para>
+                    <para>
                         Returns the current value of the global state
                     </para>
                 </listitem>
@@ -2434,6 +3233,9 @@ set state [mgr getProgramState name]
                     <command>mgr getParticipantStates</command>
                 </term>
                 <listitem>
+                    <para>
+                        Only legal on a two URI construction
+                    </para>
                     <para>
                         Returns a dict.  The dict keys are the
                         names of participant (active) programs.
@@ -2447,6 +3249,9 @@ set state [mgr getProgramState name]
                 </term>
                 <listitem>
                     <para>
+                        Only legal on a two URI construction
+                    </para>
+                    <para>
                         If <parameter>newTitle</parameter> is not supplied,
                         this returnst the current title string. If
                         <parameter>newTitle</parameter> is supplied, that
@@ -2459,6 +3264,9 @@ set state [mgr getProgramState name]
                     <command>mgr timeout ?newTimeout?</command>
                 </term>
                 <listitem>
+                    <para>
+                        Only legal on a two URI construction
+                    </para>
                     <para>
                         If <parameter>newTimeout</parameter> is not
                         supplied, the command returns the current state
@@ -2480,6 +3288,9 @@ set state [mgr getProgramState name]
                 </term>
                 <listitem>
                     <para>
+                        Only legal on a two URI construction
+                    </para>
+                    <para>
                         If <parameter>newRecordingState</parameter> is
                         supplied it becomes the new recording state flag (must
                         be a boolean).  If not, this command returns the
@@ -2493,6 +3304,9 @@ set state [mgr getProgramState name]
                 </term>
                 <listitem>
                     <para>
+                        Only legal on a two URI construction
+                    </para>
+                    <para>
                         If <parameter>newRunNumber</parameter> is supplied
                         it becomes the new run number.  If not this command
                         returns the current run number value.
@@ -2504,6 +3318,9 @@ set state [mgr getProgramState name]
                     <command>mgr waitTransition ?callback?</command>
                 </term>
                 <listitem>
+                    <para>
+                        Only legal on a two URI construction
+                    </para>
                     <para>
                         Waits for an in progress transition to complete.
                         The command returns a true value if the transition
@@ -2525,6 +3342,9 @@ set state [mgr getProgramState name]
                     </command>
                 </term>
                 <listitem>
+                    <para>
+                        Only legal on a two URI construction
+                    </para>
                     <para>
                         Drains the message queue of subscribed messages.
                         If <parameter>callback</parameter> is supplied,
@@ -2588,6 +3408,9 @@ set state [mgr getProgramState name]
                 <term><command>getProgramState name</command></term>
                 <listitem>
                     <para>
+                        Only legal on a two URI construction
+                    </para>
+                    <para>
                         Returns the current program state for
                         <parameter>name</parameter>.
                     </para>
@@ -2628,7 +3451,7 @@ set state [mgr getProgramState name]
   <refsynopsisdiv>
    <synopsis>
 import nscldaq.vardb.statemanager
-mgr = nscldaq.vardb.statemanager.Api(reqUri, subUri)
+mgr = nscldaq.vardb.statemanager.Api(reqUri[, subUri])
 mgr.getProgramParentDir()
 mgr.setProgramParentDir(path)
 mgr.addProgram(name, description)
@@ -2681,7 +3504,7 @@ mgr.getProgramState(name)
      <variablelist>
         <varlistentry>
             <term>
-                nscldaq.vardb.statemanager.Api(reqUri, subUri)
+                nscldaq.vardb.statemanager.Api(reqUri[, subUri])
             </term>
             <listitem>
                 <para>
@@ -2690,6 +3513,18 @@ mgr.getProgramState(name)
                     of a variable manager's REQ port.
                     <parameter>subUri</parameter> is the
                     URI of the same variable manager's SUB port.
+                </para>
+                <para>
+                    If the optional <parameter>subURI</parameter> is missing
+                    several methods will be disabled (an exception raised if used).
+                    In that case, the state manager object can specify a
+                    <literal>file:</literal> protocol URI, and directly access
+                    the database file, or a <literal>tcp:</literal> protocol
+                    URI and access the database through a server.
+                </para>
+                <para>
+                    Methods that are disabled with a single URI in the constructor
+                    will be flagged in their descriptions below.
                 </para>
             </listitem>
         </varlistentry>
@@ -2969,6 +3804,9 @@ mgr.getProgramState(name)
             </term>
             <listitem>
                 <para>
+                    Not legal with single URI construction.
+                </para>
+                <para>
                     Sets the new global state value to <parameter>newState</parameter>.
                     This value must be a valid next state for the current state.
                     If successful, in general, this initiates a global state
@@ -2985,6 +3823,9 @@ mgr.getProgramState(name)
             </term>
             <listitem>
                 <para>
+                    Not legal with single URI construction.
+                </para>
+                <para>
                     Returns the current global state.
                 </para>
             </listitem>
@@ -2994,6 +3835,9 @@ mgr.getProgramState(name)
                 mgr.getParticipantStates()
             </term>
             <listitem>
+                <para>
+                    Not legal with single URI construction.
+                </para>
                 <para>
                     Returns a dict whose keys are program names and whose values
                     are the state that program is in.
@@ -3006,6 +3850,9 @@ mgr.getProgramState(name)
             </term>
             <listitem>
                 <para>
+                    Not legal with single URI construction.
+                </para>
+                <para>
                     Returns the current title string.
                 </para>
             </listitem>
@@ -3015,6 +3862,9 @@ mgr.getProgramState(name)
                 mgr.setTitle(title)
             </term>
             <listitem>
+                <para>
+                    Not legal with single URI construction.
+                </para>
                 <para>
                     Sets the title string to the new value <parameter>title</parameter>.
                 </para>
@@ -3026,6 +3876,9 @@ mgr.getProgramState(name)
             </term>
             <listitem>
                 <para>
+                    Not legal with single URI construction.
+                </para>
+                <para>
                     Returns the global state transition timeout value in seconds.
                 </para>
             </listitem>
@@ -3035,6 +3888,9 @@ mgr.getProgramState(name)
                 mgr.setTimeout(timeout)
             </term>
             <listitem>
+                <para>
+                    Not legal with single URI construction.
+                </para>
                 <para>
                     Sets the global state transition timeout to <parameter>timeout</parameter>
                     seconds.
@@ -3047,6 +3903,9 @@ mgr.getProgramState(name)
             </term>
             <listitem>
                 <para>
+                    Not legal with single URI construction.
+                </para>
+                <para>
                     Returns <literal>True</literal> if the recording flag
                     is true.  <literal>False</literal> otherwise.
                 </para>
@@ -3057,6 +3916,9 @@ mgr.getProgramState(name)
                 mgr.setRecording(flag)
             </term>
             <listitem>
+                <para>
+                    Not legal with single URI construction.
+                </para>
                 <para>
                     Sets the recording flag to the state of the
                     boolean <parameter>flag</parameter>.
@@ -3069,6 +3931,9 @@ mgr.getProgramState(name)
             </term>
             <listitem>
                 <para>
+                    Not legal with single URI construction.
+                </para>
+                <para>
                     Returns the current integer value of the run number.
                 </para>
             </listitem>
@@ -3078,6 +3943,9 @@ mgr.getProgramState(name)
                 mgr.setRunNumber(number)
             </term>
             <listitem>
+                <para>
+                    Not legal with single URI construction.
+                </para>
                 <para>
                     Set the run number to the unsigned positive value
                     <parameter>number</parameter>.
@@ -3089,6 +3957,9 @@ mgr.getProgramState(name)
                 mgr.waitTransition(callable, arg)
             </term>
             <listitem>
+                <para>
+                    Not legal with single URI construction.
+                </para>
                 <para>
                     Waits for global transitions to either succeed, fail or
                     timeout.  If the <parameter>callable</parameter> is
@@ -3151,6 +4022,9 @@ mgr.getProgramState(name)
             </term>
             <listitem>
                 <para>
+                    Not legal with single URI construction.
+                </para>
+                <para>
                     Process all messages in the subscription message backlog.
                     If <parameter>callable</parameter> is provided it is
                     called for each message processed and receives the
@@ -3197,6 +4071,9 @@ mgr.getProgramState(name)
             </term>
             <listitem>
                 <para>
+                    Not legal with single URI construction.
+                </para>
+                <para>
                     Returns <literal>True</literal> if the program
                     <parameter>name</parameter> is active.
                 </para>
@@ -3207,6 +4084,9 @@ mgr.getProgramState(name)
                 mgr.setProgramState(name, state)
             </term>
             <listitem>
+                <para>
+                    Not legal with single URI construction.
+                </para>
                 <para>
                     Sets the program state for <parameter>name</parameter>
                     to <parameter>state</parameter>.  The <parameter>state</parameter>
@@ -3224,6 +4104,9 @@ mgr.getProgramState(name)
         <varlistentry>
             <term>mgr.getProgramState(name)</term>
             <listitem>
+                <para>
+                    Not legal with single URI construction.
+                </para>
                 <para>
                     Returns the name of the program <parameter>name</parameter>'s
                     current state.
