@@ -99,6 +99,8 @@ CVardbRingBuffer::create(
     
     m_pApi->declare("datasize", "integer", usToString(maxData).c_str());
     m_pApi->declare("maxconsumers", "integer", usToString(maxConsumers).c_str());
+    m_pApi->declare("editorx", "integer", "0");
+    m_pApi->declare("editory", "integer", "0");
     
     m_pApi->cd("/");
 }

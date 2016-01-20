@@ -156,6 +156,8 @@ void ServerApiTests::createProgOk()
   
   EQ(std::string("acommand"), m_pBaseApi->get("path"));
   EQ(std::string("ahost"), m_pBaseApi->get("host"));
+  EQ(std::string("0"), m_pBaseApi->get("editorx"));
+  EQ(std::string("0"), m_pBaseApi->get("editory"));
   
 }
 // New program can't duplicate an old one:

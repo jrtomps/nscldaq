@@ -247,6 +247,8 @@ void VarMgrEvbtests::createEvb()
       EQ(std::string("true"),    m_pApi->get("build"));
       EQ(std::string("earliest"), m_pApi->get("timestampPolicy"));
       EQ(std::string(""),        m_pApi->get("serviceSuffix"));
+      EQ(std::string("0"),       m_pApi->get("editorx"));
+      EQ(std::string("0"),       m_pApi->get("editory"));
     }
   );
   
@@ -426,6 +428,8 @@ void VarMgrEvbtests::mkDs()
   CPPUNIT_ASSERT_NO_THROW(EQ(std::string("0"), m_pApi->get("default-id")));
   CPPUNIT_ASSERT_NO_THROW(EQ(std::string(""), m_pApi->get("timestamp-extractor")));
   CPPUNIT_ASSERT_NO_THROW(EQ(std::string("true"), m_pApi->get("expect-bodyheaders")));
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("0"), m_pApi->get("editorx")));
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("0"), m_pApi->get("editory")));
     
 }
 

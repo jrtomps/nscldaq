@@ -95,6 +95,8 @@ CServiceApi::create(const char* name, const char* command, const char* host)
     m_pApi->cd(name);
     m_pApi->declare("path", "string", command);
     m_pApi->declare("host", "string", host);
+    m_pApi->declare("editorx", "integer", "0");
+    m_pApi->declare("editory", "integer", "0");
     
     m_pApi->cd("/");
 }

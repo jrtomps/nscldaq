@@ -561,6 +561,8 @@ void TestStateManager::addProgramDefault()
     EQ(std::string("charlie.nscl.msu.edu"), m_pApi->get("host"));
     EQ(std::string("Output"),   m_pApi->get("outring"));
     EQ(std::string("Input"),    m_pApi->get("inring"));
+    EQ(std::string("0"),        m_pApi->get("editorx"));
+    EQ(std::string("0"),        m_pApi->get("editory"));
 }
 
 // Add a progrem into a non default dir:

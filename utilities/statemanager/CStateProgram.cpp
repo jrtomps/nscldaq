@@ -128,6 +128,12 @@ CStateProgram::addProgram(const char* name, const pProgramDefinition def)
         pApi->declare("outring", "string", def->s_outRing.c_str());
         pApi->declare("inring", "string", def->s_inRing.c_str());
         
+        // The variables below are used by the experiment editor to allow it to
+        // save the object's position on the editor canvas.
+        
+        pApi->declare("editorx", "integer", 0);
+        pApi->declare("editory", "integer", 0);
+        
     }
     catch(...) {
         pApi->cd(wd.c_str());    // Be sure we are back to normal.

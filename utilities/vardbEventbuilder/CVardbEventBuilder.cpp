@@ -99,7 +99,7 @@ CVardbEventBuilder::createSchema()
     }
 }
 /**
- * cresteEventBuilder
+ * createEventBuilder
  *
  *    Create a new event builder.
  *    -   Create the diretory (throws if it already exists).
@@ -157,6 +157,9 @@ CVardbEventBuilder::createEventBuilder(
         m_pApi->declare(
             "sourceId", "integer", uIntToString(outputSourceId).c_str()
         );
+        
+        m_pApi->declare("editorx", "integer", "0");
+        m_pApi->declare("editory", "integer", "0");
         
     }
     catch (...) {
@@ -425,6 +428,8 @@ CVardbEventBuilder::listEventBuilders()
         m_pApi->declare("default-id", "integer", uIntToString(defaultId).c_str());
         m_pApi->declare("timestamp-extractor", "string", timestampExtractor);
         m_pApi->declare("expect-bodyheaders", "bool", boolToString(expectBodyHeaders).c_str());
+        m_pApi->declare("editorx", "integer", "0");
+        m_pApi->declare("editory", "integer", "0");
         
         // Marshall the ids array into idn variables.
         

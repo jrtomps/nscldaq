@@ -132,6 +132,8 @@ void VardbRingApiTests::create()
   
   EQ(static_cast<unsigned long>(8*1024*1024), strtoul(m_pApi->get("datasize").c_str(), NULL, 0));
   EQ(std::string("100"), m_pApi->get("maxconsumers"));
+  EQ(std::string("0"), m_pApi->get("editorx"));
+  EQ(std::string("0"), m_pApi->get("editory"));
 }
 
 void VardbRingApiTests::createdup()
