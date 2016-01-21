@@ -1,3 +1,4 @@
+#
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2013.
 #
@@ -52,7 +53,7 @@ class TestServerStart(testBase.TestBase):
         #
         self._pid    = None
         self._stdout = None
-        pass
+        
     ##
     #  We need to:
     #   *  Delete any temporary file we may have created (database).
@@ -66,7 +67,6 @@ class TestServerStart(testBase.TestBase):
             self._stdout.close()
         if os.path.isfile(self._dbName):
             os.unlink(self._dbName)
-            
             
     
     #-------------------------------------------------------------------------
