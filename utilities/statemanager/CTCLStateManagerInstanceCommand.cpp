@@ -121,6 +121,12 @@ CTCLStateManagerInstanceCommand::operator()(
             listActivePrograms(interp, objv);
         } else if (subCommand == "deleteProgram") {
             deleteProgram(interp, objv);
+        } else if (subCommand == "setEditorPosition") {
+            setEditorPosition(interp, objv);
+        } else if (subCommand == "getEditorXPosition") {
+            getEditorXPosition(interp, objv);
+        } else if (subCommand == "getEditorYPosition") {
+            getEditorYPosition(interp, objv);
             
             // The remainder of the subcommands are only legal if both URI's
             // were provided at construction time.
@@ -575,6 +581,67 @@ CTCLStateManagerInstanceCommand::deleteProgram(
     m_pPrograms->deleteProgram(program.c_str());
 }
 
+/**
+ * setEditorPosition
+ *
+ *    Set new editor x/y positions for a program.
+ *
+ *  @param interp  - interpreter running the command.
+ *  @param objv    - words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::setEditorPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 5);
+    std::string name = objv[2];
+    int         x    = objv[3];
+    int         y    = objv[4];
+    
+    m_pPrograms->setEditorPosition(name.c_str(), x, y);
+}
+/**
+ * getEditorXPositino
+ *    Get the x coordinate of this object in the editor.
+ *
+ *  @param interp  - interpreter running the command.
+ *  @param objv    - words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::getEditorXPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3);
+    std::string name = objv[2];
+    int iResult = m_pPrograms->getEditorXPosition(name.c_str());
+    CTCLObject result;
+    result.Bind(interp);
+    result = iResult;
+    interp.setResult(result);
+}
+
+/**
+ * getEditorXPositino
+ *    Get the x coordinate of this object in the editor.
+ *
+ *  @param interp  - interpreter running the command.
+ *  @param objv    - words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::getEditorYPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3);
+    std::string name = objv[2];
+    int iResult = m_pPrograms->getEditorYPosition(name.c_str());
+    CTCLObject result;
+    result.Bind(interp);
+    result = iResult;
+    interp.setResult(result);
+}
 /**
  * setGlobalState
  *    Set the global state

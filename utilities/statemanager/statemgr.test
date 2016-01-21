@@ -194,6 +194,7 @@ tcltest::test create-delete-ok {Can delete created instancde} \
 } -result 0
 
 
+
 tcltest::test instance-is-ensemble {Instance commands need subcommands} \
  -setup {
     setup
@@ -2292,6 +2293,56 @@ tcltest::test program-only-nosuch {Check that state manager only cmds are illega
    list $status $msg
 } -result [list 1 {Invalid subcommand keyword}]
 
+tcltest::test editorPosition-set {Set editor position for an object} \
+-setup {
+   setup
+   ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+   set h [varmgr::open tcp://localhost ]
+} \
+-cleanup {
+   ::nscldaq::statemanager -delete mgr
+   varmgr::close $h
+} \
+-body {
+   mgr setEditorPosition test 100 200
+   
+   lappend position [varmgr::var get /RunState/test/editorx]
+   lappend position [varmgr::var get /RunState/test/editory]
+   set position
+} -result [list 100 200]
+
+tcltest::test editorPosition-getx {Get editor x position for an object} \
+-setup {
+   setup
+   ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+   ::nscldaq::statemanager -delete mgr
+
+} \
+-body {
+   mgr setEditorPosition test 100 200
+   mgr getEditorXPosition test
+   
+   lappend position [varmgr::var get /RunState/test/editory]
+   set position
+} -result  100
+
+tcltest::test editorPosition-gety {Get editor y position for an object} \
+-setup {
+   setup
+   ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+
+} \
+-cleanup {
+   ::nscldaq::statemanager -delete mgr
+
+} \
+-body {
+   mgr setEditorPosition test 100 200
+   mgr getEditorYPosition test
+   
+} -result  200
 #
 #------------------------------------------------------------------
 #
