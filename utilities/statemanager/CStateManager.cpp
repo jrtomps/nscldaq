@@ -270,6 +270,39 @@ CStateManager::deleteProgram(const char* name)
 
 }
 /**
+ * setEditorPosition
+ *    @param name - name of the object.
+ *    @param x    - x position.
+ *    @param y    - y position.
+ *    @note See CStateProgram::setEditorPositon
+ */
+void
+CStateManager::setEditorPosition(const char* name, int x, int y)
+{
+    m_pPrograms->setEditorPosition(name, x, y);
+}
+/**
+ * getEditorXPosition(const char* name)
+ *   @param name - name of the object to query.
+ *   @return int - x coordinate of editor x position,
+ *   see CStateProgram::getEditorXPosition
+ */
+int
+CStateManager::getEditorXPosition(const char* name)
+{
+    return m_pPrograms->getEditorXPosition(name);
+}
+/**
+ * getEditorYPosition
+ *  @param name - name of the object to query.
+ *  @return int - y coordinate of position in editor.
+ */
+int
+CStateManager::getEditorYPosition(const char* name)
+{
+    return m_pPrograms->getEditorYPosition(name);
+}
+/**
  * getParticipantStates
  *    Get the states of programs that should be participating
  *    in state transitions (active programs).
@@ -390,6 +423,8 @@ CStateManager::runNumber(unsigned newValue)
     
     pApi->set("/RunState/RunNumber", runStr);
 }
+
+
 /*------------------------------------------------------
  * State management/listing
  */

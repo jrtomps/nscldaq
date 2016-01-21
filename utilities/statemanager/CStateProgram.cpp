@@ -24,7 +24,8 @@
 #include <CVarMgrApi.h>
 #include <CVarMgrApiFactory.h>
 #include <string>
-
+#include <sstream>
+#include <stdlib.h>
 
 /**
  * constructor
@@ -426,15 +427,44 @@ CStateProgram::deleteProgram(const char* name)
     pApi->rmdir(progDir.c_str());
 }
 
-#ifdef NOTDEFINED
-
-;
-;
-;
-;
-;
-void               deleteProgram(const char* name);
-#endif
+/**
+ * setEditorPostion
+ *    Update the position at which this object will appear on the editor's canvas.
+ *
+ *   @param name - program name.
+ *   @param x    - x coordinate.
+ *   @param y    - y coordinate.
+ */
+void
+CStateProgram::setEditorPosition(const char* name, int x, int y)
+{
+    setProgramVar(name, "editorx", intToString(x).c_str());
+    setProgramVar(name, "editory", intToString(y).c_str());
+}
+/**
+ * getEditorXPosition
+ *     Determine the x position of the state program object in the editor
+ *     canvas the last time it was saved.
+ * @param name - name of the object.
+ * @return int - X coordinate of the object.
+ */
+int
+CStateProgram::getEditorXPosition(const char* name)
+{
+    return atoi(getProgramVar(name, "editorx").c_str());
+}
+/**
+ * getEditorYPosition
+ *    Determine the y position of the state program object in the editor
+ *    the last time it was saved.
+ *  @param name - name of the program.
+ *  @return int - y coordinate of the position.
+ */
+int
+CStateProgram::getEditorYPosition(const char* name)
+{
+    return atoi(getProgramVar(name, "editory").c_str());
+}
 /*---------------------------------------------------------------------------
  * Private utilities
  */
@@ -532,4 +562,20 @@ CStateProgram::getProgramBool(const char* program, const char* var)
     errorMessage += " does not have a boolean value: ";
     errorMessage += value;
     throw std::runtime_error(errorMessage);
+}
+
+/**
+ * intToString
+ *    Return the string representation of an integer.
+ *
+ *  @param v - the value to convert.
+ *  @return std::string
+ */
+std::string
+CStateProgram::intToString(int v)
+{
+    std::ostringstream str;
+    str << v;
+    
+    return str.str();
 }

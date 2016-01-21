@@ -203,7 +203,11 @@ class TestStateManager : public CppUnit::TestFixture {
   CPPUNIT_TEST(partStates1);
   CPPUNIT_TEST(partStatesSeveral);
   
-
+  // Manipulate/get editor positions:
+  
+  CPPUNIT_TEST(setPosition);
+  CPPUNIT_TEST(getXpos);
+  CPPUNIT_TEST(getYpos);
 
   
   CPPUNIT_TEST_SUITE_END();
@@ -284,7 +288,9 @@ protected:
   void partStates1();
   void partStatesSeveral();
   
- 
+  void setPosition();
+  void getXpos();
+  void getYpos();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -398,6 +404,8 @@ TestStateManager::populateDb()
     m_pApi->declare("/RunState/test/host", "string", "localhost");
     m_pApi->declare("/RunState/test/outring", "string", "output");
     m_pApi->declare("/RunState/test/inring", "string", "tcp://localhost/fox");
+    m_pApi->declare("/RunState/test/editorx", "integer", "0");
+    m_pApi->declare("/RunState/test/editory", "integer", "0");
 
     
     
@@ -1707,4 +1715,30 @@ void TestStateManager::partStatesSeveral()
     EQ(std::string("ztest"), states[2].first);
     EQ(std::string("Ready"), states[2].second);
     
+}
+
+/**
+ * setPosition
+ *    Set the x/y position for a program.
+ */
+void TestStateManager::setPosition()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setEditorPosition("test", 100, 200);
+    
+    EQ(std::string("100"), m_pApi->get("/RunState/test/editorx"));
+    EQ(std::string("200"), m_pApi->get("/RunState/test/editory"));
+}
+
+void TestStateManager::getXpos()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setEditorPosition("test", 100, 200);
+    EQ(100, sm.getEditorXPosition("test"));
+}
+void TestStateManager::getYpos()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setEditorPosition("test", 100, 200);
+    EQ(200, sm.getEditorYPosition("test"));
 }

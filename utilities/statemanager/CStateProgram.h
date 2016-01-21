@@ -81,7 +81,10 @@ public:
     std::vector<std::string> listStandalonePrograms();
     std::vector<std::string> listInactivePrograms();
     std::vector<std::string> listActivePrograms();
-    void               deleteProgram(const char* name);  
+    void               deleteProgram(const char* name);
+    void               setEditorPosition(const char* name, int x, int y);
+    int                getEditorXPosition(const char* name);
+    int                getEditorYPosition(const char* name);
 private:
     std::string getProgramDirectoryPath(const char* name);
     std::string  getVarpath(const char* program, const char* name);
@@ -90,6 +93,7 @@ private:
     );
     std::string getProgramVar(const char* program, const char* var);
     bool        getProgramBool(const char* program, const char* var);
+    std::string intToString(int v);
     
 
 };

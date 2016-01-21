@@ -106,6 +106,9 @@ public:
     std::vector<std::string> listInactivePrograms();
     std::vector<std::string> listActivePrograms();
     void               deleteProgram(const char* name);
+    void               setEditorPosition(const char* name, int x, int y);
+    int                getEditorXPosition(const char* name);
+    int                getEditorYPosition(const char* name);
     CStateProgram*     getProgramApi() {return m_pPrograms;}
     
     
