@@ -7,7 +7,7 @@ for f in `find $1 -name Makefile -exec grep -l check-TESTS {}  \;`
   do 
     if test $f != ./Makefile
     then
-      (cd `dirname $f`; make check-TESTS)
+      (cd `dirname $f`; make check-TESTS VERBOSE=1)
     fi
   done	
 

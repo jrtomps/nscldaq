@@ -23,7 +23,7 @@ make install
 chmod u+x nscldaq
 ./nscldaq start 
 sleep 10                  # give services a chance to start.
-make check-TESTS
+make check-TESTS VERBOSE=1
 ./nscldaq stop
 
 
