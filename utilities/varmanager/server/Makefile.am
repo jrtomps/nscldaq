@@ -105,12 +105,21 @@ testSub_LDFLAGS = $(COMMONLDFLAGS) \
 	@LIBEXCEPTION_LDFLAGS@	\
 	 @CPPUNIT_LDFLAGS@ @GLIB_LIBS@
 
-check-TESTS:
-	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done
-	PYTHONPATH=@prefix@/pythonLibs @builddir@/testApi
-	TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/tclbindings.test
-	PYTHONPATH=@prefix@/pythonLibs BINDIR=@prefix@/bin TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/tclsub.test
-	PYTHONPATH=@prefix@/pythonLibs @builddir@/testSub
+TEST_EXTENSIONS = .test .py
+TEST_LOG_COMPILER = @TCLSH@
+PY_LOG_COMPILER = $(PYTHON)
+TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
+	PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;	\
+	BINDIR=@prefix@/bin;export BINDIR;
+
+TESTS=  $(SERVER_TESTS)  testApi  tclsub.test tclbindings.test testSub
+
+#Check-TESTS:
+#	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done
+#	PYTHONPATH=@prefix@/pythonLibs @builddir@/testApi
+#	TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/tclbindings.test
+#	PYTHONPATH=@prefix@/pythonLibs BINDIR=@prefix@/bin TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/tclsub.test
+#	PYTHONPATH=@prefix@/pythonLibs @builddir@/testSub
 
 EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml tclbindings.test tclsub.test \
 	vardb-service.sh

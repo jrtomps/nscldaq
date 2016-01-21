@@ -56,7 +56,7 @@ unittests_LDFLAGS= libvardbRingBuffer.la $(COMMONLDFLAGS) @CPPUNIT_LDFLAGS@
 
 # Testing setup for TCL and Python tests:
 
-TEST_EXENSTIONS=.test .py
+TEST_EXTENSIONS=.test .py
 TEST_LOG_COMPILER=@TCLSH@
 PY_LOG_COMPILER=@PYTHON@
 TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \

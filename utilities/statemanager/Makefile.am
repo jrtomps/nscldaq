@@ -341,7 +341,7 @@ EXTRA_DIST+= stateclient.xml statemanager.xml
 
 # Test setup and specification.
 
-TEST_EXENSTIONS=.test .py
+TEST_EXTENSIONS=.test .py
 TEST_LOG_COMPILER=@TCLSH@
 PY_LOG_COMPILER=@PYTHON@
 TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \

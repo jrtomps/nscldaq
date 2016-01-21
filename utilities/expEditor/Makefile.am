@@ -20,7 +20,7 @@ install-exec-hook:
 TCLTESTS=properties.test proplist.test ringobject.test SPData.test svcdata.test \
 	eventbuilder.test datasource.test
 
-TEST_EXENSTIONS=.test .py
+TEST_EXTENSIONS=.test .py
 TEST_LOG_COMPILER=@TCLSH@
 PY_LOG_COMPILER=@PYTHON@
 TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
