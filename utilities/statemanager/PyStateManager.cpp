@@ -979,6 +979,93 @@ deleteProgram(PyObject* self, PyObject* args)
 }
 
 /**
+ * setEditorPosition
+ *     Set the editor position for an object.
+ *
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : program name.
+* @return PyObject* - Py_None
+*/  
+static PyObject*
+setEditorPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    int   x;
+    int   y;
+    
+    if (!PyArg_ParseTuple(args, "sii", &name, &x, &y)) {
+        return NULL;
+    }
+    CStateProgram* pApi = getProgramApi(self);
+    try {
+        pApi->setEditorPosition(name, x, y);
+    }
+    catch(std::exception& e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+}
+/**
+ * getEditorXPosition
+ *    Get the x coordinate of the objects position in the editor.
+ *
+ *
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : program name.
+* @return PyIntObject* - x coordinate of the objects's position.
+*/  
+static PyObject*
+getEditorXPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    int   x;
+    
+    if (!PyArg_ParseTuple(args, "s", &name)) {
+        return NULL;
+    }
+    
+    CStateProgram* pApi = getProgramApi(self);
+    try {
+        x = pApi->getEditorXPosition(name);
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    return PyInt_FromLong(x);
+}
+
+/**
+ * getEditorYPosition
+ *    Get the x coordinate of the objects position in the editor.
+ *
+ *
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : program name.
+* @return PyIntObject* - x coordinate of the objects's position.
+*/  
+static PyObject*
+getEditorYPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    int   y;
+    
+    if (!PyArg_ParseTuple(args, "s", &name)) {
+        return NULL;
+    }
+    
+    CStateProgram* pApi = getProgramApi(self);
+    try {
+        y = pApi->getEditorYPosition(name);
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    return PyInt_FromLong(y);
+}
+/**
 * setGlobalState
 *     Force a state transition.
 *
@@ -1607,6 +1694,9 @@ static PyMethodDef ApiObjectMethods[] = {
     {"listActivePrograms", listActivePrograms, METH_VARARGS,
          "List programs that are enabled and not standalone"},
     {"deleteProgram", deleteProgram, METH_VARARGS, "delete a program"},
+    {"setEditorPosition", setEditorPosition, METH_VARARGS, "set editor position of object"},
+    {"getEditorXPosition", getEditorXPosition, METH_VARARGS, "Get x position of an object"},
+    {"getEditorYPosition", getEditorYPosition, METH_VARARGS, "Get y position of an object"},
     {"setGlobalState", setGlobalState, METH_VARARGS, "Start a global state transition"},
     {"getGlobalState", getGlobalState, METH_VARARGS, "Get The global state"},
     {"getParticipantStates", getParticipantStates, METH_VARARGS,

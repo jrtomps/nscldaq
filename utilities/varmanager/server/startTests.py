@@ -63,6 +63,7 @@ class TestServerStart(testBase.TestBase):
     def tearDown(self):
         if self._pid is not None:
             os.kill(self._pid, signal.SIGKILL)
+            os.waitpid(self._pid, 0)
         if self._stdout is not None:
             self._stdout.close()
         if os.path.isfile(self._dbName):

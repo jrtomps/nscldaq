@@ -114,6 +114,7 @@ class StateClientTests(testBase.TestBase):
         if self._pid is not None:
             print("Killing server")
             os.kill(self._pid, signal.SIGKILL)
+            os.waitpid(self._pid,0)
             print("Killed")
             self.waitPortGone('vardb-request')
             print("Port gone")

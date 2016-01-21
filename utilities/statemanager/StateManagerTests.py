@@ -112,6 +112,7 @@ class StateManagerTests(testBase.TestBase):
     def tearDown(self):
         if self._pid is not None:
             os.kill(self._pid, signal.SIGKILL)
+            os.waitpid(self._pid,0)
             self.waitPortGone('vardb-request')
         if self._stdout is not None:
             self._stdout.close()
@@ -298,6 +299,33 @@ class ProgramDef(StateManagerTests):
             api.modifyProgram('test', progDef, 'junk')   #extra stuff
         with self.assertRaises(nscldaq.vardb.statemanager.error) :
             api.modifyProgram('test', 'junk')    # def not dict.
+    def test_setEditorPosition(self):
+        api = nscldaq.vardb.statemanager.Api(
+            'tcp://localhost', 'tcp://localhost'
+        )
+        progDef = api.getProgramDefinition('test')
+        api.setEditorPosition('test', 100, 200)
+        
+        EQ("100", self._api.get('/RunState/test/editorx'))
+        EQ("200", self._api_get('/RunState/test/editory'))
+    
+    def test_getXpos(self):
+        api = nscldaq.vardb.statemanager.Api(
+            'tcp://localhost', 'tcp://localhost'
+        )
+        progDef = api.getProgramDefinition('test')
+
+        api.setEditorPosition('test', 100, 200)
+        EQ(100, api.getEditorXPosition('test'))
+        
+    def test_getYpos(self):
+        api = nscldaq.vardb.statemanager.Api(
+            'tcp://localhost', 'tcp://localhost'
+        )
+        progDef = api.getProgramDefinition('test')
+        api.setEditorPosition('test', 100, 200)
+        EQ(200, api.getEditorYPosition('test'))
+    
 
 class ProgramParticipation(StateManagerTests):        
     def test_enableProgram_ok(self):
@@ -1180,4 +1208,4 @@ class ProgramOnlyTests(StateManagerTests):
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    unittest.main()
