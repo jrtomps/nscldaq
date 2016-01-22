@@ -60,6 +60,9 @@ private:
     void setMaxConsumers(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void ringInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void list(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void setEditorPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void getEditorXPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void getEditorYPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
     // Utilities:
 private:  

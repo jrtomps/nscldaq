@@ -203,6 +203,58 @@ CVardbRingBuffer::list()
     
     return result;
 }
+
+/**
+ * setEditorPosition
+ *   Set a new position for the ring buffer on the editor canvas.
+ *
+ * @param name - Name of the ring buffer.
+ * @param host - Host in whih the ring buffer is created (tcp://host/ring).
+ * @param x    - X coordinate of canvas position.
+ * @param y    - Y coordinate of canvas position.
+ */
+void
+CVardbRingBuffer::setEditorPosition(const char* name, const char* host, int x, int y)
+{
+    std::string dir =ringDir(name, host);
+    m_pApi->cd(dir.c_str());
+    
+    m_pApi->set("editorx", usToString(x).c_str());
+    m_pApi->set("editory", usToString(y).c_str());
+    
+    m_pApi->cd("/");
+}
+
+/**
+ * getEditorXPosition
+ *
+ * @param name - ring buffer name.
+ * @param host - host in which the ring buffer is created.
+ * @return int - X coordinate of ring buffer editor canvas position.
+ */
+int
+CVardbRingBuffer::getEditorXPosition(const char*  name, const char* host)
+{
+    std::string var = ringDir(name, host);
+    var += "/editorx";
+    
+    return atoi(m_pApi->get(var.c_str()).c_str());
+}
+/**
+ * getEditorYPosition
+ *
+ * @param name - ring buffer name.
+ * @param host - host in which the ring buffer is created.
+ * @return int - Y coordinate of ring buffer editor canvas position.
+ */
+int
+CVardbRingBuffer::getEditorYPosition(const char*  name, const char* host)
+{
+    std::string var = ringDir(name, host);
+    var += "/editory";
+    
+    return atoi(m_pApi->get(var.c_str()).c_str());
+}
 /*-----------------------------------------------------------------------------
  *  Private utility methods.
  */

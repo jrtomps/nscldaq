@@ -74,6 +74,10 @@ public:
     RingInfo ringInfo(const char* name, const char* host);
     std::vector<RingInfo> list();
     
+    void setEditorPosition(const char* name, const char* host, int x, int y);
+    int getEditorXPosition(const char* name, const char* host);
+    int getEditorYPosition(const char* name, const char* host);
+    
     // utility methods:
     
 private:

@@ -427,6 +427,97 @@ _list(PyObject* self, PyObject* args)
     }
     return result;
 }
+/** _setEditorPosition
+ *    Save the position of the object on the editor canvas.  Used to layout
+ *    the restored editor information.
+ *
+ * @param self - Object data.
+ * @param args - positional parameters: name, host, x, y
+ * @return PyNone
+ */
+static PyObject*
+_setEditorPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    char* host;
+    int   x;
+    int   y;
+    
+    if (!PyArg_ParseTuple(args, "ssii", &name, &host, &x, &y)) {
+        return NULL;
+    }
+    
+    CVardbRingBuffer* pApi  = getApi(self);
+    try {
+        pApi->setEditorPosition(name, host, x, y);
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+/**
+ * _getEditorXPosition
+ *    return the editor x position of an object.  This is the x coordinate
+ *    of where the object will be drawn on the canvas if it is restored.
+ *
+ *  @param self - pointer to object data.
+ *  @param args - Pointer positiuon keywords:  ring, host
+ *  @return PyIntObject* - the x position.
+ */
+static PyObject*
+_getEditorXPosition(PyObject* self, PyObject* args)
+{
+    char* host;
+    char* ring;
+    
+    if (!PyArg_ParseTuple(args, "ss", &ring, &host)) {
+        return NULL;
+    }
+    
+    CVardbRingBuffer* pApi = getApi(self);
+    int result;
+    try {
+        result = pApi->getEditorXPosition(ring, host);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    return PyInt_FromLong(result);
+}
+/**
+ * _getEditorYPosition
+ *    return the editor x position of an object.  This is the x coordinate
+ *    of where the object will be drawn on the canvas if it is restored.
+ *
+ *  @param self - pointer to object data.
+ *  @param args - Pointer positiuon keywords:  ring, host
+ *  @return PyIntObject* - the x position.
+ */
+static PyObject*
+_getEditorYPosition(PyObject* self, PyObject* args)
+{
+    char* host;
+    char* ring;
+    
+    if (!PyArg_ParseTuple(args, "ss", &ring, &host)) {
+        return NULL;
+    }
+    
+    CVardbRingBuffer* pApi = getApi(self);
+    int result;
+    try {
+        result = pApi->getEditorYPosition(ring, host);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    return PyInt_FromLong(result);
+}
 /*
  *  Module level method definition table.
  *  The only thing that can be done at object level is to instantiate
@@ -457,6 +548,18 @@ static PyMethodDef  apiMethods[] = {
     },
     {"ringInfo", _ringInfo, METH_VARARGS, "Get information about a ring"},
     {"list", _list, METH_VARARGS, "List information about all rings"},
+    {
+        "setEditorPosition", _setEditorPosition, METH_VARARGS,
+        "Set object position on editor canvas"
+    },
+    {
+        "getEditorXPosition", _getEditorXPosition, METH_VARARGS,
+        "Get X coordinates of object on editor canvas"
+    },
+    {
+        "getEditorYPosition", _getEditorYPosition, METH_VARARGS,
+        "Get Y coordinates of object on editor canvas"
+    },
     
     {NULL, NULL, 0, NULL}                /* End of method definition marker */   
 };

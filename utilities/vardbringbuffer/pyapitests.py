@@ -140,6 +140,25 @@ class TestRingApi(unittest.TestCase):
         self.assertEqual(100, info['maxconsumers'])
         self.assertEqual(8*1024*1024, info['datasize'])
         
+    def test_setPos(self):
+        api = self.ringInit()
+        api.setEditorPosition('fox', 'charlie', 200, 300)
+        
+        self.assertEqual(str(200), self._db.get('/RingBuffers/fox@charlie/editorx'))
+        self.assertEqual(str(300), self._db.get('/RingBuffers/fox@charlie/editory'))
+        
+    def test_getXpos(self):
+        api = self.ringInit()
+        api.setEditorPosition('fox', 'charlie', 200, 300)
+        
+        self.assertEqual(200, api.getEditorXPosition('fox', 'charlie'))
+        
+    def test_getYpos(self):
+        api = self.ringInit()
+        api.setEditorPosition('fox', 'charlie', 200, 300)
+        
+        self.assertEqual(300, api.getEditorYPosition('fox', 'charlie'))
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -340,6 +340,71 @@ tcltest::test list {get list of dicts about all rings} \
     expr {$sb == $listing}
 } -result 1
 
+
+tcltest::test setPos {set editor position} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    set h [varmgr::open file://$file]
+    
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+    
+    varmgr::close $h
+} \
+-body {
+    api create fox charlie
+    api setEditorPosition fox charlie 100 200
+    
+    lappend result [varmgr::var get /RingBuffers/fox@charlie/editorx]
+    lappend result [varmgr::var get /RingBuffers/fox@charlie/editory]
+    set result
+} -result [list 100 200]
+    
+tcltest::test getXpos {Get editor x position} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+    
+} \
+-body {
+    api create fox charlie
+    api setEditorPosition fox charlie 100 200
+    
+    api getEditorXPosition fox charlie
+} -result 100
+
+tcltest::test getYPos {Get editor y position} \
+-setup {
+    package require vardbringbuffer
+    set file [makeEmptyDb]
+    ::nscldaq::vardbringbuffer create api file://$file
+    
+    
+} \
+-cleanup {
+    ::nscldaq::vardbringbuffer destroy api
+    destroyDb $file
+    
+} \
+-body {
+    api create fox charlie
+    api setEditorPosition fox charlie 100 200
+    
+    api getEditorYPosition fox charlie
+} -result 200
+    
 #-------------------------------------------------------------------------------
 #
 #   Global test teardown/reporting.

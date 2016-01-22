@@ -87,7 +87,15 @@ CTCLVardbRingBufferInstance::operator()(
         } else if (subcommand == "ringInfo") {
             ringInfo(interp, objv);
         } else if (subcommand == "list") {
-            list(interp, objv);   
+            list(interp, objv);
+        } else if (subcommand == "setEditorPosition") {
+                
+            setEditorPosition(interp, objv);
+        } else if (subcommand == "getEditorXPosition") {
+                
+            getEditorXPosition(interp, objv);
+        } else if (subcommand == "getEditorYPosition") {
+            getEditorYPosition(interp, objv);
         } else {
             throw std::runtime_error("api instance - invalid subcommand");
         }
@@ -280,7 +288,73 @@ CTCLVardbRingBufferInstance::list(CTCLInterpreter& interp, std::vector<CTCLObjec
     }
     interp.setResult(result);
 }
-
+/**
+ * setEditorPosition
+ *    Set a new position for the object on a canvas.
+ *
+ *  @param interp - interpreter running the command.
+ *  @param objv   - command line words.
+ */
+void
+CTCLVardbRingBufferInstance::setEditorPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+        requireExactly(objv, 6);
+        
+        std::string ring = objv[2];
+        std::string host = objv[3];
+        int x            = objv[4];
+        int y            = objv[5];
+        
+        m_pApi->setEditorPosition(ring.c_str(), host.c_str(), x, y);
+}
+/**
+ * getEditorXPosition
+ *   Set the interpreter result with the X position of the object on the
+ *   editor canvas.
+ *  @param interp - interpreter running the command.
+ *  @param objv   - command line words.
+ */
+void
+CTCLVardbRingBufferInstance::getEditorXPosition(
+        CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+        requireExactly(objv, 4);
+        std::string ring = objv[2];
+        std::string host = objv[3];
+        
+        int x = m_pApi->getEditorXPosition(ring.c_str(), host.c_str());
+        CTCLObject result;
+        result.Bind(interp);
+        
+        result = x;
+        interp.setResult(result);
+        
+}
+/**
+ * getEditorYPosition
+ *   Set the interpreter result with the X position of the object on the
+ *   editor canvas.
+ *  @param interp - interpreter running the command.
+ *  @param objv   - command line words.
+ */
+void
+CTCLVardbRingBufferInstance::getEditorYPosition(
+        CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+        requireExactly(objv, 4);
+        std::string ring = objv[2];
+        std::string host = objv[3];
+        
+        int y = m_pApi->getEditorYPosition(ring.c_str(), host.c_str());
+        CTCLObject result;
+        result.Bind(interp);
+        
+        result = y;
+        interp.setResult(result);
+        
+}
 /*-----------------------------------------------------------------------------
  *  Utilties
  */

@@ -38,6 +38,10 @@ class VardbRingApiTests : public CppUnit::TestFixture {
 
   CPPUNIT_TEST(ls1);
   CPPUNIT_TEST(ls2);
+  
+  CPPUNIT_TEST(setpos);
+  CPPUNIT_TEST(getx);
+  CPPUNIT_TEST(gety);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -63,6 +67,10 @@ protected:
 
   void ls1();
   void ls2();
+  
+  void setpos();
+  void getx();
+  void gety();
   
 private:
   CVarMgrApi*         m_pApi;
@@ -262,4 +270,31 @@ void VardbRingApiTests::ls2()
   EQ(std::string("spdaq20"), rings[1].s_host);
   EQ(unsigned(2000000), rings[1].s_dataSize);
   EQ(unsigned(35), rings[1].s_maxConsumers);
+}
+
+void VardbRingApiTests::setpos()
+{
+  m_pRingApi->createSchema();
+  m_pRingApi->create("aRing", "charlie", 1000000, 25);
+  m_pRingApi->setEditorPosition("aRing", "charlie", 100, 200);
+  
+  EQ(std::string("100"), m_pApi->get("/RingBuffers/aRing@charlie/editorx"));
+  EQ(std::string("200"), m_pApi->get("/RingBuffers/aRing@charlie/editory"));
+}
+
+void VardbRingApiTests::getx()
+{
+  m_pRingApi->createSchema();
+  m_pRingApi->create("aRing", "charlie", 1000000, 25);
+  m_pRingApi->setEditorPosition("aRing", "charlie", 100, 200);
+  
+  EQ(100, m_pRingApi->getEditorXPosition("aRing", "charlie"));
+}
+void VardbRingApiTests::gety()
+{
+  m_pRingApi->createSchema();
+  m_pRingApi->create("aRing", "charlie", 1000000, 25);
+  m_pRingApi->setEditorPosition("aRing", "charlie", 100, 200);
+  
+  EQ(200, m_pRingApi->getEditorYPosition("aRing", "charlie"));
 }
