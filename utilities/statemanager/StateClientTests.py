@@ -79,7 +79,6 @@ class StateClientTests(testBase.TestBase):
         
         
     def setUp(self):
-        print("Setup")
         # Get a temp file name..
     
         myVarDb = tempfile.NamedTemporaryFile()
@@ -108,21 +107,15 @@ class StateClientTests(testBase.TestBase):
         self.startServer(['--database', self._dbName, '--create-ok', 'yes'])
         p = self.getport('vardb-request')       # Wait for server to publish services.
         self._api = nscldaq.vardb.varmgr.Api('tcp://localhost:%d' % p)
-        print("completed setup")
     def tearDown(self):
-        print("Teardown")
         if self._pid is not None:
-            print("Killing server")
             os.kill(self._pid, signal.SIGKILL)
             os.waitpid(self._pid,0)
-            print("Killed")
             self.waitPortGone('vardb-request')
-            print("Port gone")
         if self._stdout is not None:
             self._stdout.close()
         if os.path.isfile(self._dbName):
             os.unlink(self._dbName)
-        print("Teardown complete")
 
     # Construction of an API object.
     

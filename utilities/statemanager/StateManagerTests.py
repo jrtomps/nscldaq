@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2013.
@@ -76,6 +73,8 @@ class StateManagerTests(testBase.TestBase):
         api.declare('/RunState/test/outring', 'string')
         api.declare('/RunState/test/inring', 'string')
         api.declare('/RunState/test/State', 'RunStateMachine', '0Initial')
+        api.declare('/RunState/test/editorx', 'integer', '0')
+        api.declare('/RunState/test/editory', 'integer', '0')
         
         
     def setUp(self):
@@ -299,32 +298,30 @@ class ProgramDef(StateManagerTests):
             api.modifyProgram('test', progDef, 'junk')   #extra stuff
         with self.assertRaises(nscldaq.vardb.statemanager.error) :
             api.modifyProgram('test', 'junk')    # def not dict.
+
     def test_setEditorPosition(self):
         api = nscldaq.vardb.statemanager.Api(
             'tcp://localhost', 'tcp://localhost'
         )
-        progDef = api.getProgramDefinition('test')
         api.setEditorPosition('test', 100, 200)
         
-        EQ("100", self._api.get('/RunState/test/editorx'))
-        EQ("200", self._api_get('/RunState/test/editory'))
+        self.assertEqual("100", self._api.get('/RunState/test/editorx'))
+        self.assertEqual("200", self._api.get('/RunState/test/editory'))
     
     def test_getXpos(self):
         api = nscldaq.vardb.statemanager.Api(
             'tcp://localhost', 'tcp://localhost'
         )
-        progDef = api.getProgramDefinition('test')
-
+        
         api.setEditorPosition('test', 100, 200)
-        EQ(100, api.getEditorXPosition('test'))
+        self.assertEqual(100, api.getEditorXPosition('test'))
         
     def test_getYpos(self):
         api = nscldaq.vardb.statemanager.Api(
             'tcp://localhost', 'tcp://localhost'
         )
-        progDef = api.getProgramDefinition('test')
         api.setEditorPosition('test', 100, 200)
-        EQ(200, api.getEditorYPosition('test'))
+        self.assertEqual(200, api.getEditorYPosition('test'))
     
 
 class ProgramParticipation(StateManagerTests):        
@@ -368,7 +365,7 @@ class ProgramParticipation(StateManagerTests):
         
     def test_disablProgram_argcheck(self):
         api = nscldaq.vardb.statemanager.Api(
-                'tcp://localhost', 'tcp://localhost'
+               'tcp://localhost', 'tcp://localhost'
         )
         with self.assertRaises(nscldaq.vardb.statemanager.error) :
             api.disableProgram()
