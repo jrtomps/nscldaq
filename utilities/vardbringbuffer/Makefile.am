@@ -42,7 +42,7 @@ install-exec-hook:
 	ln -s @libdir@/libtclvardbringbuffer.so \
 		@prefix@/TclLibs/vardbringbuffer/libtclvardbringbuffer.so
 	echo "pkg_mkIndex -verbose @prefix@/TclLibs/vardbringbuffer *.so" | @TCLSH@
-	$(mkinstalldirs) @prefix/pythonLibs/nscldaq/vardb
+	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
 	rm -f @prefix@/pythonLibs/nscldaq/vardb/VardbRingbuffer.so
 	ln -s @libdir@/libPyVardbRingBuffer.so @prefix@/pythonLibs/nscldaq/vardb/VardbRingbuffer.so
 
