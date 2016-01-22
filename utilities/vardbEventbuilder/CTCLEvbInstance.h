@@ -72,6 +72,9 @@ private:
     void rmevb(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void evbInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void evbList(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void evbSetEditorPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void evbGetEditorXPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void evbGetEditorYPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
     void addSource(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void dsSetHost(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
@@ -84,6 +87,9 @@ private:
     void dsDisableBodyHeaders(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void dsSetTimestampExtractor(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void dsInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsSetEditorPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsGetEditorXPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsGetEditorYPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void listSources(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void rmSource(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     

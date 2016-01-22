@@ -303,7 +303,57 @@ CVardbEventBuilder::evbSetTimestampPolicy(
     m_pApi->set("timestampPolicy", policyToText[newPolicy].c_str());
     m_pApi->cd("/");
 }
-
+/**
+ * evbSetEditorPosition
+ *    Set the position on the editor canvas for an event builder object.
+ *    this is used by the experiment editor to re-lay out the data flow
+ *    in the same way the user did.
+ *
+ *  @param name -Event buidler name.
+ *  @param x    -X coordinate.
+ *  @param y    -Y coordinate.
+ */
+void
+CVardbEventBuilder::evbSetEditorPosition(const char* name, int x, int y)
+{
+    std::string dir = evbDirname(name);
+    m_pApi->cd(dir.c_str());
+    m_pApi->set("editorx", uIntToString(x).c_str());
+    m_pApi->set("editory", uIntToString(y).c_str());
+    m_pApi->cd("/");
+}
+/**
+ * evbGetEditorXPosition
+ *   @param name - Name of an event buidler.
+ *   @return int - X postion of that event builder on the editor canvas.
+ */
+int
+CVardbEventBuilder::evbGetEditorXPosition(const char* name)
+{
+    // Avoiding the overhead of cd-ing down and back:
+    
+    std::string var = evbDirname(name);
+    var += "/";
+    var += "editorx";
+    
+    return atoi(m_pApi->get(var.c_str()).c_str());
+}
+/**
+ * evbGetEditorYPosition
+ *   @param name - Name of an event buidler.
+ *   @return int - X postion of that event builder on the editor canvas.
+ */
+int
+CVardbEventBuilder::evbGetEditorYPosition(const char* name)
+{
+    // Avoiding the overhead of cd-ing down and back:
+    
+    std::string var = evbDirname(name);
+    var += "/";
+    var += "editory";
+    
+    return atoi(m_pApi->get(var.c_str()).c_str());
+}
 /**
  * rmEventBuilder
  *     Remove an existing event builder.
@@ -619,7 +669,72 @@ CVardbEventBuilder::listEventBuilders()
     m_pApi->cd("/");
  }
  /**
-  * dsInfo
+  * dsSetEditorPosition
+  *     Set the position of a data source on the experiment editor canvas.
+  *     This is used to ensure that the object can be recovered to exactly the
+  *     same position it was in prior when the layout was last saved.
+  *
+  * @param evbName - Name of the event builder we are a source for.
+  * @param dsName  - Name of our data source within the event builder.
+  * @param x       - X coordinate of object on canvas.
+  * @para y        - Y coordinate of object on canvas.
+  */
+void
+CVardbEventBuilder::dsSetEditorPosition(
+    const char* evbName, const char* dsName, int x, int y
+)
+{
+    m_pApi->cd(dsDirName(evbName, dsName).c_str());
+    m_pApi->set("editorx", uIntToString(x).c_str());
+    m_pApi->set("editory", uIntToString(y).c_str());
+    m_pApi->cd("/");
+}
+
+/**
+ * dsGetEditorXPosition
+ *    return the x coordinate from the last saved editor canvas position.
+ *
+ *  @param evb  - name of event builder.
+ *  @param ds   - name of data source
+ *  @return int - X coordinate.
+ */
+int
+CVardbEventBuilder::dsGetEditorXPosition(
+    const char* evb, const char* ds
+)
+{
+    // Doing things the way we do below saves cds and should be peppier:
+    
+    std::string var = dsDirName(evb, ds);
+    var += "/";
+    var += "editorx";
+    
+    return atoi(m_pApi->get(var.c_str()).c_str());
+}
+
+/**
+ * dsGetEditorYPosition
+ *    return the x coordinate from the last saved editor canvas position.
+ *
+ *  @param evb  - name of event builder.
+ *  @param ds   - name of data source
+ *  @return int - Y coordinate.
+ */
+int
+CVardbEventBuilder::dsGetEditorYPosition(
+    const char* evb, const char* ds
+)
+{
+    // Doing things the way we do below saves cds and should be peppier:
+    
+    std::string var = dsDirName(evb, ds);
+    var += "/";
+    var += "editory";
+    
+    return atoi(m_pApi->get(var.c_str()).c_str());
+}
+ /**
+  * dsInfo0
   *    Provide information about a data source.
   *
   * @param evb - the event builder.

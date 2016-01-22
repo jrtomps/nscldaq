@@ -203,6 +203,22 @@ class TestEventBuilderApi(unittest.TestCase):
 
         self._db.cd('/EventBuilder/test');
         self.assertEqual('fox', self._db.get('serviceSuffix'))
+     
+    def test_setEvbPos(self):
+        obj = self.mkDefaultEvb()
+        obj.setEvbEditorPosition('test', 100, 200)
+        self.assertEqual('100', self._db.get('/EventBuilder/test/editorx'))
+        self.assertEqual('200', self._db.get('/EventBuilder/test/editory'))
+    
+    def test_getEvbXpos(self):
+        obj = self.mkDefaultEvb()
+        obj.setEvbEditorPosition('test', 100, 200)
+        self.assertEqual(100, obj.getEvbEditorXPosition('test'))
+    
+    def test_getEvbYpos(self):
+        obj = self.mkDefaultEvb()
+        obj.setEvbEditorPosition('test', 100, 200)
+        self.assertEqual(200, obj.getEvbEditorYPosition('test'))
         
     def test_rmEvb(self):
         obj = self.mkDefaultEvb()

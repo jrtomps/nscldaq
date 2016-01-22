@@ -898,7 +898,168 @@ tcltest::test rmDs-1 {Remove existing data source} \
         ring tcp://spdaq20/0400x ids [list 2 3] defaultId 0 timestampExtractor {} \
         expectBodyHeaders false   \
     ] \
-] 
+]
+
+tcltest::test setevbpos {set event builder editor position} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie fox
+    
+    set h [vardb::open $file]
+    
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    vardb::close $h
+    destroyDbFile $file
+    
+    
+} \
+-body {
+    evb evbSetEditorPosition test 100 200
+    
+    set result [list]
+    lappend result [vardb::var get $h /EventBuilder/test/editorx]
+    lappend result [vardb::var get $h /EventBuilder/test/editory]
+    
+    set result
+} -result [list 100 200]
+    
+tcltest::test getevbxpos {Get event builder x position} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie fox
+    
+    
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+
+    destroyDbFile $file
+    
+    
+} \
+-body {
+    evb evbSetEditorPosition test 100 200
+    evb evbGetEditorXPosition test
+} -result 100
+
+tcltest::test getevbypos {Get event builder y position} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie fox
+    
+    
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+
+    destroyDbFile $file
+    
+    
+} \
+-body {
+    evb evbSetEditorPosition test 100 200
+    evb evbGetEditorYPosition test
+} -result 200
+
+
+tcltest::test setdsPosition {Set data source editor position} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie fox
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+    
+    set h [vardb::open $file]
+    
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    vardb::close $h
+    destroyDbFile $file
+    
+    
+} \
+-body {
+    evb dsSetEditorPosition test src1 200 400
+    
+    set result [list]
+    lappend result [vardb::var get $h /EventBuilder/test/src1/editorx]
+    lappend result [vardb::var get $h /EventBuilder/test/src1/editory]
+    
+    set result
+} -result [list 200 400]
+
+tcltest::test getdsXPosition {Get data source editor canvas x position} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie fox
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+    
+    
+    
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    
+    destroyDbFile $file
+    
+    
+} \
+-body {
+    evb dsSetEditorPosition test src1 200 400
+    evb dsGetEditorXPosition test src1
+} -result 200
+
+
+tcltest::test getdsYPosition {Get data source editor canvas y position} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie fox
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+    
+    
+    
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    
+    destroyDbFile $file
+    
+    
+} \
+-body {
+    evb dsSetEditorPosition test src1 200 400
+    evb dsGetEditorYPosition test src1
+} -result 400
+#-------------------------------------------
 #-------------------------------------------------------------------------------
 #
 #   Global test teardown/reporting.

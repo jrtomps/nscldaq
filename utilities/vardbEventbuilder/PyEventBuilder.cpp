@@ -633,6 +633,89 @@ VardbEvb_setEvbServiceSuffix(PyObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 /**
+ * VardbEvb_setEvbEditorPosition
+ *    Set a new position for an event builder in the editor.
+ *  @param self - Pointer to object data for the object this is called on.
+ *  @param args - Tuple containing positional args: (name, x, y)
+ *  @return PyNone
+ */
+static PyObject*
+VardbEvb_setEvbEditorPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    int   x;
+    int   y;
+    
+    if (!PyArg_ParseTuple(args, "sii", &name, &x, &y)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    
+    try {
+        pApi->evbSetEditorPosition(name, x, y);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+    
+}
+
+/**
+ * VardbEvb_getEvbEditorXPosition
+ *    Return the x coordinate of the editor position of an event builder object.
+ *
+ * @param self - Pointer to the data for the object this is being called on.
+ * @param args - Positional parameters (name).
+ */
+static PyObject*
+VardbEvb_getEvbEditorXPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    
+    
+    if (!PyArg_ParseTuple(args, "s", &name)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        return PyInt_FromLong(pApi->evbGetEditorXPosition(name));
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+}
+/**
+ * VardbEvb_getEvbEditorYPosition
+ *    Return the x coordinate of the editor position of an event builder object.
+ *
+ * @param self - Pointer to the data for the object this is being called on.
+ * @param args - Positional parameters (name).
+ */
+static PyObject*
+VardbEvb_getEvbEditorYPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    
+    
+    if (!PyArg_ParseTuple(args, "s", &name)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        return PyInt_FromLong(pApi->evbGetEditorYPosition(name));
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+}
+/**
  * VardbEvb_rmEventBuilder
  *    Remove an existing event builder definition.
  *
@@ -1235,6 +1318,101 @@ VardbEvb_rmDataSource(PyObject* self, PyObject* args)
     
     Py_RETURN_NONE;
 }
+
+/**
+ * VardbEvb_dsSetEditorPosition
+ *   Set a new value for the position of a data source object on the editor
+ *   canvas.
+ *
+ *  @param self - Pointer to object data for the object being called.
+ *  @param args - Positional arguments: (evbname, dsname, x, y).
+ *  @return Py_None
+ */
+static PyObject*
+VardbEvb_dsSetEditorPosition(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    int   x;
+    int   y;
+    
+    if(!PyArg_ParseTuple(args, "ssii", &evb, &ds, &x, &y)) {
+        return NULL;
+    }
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->dsSetEditorPosition(evb, ds, x, y);
+        
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
+ * VardbEvb_dsGetEditorXPosition
+ *    Get the X coordinate of the currently saved editor x position for a
+ *    data source object.
+ *
+ *  @param self - Pointer to data associated with the object on who this method
+ *                is called.
+ *  @param args - tuple containing positional parameters (evbnam, dsname).
+ *  @return Py_Integer - X coordinate.
+ */
+static PyObject*
+VardbEvb_dsGetEditorXPosition(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    
+    if (!PyArg_ParseTuple(args, "ss", &evb, &ds)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        return PyInt_FromLong(pApi->dsGetEditorXPosition(evb, ds));
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+}
+
+
+/**
+ * VardbEvb_dsGetEditorYPosition
+ *    Get the X coordinate of the currently saved editor x position for a
+ *    data source object.
+ *
+ *  @param self - Pointer to data associated with the object on who this method
+ *                is called.
+ *  @param args - tuple containing positional parameters (evbnam, dsname).
+ *  @return Py_Integer - X coordinate.
+ */
+static PyObject*
+VardbEvb_dsGetEditorYPosition(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    
+    if (!PyArg_ParseTuple(args, "ss", &evb, &ds)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        return PyInt_FromLong(pApi->dsGetEditorYPosition(evb, ds));
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+}
+
 /*---------------------------------------------------------------------------
  * Canonical methods for the VardbEvb class (instantiation/destruction).
  */
@@ -1361,6 +1539,12 @@ static PyMethodDef VarDbEvbMethods[] = {
     {"setEvbServiceSuffix", VardbEvb_setEvbServiceSuffix, METH_VARARGS,
         "Set a new suffix for the advertised service of an existing event builder"
     },
+    {"setEvbEditorPosition", VardbEvb_setEvbEditorPosition, METH_VARARGS,
+        "Set the position in the editor at which an event builder is drawn"},
+    {"getEvbEditorXPosition", VardbEvb_getEvbEditorXPosition, METH_VARARGS,
+        "Get X coordinate of current editor position of an event builder"},
+    {"getEvbEditorYPosition", VardbEvb_getEvbEditorYPosition, METH_VARARGS,
+        "Get Y coordinate of current editor position of an event builder"},
     {"rmEventBuilder", VardbEvb_rmEventBuilder, METH_VARARGS,
         "Remove/destroy an existing event builder definition."
     },
@@ -1399,6 +1583,12 @@ static PyMethodDef VarDbEvbMethods[] = {
         "Set a new timestamp extraction library"
     },
     {"dsSetIds", VardbEvb_dsSetIds, METH_VARARGS, "Set data source ids"},
+    {"dsSetEditorPosition", VardbEvb_dsSetEditorPosition, METH_VARARGS,
+        "Set editor position of a data source"},
+    {"dsGetEditorXPosition", VardbEvb_dsGetEditorXPosition, METH_VARARGS,
+        "Get editor position x coordinate"},
+    {"dsGetEditorYPosition", VardbEvb_dsGetEditorYPosition, METH_VARARGS,
+        "Get editor position y coordinate"},
     {"dsInfo", VardbEvb_dsInfo, METH_VARARGS, "Get dict describing a source"},
     {"listDataSources", VardbEvb_listDataSources, METH_VARARGS,
         "Describe all of an event builder's data sources."

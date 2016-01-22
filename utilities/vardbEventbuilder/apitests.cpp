@@ -43,6 +43,11 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(enablebuild);
   CPPUNIT_TEST(settspolicy);
 
+  CPPUNIT_TEST(setpos);
+  CPPUNIT_TEST(getposx);
+  CPPUNIT_TEST(getposy);
+  
+  
   // Event builder removal:
   
   CPPUNIT_TEST(rmEventBuilder);
@@ -72,6 +77,9 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(dsExpectBodyHeaders);
   CPPUNIT_TEST(dsDontExpectBodyHeaders);
   CPPUNIT_TEST(dsSetTimestampExt);
+  CPPUNIT_TEST(dsSetPosition);
+  CPPUNIT_TEST(dsGetXPosition);
+  CPPUNIT_TEST(dsGetYPosition);
 
   CPPUNIT_TEST(dsInfo);
   CPPUNIT_TEST(dsInfoNox);
@@ -103,6 +111,10 @@ protected:
   void enablebuild();
   void settspolicy();
   
+  void setpos();
+  void getposx();
+  void getposy();
+  
   void rmEventBuilder();
   void rmNoxEventBuilder();
   
@@ -123,6 +135,9 @@ protected:
   void dsExpectBodyHeaders();
   void dsDontExpectBodyHeaders();
   void dsSetTimestampExt();
+  void dsSetPosition();
+  void dsGetXPosition();
+  void dsGetYPosition();
   
   void dsInfo();
   void dsInfoNox();
@@ -663,4 +678,53 @@ void VarMgrEvbtests::rmEvbWSources()
     m_pApi->cd("/EventBuilder/test"),
     std::runtime_error
   );
+}
+
+void VarMgrEvbtests::setpos()
+{
+  setup2();
+  m_pEvbApi->evbSetEditorPosition("test", 100, 200);
+  EQ(std::string("100"), m_pApi->get("/EventBuilder/test/editorx"));
+  EQ(std::string("200"), m_pApi->get("/EventBuilder/test/editory"));
+}
+
+void VarMgrEvbtests::getposx()
+{
+  setup2();
+  m_pEvbApi->evbSetEditorPosition("test", 100, 200);
+  
+  EQ(100, m_pEvbApi->evbGetEditorXPosition("test"));
+}
+
+void VarMgrEvbtests::getposy()
+{
+  setup2();
+  m_pEvbApi->evbSetEditorPosition("test", 100, 200);
+  
+  EQ(200, m_pEvbApi->evbGetEditorYPosition("test"));
+}
+
+void VarMgrEvbtests::dsSetPosition()
+{
+  setup3();
+  m_pEvbApi->dsSetEditorPosition("test", "ds1", 200, 300);
+  EQ(std::string("200"), m_pApi->get("/EventBuilder/test/ds1/editorx"));
+  EQ(std::string("300"), m_pApi->get("/EventBuilder/test/ds1/editory"));
+}
+
+
+
+void VarMgrEvbtests::dsGetXPosition()
+{
+  setup3();
+  m_pEvbApi->dsSetEditorPosition("test", "ds1", 200, 300);
+  
+  EQ(200, m_pEvbApi->dsGetEditorXPosition("test", "ds1"));
+}
+void VarMgrEvbtests::dsGetYPosition()
+{
+  setup3();
+  m_pEvbApi->dsSetEditorPosition("test", "ds1", 200, 300);
+  
+  EQ(300, m_pEvbApi->dsGetEditorYPosition("test", "ds1"));
 }

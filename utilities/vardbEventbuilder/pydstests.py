@@ -193,6 +193,22 @@ class TestDataSourceApi(unittest.TestCase):
         self.assertEqual('9', self._db.get('/EventBuilder/test/ds1/id0'))
         self.assertEqual('8', self._db.get('/EventBuilder/test/ds1/id1'))
         self.assertEqual('7', self._db.get('/EventBuilder/test/ds1/id2'))
+    
+    def test_setPos(self ):
+        self.addDefaultDs()
+        self._api.dsSetEditorPosition('test', 'ds1', 200, 300)
+        self.assertEqual('200', self._db.get('/EventBuilder/test/ds1/editorx'))
+        self.assertEqual('300', self._db.get('/EventBuilder/test/ds1/editory'))
+    
+    def test_getXpos(self):
+        self.addDefaultDs()
+        self._api.dsSetEditorPosition('test', 'ds1', 200, 300)
+        self.assertEqual(200, self._api.dsGetEditorXPosition('test', 'ds1'))
+        
+    def test_getYpos(self):
+        self.addDefaultDs()
+        self._api.dsSetEditorPosition('test', 'ds1', 200, 300)
+        self.assertEqual(300, self._api.dsGetEditorYPosition('test', 'ds1'))    
         
     def test_Info(self):
         self.addDefaultDs()

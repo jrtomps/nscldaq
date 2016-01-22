@@ -96,6 +96,13 @@ CTCLEvbInstance::operator()(
             evbSetTimestampPolicy(interp, objv);
         } else if (subcommand == "evbSetServiceSuffix") {
             evbSetServiceSuffix(interp, objv);
+        } else if (subcommand == "evbSetEditorPosition") {
+            
+            evbSetEditorPosition(interp, objv);
+        } else if (subcommand == "evbGetEditorXPosition") {
+            evbGetEditorXPosition(interp, objv);
+        } else if (subcommand == "evbGetEditorYPosition") {
+            evbGetEditorYPosition(interp, objv);
         } else if (subcommand == "rmevb") {
             rmevb(interp, objv);
         } else if (subcommand == "evbInfo") {
@@ -122,6 +129,13 @@ CTCLEvbInstance::operator()(
             dsDisableBodyHeaders(interp, objv);
         } else if (subcommand == "dsSetTimestampExtractor") {
             dsSetTimestampExtractor(interp, objv);
+        } else if (subcommand == "dsSetEditorPosition") {
+            
+            dsSetEditorPosition(interp, objv);
+        } else if (subcommand == "dsGetEditorXPosition") {
+            dsGetEditorXPosition(interp, objv);
+        } else if (subcommand == "dsGetEditorYPosition") {
+            dsGetEditorYPosition(interp, objv);
         } else if (subcommand == "dsInfo") {
             dsInfo(interp, objv);
         } else if (subcommand == "listSources") {
@@ -150,6 +164,7 @@ CTCLEvbInstance::operator()(
     }
     return TCL_OK;
 }
+
 
 /*------------------------------------------------------------
  * Subcommand executors.
@@ -831,6 +846,139 @@ CTCLEvbInstance::rmSource(CTCLInterpreter& interp, std::vector<CTCLObject>& objv
     
     m_pApi->rmDataSource(evb.c_str(), ds.c_str());
 }
+
+
+/**
+ * evbSetEditorPosition
+ *    Sets the position of an event builder on the editor canvas.
+ *
+ *  @param interp - interpreter running the command.
+ *  @param objv   - command line words (api evbSetEditorPosition name x y).
+ */
+void CTCLEvbInstance::evbSetEditorPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 5);
+    std::string name = objv[2];
+    int x            = objv[3];
+    int y            = objv[4];
+    
+    m_pApi->evbSetEditorPosition(name.c_str(), x, y);
+}
+
+/**
+ * evbGetEditorXPosition
+ *     Set the interpreter result with the x coordinate of the last saved
+ *     editor canvas position for this object.
+ *
+ * @param interp - interpreter running he command.
+ * @param objv   - command line words (api evbGetEditorXPosition name)
+ */
+void
+CTCLEvbInstance::evbGetEditorXPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3);
+    std::string name = objv[2];
+    
+    CTCLObject result;
+    result.Bind(interp);
+    result = m_pApi->evbGetEditorXPosition(name.c_str());
+    interp.setResult(result);
+}
+/**
+ * evbGetEditorYPosition
+ *     Set the interpreter result with the y coordinate of the last saved
+ *     editor canvas position for this object.
+ *
+ * @param interp - interpreter running he command.
+ * @param objv   - command line words (api evbGetEditorXPosition name)
+ */
+void
+CTCLEvbInstance::evbGetEditorYPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3);
+    std::string name = objv[2];
+    
+    CTCLObject result;
+    result.Bind(interp);
+    result = m_pApi->evbGetEditorYPosition(name.c_str());
+    interp.setResult(result);
+}
+
+
+/**
+ * dsSetEditorPosition
+ *   Set the position of a data source object on the editor canvas.
+ *
+ * @param interp - interpreter running the command.
+ * @param objv   - Command line words (api dsSetEditorPosition evb ds x y)
+ */
+void
+CTCLEvbInstance::dsSetEditorPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 6);
+    std::string evb = objv[2];
+    std::string ds  = objv[3];
+    int x           = objv[4];
+    int y           = objv[5];
+    
+    m_pApi->dsSetEditorPosition(evb.c_str(), ds.c_str(), x, y);
+}
+/**
+ *  dsGetEditorXPosition
+ *     Return the X coordinate of the position of a data source  on the editor
+ *     canvas
+ *
+ * @param interp - interpreter running the command.
+ * @param objv   - command words (api evbGetEditorXPosition evb ds)
+ */
+void
+CTCLEvbInstance::dsGetEditorXPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 4);
+    
+    std::string evb = objv[2];
+    std::string ds  = objv[3];
+    
+    CTCLObject result;
+    result.Bind(interp);
+    result = m_pApi->dsGetEditorXPosition(evb.c_str(), ds.c_str());
+    interp.setResult(result);
+}
+
+/**
+ *  dsGetEditorYPosition
+ *     Return the Y coordinate of the position of a data source  on the editor
+ *     canvas
+ *
+ * @param interp - interpreter running the command.
+ * @param objv   - command words (api evbGetEditorXPosition evb ds)
+ */
+void
+CTCLEvbInstance::dsGetEditorYPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 4);
+    
+    std::string evb = objv[2];
+    std::string ds  = objv[3];
+    
+    CTCLObject result;
+    result.Bind(interp);
+    result = m_pApi->dsGetEditorYPosition(evb.c_str(), ds.c_str());
+    interp.setResult(result);
+}
+
 /*-------------------------------------------------------------------
  * utility methods
  */

@@ -113,7 +113,10 @@ public:
     void evbDisableBuild(const char* name);
     void evbSetTimestampPolicy(const char* name,  TimestampPolicy newPolicy);
     void evbSetServiceSuffix(const char* name, const char* newSuffix);
-
+    void evbSetEditorPosition(const char* name, int x, int y);
+    int evbGetEditorXPosition(const char* name);
+    int evbGetEditorYPosition(const char* name);
+    
     // Listing/deleting event builders:
     
     void rmEventBuilder(const char* name);
@@ -144,6 +147,9 @@ public:
     void dsSetTimestampExtractor(
         const char* evbName, const char* srcName, const char* path
     );
+    void dsSetEditorPosition(const char* evbName, const char* srcName, int x, int y);
+    int dsGetEditorXPosition(const char* evbName, const char* srcName);
+    int dsGetEditorYPosition(const char* evbName, const char* srcName);
     
     DsDescription dsInfo(const char* evb, const char* ds);
     std::vector<DsDescription> listDataSources(const char* evb);
