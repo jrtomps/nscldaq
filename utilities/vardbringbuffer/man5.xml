@@ -65,6 +65,22 @@
                     acquire data from the ringbuffer.
                 </seg>
             </seglistitem>
+            <seglistitem>
+              <seg>editorx</seg>
+              <seg>integer (unsigned)</seg>
+              <seg>The x coordinate of the
+              last saved position of the ring buffer object on the
+              editor canvas.</seg>
+            </seglistitem>
+            <seglistitem>
+              <seg>editory</seg>
+              <seg>integer (unsigned)</seg>
+              <seg>
+                The y coordinate of the
+              last saved position of the ring buffer object on the
+              editor canvas.
+              </seg>
+            </seglistitem>
            </segmentedlist>
         </refsect1>
 

@@ -720,7 +720,45 @@ public:
                 <parameter>def</parameter>
         </methodparam>
         <modifier></modifier>
-    </methodsynopsis>  
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void</type>
+        <methodname>setEditorPosition</methodname>
+        <methodparam>
+            <modifier>const</modifier><type>char*</type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>int</type>
+                <parameter>x</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>int</type>
+                <parameter>y</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int</type>
+        <methodname>getEditorXPosition</methodname>
+        <methodparam>
+            <modifier>const</modifier><type> char*</type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int</type>
+        <methodname>getEditorYPosition</methodname>
+        <methodparam>
+            <modifier>const</modifier><type> char*</type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
     <methodsynopsis>
         <modifier></modifier>
         <type>void </type>
@@ -835,7 +873,7 @@ public:
         <classname>CStateProgram</classname> provides an API that allows you to
         define and modify the definitions of state sensitive programs.  By state
         sensitive, we mean programs that participate in global state transitions
-        (see <link linkend='daq3_cstatemanager' endterm='daq3_cstatemanager_title').
+        (see <link linkend='daq3_cstatemanager' endterm='daq3_cstatemanager_title' />).
      </para>
      <para>
         The <classname>CStateManager</classname> class provides this functinoality
@@ -1018,13 +1056,90 @@ public:
                     to bring it in line with the description in
                     <parameter>def</parameter>.
                     To only partially modify a program definition, first use
-                    <methodmame>getPogtramDefinition</methodmame> to get its
+                    <methodname>getPogtramDefinition</methodname> to get its
                     definition, then simply change the fields you want modified
                     and pass a pointer to the resulting <type>ProgramDefinition</type>
                     struct to <methodname>modifyProgram</methodname>.
                  </para>
              </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                   <modifier></modifier>
+                   <type>void</type>
+                   <methodname>setEditorPosition</methodname>
+                   <methodparam>
+                       <modifier>const</modifier><type>char*</type>
+                           <parameter>name</parameter>
+                   </methodparam>
+                   <methodparam>
+                       <modifier></modifier><type>int</type>
+                           <parameter>x</parameter>
+                   </methodparam>
+                   <methodparam>
+                       <modifier></modifier><type>int</type>
+                           <parameter>y</parameter>
+                   </methodparam>
+                   <modifier></modifier>
+               </methodsynopsis>
+               
+             </term>
+             <listitem>
+                 <para>
+                    Saves the position of an existing state sensitive program
+                    on the experiment editor canvas.  This position is used to
+                    layout the experiment components if when an experiment is
+                    restored for further editing or viewing.
+                 </para>
+                 <para>
+                    <parameter>name</parameter> is the name of the program being
+                    modified, while <parameter>x</parameter> and <parameter>y</parameter>
+                    are the new coordinates to save.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodsynopsis>                   
+                       <modifier></modifier>
+                       <type>int</type>
+                       <methodname>getEditorXPosition</methodname>
+                       <methodparam>
+                           <modifier>const</modifier><type> char*</type>
+                               <parameter>name</parameter>
+                       </methodparam>
+                       <modifier></modifier>
+                   </methodsynopsis>
+             </term>
+             <listitem>
+                 <para>
+                    Returns the X coordinate of the editor canvas position
+                    saved with the state sensitive program <parameter>name</parameter>.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int</type>
+                    <methodname>getEditorYPosition</methodname>
+                    <methodparam>
+                        <modifier>const</modifier><type> char*</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>                
+             </term>
+             <listitem>
+                 <para>
+                    Returns the Y coordinate of the editor canvas position
+                    saved with the state sensitive program <parameter>name</parameter>.
+                 </para>
+             </listitem>
          </varlistentry>       
+
          <varlistentry>
              <term>
                 <methodsynopsis>
@@ -2831,6 +2946,10 @@ mgr addProgram       name programDict
 set programDict [mgr getProgram name]
 mgr modifyProgram    name programDict
 
+mgr setEditorPosition name x y
+set x [mgr getEditorXPosition name]
+set y [mgr getEditorYPosition name]
+
 mgr enableProgram    name
 mgr disableProgram   name
 if {[mgr isProgramEnabled name]} {...}
@@ -3062,6 +3181,45 @@ set state [mgr getProgramState name]
                         in accordance with the <parameter>programDict</parameter>
                         parameter.  This dictionary is described in
                         <command>addProgram</command> above.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr setEditorPosition name x y</command>
+                </term>
+                <listitem>
+                    <para>
+                        Sets the canvas position associated with the program
+                        <parameter>name</parameter> to <parameter>x</parameter>,
+                        <parameter>y</parameter>.  This position is normally saved
+                        by the experiment dataflow editor and used when restoring
+                        a setup to layout the diagram elements as they were
+                        before.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>set x [mgr getEditorXPosition name]</command>                    
+                </term>
+                <listitem>
+                    <para>
+                        Retrieves the x coordinate of the editor canvas
+                        position for the program <parameter>name</parameter>.
+                        See <command>setEditorPosition</command> for more
+                        about this value.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    set y [mgr getEditorYPosition name]                    
+                </term>
+                <listitem>
+                    <para>
+                        Retrieves the y coordinate of the editor canvas position
+                        for the program <parameter>name</parameter>
                     </para>
                 </listitem>
             </varlistentry>
@@ -3457,6 +3615,9 @@ mgr.setProgramParentDir(path)
 mgr.addProgram(name, description)
 mgr.getProgramDefinition(name)
 mgr.modifyProgram(name, description)
+mgr.setEditorPosition(name, x, y)
+mgr.getEditorXPosition(name)
+mgr.getEditorYPosition(name)
 mgr.enableProgram(name)
 mgr.disableProgram(name)
 mgr.isProgramEnabled(name)
@@ -3620,6 +3781,45 @@ mgr.getProgramState(name)
                     </varlistentry>
                     
                 </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>mgr.setEditorPosition(name, x, y)</command>
+            </term>
+            <listitem>
+                <para>
+                    Saves the canvas position of the program selected by
+                    <parameter>name</parameter>.  The saved coordinates
+                    will be <parameter>x</parameter>,<parameter>y</parameter>.
+                    This is normally used by the experiment editor to allow it
+                    to restore a diagram to the original layout rather than
+                    having to compute a layout.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>mgr.getEditorXPosition(name)</command>
+            </term>
+            <listitem>
+                <para>
+                    Returns the X coordinate of the editor position currently
+                    held by <parameter>name</parameter>.   See
+                    <command>setEditorPosition</command> for more information on
+                    this value and what it means.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>mgr.getEditorYPosition(name)</command>
+            </term>
+            <listitem>
+                <para>
+                    Return the Y coordinate of the currently saved editor position
+                    for <parameter>name</parameter>.
+                </para>
             </listitem>
         </varlistentry>
         <varlistentry>

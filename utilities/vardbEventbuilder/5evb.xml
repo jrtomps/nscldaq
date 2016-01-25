@@ -127,6 +127,22 @@
                       be assigned to output events.
                     </seg>
                   </seglistitem>
+                  <seglistitem>
+                    <seg>editorx</seg>
+                    <seg>integer (unsigned)</seg>
+                    <seg>
+                      X coordinate of the object as it will be restored onto the
+                      experiment editor's canvas.
+                    </seg>
+                  </seglistitem>
+                  <seglistitem>
+                    <seg>editory</seg>
+                    <seg>integer (unsigned)</seg>
+                    <seg>
+                      Y coordinate of the object as it will be restored onto the
+                      experiment editor's canvas.
+                    </seg>
+                  </seglistitem>
               </segmentedlist>
           </refsect2>
           <refsect2>
@@ -250,6 +266,23 @@
                    must be provided.
                 </seg>
               </seglistitem>
+              <seglistitem>
+                    <seg>editorx</seg>
+                    <seg>integer (unsigned)</seg>
+                    <seg>
+                      X coordinate of the object as it will be restored onto the
+                      experiment editor's canvas.
+                    </seg>
+                  </seglistitem>
+                  <seglistitem>
+                    <seg>editory</seg>
+                    <seg>integer (unsigned)</seg>
+                    <seg>
+                      Y coordinate of the object as it will be restored onto the
+                      experiment editor's canvas.
+                    </seg>
+                </seglistitem>
+
             </segmentedlist>
           </refsect2>
         </refsect1>

@@ -123,7 +123,47 @@ public:
             <initializer>""</initializer>
     </methodparam>
     <modifier></modifier>
+</methodsynopsis>
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbSetEditorPosition</methodname>
+    <methodparam>
+      <modifier>const </modifier><type>char* </type>
+        <parameter>name</parameter>
+    </methodparam>
+    <methodparam>
+      <modifier></modifier><type>int </type>
+        <parameter>x</parameter>
+    </methodparam>
+    <methodparam>
+      <modifier></modifier><type>int </type>
+        <parameter>y</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>int </type>
+    <methodname>evbGetEditorXPosition</methodname>
+    <methodparam>
+      <modifier>const </modifier><type>char* </type>
+        <parameter>name</parameter>
+    </methodparam>
+    <modifier></modifier>
 </methodsynopsis>      
+<methodsynopsis>
+    <modifier></modifier>
+    <type>int </type>
+    <methodname>evbGetEditorYPosition</methodname>
+    <methodparam>
+      <modifier>const </modifier><type>char*</type>
+        <parameter> name</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>      
+    
+
 <methodsynopsis>
     <modifier></modifier>
     <type>void </type>
@@ -469,7 +509,59 @@ public:
             <parameter> path</parameter>
     </methodparam>
     <modifier></modifier>
+</methodsynopsis>
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsSetEditorPosition</methodname>
+    <methodparam>
+      <modifier>const </modifier><type>char* </type>
+        <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+      <modifier>const </modifier><type>char* </type>
+        <parameter>srcName</parameter>
+    </methodparam>
+    <methodparam>
+      <modifier></modifier><type> int </type>
+        <parameter>x</parameter>
+    </methodparam>
+    <methodparam>
+      <modifier></modifier><type>int</type>
+        <parameter>y</parameter>
+    </methodparam>
+    <modifier></modifier>
 </methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>int </type>
+    <methodname>dsGetEditorXPosition</methodname>
+    <methodparam>
+      <modifier>const </modifier><type>char* </type>
+        <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+      <modifier>const </modifier><type>char* </type>
+        <parameter>srcName</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>int </type>
+    <methodname>dsGetEditorYPosition</methodname>
+    <methodparam>
+      <modifier>const </modifier><type>char* </type>
+        <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+      <modifier>const </modifier><type>char* </type>
+        <parameter>srcName</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>      
+    
+
 <methodsynopsis>
     <modifier></modifier>
     <type>DsDescription </type>
@@ -1025,6 +1117,81 @@ public:
         </varlistentry>
         <varlistentry>
             <term>
+              <methodsynopsis>
+                  <modifier></modifier>
+                  <type>void </type>
+                  <methodname>evbSetEditorPosition</methodname>
+                  <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                      <parameter>name</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <modifier></modifier><type>int </type>
+                      <parameter>x</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <modifier></modifier><type>int </type>
+                      <parameter>y</parameter>
+                  </methodparam>
+                  <modifier></modifier>
+              </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                  Associates the position
+                  <parameter>x</parameter>, <parameter>y</parameter> with the
+                  event builder <parameter>name</parameter>.  This position
+                  is used by the experiment editor to restore the diagram
+                  layout when restoring an experiment configuration for further
+                  editing/viewing.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <modifier></modifier>
+                  <type>int </type>
+                  <methodname>evbGetEditorXPosition</methodname>
+                  <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                      <parameter>name</parameter>
+                  </methodparam>
+                  <modifier></modifier>
+              </methodsynopsis>        
+            </term>
+            <listitem>
+                <para>
+                  Returns the X coordinate of the editor position for
+                  the event builder <parameter>name</parameter> last saved by
+                  e.g. <methodname>evbSetEditorPosition</methodname>.
+                </para>
+            </listitem>
+        </varlistentry>      
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <modifier></modifier>
+                  <type>int </type>
+                  <methodname>evbGetEditorYPosition</methodname>
+                  <methodparam>
+                    <modifier>const </modifier><type>char*</type>
+                      <parameter> name</parameter>
+                  </methodparam>
+                  <modifier></modifier>
+              </methodsynopsis>      
+            </term>
+            <listitem>
+                <para>
+                  Returns the Y coordinate of the editor position for
+                  the event builder <parameter>name</parameter> last saved by
+                  e.g. <methodname>evbSetEditorPosition</methodname>.
+                </para>
+            </listitem>
+        </varlistentry>      
+              
+        <varlistentry>
+            <term>
                 <methodsynopsis>
                     <modifier></modifier>
                     <type>void </type>
@@ -1543,7 +1710,100 @@ public:
                     timestamps out of ring items that don't have body headers.
                 </para>
             </listitem>
-        </varlistentry>        
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <modifier></modifier>
+                  <type>void </type>
+                  <methodname>dsSetEditorPosition</methodname>
+                  <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                      <parameter>evbName</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                      <parameter>srcName</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <modifier></modifier><type> int </type>
+                      <parameter>x</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <modifier></modifier><type>int</type>
+                      <parameter>y</parameter>
+                  </methodparam>
+                  <modifier></modifier>
+              </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                  Associates the position
+                  <parameter>x</parameter>, <parameter>y</parameter> with the
+                  data source <parameter>srcNamwe</parameter> that sends data
+                  to the event builder <parameter>evbName</parameter>.  This position
+                  is used by the experiment editor to save  the
+                  canvas position of the data source so that when a configuration
+                  is restored into the editor, it can restore the
+                  experiment diagram's layout.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <modifier></modifier>
+                  <type>int </type>
+                  <methodname>dsGetEditorXPosition</methodname>
+                  <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                      <parameter>evbName</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                      <parameter>srcName</parameter>
+                  </methodparam>
+                  <modifier></modifier>
+              </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                  Returns the x coordinate of the last saved editor position
+                  (via e.g. <methodname>dsSetEditorPosition</methodname>) for
+                  the data source <parameter>srcName</parameter> that sends data
+                  to <parameter>evbName</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <modifier></modifier>
+                  <type>int </type>
+                  <methodname>dsGetEditorYPosition</methodname>
+                  <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                      <parameter>evbName</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                      <parameter>srcName</parameter>
+                  </methodparam>
+                  <modifier></modifier>
+              </methodsynopsis>      
+            </term>
+            <listitem>
+                <para>
+                  Returns the y coordinate of the last saved editor position
+                  (via e.g. <methodname>dsSetEditorPosition</methodname>) for
+                  the data source <parameter>srcName</parameter> that sends data
+                  to <parameter>evbName</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>      
+              
+                  
+
         <varlistentry>
             <term>
                 <methodsynopsis>
@@ -2194,6 +2454,40 @@ if {! [api haveSchema]} {
           </listitem>
       </varlistentry>
       <varlistentry>
+          <term>
+            <command>evbSetEditorPosition</command> <replaceable>name x y</replaceable>
+          </term>
+          <listitem>
+              <para>
+                Associates the position <parameter>x</parameter>, <parameter>y</parameter>
+                with the event builder <parameter>name</parameter>.  This position
+                is saved by the experiment editor and used to restore the
+                layout of the experiment diagram when restoring a configuration
+                for later editing.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term>
+            <command>evbGetEditorX</command> <replaceable>name</replaceable>
+          </term>
+          <listitem>
+              <para>
+                Returns the X coordinate of the current editor position.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term>
+            <command>evbGetEditorY</command> <replaceable>name</replaceable>
+          </term>
+          <listitem>
+              <para>
+                Returns the Y coordinate of the current editor position.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
           <term><command>evbSetServiceSuffix</command> <parameter>evbname suffix</parameter></term>
           <listitem>
               <para>
@@ -2489,6 +2783,42 @@ if {! [api haveSchema]} {
           </listitem>
       </varlistentry>
       <varlistentry>
+          <term>
+            <command>dsSetEditorPosition</command> <replaceable>evbname dsname x y</replaceable>
+          </term>
+          <listitem>
+              <para>
+                Associates a canvas position of <parameter>x</parameter>, <parameter>y</parameter>
+                with the data source <parameter>dsname</parameter> that sends data
+                to the event builder <parameter>evbname</parameter>.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term>
+            <command>dsGetEditorXPosition</command> <replaceable>evbname dsname</replaceable>
+          </term>
+          <listitem>
+              <para>
+                Returns the X coordinate of the editor position last set for the
+                data source <parameter>dsname</parameter> that sends data to
+                <parameter>evbname</parameter>.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term>
+            <command>dsGetEditorYPosition</command> <replaceable>evbname dsname</replaceable>
+          </term>
+          <listitem>
+              <para>
+                Returns the Y coordinate of the editor position last set for the
+                data source <parameter>dsname</parameter> that sends data to
+                <parameter>evbname</parameter>.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
           <term><command>dsInfo</command> <replaceable>evbname dsname</replaceable></term>
           <listitem>
               <para>
@@ -2681,6 +3011,15 @@ api.setEvbTimestampPolicy(evbName, policy)
 api.setEvbServiceSuffix(evbName, suffix)
       </command>
       <command>
+api.setEditorPosition(evbName, x, y)        
+      </command>
+      <command>
+api.getEditorXPosition(evbName)
+      </command>
+      <command>
+api.getEditorYPosition(evbName)
+      </command>
+      <command>
 api.rmEventBuilder(evbName)
       </command>
       <command>
@@ -2717,6 +3056,15 @@ api.dsDontExpectBodyHeaders(evbName, srcName)
       </command>
       <command>
 api.dsSetTimestampExtractor(evbName, srcName, libPath)
+      </command>
+      <command>
+api.dsSetEditorPosition(evbName, srcName, x, y)    
+      </command>
+      <command>
+api.dsGetEditorXPosition(evbName, srcName)
+      </command>
+      <command>
+api.dsGetEditorYPosition(evbName, srcName)
       </command>
       <command>
 info = api.dsInfo(evbName, srcName)
@@ -3040,6 +3388,48 @@ api.rmDataSource(evbName, srcName)
              <para>
               Sets the service name suffix for the event builder
               <parameter>evbName</parameter> to the string <parameter>suffix</parameter>.
+             </para>
+         </listitem>
+     </varlistentry>
+     <varlistentry>
+         <term>
+          <command>
+    api.setEditorPosition(evbName, x, y)        
+          </command> 
+         </term>
+         <listitem>
+             <para>
+              Associate the position <parameter>x</parameter>, <parameter>y</parameter>
+              with the event builder <parameter>evbName</parameter>.  This position
+              is used by the experiment editor to restore the graphical
+              representation of the event builder to its original position
+              on the canvas when the configuration is restored.
+             </para>
+         </listitem>
+     </varlistentry>
+     <varlistentry>
+         <term>
+          <command>
+    api.getEditorXPosition(evbName)
+          </command>
+         </term>
+         <listitem>
+             <para>
+              Return the X coordinate of the editor position (set with
+              e.g. <methodname>setEditorPosition</methodname>).
+             </para>
+         </listitem>
+     </varlistentry>     
+     <varlistentry>
+         <term>
+          <command>
+    api.getEditorYPosition(evbName)
+          </command>
+         </term>
+         <listitem>
+             <para>
+              Returns the Y coordinate of the editor position (set with e.g.
+              <methodname>setEditorPosition</methodname>).
              </para>
          </listitem>
      </varlistentry>     
@@ -3419,7 +3809,56 @@ api.rmDataSource(evbName, srcName)
               <parameter>evbName</parameter>).
              </para>
          </listitem>
+     </varlistentry>
+     <varlistentry>
+         <term>
+          <command>
+    api.dsSetEditorPosition(evbName, srcName, x, y)    
+          </command>
+         </term>
+         <listitem>
+             <para>
+              Associates a position; <parameter>x</parameter>, <parameter>y</parameter>
+              with the data source for <parameter>evbName</parameter> named
+              <parameter>srcName</parameter>.  The experiment uses this position
+              to restore the graphical representation of that event builder data
+              source to its previous position on the editor canvas when restoring
+              a configuration into the editor.
+             </para>
+         </listitem>
+     </varlistentry>
+     <varlistentry>
+         <term>
+          <command>
+    api.dsGetEditorXPosition(evbName, srcName)
+          </command>
+         </term>
+         <listitem>
+             <para>
+              Returns the X coordinate of the position associated with the
+              data source named <parameter>srcName</parameter> that sends
+              data to <parameter>evbName</parameter>.  This position was
+              set with e.g. <methodname>dsSetEditorPosition</methodname>.
+             </para>
+         </listitem>
      </varlistentry>     
+     <varlistentry>
+         <term>
+          <command>
+    api.dsGetEditorYPosition(evbName, srcName)
+          </command>
+         </term>
+         <listitem>
+             <para>
+              Returns the Y coordinate of the position associated with the
+              data source named <parameter>srcName</parameter> that sends
+              data to <parameter>evbName</parameter>.  This position was
+              set with e.g. <methodname>dsSetEditorPosition</methodname>.
+             </para>
+         </listitem>
+     </varlistentry>     
+          
+
      <varlistentry>
          <term>
           <cmdsynopsis>

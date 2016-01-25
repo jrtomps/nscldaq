@@ -151,7 +151,56 @@ public:
         <void />
         <modifier></modifier>
     </methodsynopsis>  
-    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setEditorPosition</methodname>
+        <methodparam>
+          <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+          <modifier>const </modifier><type>char*</type>
+            <parameter> host</parameter>
+        </methodparam>
+        <methodparam>
+          <modifier></modifier><type>int </type>
+            <parameter>x</parameter>
+        </methodparam>
+        <methodparam>
+          <modifier></modifier><type>int </type>
+            <parameter>y</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int </type>
+        <methodname>getEditorXPosition</methodname>
+        <methodparam>
+          <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+          <modifier>const </modifier><type>char* </type>
+            <parameter>host</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int </type>
+        <methodname>getEditorYPosition</methodname>
+        <methodparam>
+          <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+          <modifier>const </modifier><type>char* </type>
+            <parameter>host</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
     
 };
    </synopsis>
@@ -424,6 +473,94 @@ public:
                     buffers.
                  </para>
              </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setEditorPosition</methodname>
+                    <methodparam>
+                      <modifier>const </modifier><type>char* </type>
+                        <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <modifier>const </modifier><type>char*</type>
+                        <parameter> host</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <modifier></modifier><type>int </type>
+                        <parameter>x</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <modifier></modifier><type>int </type>
+                        <parameter>y</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+              
+             </term>
+             <listitem>
+                 <para>
+                  Associate a canvas position, <parameter>x</parameter>,
+                  <parameter>y</parameter> with the ring buffer
+                  <parameter>name</parameter>@<parameter>host</parameter>.
+                  This position is normally used by the experiment editor to
+                  save a ringbuffer object's position so that when the experiment
+                  is re-loaded the layout of the diagram can be reconstructed
+                  from the data in the database.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+              <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int </type>
+                    <methodname>getEditorXPosition</methodname>
+                    <methodparam>
+                      <modifier>const </modifier><type>char* </type>
+                        <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <modifier>const </modifier><type>char* </type>
+                        <parameter>host</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+             </term>
+             <listitem>
+                 <para>
+                  Returns the X coordinate of the last position saved
+                  by <methodname>setEditorPosition</methodname> for the
+                  ringbuffer <parameter>name</parameter>@<parameter>host</parameter>.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+              <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int </type>
+                    <methodname>getEditorYPosition</methodname>
+                    <methodparam>
+                      <modifier>const </modifier><type>char* </type>
+                        <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <modifier>const </modifier><type>char* </type>
+                        <parameter>host</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>   
+             </term>
+             <listitem>
+                 <para>
+                  Returns the Y coordinate of the last position saved
+                  by <methodname>setEditorPosition</methodname> for the
+                  ringbuffer <parameter>name</parameter>@<parameter>host</parameter>.
+                 </para>
+             </listitem>
          </varlistentry>       
      </variablelist>
   </refsect1>
@@ -543,6 +680,15 @@ nscldaq::vardbringbuffer destroy <replaceable>name</replaceable>
           </command>
           <command>
 <replaceable>name</replaceable>  list
+          </command>
+          <command>
+<replaceable>name</replaceable> setEditorPosition <replaceable>ringname host x y</replaceable>
+          </command>
+          <command>
+<replaceable>name</replaceable> getEditorXPosition <replaceable>ringname host</replaceable>
+          </command>
+          <command>
+<replaceable>name</replaceable> getEditorYPosition <replaceable>ringname host</replaceable>
           </command>
         </cmdsynopsis>
         
@@ -797,8 +943,52 @@ if {![rings haveSchema]} {
                       form produced by <command>ringInfo</command>.  
                     </para>
                 </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>
+        <replaceable>name</replaceable> setEditorPosition <replaceable>ringname host x y</replaceable>
+                  </command>                  
+                </term>
+                <listitem>
+                    <para>
+                      Saves the editor canvas position for
+                      <parameter>ringname</parameter>@<parameter>host</parameter>
+                      to <parameter>x</parameter>, <parameter>y</parameter>.
+                      This position is normally used by the experiment editor
+                      to re-create the diagram layout when a configuration is
+                      restored.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>
+        <replaceable>name</replaceable> getEditorXPosition <replaceable>ringname host</replaceable>
+                  </command>                  
+                </term>
+                <listitem>
+                    <para>
+                      Retuns the X coordinate of the editor position last saved
+                      with e.g. <command>setEditorPosition</command>.
+                    </para>
+                </listitem>
             </varlistentry>    
-      
+            <varlistentry>
+                <term>
+                  <command>
+        <replaceable>name</replaceable> getEditorYPosition <replaceable>ringname host</replaceable>
+                  </command>
+                </term>
+                <listitem>
+                    <para>
+                      Retuns the Y coordinate of the editor position last saved
+                      with e.g. <command>setEditorPosition</command>.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+            
            </variablelist>
         </refsect1>
 
@@ -865,7 +1055,15 @@ api.ringInfo(name, host)
             <command>
 api.list()
             </command>
-          
+            <command>
+api.setEditorPosition(name, host, x, y)
+            </command>
+            <command>
+api.getEditorXPosition(name, host)
+            </command>
+            <command>
+api.getEditorYPosition(name, host)
+            </command>
         </cmdsynopsis>
         
         </refsynopsisdiv>
@@ -1052,6 +1250,54 @@ api.list()
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>
+      api.setEditorPosition(name, host, x, y)
+                  </command>
+                </term>
+                <listitem>
+                    <para>
+                      Associates the position
+                      <parameter>x</parameter>,<parameter>y</parameter> with the
+                      ring buffer: <parameter>name</parameter>@<parameter>host</parameter>.
+                      This position is normally used by the experiment editor to
+                      restore the graphical layout of the experiment when the
+                      editor is being restored.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>
+      api.getEditorXPosition(name, host)
+                  </command>
+                </term>
+                <listitem>
+                    <para>
+                      Returns the X coordinate of the position associated with
+                      <parameter>name</parameter>@<parameter>host</parameter>.
+                      This is the position last saved with e.g.
+                      <methodname>setEditorPosition</methodname>.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <command>
+      api.getEditorYPosition(name, host)
+                  </command>
+                  
+                </term>
+                <listitem>
+                    <para>
+                      Returns the Y coordinate of the position associated with
+                      <parameter>name</parameter>@<parameter>host</parameter>.
+                      This is the position last saved with e.g.
+                      <methodname>setEditorPosition</methodname>.
+                    </para>
+                </listitem>
+            </varlistentry>      
            </variablelist>
         </refsect1>
 

@@ -362,7 +362,45 @@ import nscldaq.vardb.services
                 <parameter>name</parameter>
         </methodparam>
         <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setEditorPosition</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>int</type>
+                <parameter> x</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>y</parameter>
+        </methodparam>
+        <modifier></modifier>
     </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int </type>
+        <methodname>getEditorXPosition</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int </type>
+        <methodname>getEditorYPosition</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
     <methodsynopsis>
         <modifier></modifier>
         <type>std::map&lt;std::string, std::pair&lt;std::string, std::string&gt; &gt; </type>
@@ -590,7 +628,81 @@ import nscldaq.vardb.services
                     service.  It only modifies the definition database.
                 </para>
             </listitem>
-        </varlistentry>         
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setEditorPosition</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>int</type>
+                            <parameter> x</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>y</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Associates the position <parameter>x</parameter>, <parameter>y</parameter>
+                    with the service <parameter>name</parameter>.
+                    This position saved by the experiment editor and used
+                    by that editor to position the graphical representation of
+                    <parameter>name</parameter> on the canvas when the
+                    configuratino is being restored.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int </type>
+                    <methodname>getEditorXPosition</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the X coordinate of the position associated with
+                    the service <parameter>name</parameter>.   This position
+                    was set by, e.g. <methodname>setEditorPosition</methodname>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int </type>
+                    <methodname>getEditorYPosition</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the Y coordinate of the position associated with
+                    the service <parameter>name</parameter>.   This position
+                    was set by, e.g. <methodname>setEditorPosition</methodname>.
+                </para>
+            </listitem>
+        </varlistentry>          
         <varlistentry>
             <term>
                 <methodsynopsis>
@@ -678,6 +790,9 @@ import nscldaq.vardb.services
 <command><replaceable>newCommand</replaceable> setHost <replaceable>name newHost</replaceable></command>
 <command><replaceable>newCommand</replaceable> setCommand <replaceable>name newCommand</replaceable></command>
 <command><replaceable>newCommand</replaceable> remove <replaceable>name</replaceable></command>
+<command><replaceable>newCommand</replaceable> setEditorPosition <replaceable>name x y</replaceable></command>
+<command><replaceable>newCommand</replaceable> getEditorXPosition <replaceable>name</replaceable></command>
+<command><replaceable>newCommand</replaceable> getEditorYPosition <replaceable>name</replaceable></command>
 <command><replaceable>newCommand</replaceable> listall</command>
 <command><replaceable>newCommand</replaceable> list <replaceable>name</replaceable></command>
    </synopsis>
@@ -820,6 +935,46 @@ if {![svc exists]} {
         </varlistentry>
         <varlistentry>
             <term>
+<command> setEditorPosition <replaceable>name x y</replaceable></command>                
+            </term>
+            <listitem>
+                <para>
+                    Associates a position <parameter>x</parameter>,
+                    <parameter>y</parameter> with the service
+                    <parameter>name</parameter>.  This position is normally
+                    set and read by the experiment editor.  The experiment editor
+                    uses this position to position the graphical representation
+                    of <parameter>name</parameter> when restoring a configuration
+                    for further editing.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+<command> getEditorXPosition <replaceable>name</replaceable></command>                
+            </term>
+            <listitem>
+                <para>
+                    Returns the X coordinate of the position associated
+                    with <parameter>name</parameter> via e.g.
+                    <command>setEditorPosition</command>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+<command><replaceable>newCommand</replaceable> getEditorYPosition <replaceable>name</replaceable></command>                
+            </term>
+            <listitem>
+                <para>
+                    Returns the X coordinate of the position associated
+                    with <parameter>name</parameter> via e.g.
+                    <command>setEditorPosition</command>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
                 <command>listall</command>
             </term>
             <listitem>
@@ -912,6 +1067,9 @@ api.createProgram(name, command, host)
 api.setHost(name, newHost)
 api.setCommand(name, newCommand)
 api.remove(name)
+api.setEditorPosition(name, x, y)
+api.getEditorXPosition(name)
+api.getEditorYPosition(name)
 api.list()
 api.listProgram(name)
 
@@ -1086,6 +1244,80 @@ if api.exists() :
                 </para>
             </listitem>
         </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>setEditorPosition</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>integer</type>
+                            <parameter>x</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>integer</type>
+                            <parameter>y</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Associates the position <parameter>x</parameter>, <parameter>y</parameter>
+                    with the service <parameter>name</parameter>.  The
+                    experiment editor uses this to position the graphical
+                    representation of <parameter>name</parameter> when restoring
+                    a configuration for further editing.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>integer</type>
+                    <methodname>getEditorXPosition</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the X coordinate of the position associated
+                    with <parameter>name</parameter> via e.g.
+                    <methodname>setEditorPosition</methodname>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>integer</type>
+                    <methodname>getEditorYPosition</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the Y coordinate of the position associated
+                    with <parameter>name</parameter> via e.g.
+                    <methodname>setEditorPosition</methodname>
+                </para>
+            </listitem>
+        </varlistentry>
+
         <varlistentry>
             <term>
                 <methodsynopsis>
