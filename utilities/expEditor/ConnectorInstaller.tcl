@@ -650,4 +650,22 @@ snit::type ConnectorInstaller {
         
         $obj configure -changecmd [mymethod _propertyChanged $objDesc]
     }
+    ##
+    # listObjects
+    #    Given a canvas and an object type (e.g. "service") returns a possibly
+    #    empty list of objects of that type on a specified canvas.
+    #
+    # @param c - Canvas to enumerate over.
+    # @param t - Type of object to look for.
+    # @return list - possibly empty of object ensemble commands.
+    #
+    method listObjects {c t} {
+        set result [list]
+        foreach o $currentObjects($c) {
+            of {[$o type] eq $t} {
+                lappend result $o
+            }
+        }
+        return $result
+    }
 }
