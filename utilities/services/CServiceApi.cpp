@@ -25,6 +25,8 @@
 #include <CVarMgrApi.h>
 #include <CVarMgrApiFactory.h>
 
+#include <sstream>
+
 
 // The service data top level directory:
 
@@ -130,6 +132,56 @@ CServiceApi::setCommand(const char* name, const char* command)
     m_pApi->set("path", command);
     m_pApi->cd("/");
 }
+/**
+ * setEditorPosition
+ *    Set a new position for the service when displayed in the experiment
+ *    editor.
+ *
+ *  @param name - name of the service.
+ *  @param x    - X coordinate.
+ *  @param y    - Y coordinate.
+ */
+void
+CServiceApi::setEditorPosition(const char* name, int x, int y)
+{
+    setDir(name);
+    m_pApi->set("editorx", intToString(x).c_str());
+    m_pApi->set("editory", intToString(y).c_str());
+    
+    m_pApi->cd("/");
+}
+/**
+ * getEditorXPosition
+ *    Return the x coordinate of a service's position in the exp. editor.
+ *
+ *  @param name - name of the service
+ *  @return int - x coord.
+ */
+int
+CServiceApi::getEditorXPosition(const char* name)
+{
+    setDir(name);
+    int value = atoi(m_pApi->get("editorx").c_str());
+    m_pApi->cd("/");
+    return value;
+}
+
+/**
+ * getEditorYPosition
+ *    Return the x coordinate of a service's position in the exp. editor.
+ *
+ *  @param name - name of the service
+ *  @return int - x coord.
+ */
+int
+CServiceApi::getEditorYPosition(const char* name)
+{
+    setDir(name);
+    int value = atoi(m_pApi->get("editory").c_str());
+    m_pApi->cd("/");
+    return value;
+}
+
 /**
  * remove
  *    Deletes a program.
@@ -250,4 +302,19 @@ CServiceApi::recursiveDelete(const char* path)
     m_pApi->cd("..");
     m_pApi->rmdir(path);
     
+}
+/**
+ * intToString
+ *    Return the string representation of an integer.
+ *
+ * @param v - value to convert.
+ * @return std::sting - string rep of v.
+ */
+std::string
+CServiceApi::intToString(int v)
+{
+    std::ostringstream s;
+    s << v;
+    
+    return s.str();
 }

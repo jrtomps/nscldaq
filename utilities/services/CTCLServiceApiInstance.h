@@ -49,6 +49,9 @@ protected:
     void createProg(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void setHost(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void setProgram(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void setEditorPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void getEditorXPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void getEditorYPosition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void remove(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void listAll(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void list(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);

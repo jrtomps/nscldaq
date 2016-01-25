@@ -29,6 +29,11 @@ class ServerApiTests : public CppUnit::TestFixture {
 
   CPPUNIT_TEST(setCommandOk);
   
+  CPPUNIT_TEST(setPos);
+  CPPUNIT_TEST(getXpos);
+  CPPUNIT_TEST(getYpos);
+  
+  
   CPPUNIT_TEST(removeSimple);
   CPPUNIT_TEST(removeWithSubinfo);
   
@@ -82,6 +87,9 @@ protected:
   void setHostNosuch();
   
   void setCommandOk();
+  void setPos();
+  void getXpos();
+  void getYpos();
   
   void removeSimple();
   void removeWithSubinfo();
@@ -211,6 +219,40 @@ void ServerApiTests::setCommandOk()
 
   EQ(std::string("aNewCommand"), m_pBaseApi->get("path"));  
 }
+
+void ServerApiTests::setPos()
+{
+  m_pSvcApi->create();
+  m_pSvcApi->create("NewProgram", "acommand", "ahost");
+  m_pSvcApi->setEditorPosition("NewProgram", 150, 200);
+  
+  m_pBaseApi->cd(CServiceApi::m_ServiceDir);
+  m_pBaseApi->cd("NewProgram");
+  
+  EQ(std::string("150"), m_pBaseApi->get("editorx"));
+  EQ(std::string("200"), m_pBaseApi->get("editory"));
+}
+
+void ServerApiTests::getXpos()
+{
+  m_pSvcApi->create();
+  m_pSvcApi->create("NewProgram", "acommand", "ahost");
+  m_pSvcApi->setEditorPosition("NewProgram", 150, 200);
+  
+  EQ(150, m_pSvcApi->getEditorXPosition("NewProgram"));
+  
+}
+
+void ServerApiTests::getYpos()
+{
+  m_pSvcApi->create();
+  m_pSvcApi->create("NewProgram", "acommand", "ahost");
+  m_pSvcApi->setEditorPosition("NewProgram", 150, 200);
+  
+  EQ(200, m_pSvcApi->getEditorYPosition("NewProgram"));
+  
+}
+
 
 // Simple remove means there's only vars in the directory.
 

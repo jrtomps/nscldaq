@@ -302,6 +302,86 @@ setCommand(PyObject* self, PyObject* args)
     
     Py_RETURN_NONE;
 }
+/**
+ * setEditorPosition
+ *    Set a new position in the editor for a service object.
+ *
+ *  @param self - pointer to data associated withthe api object this method
+ *               is called on.
+ *  @param args - tuple containing the positional parameters (name, x, y)
+ *  @return Py_None
+ */
+static PyObject*
+setEditorPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    int   x,y;
+    
+    if (!PyArg_ParseTuple(args, "sii", &name, &x, &y)) {
+        return NULL;
+    }
+    CServiceApi* pApi = getApi(self);
+    try {
+        pApi->setEditorPosition(name, x, y);
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+/**
+ * getEditorXPosition
+ *    Return the X coordinate of an object's saved position on the editor canvas
+ *
+ *  @param self - API object on which the method is being called.
+ *  @param args - positional argument: name of the service.
+ *  @return Py_Integer - the coordinate
+ */
+static PyObject*
+getEditorXPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    if(!PyArg_ParseTuple(args, "s", &name)){
+        return NULL;
+    }
+    CServiceApi* pApi = getApi(self);
+    PyObject* result;
+    try {
+        result = PyInt_FromLong(pApi->getEditorXPosition(name));
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    return result;
+}
+/**
+ * getEditorYPosition
+ *    Return the X coordinate of an object's saved position on the editor canvas
+ *
+ *  @param self - API object on which the method is being called.
+ *  @param args - positional argument: name of the service.
+ *  @return Py_Integer - the coordinate
+ */
+static PyObject*
+getEditorYPosition(PyObject* self, PyObject* args)
+{
+    char* name;
+    if(!PyArg_ParseTuple(args, "s", &name)){
+        return NULL;
+    }
+    CServiceApi* pApi = getApi(self);
+    PyObject* result;
+    try {
+        result = PyInt_FromLong(pApi->getEditorYPosition(name));
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    return result;
+}
 
 /**
  * remove
@@ -430,6 +510,9 @@ static PyMethodDef ApiObjectMethods[] =
     {"createProgram", createProgram, METH_VARARGS, "Create new server program"},
     {"setHost", setHost, METH_VARARGS, "Change a program's host name"},
     {"setCommand", setCommand, METH_VARARGS, "Changes a programs runnable"},
+    {"setEditorPosition", setEditorPosition, METH_VARARGS, "Sets position of svc in the editor"},
+    {"getEditorXPosition", getEditorXPosition, METH_VARARGS,"Gets X coordinate of svc position"},
+    {"getEditorYPosition", getEditorYPosition, METH_VARARGS, "Gets Y coordinate of svc position"},
     {"remove",     remove,     METH_VARARGS, "Remove a program"},
     {"list",       list,       METH_VARARGS, "List all programs"},
     {"listProgram", listProgram, METH_VARARGS, "List a program"},

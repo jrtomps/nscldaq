@@ -319,6 +319,76 @@ tcltest::test setCommand-needparams  {Need all parameters} \
 } -result 1
 
 ##
+# tests for editor positioning
+#
+tcltest::test setpos {Set editor position } \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+     
+     set h [vardb::open $dbFile]
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    vardb::close $h
+    cleanup $dbFile
+    
+} \
+-body {
+    svc setEditorPosition testprogram 125 250
+    
+    set result [list]
+    lappend result [vardb::var get $h /Services/testprogram/editorx]
+    lappend result [vardb::var get $h /Services/testprogram/editory]
+    
+    set result
+} -result [list 125 250]
+
+tcltest::test getposx {Get x Position of  a service} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+     
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    
+    cleanup $dbFile
+    
+} \
+-body {
+    svc setEditorPosition testprogram 125 250
+    svc getEditorXPosition testprogram
+} -result 125
+
+tcltest::test getposy {Get y Position of  a service} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+     
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    
+    cleanup $dbFile
+    
+} \
+-body {
+    svc setEditorPosition testprogram 125 250
+    svc getEditorYPosition testprogram
+} -result 250
+
+    
+##
 #  remove tests (remove program).
 #
 

@@ -48,6 +48,9 @@ public:
     void create(const char* name, const char* command, const char* host);
     void setHost(const char* name, const char* newHost);
     void setCommand(const char* name, const char* newCommand);
+    void setEditorPosition(const char* name, int x, int y);
+    int getEditorXPosition(const char* name);
+    int getEditorYPosition(const char* name);
     void remove(const char* name);
     std::map<std::string, std::pair<std::string, std::string> > list();
     std::pair<std::string, std::string> list(const char* name);
@@ -58,5 +61,6 @@ private:
     void setDir(const char* name);
     std::string programPath(const char* name);
     void recursiveDelete(const char* path);
+    std::string intToString(int v);
 };
 #endif

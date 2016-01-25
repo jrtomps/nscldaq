@@ -113,7 +113,25 @@ class apiTests(unittest.TestCase):
         result = self._api.listProgram('atest')
         self.assertEqual(('/usr/bin/ls', 'ahost.nscl.msu.edu'), result)
     
+    def test_setEditorPos(self):
+        self._api.create()
+        self._api.createProgram('atest', '/usr/bin/ls', 'ahost.nscl.msu.edu')
+        self._api.setEditorPosition('atest', 100, 250)
         
+        self.assertEqual('100', self._db.get("/Services/atest/editorx"))
+        self.assertEqual('250', self._db.get('/Services/atest/editory'))
+    def test_getEditorXPos(self):
+        self._api.create()
+        self._api.createProgram('atest', '/usr/bin/ls', 'ahost.nscl.msu.edu')
+        self._api.setEditorPosition('atest', 100, 250)
+        
+        self.assertEqual(100, self._api.getEditorXPosition('atest'))
+    def test_getEditorYPos(self):
+        self._api.create()
+        self._api.createProgram('atest', '/usr/bin/ls', 'ahost.nscl.msu.edu')
+        self._api.setEditorPosition('atest', 100, 250)
+        
+        self.assertEqual(250, self._api.getEditorYPosition('atest'))
 
 if __name__ == '__main__':
     unittest.main()

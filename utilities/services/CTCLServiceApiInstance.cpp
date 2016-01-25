@@ -78,6 +78,12 @@ CTCLServiceApiInstance::operator()(CTCLInterpreter& interp, std::vector<CTCLObje
             setHost(interp, objv);
         } else if (subcommand == "setCommand") {
             setProgram(interp, objv);
+        } else if (subcommand == "setEditorPosition") {
+            setEditorPosition(interp, objv);
+        } else if (subcommand == "getEditorXPosition") {
+            getEditorXPosition(interp, objv);
+        } else if (subcommand == "getEditorYPosition") {
+            getEditorYPosition(interp, objv);
         } else if (subcommand == "remove") {
             remove(interp, objv);
         } else if (subcommand == "listall") {
@@ -171,6 +177,69 @@ CTCLServiceApiInstance::setProgram(
     m_pApi->setCommand(name.c_str(), path.c_str());
 }
 
+/**
+ * setEditorPosition
+ *    Set a new position for a service with the editor.
+ *
+ * @param interp - interpreter running the command.
+ * @param objv   - Command line parameters (api setEditorPosition name x y).
+ */
+void
+CTCLServiceApiInstance::setEditorPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 5);
+    std::string name = objv[2];
+    int         x    = objv[3];
+    int         y    = objv[4];
+    
+    m_pApi->setEditorPosition(name.c_str(), x, y);
+}
+/**
+ * getEditorXPosition
+ *    SEt the result with the x coordinate of the editor position of a
+ *    service.
+ *
+ * @param interp - interpreter running the commabnd.
+ * @param objv   - command words (api getEditorXPosition name)
+ */
+void
+CTCLServiceApiInstance::getEditorXPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3);
+    std::string name = objv[2];
+    
+    CTCLObject result;
+    result.Bind(interp);
+    result = m_pApi->getEditorXPosition(name.c_str());
+    
+    interp.setResult(result);
+}
+/**
+ * getEditorYPosition
+ *    SEt the result with the x coordinate of the editor position of a
+ *    service.
+ *
+ * @param interp - interpreter running the commabnd.
+ * @param objv   - command words (api getEditorXPosition name)
+ */
+void
+CTCLServiceApiInstance::getEditorYPosition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3);
+    std::string name = objv[2];
+    
+    CTCLObject result;
+    result.Bind(interp);
+    result = m_pApi->getEditorYPosition(name.c_str());
+    
+    interp.setResult(result);
+}
 /**
  * remove
  *    remove a program from the database.
