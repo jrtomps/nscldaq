@@ -2937,7 +2937,7 @@ lappend auto_path [file join $::env(DAQROOT) TclLibs]
 package require stateclient
 
 ::nscldaq::statemanager mgr requri ?suburi?
-::nscldaq::statemanager -destroy mgr
+::nscldaq::statemanager -delete mgr
 
 mgr programParentDir ?newpath?
 mgr setProgramState  name newstate

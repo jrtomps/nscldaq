@@ -61,6 +61,7 @@ package require vardbringbuffer
 
 package require svcSerializer
 package require ringSerializer
+package require stateProgramSerializer
 
 # Global variables:
 
@@ -190,6 +191,7 @@ proc saveState {} {
     set uri  file://[file normalize $::dbFile]
     ::Serialize::serializeServices $uri [$::cs listObjects .c service]
     ::Serialize::serializeRings    $uri [$::cs listObjects .c ring]
+    ::Serialize::serializeStatePrograms $uri [$::cs listObjects .c state-program]
 }
 
 ##

@@ -3,7 +3,7 @@ TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 	ServiceData.tcl Service.tcl connector.tcl tool.tcl ObjectInstaller.tcl \
 	toolbar.tcl ConnectorObject.tcl ConnectorInstaller.tcl eventBuilder.tcl \
 	eventBuilderObject.tcl dataSource.tcl dataSourceObject.tcl \
-	svcSerializer.tcl ringSerializer.tcl
+	svcSerializer.tcl ringSerializer.tcl stateProgramSerializer.tcl
 
 
 

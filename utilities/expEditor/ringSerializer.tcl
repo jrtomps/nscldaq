@@ -37,7 +37,7 @@ package require vardbringbuffer
 # Make sure the ::Serialize:: namespace exists:
 
 namespace eval ::Serialize {
-    
+    namespace export serializeRings
 }
 
 ##
