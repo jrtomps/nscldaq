@@ -59,6 +59,8 @@ package require daqservices
 package require vardbEventBuilder
 package require vardbringbuffer
 
+package require svcSerializer
+
 # Global variables:
 
 set dbFile ""
@@ -184,6 +186,8 @@ proc saveState {} {
         }    
     }
     #  Code to do the actual save goes here:
+    set uri  file://[file normalize $::dbFile]
+    ::Serialize::serializeServices $uri [$::cs listObjects .c service]
 }
 
 ##

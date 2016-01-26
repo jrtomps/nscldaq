@@ -40,6 +40,7 @@ const char* CServiceApi::m_ServiceDir("/Services");
 CServiceApi::CServiceApi(const char* reqUri) :
     m_pApi(0)
 {
+    
     m_pApi = CVarMgrApiFactory::create(reqUri);        
 }
 
@@ -78,7 +79,9 @@ CServiceApi::exists()
 void
 CServiceApi::create()
 {
-    m_pApi->mkdir(m_ServiceDir);
+    if (!exists()) {
+        m_pApi->mkdir(m_ServiceDir);
+    }
 }
 /**
  * create

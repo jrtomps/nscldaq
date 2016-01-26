@@ -661,11 +661,17 @@ snit::type ConnectorInstaller {
     #
     method listObjects {c t} {
         set result [list]
-        foreach o $currentObjects($c) {
-            of {[$o type] eq $t} {
-                lappend result $o
+        foreach id [array names currentObjects] {
+            foreach d $currentObjects($id) {
+                set cv [dict get $d canvas]
+                set o  [dict get $d object]
+                
+                if {([$o type] eq $t) && ($c == $cv)} {
+                    lappend result $o
+                }
             }
         }
+       
         return $result
     }
-}
+}  
