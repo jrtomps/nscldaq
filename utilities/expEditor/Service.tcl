@@ -66,7 +66,6 @@ snit::type Service {
     delegate method getId         to gui
     delegate method size          to gui
     delegate method bind          to gui
-    delegate method getPosition   to gui
 
     
     ##

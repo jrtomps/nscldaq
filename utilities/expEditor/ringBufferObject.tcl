@@ -65,6 +65,7 @@ snit::type RingBufferObject {
     delegate method getId         to gui
     delegate method size          to gui
     delegate method bind          to gui
+
     
     # If not blank, this is the source object.
     
