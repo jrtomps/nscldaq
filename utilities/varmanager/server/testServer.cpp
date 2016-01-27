@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
-
+#include <algorithm>
 #include <CVariableDb.h>
 #include <CVarDirTree.h>
 #include <CVariable.h>
@@ -685,9 +685,9 @@ void ServerApiTests::lsList()
     
     EQ(size_t(3), dirs.size());
     
-    ASSERT(find(dirs.begin(), dirs.end(), "adir") != dirs.end());
-    ASSERT(find(dirs.begin(), dirs.end(), "anotherdir") != dirs.end());
-    ASSERT(find(dirs.begin(), dirs.end(), "lastdir") != dirs.end());
+    ASSERT(std::find(dirs.begin(), dirs.end(), std::basic_string<char>("adir")) != dirs.end());
+    ASSERT(std::find(dirs.begin(), dirs.end(), std::string("anotherdir")) != dirs.end());
+    ASSERT(std::find(dirs.begin(), dirs.end(), std::string("lastdir")) != dirs.end());
     
 }
 // Ls with path absolute:
@@ -702,9 +702,9 @@ void ServerApiTests::lsAbsPath()
     
     EQ(size_t(3), dirs.size());
     
-    ASSERT(find(dirs.begin(), dirs.end(), "adir") != dirs.end());
-    ASSERT(find(dirs.begin(), dirs.end(), "anotherdir") != dirs.end());
-    ASSERT(find(dirs.begin(), dirs.end(), "lastdir") != dirs.end());
+    ASSERT(std::find(dirs.begin(), dirs.end(), std::string("adir")) != dirs.end());
+    ASSERT(std::find(dirs.begin(), dirs.end(), std::string("anotherdir")) != dirs.end());
+    ASSERT(std::find(dirs.begin(), dirs.end(), std::string("lastdir")) != dirs.end());
 
     EQ(size_t(0), api.ls("/adir").size());    
     
