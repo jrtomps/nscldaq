@@ -36,7 +36,7 @@ package require vardbEventBuilder
 #
 namespace eval ::Serialize {
     
-    namespace export saveEventBuilders
+    namespace export serializeEventBuilders
 }
 
 ##
