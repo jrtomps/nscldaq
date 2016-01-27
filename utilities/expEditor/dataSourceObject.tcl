@@ -94,6 +94,11 @@ snit::type DataSourceObject {
         
         $self configurelist $args
     }
+
+    destructor {
+	$data destroy
+	$gui destroy
+    }
     
     #---------------------------------------------------------------------------
     #  Private methods.
