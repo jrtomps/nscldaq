@@ -208,6 +208,7 @@ snit::type EventBuilderObject {
                 error "Event builder output can only go to a ring buffer."
             }
             set outputRing $object
+	    $self connectionPropertyChanged $object
             $self _disableRingEditing
             $self _disableHostEditing
         } else {
@@ -242,7 +243,7 @@ snit::type EventBuilderObject {
     # @return bool
     #
     method isConnectable {direction} {
-        if {($direction eq "to") && ($outputRing ne "") } {
+        if {($direction eq "from") && ($outputRing ne "") } {
             return false
         } else {
             return true
