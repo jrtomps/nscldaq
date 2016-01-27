@@ -63,6 +63,7 @@ package require svcSerializer
 package require ringSerializer
 package require stateProgramSerializer
 package require evbSerializer
+package require dsourceSerializer
 
 # Global variables:
 
@@ -194,6 +195,7 @@ proc saveState {} {
     ::Serialize::serializeRings    $uri [$::cs listObjects .c ring]
     ::Serialize::serializeStatePrograms $uri [$::cs listObjects .c state-program]
     ::Serialize::serializeEventBuilders $uri [$::cs listObjects .c eventbuilder]
+    ::Serialize::serializeDataSources $uri [$::cs listObjects .c datasource]
 }
 
 ##

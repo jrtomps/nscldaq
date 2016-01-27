@@ -264,4 +264,14 @@ snit::type DataSourceObject {
             
         }
     }
+    ##
+    # getEventBuilder
+    #    return the event builder object we are connected to.
+    #
+    # @return eventBuilderObject
+    # @retval "" - not connected to any event builder.
+    #
+    method getEventBuilder {} {
+        return $eventBuilder
+    }
 }
