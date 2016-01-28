@@ -38,8 +38,16 @@
 #include <CDesiredTypesPredicate.h>
 #include <CRingItemFactory.h>
 #include <CAbnormalEndItem.h>
+#include <CTimeout.h>
+
 #include <tcl.h>
 
+#include <limits>
+#include <chrono>
+#include <thread>
+#include <iostream>
+
+using namespace std;
 
 /**
  * construction
@@ -191,14 +199,8 @@ void
 CTclRingCommand::get(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
 {
     requireAtLeast(objv, 3, "ring get needs a URI");
-    requireAtMost(objv, 4, "Too many command parameters");
-    std::string uri  = std::string(objv[2]);
-    std::map<std::string, CRingBuffer*>::iterator p =  m_attachedRings.find(uri);
-    if (p == m_attachedRings.end()) {
-        throw std::string("ring is not attached");               
-    }
-    
-    
+    requireAtMost(objv, 6, "Too many command parameters");
+
     CAllButPredicate all;
     CDesiredTypesPredicate some;
     CRingSelectionPredicate* pred;
@@ -206,10 +208,28 @@ CTclRingCommand::get(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     
     // If there's a 4th parameter it must be a list of item types to select
     // from
-    
-    
-    if (objv.size() == 4) {
-        CTCLObject types = objv[3];
+
+    unsigned long timeout = std::numeric_limits<unsigned long>::max();
+
+    size_t paramIndexOffset = 0;
+    if (std::string(objv[2]) == "-timeout") {
+        if (objv.size() >= 4) {
+            CTCLObject object = objv[3];
+            timeout = int(object.lindex(0));
+        } else {
+            throw std::string("Insufficient number of parameters");
+        }
+        paramIndexOffset = 2;
+    }
+
+    std::string uri  = std::string(objv[2+paramIndexOffset]);
+    std::map<std::string, CRingBuffer*>::iterator p =  m_attachedRings.find(uri);
+    if (p == m_attachedRings.end()) {
+        throw std::string("ring is not attached");
+    }
+
+    if (objv.size() == 4+paramIndexOffset) {
+        CTCLObject types = objv[3+paramIndexOffset];
         for (int i = 0; i < types.llength(); i++) {
             int type = int(types.lindex(i));
             some.addDesiredType(type);
@@ -221,11 +241,15 @@ CTclRingCommand::get(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     
     
     CRingBuffer* pRing = p->second;
-    CRingItem* pItem = CRingItem::getFromRing(*pRing, *pred);
-    
-    if(CRingItemFactory::isKnownItemType(pItem));
-    CRingItem* pSpecificItem = CRingItemFactory::createRingItem(*pItem);
-    delete pItem;
+    auto pSpecificItem = getFromRing(*pRing, *pred, timeout);
+
+    if (pSpecificItem == nullptr) {
+        // oops... we timed out. return an empty string
+        CTCLObject result;
+        result.Bind(&interp);
+        interp.setResult(result);
+        return;
+    }
     
     // Actual upcast depends on the type...and that describes how to format:
     
@@ -706,6 +730,109 @@ CTclRingCommand::formatAbnormalEnd(CTCLInterpreter& interp, CRingItem* pSpecific
     result += pSpecificItem->typeName();
     interp.setResult(result);
 }
+
+CRingItem*
+CTclRingCommand::getFromRing(CRingBuffer &ring, CRingSelectionPredicate &predicate,
+                             unsigned long timeout)
+{
+
+    CTimeout timer(timeout);
+
+    CRingItem* pItem = nullptr;
+
+    do {
+        pItem = getFromRing(ring, timer);
+
+        if (pItem) {
+            if (!predicate.selectThis(pItem->type())
+                    || (predicate.getNumberOfSelections() == 0) ) {
+                break;
+            }
+
+        }
+
+        delete pItem;
+        pItem = nullptr;
+    } while (! timer.expired());
+
+    return pItem;
+}
+
+CRingItem*
+CTclRingCommand::getFromRing(CRingBuffer &ring, CTimeout& timer)
+{
+    using namespace std::chrono;
+
+    // look at the header, figure out the byte order and count so we can
+    // create the item and fill it in.
+    RingItemHeader header;
+
+    // block with a timeout
+    while ((ring.availableData() < sizeof(header)) && !timer.expired()) {
+        std::this_thread::sleep_for(milliseconds(200));
+    }
+
+    // stop if we have no data and we timed out...
+    // if we have timed out but there is data, then try to continue.
+    if (timer.expired() && (ring.availableData() <= sizeof(header))) {
+        return nullptr;
+    }
+
+    ring.peek(&header, sizeof(header));
+    bool otherOrder(false);
+    uint32_t size = header.s_size;
+    if ((header.s_type & 0xffff0000) != 0) {
+      otherOrder = true;
+      size = swal(size);
+    }
+
+    // prevent a thrown range error caused by attempting to read more data
+    // than is in the buffer.
+    if (ring.availableData() < size) {
+        return nullptr;
+    }
+
+
+    std::vector<uint8_t> buffer(size);
+    size_t gotSize    = ring.get(buffer.data(),
+                                 buffer.size(),
+                                 buffer.size(),
+                                 timer.getRemainingSeconds());// Read the item from the ring.
+    if(gotSize  != buffer.size()) {
+      if (gotSize == 0) {
+        // operation timed out
+        return nullptr;
+      }
+
+      std::cerr << "Mismatch in CRingItem::getItem required size: sb " << size << " was " << gotSize
+                << std::endl;
+    }
+
+    return CRingItemFactory::createRingItem(buffer.data());
+}
+
+
+
+uint32_t CTclRingCommand::swal(uint32_t value)
+{
+    union {
+        uint32_t asValue;
+        char asBytes[sizeof(uint32_t)];
+    } value1, value2;
+
+    value1.asValue = value;
+
+    for (int fwIndex=0, bkwdIndex=sizeof(uint32_t);
+         fwIndex<sizeof(uint32_t) && bkwdIndex>=0;
+         fwIndex++, bkwdIndex--) {
+        value2.asBytes[fwIndex] = value1.asBytes[bkwdIndex];
+    }
+
+    return value2.asValue;
+
+}
+
+
 /*-------------------------------------------------------------------------------
  * Package initialization:
  */
@@ -719,5 +846,6 @@ int Tclringbuffer_Init(Tcl_Interp* pInterp)
     
     return TCL_OK;
 }
+
 
 int gpTCLApplication = 0;

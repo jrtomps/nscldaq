@@ -135,25 +135,30 @@ proc EndrunMon::startMonitor ringUrl {
             ring attach $ringurl
             set ercount 0
             while {1} {
-                set item [ring get $ringurl [list 2]];  #end run only.
-                if {[dict get $item type] eq "End Run"} {
-                    incr  ercount
-                    #
-                    #  Signal if we've seen enough end runs.
-                    #
-                    if {$ercount >= [tsv::get EndrunMon endsExpected]} {
-                        thread::mutex lock $mutex
-                        thread::cond  notify $condvar
-                        thread::mutex unlock $mutex
-                        break
-                    }
-                    #
-                    # Handle requests to abort without signalling.
-                    #
-                    if {[tsv::get EndrunMon abort]} {
-                        break
-                    }
+
+                set item [ring get -timeout 2 $ringurl [list 2]];  #end run only.
+                if {$item ne {}} {
+
+                    if {[dict get $item type] eq "End Run"} {
+                        incr  ercount
+                        #
+                        #  Signal if we've seen enough end runs.
+                        #
+                        if {$ercount >= [tsv::get EndrunMon endsExpected]} {
+                            thread::mutex lock $mutex
+                            thread::cond  notify $condvar
+                            thread::mutex unlock $mutex
+                            break
+                        }
+                     }
                 }
+                #
+                # Handle requests to abort without signalling.
+                #
+                if {[tsv::get EndrunMon abort]} {
+                    break
+                }
+
             }
             
             ring detach $ringurl
@@ -184,7 +189,7 @@ proc ::EndrunMon::waitEndRun {} {
     
     while {[thread::exists $::EndrunMon::tid]} {
         thread::cond wait $EndrunMon::condVar $::EndrunMon::mutex 300
-        update idletasks;              #Keep UI alive.
+        update;              #Keep UI alive.
     }
     # Thread exited so:
     

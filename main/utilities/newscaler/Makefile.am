@@ -65,7 +65,9 @@ libTclRingBuffer_la_LIBADD=	@top_builddir@/daq/format/libdataformat.la     \
 
 
 libTclRingBuffer_la_CPPFLAGS=@LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@ @THREADCXX_FLAGS@ \
-				-I@top_srcdir@/base/dataflow -I@top_srcdir@/daq/format
+				-I@top_srcdir@/base/dataflow \
+				-I@top_srcdir@/daq/format \
+				-I@top_srcdir@/base/os 
 
 noinst_HEADERS=CTclRingCommand.h
 

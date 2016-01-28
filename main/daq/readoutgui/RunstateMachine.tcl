@@ -519,6 +519,7 @@ snit::type RunstateMachineSingleton {
 proc start {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Starting } msg] } {
+    forceFailure
     error "start failed with message : $msg"
   }
   $machine destroy
@@ -527,6 +528,7 @@ proc start {} {
 proc begin {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Active } msg] } {
+    forceFailure
     error "begin failed with message : $msg"
   }
   $machine destroy
@@ -535,6 +537,7 @@ proc begin {} {
 proc end {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Halted } msg] } {
+    forceFailure
     error "end failed with message : $msg"
   }
   $machine destroy
@@ -543,6 +546,7 @@ proc end {} {
 proc pause {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Paused } msg] } {
+    forceFailure
     error "pause failed with message : $msg"
   }
   $machine destroy
@@ -551,6 +555,7 @@ proc pause {} {
 proc resume {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Active } msg] } {
+    forceFailure
     error "resume failed with message : $msg"
   }
   $machine destroy
