@@ -65,6 +65,11 @@ package require stateProgramSerializer
 package require evbSerializer
 package require dsourceSerializer
 
+package require serviceValidator
+
+package require dialogWrapper
+package require checklist
+
 # Global variables:
 
 set dbFile ""
@@ -178,11 +183,24 @@ proc validateConfiguration {} {
     destroy .validations
 
     set messages [list];			# List of things to do.
+    
+    set svcs [$::cs listObjects .c service]
+    set messages [concat $messages [::Validation::validateServices $svcs]] 
 
     if {[llength $messages] == 0} {
 	tk_messageBox -parent . -title "validates ok" -type ok -icon info \
 	    -message {Validation successful}
     } else {
+	toplevel .validations
+	NonModalDialogWrapper .validations.d \
+	    -okcommand [list destroy .validations] -cancelcommand [list destroy .validations]
+	set cl [checklist [.validations.d controlarea].cl]
+	foreach msg $messages {
+	    $cl addItem $msg
+	}
+	.validations.d configure -form $cl
+	pack .validations.d
+	
     }
 }
 
