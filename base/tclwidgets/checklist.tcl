@@ -37,7 +37,7 @@ package require snit
 #    * Checking the checkbox overstrikes the text associated with it.
 #    * Unchecking the checkbox removes the overstrike.
 #    * The client can query the items in the checklist.
-#    * The client can query the items not checked off.l
+#    * The client can query the items not checked off.
 #    * The client can query the checked off items.
 #    * A button "Remove Completed"  Removes all checked off items from the
 #      checklist (those items are not forgotten).
@@ -97,6 +97,48 @@ snit::widgetadaptor checklist {
 	grid $win.purge -columnspan 2 -sticky w
 
 	incr widgetIndex
+    }
+    ##
+    # getAllItems
+    #   Returns all items in the list.  _All_ items means  unchecked, checked,
+    #   and hidden.
+    #
+    # @return list - of all items that have been added to the checklist.
+    method getAllItems {} {
+	return $allItems
+    }
+    ##
+    # getAllDoneItems
+    #  Return all items that have been checked off.  This includes hidden
+    #  items.
+    #
+    # @return list - of checked off items.
+    #
+    method getAllDoneItems {} {
+	return $doneItems
+    }
+    ##
+    # getHiddenItems
+    #   Get the items that are done and purged from the visible list.
+    #
+    # @return list - of hidden items.
+    #
+    method getHiddenItems {} {
+	return $hiddenItems
+    }
+    ##
+    # getUnfinishedItems
+    #
+    #  @return list - of items that have not yet been checked off.
+    #
+    method getUnfinishedItems {} {
+	set result [list]
+	foreach item $allItems {
+	    if {$item ni $doneItems} {
+		lappend result $item
+	    }
+	}
+	return $result
     }
     
     #---------------------------------------------------------------------
