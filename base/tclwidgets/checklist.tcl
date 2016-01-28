@@ -25,7 +25,7 @@ exec tclsh "$0" ${1+"$@"}
 # @brief Widget for checklists.
 # @author Ron Fox <fox@nscl.msu.edu>
 #
-package provide checklist
+package provide checklist 1.0
 package require Tk
 package require snit
 
