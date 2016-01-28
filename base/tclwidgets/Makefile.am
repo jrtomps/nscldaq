@@ -1,6 +1,7 @@
 SCRIPT_FILES=@srcdir@/mwutil.tcl @srcdir@/notebook.tcl @srcdir@/tablelist.tcl @srcdir@/tablelistSortByColumn.tcl \
 	@srcdir@/tablelistWidget.tcl  @srcdir@/tabnbook.tcl @srcdir@/FrameSequencer.tcl @srcdir@/FrameManager.tcl \
-	@srcdir@/RingStatus.tcl @srcdir@/ChannelLabel.tcl @srcdir@/TransientLabel.tcl
+	@srcdir@/RingStatus.tcl @srcdir@/ChannelLabel.tcl @srcdir@/TransientLabel.tcl \
+	@srcdir@/checklist.tcl dialogWrapper.tcl
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs/widgets
