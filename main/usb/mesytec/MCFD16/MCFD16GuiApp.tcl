@@ -146,6 +146,7 @@ snit::type MCFD16GuiApp {
         return -code error "Invalid protocol name specified for --protocol argument"
       }
     } msg]
+    puts "Fast veto start up = [$_handle GetFastVeto]"
 
     if {$res == 1} {
       puts "Failed to create an MCFD16 device driver with error : $msg"

@@ -2406,7 +2406,7 @@ snit::widget ORPatternConfiguration {
 
   variable panel0
   variable panel1
-  variable fastVeto
+  variable fastVeto 1
   variable panel0Presenter {}
   variable panel1Presenter {}
 
@@ -2479,6 +2479,9 @@ snit::widget ORPatternConfiguration {
 
     if {$val eq {}} return
 
+    set fastVeto [$val GetFastVeto]
+    puts "Handle = $val : Setting fast veto to $fastVeto" 
+
     if {$panel0Presenter ne {}} {
       $panel0Presenter configure $opt $val
     }
@@ -2486,7 +2489,6 @@ snit::widget ORPatternConfiguration {
       $panel1Presenter configure $opt $val
     }
 
-    set fastVeto [$val GetFastVeto]
   }
 
   ## @brief Set handle to command logger

@@ -62,6 +62,7 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress threshold $ch]
+    puts "writing address $adr"
     return [$_proxy Write $adr $val]
   }
 
@@ -570,6 +571,7 @@ snit::type MCFD16RC {
   #
   # @returns repsonse of the device
   method SetFastVeto {onoff} {
+    puts "SetFastVeto $onoff"
     return [$_proxy Write [dict get $offsetsMap fast_veto] [string is true $onoff]]    
   }
 
@@ -577,7 +579,9 @@ snit::type MCFD16RC {
   #
   # @returns  boolean
   method GetFastVeto {} {
-    return [$_proxy Read [dict get $offsetsMap fast_veto]]
+    set value [$_proxy Read [dict get $offsetsMap fast_veto]]
+    puts "GetFastVeto $value"
+    return $value
   }
 
   ## @brief Set the remote control mode
@@ -760,6 +764,7 @@ snit::type MXDCRCProxy {
     set param [$self _formatParameter [$self cget -devno] $paramAddr]
     set result [$_comObject Set [$self cget -module] $param $val] 
 
+    puts "proxy Write $paramAddr $val"
     # check whether the response contains ERROR
     if {[$self _transactionFailed $result]} {
 
@@ -786,6 +791,7 @@ snit::type MXDCRCProxy {
   method Read {paramAddr} {
     # encode the parameter and device address
     set param [$self _formatParameter [$self cget -devno] $paramAddr]
+    puts "proxy Read $paramAddr"
     set result [$_comObject Get [$self cget -module] $param]
 
     # check for failure responses
