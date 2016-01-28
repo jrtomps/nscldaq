@@ -82,6 +82,7 @@ package require ExpFileSystemConfig
 package require ReadoutGUIPanel
 package require snit
 package require csv
+package require dialogWrapper
 
 # Namespace to hold our variables:
 

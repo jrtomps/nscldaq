@@ -29,7 +29,7 @@ exec tclsh "$0" ${1+"$@"}
 package provide propertyEditor 1.0
 package require Tk
 package require properties
-package require DataSourceUI
+package require dialogWrapper
 package require BWidget
 ##
 # @class propertyEditor

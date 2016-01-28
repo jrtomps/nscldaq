@@ -32,6 +32,7 @@ package require ExpFileSystemConfig
 package require Diagnostics
 package require StateManager
 package require multilogger
+package require dialogWrapper
 ##
 # @class ProviderList
 #
