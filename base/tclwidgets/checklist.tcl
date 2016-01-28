@@ -90,6 +90,7 @@ snit::widgetadaptor checklist {
 	lappend allItems $item;		# Record it for retrieval.
 	
 	ttk::checkbutton $win.cb$widgetIndex -onvalue 1 -offvalue 0 -command [mymethod _toggle $widgetIndex]
+	set ::[$win.cb$widgetIndex cget -variable] 0
 	ttk::label       $win.tx$widgetIndex -text $item -font TkDefaultFont
 
 	grid forget $win.purge
