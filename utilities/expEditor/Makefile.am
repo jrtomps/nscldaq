@@ -6,7 +6,7 @@ TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 	svcSerializer.tcl ringSerializer.tcl stateProgramSerializer.tcl \
 	evbSerializer.tcl dsourceSerializer.tcl \
 	svcValidator.tcl ringValidator.tcl stateProgramValidator.tcl \
-	eventBuilderValidator.tcl
+	eventBuilderValidator.tcl dataSourceValidator.tcl
 
 
 

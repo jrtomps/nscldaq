@@ -69,6 +69,7 @@ package require serviceValidator
 package require ringValidator
 package require stateProgramValidator
 package require eventBuilderValidator
+package require dataSourceValidator
 
 package require dialogWrapper
 package require checklist
@@ -198,6 +199,9 @@ proc validateConfiguration {} {
 
     set evbs [$::cs listObjects .c eventbuilder]
     set messages [concat $messages [::Validation::validateEventBuilders $evbs]]
+
+    set ds [$::cs listObjects .c datasource]
+    set messages [concat $messages [::Validation::validateDataSources $ds]]
 
     if {[llength $messages] == 0} {
 	tk_messageBox -parent . -title "validates ok" -type ok -icon info \
