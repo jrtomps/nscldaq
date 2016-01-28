@@ -166,6 +166,27 @@ proc showAbout {} {
 }
 
 ##
+# validateConfiguration
+#   Validate that all of the objects at least look reasonable.
+#   - If validation is ok a tk_messageBox tells you the config looks good.
+#   - If validation fails a checklist non-modal dialog is popped up to show
+#     the user what they have to fix.
+#
+# @note regardless, any prior dialog is destroyed.
+#
+proc validateConfiguration {} {
+    destroy .validations
+
+    set messages [list];			# List of things to do.
+
+    if {[llength $messages] == 0} {
+	tk_messageBox -parent . -title "validates ok" -type ok -icon info \
+	    -message {Validation successful}
+    } else {
+    }
+}
+
+##
 # saveState
 #   Save the editor state to the database.
 #   If there's no dbFile, one is prompted for and, if necessary, created/initialized.
@@ -235,17 +256,17 @@ tk::classic::restore menu
 menu .m
 . configure -menu .m
 .m add cascade -label File -menu .m.file
+.m add cascade -label View -menu .m.view
 .m add cascade -label Help -menu .m.help
 
-
-# TODO:  Hook the destroy of saveState so there's a chance to save stuff.
-# TODO:  Know if there have been changes and make some of this save stuff
-#        conditional on changes.
 
 menu .m.file -tearoff 0
 .m.file add command -label Save -command saveState
 .m.file add separator
 .m.file add command -label Exit... -command exitProgram
+
+menu .m.view -tearoff 0
+.m.view add command -label Validation... -command validateConfiguration
 
 menu .m.help -tearoff 0
 .m.help add command -label About... -command showAbout
