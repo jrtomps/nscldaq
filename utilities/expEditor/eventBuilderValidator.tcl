@@ -22,7 +22,7 @@ exec tclsh "$0" ${1+"$@"}
 
 ##
 # @file eventBuilderValidator.tcl
-# @brief Validate all state program configurations
+# @brief Validate all event builder configurations
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 package provide eventBuilderValidator 1.0
