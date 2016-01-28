@@ -27,6 +27,8 @@ exec tclsh "$0" ${1+"$@"}
 #
 
 package provide dialogWrapper 1.0
+package require Tk
+package require snit
 
 ##
 # DialogWrapper
