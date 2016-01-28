@@ -41,6 +41,8 @@ package require DataSourceUI
 package require versionUtils
 package require StateManager
 
+package require dialogWrapper
+
 
 
 ##

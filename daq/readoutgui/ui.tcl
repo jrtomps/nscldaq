@@ -22,6 +22,7 @@ package require RunstateMachine
 package require StateManager
 package require DataSourceUI
 package require img::png
+package require dialogWrapper
 
 package provide ui   1.0
 package provide ReadoutGUIPanel 1.0
