@@ -66,6 +66,7 @@ package require evbSerializer
 package require dsourceSerializer
 
 package require serviceValidator
+package require ringValidator
 
 package require dialogWrapper
 package require checklist
@@ -186,6 +187,9 @@ proc validateConfiguration {} {
     
     set svcs [$::cs listObjects .c service]
     set messages [concat $messages [::Validation::validateServices $svcs]] 
+
+    set rings [$::cs listObjects .c ring]
+    set messages [concat $messages [::Validation::validateRings $rings]]
 
     if {[llength $messages] == 0} {
 	tk_messageBox -parent . -title "validates ok" -type ok -icon info \
