@@ -68,6 +68,7 @@ package require dsourceSerializer
 package require serviceValidator
 package require ringValidator
 package require stateProgramValidator
+package require eventBuilderValidator
 
 package require dialogWrapper
 package require checklist
@@ -194,6 +195,9 @@ proc validateConfiguration {} {
 
     set sps [$::cs listObjects .c state-program]
     set messages [concat $messages [::Validation::validateStatePrograms $sps]]
+
+    set evbs [$::cs listObjects .c eventbuilder]
+    set messages [concat $messages [::Validation::validateEventBuilders $evbs]]
 
     if {[llength $messages] == 0} {
 	tk_messageBox -parent . -title "validates ok" -type ok -icon info \
