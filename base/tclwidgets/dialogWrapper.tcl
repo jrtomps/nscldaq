@@ -31,30 +31,40 @@ package require Tk
 package require snit
 
 ##
-# DialogWrapper
-#   Wraps a widget in a dialog container this includes:
-#   *  OK/Cancel buttons located below the widget.
-#   *  Method to become application modal.
-#   *  Delegation of all unrecognized options and methods to the contained
-#      widget<methodsynopsis>
+# NonModalDialogWrapper
+#   Wraps a widget in a dialog container.  This includes
+#   * OK/Cancel buttons located below the widget.
+#   * Delegation of all unrecognized options and methods to the contained
+#     widget.
+#   * Ability to hook scripts to Ok, Cancel and <Destroy>
+#   
 # OPTIONS
 #  -form    - Sets the widget that will appear in the control area.
 #  -showcancel - Determines if the widget displays the cancel button.  If
 #                false, only the Ok button is displayed.
+#  -okcommand  - Script to invoke on OK.
+#  -cancelcommand - Script to invoked on cancel.
+#  -destroycommand - Script to invoke on destroy.
+#
 # METHODS
 #  controlarea - Returns the parent that should be used when creating the
 #                -form widget.
-#  modal    - grabs events and blocks until either OK or Cancel is clicked.
-#             Returns either Ok, Cancel or Destroyed to indicate what
-#             caused the exit from modality.
-#
-snit::widgetadaptor DialogWrapper {
+
+snit::widgetadaptor NonModalDialogWrapper {
     component controlarea;                 # The wrapped widget.
+    component okbutton
+    component cancelbutton
 
     option -form -default ""  -configuremethod _setControlArea
     option -showcancel -default true   -configuremethod _showCancelConfig
+    option -destroycommand
+
+    delegate option -okcommand to okbutton as -command
+    delegate option -cancelcommand to cancelbutton as -command
     delegate option * to controlarea
     delegate method * to controlarea
+
+  
     
     variable action "";               # Will contain the event that ended modality.
     
@@ -75,8 +85,8 @@ snit::widgetadaptor DialogWrapper {
         
         ttk::frame $win.controlframe -relief groove -borderwidth 2
         ttk::frame $win.actionframe
-        ttk::button $win.actionframe.ok     -text Ok
-        ttk::button $win.actionframe.cancel -text Cancel
+        install okbutton     using ttk::button $win.actionframe.ok     -text Ok
+        install cancelbutton using ttk::button $win.actionframe.cancel -text Cancel
         
         grid $win.actionframe.ok $win.actionframe.cancel
         grid $win.controlframe -sticky nsew
@@ -88,14 +98,16 @@ snit::widgetadaptor DialogWrapper {
         grid columnconfigure $win.controlframe 0 -weight 1       
  
         $self configurelist $args
+
+	bind $win <Destroy> [mymethod _dispatchDestroy %W]
     }
     ##
     # destructor
     #   Ensure there are no callback handlers left:
     #
     destructor {
-        catch {$win.actionframe.ok     configure -command [list]}
-        catch {$win.actionframe.cancel configure -command [list]}
+        catch {$okbutton     configure -command [list]}
+        catch {$cancelbutton configure -command [list]}
         catch {$win bind <Destroy> [list]}
         
     }
@@ -109,45 +121,6 @@ snit::widgetadaptor DialogWrapper {
     #
     method controlarea {} {
         return $win.controlframe
-    }
-    ##
-    # modal
-    #   Enters the modal state:
-    #   *   Adds handlers for the buttons and destroy event.
-    #   *   grabs events to $win
-    #   *   vwaits on the action var.
-    #   *   When the vwait finishes, kills off the handlers.
-    #   *   Returns the contents of the action variable which will have been
-    #       set by the action handler that fired.
-    #
-    # @return string the action that ended the wait
-    #        * Ok - the Ok button was clicked.
-    #        * Cancel - the Cancel button was clicked.
-    #        * Destroy - The widget is being destroyed.
-    #
-    method modal {} {
-        $win.actionframe.ok configure      -command [mymethod _setAction Ok]
-        $win.actionframe.cancel configure -command  [mymethod _setAction Cancel]
-        bind $win <Destroy>                         [mymethod _setAction Destroyed]
-        
-        # Here's the modal section.
-        
-        grab set $win
-        vwait [myvar action]
-        catch {grab release $win};         # catch in case we're being destroyed.
-        
-        #  Catches here in case the windows being configured have been
-        #  destroyed...
-        
-        catch {$win.actionframe.ok configure -command [list]}
-        catch {$win.actionframe.cancle configure -command [list]}
-        catch {bind $win <Destroy> [list]}
-        
-        if {[info exists action]} {
-            return $action
-        } else {
-            return "Destroyed";                # Destruction too far in process
-        }
     }
     
     #-------------------------------------------------------------------------
@@ -190,6 +163,117 @@ snit::widgetadaptor DialogWrapper {
             }
         }
     }
+    #---------------------------------------------------------------------------
+    #  Private action handlers.
+    
+    ##
+    #  _dispatchDestroy
+    #    Dispatch the destroy event
+    #
+    # @parameter w - the widget being destroyed....we require it to b $win.
+    #
+    method _dispatchDestroy w {
+	if {$w  == $win} {
+	    set cmd $options(-destroycommand) 
+	    if {$cmd ne ""} {
+		uplevel #0 $cmd
+	    }
+	}
+    }
+    
+}
+
+##
+# DialogWrapper
+#   Wraps a widget in a dialog container this includes:
+#   *  OK/Cancel buttons located below the widget.
+#   *  Method to become application modal.
+#   *  Delegation of all unrecognized options and methods to the contained
+#      widget<methodsynopsis>
+# OPTIONS
+#  -form    - Sets the widget that will appear in the control area.
+#  -showcancel - Determines if the widget displays the cancel button.  If
+#                false, only the Ok button is displayed.
+# METHODS
+#  controlarea - Returns the parent that should be used when creating the
+#                -form widget.
+#  modal    - grabs events and blocks until either OK or Cancel is clicked.
+#             Returns either Ok, Cancel or Destroyed to indicate what
+#             caused the exit from modality.
+#
+snit::widgetadaptor DialogWrapper {
+    component wrapper
+    delegate option * to wrapper
+    delegate method * to wrapper
+
+    
+    variable action "";               # Will contain the event that ended modality.
+    
+    ##
+    # constructor
+    #   lays out the generic shape of the dialog and fills in the
+    #   action area.  The dialog is of the form:
+    #
+    #  +-----------------------------------+
+    #  |  frame into which controlarea     | (control area)
+    #  |  is put                           |
+    #  +-----------------------------------+
+    #  | [OK]   [Cancel]                   | (action area).
+    #  +-----------------------------------+
+    #
+    constructor args {
+        installhull using ttk::frame
+	install wrapper using NonModalDialogWrapper $win.dlg
+	pack $wrapper -expand 1 -fill both
+        
+        $self configurelist $args
+    }
+   
+    #-------------------------------------------------------------------------de
+    #  Public methods
+    
+    
+    ##
+    # modal
+    #   Enters the modal state:
+    #   *   Adds handlers for the buttons and destroy event.
+    #   *   grabs events to $win
+    #   *   vwaits on the action var.
+    #   *   When the vwait finishes, kills off the handlers.
+    #   *   Returns the contents of the action variable which will have been
+    #       set by the action handler that fired.
+    #
+    # @return string the action that ended the wait
+    #        * Ok - the Ok button was clicked.
+    #        * Cancel - the Cancel button was clicked.
+    #        * Destroy - The widget is being destroyed.
+    #
+    method modal {} {
+	$wrapper configure -okcommand [mymethod _setAction Ok]
+	$wrapper configure -cancelcommand [mymethod _setAction Cancel]
+	$wrapper configure -destroycommand [mymethod _setAction Destroyed]
+        
+        # Here's the modal section.
+        
+        grab set $win
+        vwait [myvar action]
+        catch {grab release $win};         # catch in case we're being destroyed.
+        
+        #  Catches here in case the windows being configured have been
+        #  destroyed...
+        
+        catch {$wrapper configure  -okcommand [list]}
+        catch {$wrapper configure  -cancelcommand [list]}
+        catch {$wrapper configure -destroycommand [list]}
+        
+        if {[info exists action]} {
+            return $action
+        } else {
+            return "Destroyed";                # Destruction too far in process
+        }
+    }
+    
+   
     #---------------------------------------------------------------------------
     #  Private action handlers.
     
