@@ -2480,7 +2480,6 @@ snit::widget ORPatternConfiguration {
     if {$val eq {}} return
 
     set fastVeto [$val GetFastVeto]
-    puts "Handle = $val : Setting fast veto to $fastVeto" 
 
     if {$panel0Presenter ne {}} {
       $panel0Presenter configure $opt $val
