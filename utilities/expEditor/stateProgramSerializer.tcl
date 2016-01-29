@@ -104,3 +104,9 @@ proc ::Serialize::serializeStatePrograms {uri sps} {
     
     ::nscldaq::statemanager -delete _smApi
 }
+##
+# ::Serialize::deserializeStatePrograms
+#
+#   Recover the list of state programs that are in a database.
+#
+# @param dbURI - uri that specifies how to connect with the database.
