@@ -78,15 +78,13 @@ package require checklist
 
 set dbFile ""
 
-
 ##
-# createDbFile
-#   Create a database file with all the schema installed.
+#  initDbFile
+#    Initialize the chunks of the database file we need
 #
-# @param dbFile - path to the file.
+# @param dbFile - name of the database file
 #
-proc createDbFile dbFile {
-    varmgr::create $dbFile
+proc initDbFile {dbFile} {
     set uri file://[file normalize $dbFile]
     exec $::env(DAQBIN)/vardbsh $uri <  [file join $::env(DAQBIN) MakeRunControl.tcl]
     
@@ -102,6 +100,16 @@ proc createDbFile dbFile {
     rbapi createSchema
     ::nscldaq::vardbringbuffer destroy rbapi
     
+}
+##
+# createDbFile
+#   Create a database file with all the schema installed.
+#
+# @param dbFile - path to the file.
+#
+proc createDbFile dbFile {
+    varmgr::create $dbFile
+    initDbFile     $dbFile    
 }
 
 # Make the tool bar:
@@ -252,6 +260,29 @@ proc saveState {} {
     ::Serialize::serializeEventBuilders $uri [$::cs listObjects .c eventbuilder]
     ::Serialize::serializeDataSources $uri [$::cs listObjects .c datasource]
 }
+##
+# restoreState
+#   Handler for the File->Restore... menu entry.
+#   - Prompts for a file.
+#   - Destroys current objects.
+#   - Reads in objects from database.
+#
+proc restoreState {} {
+    set file [tk_getOpenFile \
+        -parent . -title {Select database} -defaultextension .db    \
+        -filetypes [list [list {Database Files} .db]               \
+                         [list {All files} * ] ]                    \
+    ]
+    if {$file eq ""} return;                # Cancelled.
+    
+    $::cs clearCanvas .c;                        # Get rid of all database objects.
+    
+    #  Now open the database file and restore all the stuff it has that affects
+    #  us:
+    
+    
+    
+}
 
 ##
 # exitProgram
@@ -296,6 +327,7 @@ menu .m
 
 menu .m.file -tearoff 0
 .m.file add command -label Save -command saveState
+.m.file add command -label Restore... -command restoreState
 .m.file add separator
 .m.file add command -label Exit... -command exitProgram
 

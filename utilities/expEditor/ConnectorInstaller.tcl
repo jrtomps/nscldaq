@@ -203,7 +203,7 @@ snit::type ConnectorInstaller {
         
         foreach id [array names currentObjects] {
             set o [$self _findObject $currentObjects($id) $c]
-            if {[$o isConnectable $dir]} {
+            if { ($o ne "") && [$o isConnectable $dir]} {
                 $c addtag connectable withtag $id
             }
         }   
@@ -540,6 +540,8 @@ snit::type ConnectorInstaller {
         set objid [dict get $desc id]
         set c     [dict get $desc canvas]
         set o     [dict get $desc object]
+        
+    
         #  Use currentConnectors to locate the objects we are connected to:
         
         set connectedList [list]
@@ -673,5 +675,48 @@ snit::type ConnectorInstaller {
         }
        
         return $result
+    }
+    ##
+    # clearCanvas
+    #   Destroy all elements that have anything to do with a canvas.
+    #
+    # @param c  - canvas to clear.
+    #
+    method clearCanvas c {
+        
+        # Get rid of the objects on the canvas.
+        
+        foreach id [array names currentObjects] {
+            set removed [list]
+            foreach item $currentObjects($id) {
+                if {[dict get $item canvas] == $c} {
+                    set o [dict get $item object]
+                    $o destroy 
+                    lappend removed $item
+                }
+            }
+            #  Remove the deleted items from the list:
+            
+            foreach item $removed {
+                set idx [lsearch -exact $currentObjects($id) $item]
+                set currentObjects($id) [lreplace $currentObjects($id) $idx $idx]
+            }
+            if {[llength $currentObjects($id)] == 0} {
+                unset currentObjects($id)
+            }
+        }
+        # Get rid of the connectors:
+        
+        foreach conn $currentConnectors {
+            if {[dict get $conn canvas] == $c} {
+                set o [dict get $conn object]
+                $o destroy
+                set idx [lsearch -exact $currentConnectors $conn]
+                set currentConnectors [lreplace $currentConnectors $idx $idx]
+            }
+        }
+        set item1 ""
+        set item2 ""
+        
     }
 }  
