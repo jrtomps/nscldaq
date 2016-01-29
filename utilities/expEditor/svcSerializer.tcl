@@ -28,6 +28,7 @@ exec tclsh "$0" ${1+"$@"}
 
 package provide svcSerializer 1.0
 package require daqservices
+package require Service 
 
 # Force the ::Serialize namespace into existence.
 
@@ -116,4 +117,45 @@ proc ::Serialize::serializeServices {dbURI objects} {
     # Destroy the  API object now that we are done.
     
     ::nscldaq::services -delete _svcSerialize
+}
+
+##
+# Serialize::deserializeServices
+#    Create a list of service definitions from the database URI passed in.
+#    It's ok to pass in a database without the service schema...in that case,
+#    We'll just return an empty list.
+#
+# @param dbUri  - Uri that specifies how to connect to the database.
+# @return       - list of dicts:
+#                 *  object - a service object with the properties set to match
+#                    those of a service in the database.
+#                 *  x  - x coordinate saved from last time the object was in
+#                         the editor.
+#                 *  y  - y coordinate saved from last placemento of object.
+proc ::Serialize::deserializeServices dbUri {
+    ::nscldaq::services _svcDeserialize $dbUri
+    set result [list]
+    
+    if {[_svcDeserialize exists]} {
+        set services [_svcDeserialize listall]
+        dict for {name info} $services {
+            set command [lindex $info 0]
+            set host    [lindex $info 1]
+            set x       [_svcDeserialize getEditorXPosition $name]
+            set y       [_svcDeserialize getEditorYPosition $name]
+ 
+            set obj [Service %AUTO%]
+            set props [$obj getProperties]
+            foreach prop [list name host path] value [list $name $host $command] {
+                [$props find $prop] configure -value $value
+            }
+            
+            lappend result [dict create object $obj x $x y $y]
+            
+        }
+        
+    }
+    
+    ::nscldaq::services -delete _svcDeserialize
+    return $result
 }

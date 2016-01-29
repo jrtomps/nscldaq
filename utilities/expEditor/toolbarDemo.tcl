@@ -261,6 +261,27 @@ proc saveState {} {
     ::Serialize::serializeDataSources $uri [$::cs listObjects .c datasource]
 }
 ##
+# installObjects
+#   Used to install a set of objects given a template and coordinates:
+#
+# @param objects - list of dicts containing the keys:
+#                  * object - object to clone into the canvas.
+#                  * x,y    - Final position on the canvas.
+# @note as a side effect, the objects that are the source of the clone get
+#       destroyed.
+#
+proc installObjects objects {
+    foreach item $objects {
+        set o [dict get $item object]
+        set x [dict get $item x]
+        set y [dict get $item y]
+        
+        set newO [$::os install $o [dict create canvas .c x  $x  y $y] .c]
+        $newO moveto $x $y
+        $o destroy
+    }
+}
+##
 # restoreState
 #   Handler for the File->Restore... menu entry.
 #   - Prompts for a file.
@@ -280,8 +301,10 @@ proc restoreState {} {
     #  Now open the database file and restore all the stuff it has that affects
     #  us:
     
+    set uri file://[file normalize $file]
     
-    
+    set services [::Serialize::deserializeServices $uri]
+    installObjects $services
 }
 
 ##
