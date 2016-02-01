@@ -264,10 +264,19 @@
 
       <para>
         Another control accessible from this dialog is the ability to enable
-        and disable the veto. This veto is described in the RC-bus section of
-        the manual as being able to "directly veto the input discriminators
-        with veto input." If you are using the veto input for either of the OR
-        patterns, it is recommended to leave this disabled.
+        and disable the fast veto. This veto is described in the RC-bus section
+        of the manual as being able to directly veto the input discriminators
+        with the veto input. Enabling this applies the veto to the
+        discriminator stage of the module, which is before it reaches the logic
+        for the trigger decision. For this reason, it has been observed that if
+        the veto associated with the OR pattern is disabled and the fast veto
+        is enabled, there might still be some triggers when the input signal
+        has a very fast rise time and the bandwidth limit setting is not
+        enabled. The triggers are caused by nonlinearities in the amplfication
+        stage of the MCFD-16. The moral of the story is that if you want to
+        ensure that the trigger is not outputted when a veto is present, then
+        you should not rely on the fast veto being enabled. Rather you should
+        select the veto setting for the OR pattern you are concerned with.
       </para>
 
       <figure id="mcfd16control_orpattern_config">

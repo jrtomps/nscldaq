@@ -515,10 +515,9 @@ snit::widget MCFD16CommonView {
                                -values {0 1 2} -style "Grouped.TSpinbox" \
                                -state readonly
     ttk::spinbox $w.wi8 -textvariable [$self mcfd](wi8) -width 4 \
-                               -from 16 -to 222 -style "Grouped.TSpinbox" \
-                               -state readonly
+                              -from 16 -to 222 -style "Grouped.TSpinbox"
     ttk::spinbox $w.dt8 -textvariable [$self mcfd](dt8) -width 4 -from 27 \
-                               -to 222 -style "Grouped.TSpinbox" -state readonly
+                               -to 222 -style "Grouped.TSpinbox" 
     ttk::spinbox $w.dl8 -textvariable [$self mcfd](dl8) -width 4 -from 0 \
                                -to 4 -style "Grouped.TSpinbox" -state readonly
     ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd](fr8) \
@@ -526,7 +525,7 @@ snit::widget MCFD16CommonView {
     ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40\
                               -style "Grouped.TRadiobutton"
     ttk::spinbox $w.th16 -textvariable [$self mcfd](th16) -width 4 -from 0 \
-                              -to 255 -style "Grouped.TSpinbox" -state readonly
+                              -to 255 -style "Grouped.TSpinbox"
 
     grid $w.name $w.th16 $w.poneg8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr820 -sticky news -padx 4 -pady 4
     grid ^       ^       $w.popos8 ^      ^      ^      ^      $w.fr840 -sticky news -padx 4 -pady 4
