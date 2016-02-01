@@ -165,7 +165,8 @@ void CMxDCRCBusTests::set_0()
 void CMxDCRCBusTests::get_0() 
 {
   // setup what we expect the VM-USB to return to us
-  m_pCtlr->addReturnData({0,23},0);
+  m_pCtlr->addReturnDatum(0, 0); // set up read
+  m_pCtlr->addReturnDatum(0, 0); // poll for response
 
   // execute the Get command
   CMxDCRCBus* hdwr = static_cast<CMxDCRCBus*>(m_pModule->getHardware());
