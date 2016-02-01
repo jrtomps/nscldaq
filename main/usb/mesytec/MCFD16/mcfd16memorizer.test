@@ -246,5 +246,64 @@ tcltest::test pulser-0 {Written pulser state is remembered
   set res
 } -result {NA 2 0}
 
+tcltest::test setTriggerSource-0 {Written trigger source is remembered
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  lappend res [::dev GetTriggerSource 0]
+  lappend res [::dev GetTriggerSource 1]
+  lappend res [::dev GetTriggerSource 2]
+
+  ::dev SetTriggerSource 0 or 1
+  ::dev SetTriggerSource 1 pair_coinc 0
+  ::dev SetTriggerSource 2 gg 1
+  lappend res [::dev GetTriggerSource 0]
+  lappend res [::dev GetTriggerSource 1]
+  lappend res [::dev GetTriggerSource 2]
+
+  set res
+} -result {NA NA NA {or 1} {pair_coinc 0} {gg 1}}
+
+
+tcltest::test setTriggerOrPattern-0 {Written trigger or pattern is remembered
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  lappend res [::dev GetTriggerOrPattern 0]
+  lappend res [::dev GetTriggerOrPattern 1]
+
+  ::dev SetTriggerOrPattern 0 257
+  ::dev SetTriggerOrPattern 1 0x4444
+  lappend res [::dev GetTriggerOrPattern 0]
+  lappend res [::dev GetTriggerOrPattern 1]
+
+  set res
+} -result {NA NA 257 17476}
+
+
+tcltest::test setFastVeto-0 {Written fast veto gets remembered
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  lappend res [::dev GetFastVeto]
+
+  ::dev SetFastVeto 1
+  lappend res [::dev GetFastVeto]
+
+  set res
+} -result {NA 1}
+
 
 tcltest::cleanupTests

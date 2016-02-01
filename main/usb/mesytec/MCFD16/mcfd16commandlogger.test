@@ -350,4 +350,83 @@ tcltest::test pulser-2 {Getting pulser state gets written to file
   tcltest::viewFile $::logFile
 } -result {::dev PulserEnabled}
 
+tcltest::test setTriggerSource-0 {Setting trigger source gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger SetTriggerSource 0 or 1
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetTriggerSource 0 or 1}
+
+tcltest::test getTriggerSource-0 {Getting trigger source gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger GetTriggerSource 0
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetTriggerSource 0}
+
+tcltest::test setTriggerOrPattern-0 {Setting trigger or pattern gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger SetTriggerOrPattern 0 0xffff
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetTriggerOrPattern 0 0xffff}
+
+tcltest::test getTriggerOrPattern-0 {Getting trigger or pattern gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger GetTriggerOrPattern 0
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetTriggerOrPattern 0}
+
+tcltest::test setFastVeto-0 {Setting fast veto gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger SetFastVeto 0
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetFastVeto 0}
+
+tcltest::test getFastVeto-0 {Getting fast veto gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger GetFastVeto
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetFastVeto}
+
+
 tcltest::cleanupTests

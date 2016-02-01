@@ -11,6 +11,7 @@
 #include <limits>
 #include <cstdio>
 #include <iostream>
+#include <iomanip>
 #include <unistd.h>
 
 using namespace std;
@@ -88,6 +89,8 @@ std::string CMxDCRCBus::Set(CVMUSB& ctlr, std::string what, std::string value)
 
   uint16_t dataToWrite = atoi(value.c_str());
 
+  std::cout << "CMxDCRCBus::Set " << what << " " << dataToWrite << "(0x" << std::hex << dataToWrite << std::dec << ")" << std::endl;
+
   // Try to write until either the operation succeeds or we have exhausted
   // the allowed number of attempts
   int maxAttempts = 4, nAttempts=0;
@@ -111,6 +114,7 @@ std::string CMxDCRCBus::Set(CVMUSB& ctlr, std::string what, std::string value)
 
   // get the value read back from the device
   uint16_t dataRead = readResult(ctlr);
+  std::cout << "Read back " << dataRead << "(0x" << std::hex << dataRead << std::dec << ")" << std::endl;
 
   if (dataRead != dataToWrite) {
     string errmsg("ERROR - CMxDCRCBus::Set - ");
@@ -127,6 +131,8 @@ std::string CMxDCRCBus::Set(CVMUSB& ctlr, std::string what, std::string value)
 std::string CMxDCRCBus::Get(CVMUSB& ctlr, std::string what) 
 {
   
+  std::cout << "CMxDCRCBus::Get " << what << std::endl;
+
   // Try up to 4 times to successfully complete a read transaction on RCbus
   uint16_t response=0;
   int maxAttempts=4, nAttempts=0;
@@ -149,6 +155,7 @@ std::string CMxDCRCBus::Get(CVMUSB& ctlr, std::string what)
 
   uint16_t dataRead = readResult(ctlr);
 
+  std::cout << "Read back " << dataRead << "(0x" << std::hex << dataRead << std::dec << ")" << std::endl;
 
   // the sluggishness of initiating stringstream is acceptable for the moment.
   stringstream retstr;
@@ -302,6 +309,8 @@ void CMxDCRCBus::addParameterWrite(CVMUSBReadoutList& list,
   list.addWrite16(base+RCOpCode, VMEAMod::a32UserData, RCOP_WRITEDATA);
   list.addWrite16(base+RCAddr,   VMEAMod::a32UserData, addresses.second);
   list.addWrite16(base+RCData,   VMEAMod::a32UserData, value);
+
+  std::cout << "add write to:" << addresses.first << " " << addresses.second << " " << value << std::endl;
 }
 
 /**
@@ -315,6 +324,8 @@ void CMxDCRCBus::addParameterRead(CVMUSBReadoutList& list,
   list.addWrite16(base+RCOpCode, VMEAMod::a32UserData, RCOP_READDATA);
   list.addWrite16(base+RCAddr,   VMEAMod::a32UserData, addresses.second);
   list.addWrite16(base+RCData,   VMEAMod::a32UserData, 0);
+
+  std::cout << "add read from: " << addresses.first << " " << addresses.second << std::endl;
 }
 
 

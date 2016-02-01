@@ -194,6 +194,31 @@ snit::type MCFD16CommandLogger {
     chan puts $_logFile "[$self cget -name] PulserEnabled"
   }
 
+  method SetTriggerSource {trigId source veto} {
+    chan puts $_logFile "[$self cget -name] SetTriggerSource $trigId $source $veto"
+  }
+
+  method GetTriggerSource {trigId} {
+    chan puts $_logFile "[$self cget -name] GetTriggerSource $trigId"
+  }
+
+  method SetTriggerOrPattern {patternId pattern} {
+    chan puts $_logFile "[$self cget -name] SetTriggerOrPattern $patternId $pattern"
+  }
+
+  method GetTriggerOrPattern {patternId} {
+    chan puts $_logFile "[$self cget -name] GetTriggerOrPattern $patternId"
+  }
+
+  method SetFastVeto {onoff} {
+    chan puts $_logFile "[$self cget -name] SetFastVeto $onoff"
+  }
+
+  method GetFastVeto {} {
+    chan puts $_logFile "[$self cget -name] GetFastVeto"
+  }
+
+
   ## @brief Convenience wrapper around a "chan flush" command
   method Flush {} {
     chan flush $_logFile

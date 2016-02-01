@@ -532,6 +532,144 @@ snit::type MCFD16USB {
                 {Individual individual Common common}]
   }
 
+  ## @brief Set the a trigger source
+  #
+  # @param trigId   the trigger id to target (0, 1, or 2)
+  # @param source   the source to use for the trigger (or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1, gg)
+  # @param veto     whether to enable vetoing (boolean)
+  #
+  # This is just high level implementation of the TR command
+  #
+  # @returns result of _Transaction
+  method SetTriggerSource {trigId source veto} {
+    if {$trigId ni [list 0 1 2]} {
+        set msg "Invalid trigger id argument provided. Must be 0, 1, or 2."
+        return -code error -errorinfo MCFD16USB::SetTriggerSource $msg
+    }
+
+    set sourceBits [dict create or 1 multiplicity 2 pair_coinc 4 mon 8 pat_or_0 16 pat_or_1 32 gg 128]
+    if {$source ni [dict keys $sourceBits]} {
+        set msg "Invalid source provided. Must be or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1, or gg."
+        return -code error -errorinfo MCFD16USB::SetTriggerSource $msg
+    }
+
+    set value [dict get $sourceBits $source]
+    if {[string is true $veto]} {
+        set value [expr {$value + 0x40}]
+    }
+
+    return [$self _Transaction "TR $trigId $value"]
+  }
+
+  ## @brief Retrieve the trigger source
+  #
+  # If necessary, this will update the cached state of the device.
+  #
+  # @param trigId   the trigger index (must be 0, 1, or 2)
+  #
+  # @returns list. first element is source, second element is veto enabled
+  method GetTriggerSource {trigId} {
+
+    if {$trigId ni [list 0 1 2]} {
+        set msg "Invalid trigger id argument provided. Must be 0, 1, or 2."
+        return -code error -errorinfo MCFD16USB::GetTriggerSource $msg
+    }
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    set code [dict get $m_moduleState Trig${trigId}_src]
+
+    set vetoEnabled [expr {($code&0x40)!=0}]
+    set source      [expr {$code&0xbf}]
+  
+    set sourceNameMap [dict create  1 or 2 multiplicity 4 pair_coinc 8 \
+                                    mon 16 pat_or_0 32 pat_or_1 128 gg]
+    set sourceName [dict get $sourceNameMap $source]
+
+    return [list $sourceName $vetoEnabled]
+  }
+
+  ## @brief Set which channels contribute to the OR
+  #
+  # @param trigId   the or pattern to set (0 or 1)
+  # @param pattern  channels to set (must be in range [0, 65535])
+  #
+  # The pattern should specify the channels to use by setting bits. Each bit corresponds to 
+  # a channel. Bit 0 --> Channel 0, Bit 1 --> Channel 1, etc. 
+  # 
+  # @returns result of last transactions
+  method SetTriggerOrPattern {trigId pattern} {
+    if {$trigId ni [list 0 1]} {
+        set msg "Invalid pattern id argument provided. Must be 0 or 1."
+        return -code error -errorinfo MCFD16USB::SetTriggerOrPattern $msg
+    }
+
+    if {![Utils::isInRange 0 0xffff $pattern]} {
+      set msg {Invalid bit pattern provided. Must be in range [0,65535].}
+      return -code error -errorinfo MCFD16USB::SetTriggerOrPattern $msg
+    }
+
+    set lowBits [expr {$pattern & 0xff}]
+    set highBits [expr {($pattern>>8) & 0xff}]
+
+    set trigOffset [expr {$trigId*2}]
+
+    set result [$self _Transaction "TP $trigOffset $lowBits"]
+    return [$self _Transaction "TP [expr {$trigOffset+1}] $highBits"]
+  }
+
+
+  ## @brief Retrieve the configurable OR pattern
+  #
+  # This updates the cached state if necessary.
+  #
+  # @param patternId    index of the pattern (must be 0 or 1)
+  #
+  # @returns integer whose set bits represent the channel states.
+  #
+  method GetTriggerOrPattern {patternId} {
+
+    if {$patternId ni [list 0 1]} {
+        set msg "Invalid pattern id argument provided. Must be 0 or 1."
+        return -code error -errorinfo MCFD16USB::GetTriggerOrPattern $msg
+    }
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [dict get $m_moduleState or${patternId}_pattern]
+  }
+
+
+  ## @brief Write the fast veto register
+  #
+  # This turns on and off direct vetoing of the discriminators
+  #
+  # @param onoff  boolean value 
+  #
+  # @returns repsonse of the device
+  method SetFastVeto {onoff} {
+    return [$self _Transaction "SV [string is true $onoff]"]
+  }
+
+  ## @brief Read the fast veto register
+  #
+  #  If needed ,this will update the internally cached state of 
+  #  the module.
+  #
+  # @returns  boolean
+  #
+  method GetFastVeto {} {
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [dict get $m_moduleState fast_veto]
+  }
 
   ## @brief Check whether in remote control mode
   #
@@ -548,6 +686,14 @@ snit::type MCFD16USB {
     set response [$self _Transaction "DS"]
 
     set m_moduleState [$self _ParseDSResponse $response]
+
+    set response [$self _Transaction "DT"]
+    
+    set triggerDict [$self _ParseDTResponse $response]
+    dict for {key val} $triggerDict {
+      dict set m_moduleState $key $val
+    }
+
     set m_needsUpdate 0
   }
 
@@ -731,6 +877,83 @@ snit::type MCFD16USB {
     return $stateDict
   }
 
+  method _ParseDTResponse {response} {
+    set parsedResponse [list]
+
+    set responseLines [split $response "\n"]
+
+    lappend parsedResponse [$self _ParseFastVeto [lindex $responseLines 4]]
+
+    set orPatterns [$self _ParseOredPattern [lindex $responseLines 7]]
+    set parsedResponse [concat $parsedResponse [concat $orPatterns]]
+
+    lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 11]]
+    lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 12]]
+    lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 16]]
+
+    set stateDict [$self _TransformToDict $parsedResponse]
+    return $stateDict
+  }
+
+  method _ParseFastVeto {line} {
+    set result [$self _SplitAndTrim $line ":"]
+
+    set state 1
+    if {[lindex $result 1] eq "disabled"} {
+      set state 0
+    }
+
+    return [dict create name fast_veto values $state]
+  }
+
+
+  method _ParseOredPattern line {
+    set parse1 [$self _SplitAndTrim $line ","]
+
+    set or0Pattern [lindex [$self _SplitAndTrim [lindex $parse1 0] ":"] 2]
+    set or1Pattern [lindex [$self _SplitAndTrim [lindex $parse1 1] ":"] 1]
+
+    set or0Pattern "0x[string trimleft $or0Pattern 0]"
+    set or1Pattern "0x[string trimleft $or1Pattern 0]"
+
+    if {$or0Pattern eq "0x"} {
+      set or0Pattern 0
+    } else {
+      set or0Pattern [expr $or0Pattern]
+    }
+
+
+    if {$or1Pattern eq "0x"} {
+      set or1Pattern 0
+    } else {
+      set or1Pattern [expr $or1Pattern]
+    }
+
+    return [list [dict create name or0_pattern values $or0Pattern] \
+                 [dict create name or1_pattern values $or1Pattern] ]
+  }
+
+  method _ParseTriggerSource line {
+    set results [$self _SplitAndTrim $line ":"]
+    set values [split [lindex $results 1] " "]
+
+    set bits [list]
+    foreach value $values {
+      if {$value ne {}} {
+        lappend bits $value
+      }
+    }
+
+    set bits [lreverse $bits]
+
+    set value 0
+    for {set i 0} {$i<[llength $bits]} {incr i} {
+        set value [expr {$value | ([lindex $bits $i]<<$i)}]
+    }
+
+    return [dict create name "[lindex $results 0]_src" values $value]
+  }
+
   ## @brief Split a line into tokens that are trimmed
   #
   # Examplified behavior...
@@ -748,10 +971,12 @@ snit::type MCFD16USB {
     set split [split $line $del]
 
     # trim each part
-    set name [string trim [lindex $split 0]]
-    set valStr [string trim [lindex $split 1]]
+    set result [list]
+    foreach token $split {
+      lappend result [string trim $token]
+    }
 
-    return [list $name $valStr]
+    return $result
   }
 
   ## @brief Remove all dashes from a string

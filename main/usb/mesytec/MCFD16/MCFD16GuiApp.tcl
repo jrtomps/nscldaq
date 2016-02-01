@@ -74,6 +74,7 @@ snit::type MCFD16GuiApp {
   variable _loadFr {}         ;# widget name for the load dialog
   variable _enableFr {}       ;# name for the ChannelEnableDisableView
   variable _enable {}         ;# name for the ChannelEnableDisablePresenter
+  variable _orPatternFr {}    ;# name for the ORPatternConfigView
   variable _sequencer {}      ;# the FrameSequencer
 
 
@@ -173,6 +174,7 @@ snit::type MCFD16GuiApp {
 
       menu $m.config
       $m.config add command -command [mymethod ToEnableDisable] -label "Enable/disable..."
+      $m.config add command -command [mymethod ToORPatternConfig] -label "Trigger OR..."
 
       $m add cascade -menu $m.file -label "File"
       $m add cascade -menu $m.config -label "Configure"
@@ -203,12 +205,14 @@ snit::type MCFD16GuiApp {
     set _saveFr [$self BuildSaveAsFrame $_sequencer]
     set _loadFr [$self BuildLoadFrame $_sequencer]
     set _enableFr [$self BuildEnableDisableFrame $_sequencer]
+    set _orPatternFr [$self BuildOrPatternFrame $_sequencer]
 
     # load the frames into the FrameSequencer in a proper order.
     $_sequencer staticAdd config $_configFr {}
     $_sequencer staticAdd save $_saveFr config
     $_sequencer staticAdd load $_loadFr config
     $_sequencer staticAdd enable $_enableFr config
+    $_sequencer staticAdd orPattern $_orPatternFr config
     $_sequencer select config
 
     grid $_sequencer -sticky nsew -padx 8 -pady 8
@@ -284,6 +288,13 @@ snit::type MCFD16GuiApp {
     return $enableFr
   }
 
+  method BuildOrPatternFrame {top} {
+    set orPatternFr $top.orPattern
+    ORPatternConfiguration $orPatternFr -handle $_handle
+    
+    return $orPatternFr
+  }
+
   ## @brief Construct the contextual info for the chosen protocol
   #
   # Depending on whether the user is speaking over usb or mxdcrcbus, this will
@@ -355,6 +366,12 @@ snit::type MCFD16GuiApp {
     $_sequencer select enable
   }
 
+  ## @brief Callback for the "OR Pattern..." menu button
+  #
+  method ToORPatternConfig {} {
+    $_sequencer select orPattern
+  }
+
   ## @brief Getter for the device handle
   #
   # @returns the name of the MCFD16 device driver in use
@@ -367,6 +384,14 @@ snit::type MCFD16GuiApp {
   # @returns the name of the MCFD16ControlPanel in use
   method GetControlPresenter {} {
     return $_controlPrsntr
+  }
+
+  method GetEnableDisablePresenter {} {
+    return $_enable
+  }
+
+  method GetOrPatternPresenter {} {
+    return $_orPatternFr
   }
 
   ## @brief Getter for the MCFD16AppOptions 

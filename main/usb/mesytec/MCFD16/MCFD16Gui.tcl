@@ -360,8 +360,7 @@ snit::widget MCFD16IndividualView {
                         -defaultstring "Ch$ch"
 
     ttk::spinbox $w.th$ch -textvariable "[$self mcfd](th$ch)" -width 4 \
-                        -style "$style.TSpinbox" -from 0 -to 255 \
-                        -state readonly
+                        -style "$style.TSpinbox" -from 0 -to 255 ;# -state readonly
     set pair [expr $ch/2]
     ttk::radiobutton $w.poneg$pair -variable "[$self mcfd](po$pair)" \
                                    -value neg -text neg \
@@ -373,11 +372,11 @@ snit::widget MCFD16IndividualView {
 
     ttk::spinbox $w.wi$pair -textvariable "[$self mcfd](wi$pair)" \
       -style "$style.TSpinbox" -width 4 \
-      -from 16 -to 222 -state readonly
+      -from 16 -to 222 ; #-state readonly
 
     ttk::spinbox $w.dt$pair -textvariable "[$self mcfd](dt$pair)" \
       -style "$style.TSpinbox" -width 4 \
-      -from 27 -to 222 -state readonly
+      -from 27 -to 222 ; #-state readonly
 
     ttk::spinbox $w.dl$pair -textvariable "[$self mcfd](dl$pair)" \
       -style "$style.TSpinbox" -width 4 \
@@ -399,8 +398,8 @@ snit::widget MCFD16IndividualView {
                         -defaultstring "Ch$ch"
 
     ttk::spinbox $w.th$ch -textvariable "[$self mcfd](th$ch)" -width 4 \
-      -style "$style.TSpinbox" -from 0 -to 255 \
-      -state readonly
+      -style "$style.TSpinbox" -from 0 -to 255 ;# -state readonly
+
 
     ttk::radiobutton $w.popos$pair -variable "[$self mcfd](po$pair)" \
                                    -value pos -text pos \
@@ -516,10 +515,9 @@ snit::widget MCFD16CommonView {
                                -values {0 1 2} -style "Grouped.TSpinbox" \
                                -state readonly
     ttk::spinbox $w.wi8 -textvariable [$self mcfd](wi8) -width 4 \
-                               -from 16 -to 222 -style "Grouped.TSpinbox" \
-                               -state readonly
+                              -from 16 -to 222 -style "Grouped.TSpinbox"
     ttk::spinbox $w.dt8 -textvariable [$self mcfd](dt8) -width 4 -from 27 \
-                               -to 222 -style "Grouped.TSpinbox" -state readonly
+                               -to 222 -style "Grouped.TSpinbox" 
     ttk::spinbox $w.dl8 -textvariable [$self mcfd](dl8) -width 4 -from 0 \
                                -to 4 -style "Grouped.TSpinbox" -state readonly
     ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd](fr8) \
@@ -527,7 +525,7 @@ snit::widget MCFD16CommonView {
     ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40\
                               -style "Grouped.TRadiobutton"
     ttk::spinbox $w.th16 -textvariable [$self mcfd](th16) -width 4 -from 0 \
-                              -to 255 -style "Grouped.TSpinbox" -state readonly
+                              -to 255 -style "Grouped.TSpinbox"
 
     grid $w.name $w.th16 $w.poneg8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr820 -sticky news -padx 4 -pady 4
     grid ^       ^       $w.popos8 ^      ^      ^      ^      $w.fr840 -sticky news -padx 4 -pady 4
@@ -715,6 +713,7 @@ snit::type MCFD16IndividualPresenter {
     $self CommitViewDelays
     update
     $self CommitViewFractions
+    update
   }
 
   ## Commit data to module
@@ -1170,6 +1169,16 @@ snit::widget SaveToFileForm {
     $control configure -handle $realHandle
     $control Update
 
+    set enableDisable [$_theApp GetEnableDisablePresenter]
+    $enableDisable SetCommandLoggerAsHandle $logger
+    $enableDisable CommitMask
+    $enableDisable configure -handle $realHandle
+
+    set orPattern [$_theApp GetOrPatternPresenter]
+    $orPattern SetCommandLoggerAsHandle $logger
+    $orPattern CommitViewToModel
+    $orPattern configure -handle $realHandle
+
     # write the name of the channels to the logfile
     $self WriteChannelNames $logFile MCFD16ChannelNames
 
@@ -1424,7 +1433,6 @@ snit::type LoadFromFilePresenter {
 
   method EvaluateAPILines {lines} {
     foreach line $lines {
-      #puts $line
       uplevel #0 eval $line
     }
   }
@@ -1459,6 +1467,12 @@ snit::type LoadFromFilePresenter {
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+EnablePulser\s+\d+$}
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+DisablePulser$}
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+PulserEnabled$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+SetTriggerSource\s+\d+\s+[[:alnum:]_]+\s+[01]{1}$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+GetTriggerSource\s+\d$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+SetTriggerOrPattern\s+[01]{1}\s+\w+$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+GetTriggerOrPattern\s+[01]{1}$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+SetFastVeto\s+[[:alnum:]]+$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+GetFastVeto$}
     lappend _validAPICalls {^\s*set\s+(::)*MCFD16ChannelNames::chan\d+.+$}
     lappend _validAPICalls {^\s*namespace\s+::MCFD16ChannelNames\s+eval\s+{\s*}\s*$}
   }
@@ -1769,7 +1783,6 @@ snit::type ChannelEnableDisablePresenter {
   # @returns list of 8 bits (least significant bit first)
   method DecodeMaskIntoBits {mask} {
     set bits [list]
-
     # interpret mask as an actual byte
     set byteValue [binary format s1 $mask]
 
@@ -1843,6 +1856,18 @@ snit::type ChannelEnableDisablePresenter {
     if {$view ne {}} {
       $self UpdateViewFromModel
     }
+  }
+
+  ## @brief This allows swapping in a MCFD16CommandLogger for the handle without err
+  #
+  #  Because the command logger doesn't have any state, there will be an error if we
+  #  swap it in as any normal handle.  We just need to avoid trying to update the
+  #  view from the model.
+  #
+  # @param logger   the logger
+  #
+  method SetCommandLoggerAsHandle {logger} {
+    set options(-handle) $logger
   }
 }
 
@@ -2128,4 +2153,354 @@ snit::type PulserPresenter {
   }
 }
 
+
+
+## @brief View for configuring the OR trigger pattern 
+#
+# This is a megawidget to configure a single 16 channel
+# configurable OR. One of these forms a column of the 
+# ORPatternConfiguration megawidget. This is the a dumby view
+# and does little more than relay events to its presenter.
+#
+snit::widget ORPatternPanelView {
+
+
+  option -title -default {}
+  option -presenter -default {}
+
+  variable enabled -array {}
+  variable vetoEnabled
+
+  constructor {args} {
+
+    $self configurelist $args 
+
+    $self BuildGUI
+
+  }
+
+  destructor {
+  }
+
+
+  method BuildGUI {} {
+    set top [ttk::frame $win.frame]
+
+    ttk::label $top.title -textvariable [myvar options(-title)] -style Title.TLabel
+
+    ttk::label $top.chHeader -text "Channel" -style "Header.TLabel"
+    ttk::label $top.enableHeader -text "Include?" -style "Header.TLabel"
+    for {set ch 0} {$ch < 16} {incr ch} {
+    # construct first row
+      ChannelLabel $top.na$ch -width 8 -textvariable MCFD16ChannelNames::chan$ch \
+        -defaultstring "Ch$ch"  -state readonly
+      ttk::checkbutton $top.enable$ch -variable [myvar enabled($ch)] -onvalue 1 -offvalue 0
+    }
+
+    ttk::label $top.vetoLabel -text "Enable Veto?"
+    ttk::checkbutton $top.vetoButton -variable [myvar vetoEnabled]
+
+    grid $top.title - -sticky nsew
+    grid $top.chHeader $top.enableHeader -sticky nsew
+    for {set ch 0} {$ch < 16} {incr ch} {
+      grid $top.na$ch $top.enable$ch -sticky nsew
+    }
+    grid $top.vetoLabel $top.vetoButton -sticky nsew
+
+    grid rowconfigure $top all -weight 1
+    grid columnconfigure $top all -weight 1
+
+
+    grid $top -sticky nsew
+    grid rowconfigure $win all -weight 1
+    grid columnconfigure $win all -weight 1
+  }
+
+  method GetChannelEnabled {ch} {
+    return $enabled($ch)
+  }
+
+  method GetVetoEnabled {} {
+    return $vetoEnabled
+  }
+
+  method SetChannelEnabled {ch state} {
+    set enabled($ch) $state
+  }
+
+  method SetVetoEnabled {state} {
+    set vetoEnabled $state
+  }
+
+}
+
+## @brief The logic for the ORPatternPanelView
+#
+# This handles the logic for when the user presses commit or update.
+# In this, the model this manipulates is the handle to the device. We
+# can update the view from the handle or update the handle from the 
+# view. This mediates between the two.
+#
+snit::type ORPatternPanelPresenter {
+
+  option -patternid
+  option -handle -default {} -configuremethod SetHandle
+  option -view -default {} -configuremethod SetView
+
+  constructor args {
+
+    $self configurelist $args
+  }
+
+  destructor {
+  }
+
+  ##
+  #
+  #
+  method Commit {} {
+    set handle [$self cget -handle]
+    if {$handle eq {}} {
+       return -code error "User cannot commit unless a device exists"
+    }
+
+    set view [$self cget -view]
+    if {$view eq {}} {
+       return -code error "User cannot commit unless a view exists"
+    }
+
+    $self CommitViewToModel
+    $self Update
+  }
+
+  ##
+  #
+  #
+  method CommitViewToModel {} {
+    set handle [$self cget -handle]
+    set view   [$self cget -view]
+
+    set veto [$view GetVetoEnabled]
+    $handle SetTriggerSource $options(-patternid) pat_or_$options(-patternid) $veto
+
+    set value 0
+    for {set ch 0} {$ch < 16} {incr ch} {
+      set state [$view GetChannelEnabled $ch]
+      set value [expr {$value | ($state<<$ch)}]
+    }
+
+    $handle SetTriggerOrPattern $options(-patternid) $value
+  }
+
+  ##
+  #
+  #
+  method Update {} {
+    set handle [$self cget -handle]
+    if {$handle eq {}} {
+       return -code error "User cannot commit unless a device exists"
+    }
+
+    set view [$self cget -view]
+    if {$view eq {}} {
+       return -code error "User cannot commit unless a view exists"
+    }
+    $self UpdateViewFromModel
+  }
+
+  ##
+  #
+  #
+  method UpdateViewFromModel {} {
+    set handle [$self cget -handle]
+    set view [$self cget -view]
+
+    set pattern [$handle GetTriggerOrPattern $options(-patternid)]
+
+    for {set ch 0} {$ch < 16} {incr ch} {
+      set bit [expr {($pattern & ( 1<<$ch) ) >> $ch}]
+      $view SetChannelEnabled $ch $bit
+    }
+
+    set triggerSource [$handle GetTriggerSource $options(-patternid)]
+    if {[lindex $triggerSource 0] ne "pat_or_$options(-patternid)"} {
+      return -code error "Device is not set up for to use pattern OR $options(-patternid)"
+    }
+
+    $view SetVetoEnabled [lindex $triggerSource 1]
+  }
+
+
+  ## @brief Callback for a "configure -view" operation
+  # 
+  # Performs the handshake required when the view is set. A new view is passed
+  # $self as the value to its -presenter option. If a handle exists, it is
+  # appropriate to update the state of the view from it.
+  #
+  # @param opt    option name (should be -view)
+  # @param val    value (name of view)
+  method SetView {opt val} {
+    # store the new view (opt="-view", val = new view name)
+    set options($opt) $val
+    $val configure -presenter $self
+
+    # we have a handle already, then update!
+    set handle [$self cget -handle]
+    if {$handle ne {}} {
+      $self UpdateViewFromModel
+    }
+  }
+
+  ## @brief Callback for a "configure -handle" operation
+  #
+  # Sets the -handle option to the new value and also updates the view from it
+  # if the -view option is set.
+  #
+  # @param opt  option name (should be -handle)
+  # @param val  value (name of handle)
+  #
+  method SetHandle {opt val} {
+    # store the new handle (opt="-handle", val = new handle name)
+    set options($opt) $val
+
+    if {$val eq {}} return
+
+    set id $options(-patternid)
+    set state [$val GetTriggerSource $id]
+    if {[lindex $state 0] ne "pat_or_$id"} {
+      $val SetTriggerSource $id pat_or_$id 0 
+    }
+
+    # we have a view already, then update!
+    set view [$self cget -view]
+    if {$view ne {}} {
+      $self Update
+    }
+  }
+
+
+  ## @brief Set handle to command logger
+  #
+  # Setting the handle to a command logger is somewhat differet than setting
+  # a normal handle because it maintains no state. We need to therefore avoid
+  # updatig the view from the logger.
+  method SetCommandLoggerAsHandle logger {
+    set options(-handle) $logger
+  }
+}
+
+
+## @brief Megawidget for configuring OR patterns
+#
+# This is the actual widget that is interacted with when the user navigates
+# to the Or Pattern configuration through the menu. It does not maintain the 
+# distinction between widgets and logic. Rather it owns two views for managing a
+# single OR pattern 
+# corresponding presenters. It is pretty basic. 
+#
+#
+snit::widget ORPatternConfiguration {
+
+  option -handle -default {} -configuremethod SetHandle
+
+  variable panel0
+  variable panel1
+  variable fastVeto 1
+  variable panel0Presenter {}
+  variable panel1Presenter {}
+
+  ## @brief Construct and assemble megawidget
+  #
+  constructor {args} {
+
+    set panel0 [ORPatternPanelView $win.panel0 -title {OR Pattern 0}]
+    set panel1 [ORPatternPanelView $win.panel1 -title {OR Pattern 1}]
+
+    set panel0Presenter [ORPatternPanelPresenter %AUTO% -view $panel0 -handle $options(-handle) -patternid 0]
+    set panel1Presenter [ORPatternPanelPresenter %AUTO% -view $panel1 -handle $options(-handle) -patternid 1]
+
+    set fvFrame [ttk::frame $win.fastVetoFr]
+    ttk::label $fvFrame.fastVeto -text "Enable direct vetoing of discriminators?"
+    ttk::checkbutton $fvFrame.fastVetoButton -variable [myvar fastVeto] -onvalue 1 -offvalue 0 
+    grid $fvFrame.fastVeto $fvFrame.fastVetoButton -sticky nsew
+    grid rowconfigure $fvFrame all -weight 1
+    grid columnconfigure $fvFrame all -weight 1
+
+    ttk::button $win.commit -text "Commit to Device" -command [mymethod OnCommit] \
+                             -style "Commit.TButton"
+    ttk::button $win.update -text "Update From Device" -command [mymethod OnUpdate] \
+                            -style "Commit.TButton"
+    grid $panel0 $panel1 -sticky nsew -padx 8 -pady 8
+
+    grid $fvFrame - -sticky nsew -padx 8 -pady 8
+    grid $win.commit $win.update -sticky nsew -padx 8 -pady 8
+    grid rowconfigure $win 0 -weight 1
+
+    $self configurelist $args 
+
+    $self OnUpdate
+  }
+
+  destructor {
+    catch {destroy $panel0}
+    catch {destroy $panel1}
+    catch {$panel0Presenter destroy}
+    catch {$panel1Presenter destroy}
+  }
+
+  ## Handle presses of the Commit button
+  method OnCommit {} {
+    $panel0Presenter Commit
+    $panel1Presenter Commit
+
+    [$self cget -handle] SetFastVeto $fastVeto
+  }
+
+  ## Handle presses of the Update button
+  method OnUpdate {} {
+    $panel0Presenter Update 
+    $panel1Presenter Update 
+
+    set fastVeto [[$self cget -handle] GetFastVeto]
+  }
+
+  method CommitViewToModel {} {
+    $panel0Presenter CommitViewToModel
+    $panel1Presenter CommitViewToModel
+
+    [$self cget -handle] SetFastVeto $fastVeto
+  }
+
+  ## @brief Set the handle and pass it to the presenters
+  #
+  method SetHandle {opt val} {
+    set options($opt) $val
+
+    if {$val eq {}} return
+
+    set fastVeto [$val GetFastVeto]
+
+    if {$panel0Presenter ne {}} {
+      $panel0Presenter configure $opt $val
+    }
+    if {$panel1Presenter ne {}} {
+      $panel1Presenter configure $opt $val
+    }
+
+  }
+
+  ## @brief Set handle to command logger
+  #
+  # Setting the handle to a command logger is somewhat differet than setting
+  # a normal handle because it maintains no state. We need to therefore avoid
+  # updatig the view from the logger.
+  method SetCommandLoggerAsHandle logger {
+
+    $panel0Presenter SetCommandLoggerAsHandle $logger
+
+    $panel1Presenter SetCommandLoggerAsHandle $logger
+
+    set options(-handle) $logger
+  }
+}
 
