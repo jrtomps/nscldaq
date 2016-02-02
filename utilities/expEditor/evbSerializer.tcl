@@ -27,7 +27,7 @@ exec tclsh "$0" ${1+"$@"}
 #
 package provide evbSerializer 1.0
 package require vardbEventBuilder
-
+package require eventBuilderObject
 ##
 # @note procs whose names (after namespace) begin with _ are considered private.
 
@@ -36,7 +36,7 @@ package require vardbEventBuilder
 #
 namespace eval ::Serialize {
     
-    namespace export serializeEventBuilders
+    namespace export serializeEventBuilders deserializeEventBuilders
 }
 
 ##
@@ -101,4 +101,43 @@ proc ::Serialize::serializeEventBuilders {uri evbs} {
     }
     
     ::nscldaq::evb destroy _evbApi
+}
+
+##
+# ::Serialize::deserializeEventBuilders
+#   Returns information about the event builders that are stored in an experiment
+#   database file.
+#
+# @param dburi - Specifies the connection to the database file.
+# @return list of dicts with the following key/values:
+#          * object - the object that can be cloned by the editor ont its canvas.
+#          * x,y    - Desired position of the object's graphical rep.
+#
+proc ::Serialize::deserializeEventBuilders dburi {
+    ::nscldaq::evb create _evbApi $dburi
+    set result [list]
+    
+    foreach evb [_evbApi evbList] {
+        set name [dict get $evb name]
+        set x    [_evbApi evbGetEditorXPosition $name]
+        set y    [_evbApi evbGetEditorYPosition $name]
+        set obj  [EventBuilderObject %AUTO%]
+        set props [$obj getProperties]
+
+        foreach p [list                                                       \
+                    name host servicePrefix serviceSuffix coincidenceInterval \
+                    build timestampPolicy sourceId ring]                      \
+                d [list                                                       \
+                    name host prefix        suffix        dt                  \
+                    build tspolicy        sourceId  ring                      \
+                   ] {
+            [$props find $p] configure -value [dict get $evb $d]
+        }
+        
+        lappend result [dict create object $obj x $x y $y]
+    }
+    
+    ::nscldaq::evb destroy _evbApi
+    return $result
+    
 }

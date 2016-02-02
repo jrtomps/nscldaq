@@ -311,6 +311,9 @@ proc restoreState {} {
     
     set rings [::Serialize::deserializeRings $uri]
     installObjects $rings
+    
+    set evbs [::Serialize::deserializeEventBuilders $uri]
+    installObjects $evbs
 }
 
 ##
