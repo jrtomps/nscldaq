@@ -3214,7 +3214,7 @@ set state [mgr getProgramState name]
             </varlistentry>
             <varlistentry>
                 <term>
-                    set y [mgr getEditorYPosition name]                    
+                    <command>set y [mgr getEditorYPosition name]</command>
                 </term>
                 <listitem>
                     <para>
