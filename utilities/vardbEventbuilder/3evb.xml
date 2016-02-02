@@ -2371,7 +2371,15 @@ if {! [api haveSchema]} {
                         </para>
                     </listitem>
                 </varlistentry>
-                
+                <varlistentry>
+                    <term>ring</term>
+                    <listitem>
+                        <para>
+                          Ring buffer into which the event builder pipeline will
+                          put its data.
+                        </para>
+                    </listitem>
+                </varlistentry>
               </variablelist>
           </listitem>
       </varlistentry>
