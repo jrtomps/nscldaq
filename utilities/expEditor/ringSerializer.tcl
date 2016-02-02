@@ -28,6 +28,7 @@ exec tclsh "$0" ${1+"$@"}
 
 package provide ringSerializer 1.0
 package require vardbringbuffer
+package require ringBufferObject
 
 ##
 # @note Procs whose names (after the namespace) begin with _ are considered
@@ -37,7 +38,7 @@ package require vardbringbuffer
 # Make sure the ::Serialize:: namespace exists:
 
 namespace eval ::Serialize {
-    namespace export serializeRings
+    namespace export serializeRings deserializeRings
 }
 
 ##
@@ -95,4 +96,40 @@ proc ::Serialize::serializeRings {uri rings} {
       }
       
       ::nscldaq::vardbringbuffer destroy _ringApi
+}
+
+##
+# ::Serialize::deserializeRings
+#
+#  Reads the set of ring buffer definitions from a program database file and
+#  returns a list of dicts that allow the editor to restore them to the
+#  canvas and its internal state:
+#
+# @param dburi - URI that specifies how to connect to the database.
+# @return list of dicts containing the following keys:
+#         * object - object that can be cloned onto the editor canvas.
+#         * x,y    - Desired position of the graphrep of the object on the canvas.
+#
+proc ::Serialize::deserializeRings dburi {
+    ::nscldaq::vardbringbuffer create _ringApi $dburi
+    set result [list]
+    
+    foreach ring [_ringApi list] {
+        set x [_ringApi getEditorXPosition [dict get $ring name] [dict get $ring host]] 
+        set y [_ringApi getEditorYPosition [dict get $ring name] [dict get $ring host]] 
+        
+        # Make the editor object and fill in its properties:
+        
+        set obj [RingBufferObject %AUTO%]
+        set p   [$obj getProperties]
+        foreach prop [list name host] {
+            [$p find $prop] configure -value [dict get $ring $prop]
+        }
+        #  Create/add the dict to the result:
+        
+        lappend result [dict create object $obj x $x y $y]
+    }
+    
+    ::nscldaq::vardbringbuffer destroy _ringApi
+    return $result
 }

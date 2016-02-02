@@ -308,6 +308,9 @@ proc restoreState {} {
     
     set statePrograms [::Serialize::deserializeStatePrograms  $uri]
     installObjects $statePrograms
+    
+    set rings [::Serialize::deserializeRings $uri]
+    installObjects $rings
 }
 
 ##

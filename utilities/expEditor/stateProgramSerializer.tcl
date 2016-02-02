@@ -39,7 +39,7 @@ package require stateProgram
 #  Establish the Serialize namespace (if needed);
 
 namespace eval ::Serialize {
-    namespace export serializeStatePrograms
+    namespace export serializeStatePrograms deserializeStatePrograms
 }
 
 ##
