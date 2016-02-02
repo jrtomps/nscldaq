@@ -314,6 +314,9 @@ proc restoreState {} {
     
     set evbs [::Serialize::deserializeEventBuilders $uri]
     installObjects $evbs
+    
+    set ds   [::Serialize::deserializeDataSources $uri]
+    installObjects $ds
 }
 
 ##

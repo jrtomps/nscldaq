@@ -28,6 +28,7 @@ exec tclsh "$0" ${1+"$@"}
 
 package provide dsourceSerializer 1.0
 package require vardbEventBuilder
+package require dataSourceObject
 
 ##
 #  @note procs with names that start with _ after the namespace are
@@ -36,7 +37,7 @@ package require vardbEventBuilder
 # Establish the Serializer namespace:
 
 namespace eval ::Serialize {
-    namespace export serializeDataSources
+    namespace export serializeDataSources deserializeDataSources
 }
 
 ##
@@ -72,7 +73,6 @@ proc ::Serialize::_saveSource {api ds} {
          # Create the data source.
          
         $api addSource $evbName $name $host $path $ring  $ids $opts
-         
         # Save its position.
         set pos [$ds getPosition]
         $api dsSetEditorPosition $evbName $name [lindex $pos 0] [lindex $pos 1]
@@ -95,4 +95,41 @@ proc ::Serialize::serializeDataSources {uri sources} {
     foreach source $sources {
         ::Serialize::_saveSource _dsApi $source
     }
+    ::nscldaq::evb destroy _dsApi
+}
+##
+# ::Serialize::deserializeDataSources
+#    Reads the set of data sources from an experiment database:
+#
+# @param dburi   - URI that specifies how to connect with the database.
+# @return list of dicts - each dict contains the following information:
+#         * object - object that can be cloned onto the editor canvas to restore
+#                    the graphical representation and state of the data source.
+#         * x,y    - Desired coordinates for the event builder on the canvas.
+#
+proc ::Serialize::deserializeDataSources dburi {
+    ::nscldaq::evb create _dsApi $dburi
+    set result [list]
+    
+    foreach evb [_dsApi evbList] {
+        set evbName [dict get $evb name]
+        foreach ds [_dsApi listSources $evbName] {
+            set name [dict get $ds name]
+            set x    [_dsApi dsGetEditorXPosition $evbName $name]
+            set y    [_dsApi dsGetEditorYPosition $evbName $name]
+            
+            set o [DataSourceObject %AUTO%]
+            set props [$o getProperties]
+            
+            foreach p [list \
+                    name host path info ids ring defaultId timestampExtractor \
+                    expectBodyHeaders]                  {
+                [$props find $p] configure -value [dict get $ds $p]
+            }
+            lappend result [dict create object $o x $x y $y]
+        }
+    }
+    
+    ::nscldaq::evb destroy _dsApi
+    return $result
 }
