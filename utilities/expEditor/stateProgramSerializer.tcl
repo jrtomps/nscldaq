@@ -28,6 +28,7 @@ exec tclsh "$0" ${1+"$@"}
 
 package provide stateProgramSerializer 1.0
 package require stateclient
+package require stateProgram
 
 ##
 # @note procs whose names (after the namespace) begin with _ are considered
@@ -110,3 +111,35 @@ proc ::Serialize::serializeStatePrograms {uri sps} {
 #   Recover the list of state programs that are in a database.
 #
 # @param dbURI - uri that specifies how to connect with the database.
+# @return list of dicts - each dict contains the following items:
+#          * object  - the object that will be cloned onto the cavnas.
+#          * x,y     - desired editor canvas coordinates.
+#
+proc ::Serialize::deserializeStatePrograms dburi {
+    ::nscldaq::statemanager _smApi $dburi
+    set result [list]
+    foreach program [_smApi listPrograms] {
+        set info [_smApi getProgram $program]
+        set x    [_smApi getEditorXPosition $program]
+        set y    [_smApi getEditorYPosition $program]
+        
+        #  Create the object and fill its properties in from the info dict:
+        
+        set obj [StateProgram %AUTO%]
+        set p   [$obj getProperties]
+        
+        [$p find name]  configure -value $program
+        foreach pname [list enable  standalone path host "Input Ring" "Output Ring"] \
+                dname [list enabled standalone path host inring        outring] {
+            [$p find $pname] configure -value [dict get $info $dname]    
+        }
+       
+        
+        #  Add a new dict to the result:
+        
+        lappend result [dict create object $obj x $x y $y]
+    }
+    
+    ::nscldaq::statemanager -delete _smApi
+    return $result
+}
