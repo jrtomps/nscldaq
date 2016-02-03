@@ -73,7 +73,7 @@ snit::type ConnectorInstaller {
     #
     #  *  object   - The connector object.
     #  *  from     - The from object.
-    #  * to        - The to object.
+    #  *  to        - The to object.
     #  * canvas    -  The canvas on which the connector is drawn.
     
     
@@ -718,5 +718,23 @@ snit::type ConnectorInstaller {
         set item1 ""
         set item2 ""
         
+    }
+    ##
+    #  connect
+    #    Force a connection between a pair of items.  Intended to be used during
+    #    a system restoration.
+    #
+    # @param c    - the canvas.
+    # @param from - the from object... must be known to us.
+    # @param to   - the to object.. must be known to us.
+    #
+    method connect {c from to} {
+        
+        # Just set up item1 and item 2 and do the _connect call:
+        
+        set item1 [$from getId]
+        set item2 [$to   getId]
+        
+        $self _connect $c
     }
 }  

@@ -259,6 +259,8 @@ proc saveState {} {
     ::Serialize::serializeStatePrograms $uri [$::cs listObjects .c state-program]
     ::Serialize::serializeEventBuilders $uri [$::cs listObjects .c eventbuilder]
     ::Serialize::serializeDataSources $uri [$::cs listObjects .c datasource]
+    
+
 }
 ##
 # installObjects
@@ -281,6 +283,104 @@ proc installObjects objects {
         $o destroy
     }
 }
+##
+# uriToRingIdx
+#
+#   Converts a ring uri (form tcp://host/ringname) to a string of the form;
+#   ringname@host.
+#
+# @param uri
+# @return string - see above.
+#
+proc uriToRingIndex {uri} {
+    set uriParts [split $uri /]
+    
+    # The parts we want are the last and next to last elements (name/host repsectively)
+    
+    set name [lindex $uriParts end]
+    set host [lindex $uriParts end-1]
+    
+    return $name@$host
+}
+##
+# connectObjects
+#   Connects a pair of objects together (part of restoring from file)
+#
+# @param from - object the connection originates at.
+# @param to   - object the connection terminetes at
+#
+# @note recall that connections are directional.
+#
+proc connectObjects {from to } {
+    
+    $::cs connect .c $from $to
+    
+}
+##
+# connectStateProgramsToRings
+#    Re-connects state programs back to the in/out rings they were originally
+#    connected to.
+#
+# @param statePrograms - list of state program objects.
+# @param rings         - list of ring objects.
+#
+proc connectStateProgramsToRings {statePrograms rings} {
+    
+    #  Toss the rings up into a name@host indexed array for O(1) lookup:
+    array set ringArray [list]
+    foreach ring $rings {
+        set p [$ring getProperties]
+        set name [[$p find name] cget -value]
+        set host [[$p find host] cget -value]
+        set ringIndex $name@$host
+        set ringArray($ringIndex) $ring
+    }
+    #  Connect each state Programto the ring(s) it used to be connected with
+    #  remember connections require two connect calls one for the source
+    #  and one for the target.  Note also that the ring specifications are:
+    #
+    #  Output Ring - A ring name for the host the state propgram is in.
+    #  Input Ring  - A ring URI of the form: tcp://hostname/ringname
+    
+    foreach sp $statePrograms {
+        set p [$sp getProperties]
+        set host [[$p find host] cget -value];   # In case we have an out ring.
+        
+        set oring [[$p find "Output Ring"] cget -value]
+        if {$oring ne ""} {
+            # Reconnect output ring:
+            
+            set ringIdx $oring@$host;           # Index in array:
+            connectObjects $sp $ringArray($ringIdx)
+        }
+        
+        set iring [[$p find "Input Ring"] cget -value]
+        if {$iring ne ""} {
+            set ringIdx [uriToRingIndex $iring]
+            connectObjects  $ringArray($ringIdx) $sp
+        }
+    }
+}
+##
+# restoreConnections
+#    Restore connections between objects as part of restoring the editor
+#    state from a database file:
+#
+#  @param uri - URI specifying how to connect to the database if needed.
+#
+proc restoreConnections uri {
+    
+    # State programs can have input and output rings...reconnect them:
+    # We're going to assume the connections are all valid since they got
+    # saved:
+    #
+    set statePrograms [$::cs listObjects .c state-program]
+    set rings         [$::cs listObjects .c ring]
+    connectStateProgramsToRings $statePrograms $rings
+    
+    
+}
+
 ##
 # restoreState
 #   Handler for the File->Restore... menu entry.
@@ -317,6 +417,8 @@ proc restoreState {} {
     
     set ds   [::Serialize::deserializeDataSources $uri]
     installObjects $ds
+    
+    restoreConnections $uri
 }
 
 ##
