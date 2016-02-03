@@ -317,6 +317,26 @@ proc connectObjects {from to } {
     
 }
 ##
+#  ringsToIndexList
+#    Converts the list of ringbuffers to a list that can be used with array set
+#    to produce an array of ring objects indexed by ringname@host
+#
+# @param rings - list of input ring objects.
+# @return list - ring1@host1 ringobject ...
+#
+proc ringsToindexList {rings} {
+    set result [list]
+    foreach ring $rings {
+        set p [$ring getProperties]
+        set name [[$p find name] cget -value]
+        set host [[$p find host] cget -value]
+        set ringIndex $name@$host
+        lappend result $ringIndex $ring
+    }
+    
+    return $result
+}
+##
 # connectStateProgramsToRings
 #    Re-connects state programs back to the in/out rings they were originally
 #    connected to.
@@ -327,14 +347,8 @@ proc connectObjects {from to } {
 proc connectStateProgramsToRings {statePrograms rings} {
     
     #  Toss the rings up into a name@host indexed array for O(1) lookup:
-    array set ringArray [list]
-    foreach ring $rings {
-        set p [$ring getProperties]
-        set name [[$p find name] cget -value]
-        set host [[$p find host] cget -value]
-        set ringIndex $name@$host
-        set ringArray($ringIndex) $ring
-    }
+    array set ringArray [ringsToindexList $rings]
+
     #  Connect each state Programto the ring(s) it used to be connected with
     #  remember connections require two connect calls one for the source
     #  and one for the target.  Note also that the ring specifications are:
@@ -362,6 +376,31 @@ proc connectStateProgramsToRings {statePrograms rings} {
     }
 }
 ##
+# connectDsToInRings
+#    Connect data sources to their input rings.
+#
+# @param dataSources - list of data source objects.
+# @param rings       - list of ringbuffer objectgs.
+#
+proc connectDsToInRings {dataSources rings} {
+    
+     array set ringArray [ringsToindexList $rings]
+     
+    # the input rings of data sources are uris... these have to be converted
+    # to name@host strings.
+    #
+    
+    foreach source $dataSources {
+        set p [$source getProperties]
+        set inring [[$p find ring] cget -value]
+        if {$inring ne ""} {
+            set index [uriToRingIndex $inring]
+            connectObjects $ringArray($index) $source
+        }
+    }
+}
+
+##
 # restoreConnections
 #    Restore connections between objects as part of restoring the editor
 #    state from a database file:
@@ -377,6 +416,11 @@ proc restoreConnections uri {
     set statePrograms [$::cs listObjects .c state-program]
     set rings         [$::cs listObjects .c ring]
     connectStateProgramsToRings $statePrograms $rings
+    
+    #  Hook data sources to their input rings.
+    
+    set dataSources [$::cs listObjects .c datasource]
+    connectDsToInRings $dataSources $rings
     
     
 }
