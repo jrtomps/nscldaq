@@ -324,7 +324,7 @@ proc connectObjects {from to } {
 # @param rings - list of input ring objects.
 # @return list - ring1@host1 ringobject ...
 #
-proc ringsToindexList {rings} {
+proc ringsToIndexList {rings} {
     set result [list]
     foreach ring $rings {
         set p [$ring getProperties]
@@ -347,7 +347,7 @@ proc ringsToindexList {rings} {
 proc connectStateProgramsToRings {statePrograms rings} {
     
     #  Toss the rings up into a name@host indexed array for O(1) lookup:
-    array set ringArray [ringsToindexList $rings]
+    array set ringArray [ringsToIndexList $rings]
 
     #  Connect each state Programto the ring(s) it used to be connected with
     #  remember connections require two connect calls one for the source
@@ -384,7 +384,7 @@ proc connectStateProgramsToRings {statePrograms rings} {
 #
 proc connectDsToInRings {dataSources rings} {
     
-     array set ringArray [ringsToindexList $rings]
+     array set ringArray [ringsToIndexList $rings]
      
     # the input rings of data sources are uris... these have to be converted
     # to name@host strings.
@@ -398,6 +398,27 @@ proc connectDsToInRings {dataSources rings} {
             connectObjects $ringArray($index) $source
         }
     }
+}
+##
+# connectEvbsToOutRings
+#    Connect event builders to their output rings.
+#
+# @param evbs  - list of event builder objects.
+# @param rings - list of ring objects.
+# @note Event builders are constrained to live in the same host as their
+#       output rign due to that contraint on ring producers.
+#
+proc connectEvbsToOutRings {evbs rings} {
+    array set ringArray [ringsToIndexList $rings]
+    
+    foreach evb $evbs {
+        set props [$evb getProperties]
+        set ring  [[$props find ring] cget -value]
+        set host  [[$props find host] cget -value]
+        if {$ring ne ""} {
+            connectObjects $evb $ringArray($ring@$host)
+        }
+    } 
 }
 
 ##
@@ -422,7 +443,8 @@ proc restoreConnections uri {
     set dataSources [$::cs listObjects .c datasource]
     connectDsToInRings $dataSources $rings
     
-    
+    set eventBuilders [$::cs listObjects .c eventbuilder]
+    connectEvbsToOutRings $eventBuilders $rings
 }
 
 ##
