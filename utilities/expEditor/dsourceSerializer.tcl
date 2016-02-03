@@ -105,7 +105,8 @@ proc ::Serialize::serializeDataSources {uri sources} {
 # @return list of dicts - each dict contains the following information:
 #         * object - object that can be cloned onto the editor canvas to restore
 #                    the graphical representation and state of the data source.
-#         * x,y    - Desired coordinates for the event builder on the canvas.
+#         * x,y    - Desired coordinates for the event builder on the canvas
+#         * evbName - Name of event builder this source sends data to.
 #
 proc ::Serialize::deserializeDataSources dburi {
     ::nscldaq::evb create _dsApi $dburi
@@ -126,7 +127,7 @@ proc ::Serialize::deserializeDataSources dburi {
                     expectBodyHeaders]                  {
                 [$props find $p] configure -value [dict get $ds $p]
             }
-            lappend result [dict create object $o x $x y $y]
+            lappend result [dict create object $o x $x y $y evbName $evbName]
         }
     }
     
