@@ -204,7 +204,7 @@ snit::type DataSourceObject {
             set host [$ringHost cget -value]
             set name [$ringName cget -value]
             
-            $ringProp configure -value [$self _makeRingUri host name] -editable 0
+            $ringProp configure -value [$self _makeRingUri $host $name] -editable 0
             
             set ring $object           
             
