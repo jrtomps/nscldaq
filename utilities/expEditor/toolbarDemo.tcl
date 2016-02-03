@@ -269,10 +269,14 @@ proc saveState {} {
 # @param objects - list of dicts containing the keys:
 #                  * object - object to clone into the canvas.
 #                  * x,y    - Final position on the canvas.
+# @result list of new objects created by the installation.  These will be in the
+#         same order as their clone sources in objects:
+#
 # @note as a side effect, the objects that are the source of the clone get
 #       destroyed.
 #
 proc installObjects objects {
+    set result [list]
     foreach item $objects {
         set o [dict get $item object]
         set x [dict get $item x]
@@ -281,7 +285,9 @@ proc installObjects objects {
         set newO [$::os install $o [dict create canvas .c x  $x  y $y] .c]
         $newO moveto $x $y
         $o destroy
+        lappend result $newO
     }
+    return $result
 }
 ##
 # uriToRingIdx
@@ -420,15 +426,41 @@ proc connectEvbsToOutRings {evbs rings} {
         }
     } 
 }
-
+##
+# connectDataSourcesToEvbs
+#    Reconnect data sources to their event builders.
+#
+# @param dataSources - list of the form ebname feeding-ds-object.
+# @param evbs        - list of event builder objects.
+#
+proc connectDataSourcesToEvbs {dataSources evbs} {
+    
+    # Throw event buildrs up into an array indexed by their names so lookup can
+    #  be O(1).
+    
+    array set eventBuilders [list]
+    foreach e $evbs {
+        set props [$e getProperties]
+        set name [[$props find name] cget -value]
+        set eventBuilders($name) $e
+    }
+    # now reconnect data sources to their names:
+    
+    foreach [list evbName ds] $dataSources {
+        connectObjects $ds $eventBuilders($evbName)
+    }
+}
 ##
 # restoreConnections
 #    Restore connections between objects as part of restoring the editor
 #    state from a database file:
 #
 #  @param uri - URI specifying how to connect to the database if needed.
+#  @param dataSources - a list of the form evbName dataSource where
+#                       the data source feeds the event builder evbName.
 #
-proc restoreConnections uri {
+#
+proc restoreConnections {uri dataSources} {
     
     # State programs can have input and output rings...reconnect them:
     # We're going to assume the connections are all valid since they got
@@ -440,11 +472,15 @@ proc restoreConnections uri {
     
     #  Hook data sources to their input rings.
     
-    set dataSources [$::cs listObjects .c datasource]
-    connectDsToInRings $dataSources $rings
+    set ds [$::cs listObjects .c datasource]
+    connectDsToInRings $ds $rings
     
     set eventBuilders [$::cs listObjects .c eventbuilder]
     connectEvbsToOutRings $eventBuilders $rings
+    
+    # connect the data sources to their event builders:
+    
+    connectDataSourcesToEvbs $dataSources $eventBuilders
 }
 
 ##
@@ -481,10 +517,20 @@ proc restoreState {} {
     set evbs [::Serialize::deserializeEventBuilders $uri]
     installObjects $evbs
     
+    # for the data sources we need to maintain an association between the clones
+    # and their event builders so they can be reconnected:
+    # We'll create dataSourceByEvb which will be a list of
+    # evbname datasource evbname datasource...
+    #
     set ds   [::Serialize::deserializeDataSources $uri]
-    installObjects $ds
+    set dataSources [installObjects $ds]
     
-    restoreConnections $uri
+    set dataSourceByEvb [list]
+    foreach deser $ds created $dataSources {
+        lappend dataSourceByEvb [dict get $deser evbName] $created
+    }
+    
+    restoreConnections $uri $dataSourceByEvb
 }
 
 ##
