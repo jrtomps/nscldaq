@@ -255,4 +255,12 @@ snit::type connector {
     #---------------------------------------------------------------------------
     # Public methods.
     #
+    
+    ##
+    # getId
+    #   Get the canvas id.  This is "" if the object is not on a canvas.
+    #
+    method getId {} {
+        return $id
+    }
 }

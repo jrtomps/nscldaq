@@ -83,7 +83,7 @@ snit::type ConnectorInstaller {
     # currentObjects is the set of objects known to the  installer if it's been
     # hooked into the corresponding object installer object for objects it can
     # connect.
-    #  This is an array indexed by cavas id containing a list of  dicts containing:
+    #  This is an array indexed by canvas id containing a list of  dicts containing:
     #
     #   -  object  - the object ensemble command.
     #   -  canvas  - canvas on which this object is drawn.
@@ -95,6 +95,17 @@ snit::type ConnectorInstaller {
     #
     
     variable currentObjects -array [list]
+    
+    ##
+    # typeconstructor
+    #  Invoked when the type comes into being.
+    #  Creates a context menu for the connectors. This will be called:
+    #  .connectorContextMenu
+    #
+    typeconstructor {
+        menu .connectorContextmenu -tearoff 0
+        .connectorContextmenu add command -label {Delete...}
+    }
     
     #---------------------------------------------------------------------------
     # Private methods
@@ -276,6 +287,95 @@ snit::type ConnectorInstaller {
         }
     }
     ##
+    # _findConnectorByObj
+    #    Return a connector Dict associated with a connector object.
+    #
+    # @param obj - Connector object command.
+    # @return idx  - index of found connector.
+    # @retval -1   - Not found.
+    #
+    method _findConnectorByObj obj {
+        set i 0
+        foreach connectorDict $currentConnectors {
+            if {[dict get $connectorDict object] eq $obj} {
+                return $i
+            }
+            incr i
+        }
+        return -1
+    }
+    ##
+    # _removeConnector
+    #   Actually remove the specified connector.
+    #
+    # @param c - canvas the connector lives on.
+    # @param conn - Connector object.
+    #
+    method _removeConnector {c conn} {
+        set idx [$self _findConnectorByObj $conn]
+        set connectorDict [lindex $currentConnectors $idx]
+        
+        # figure out the end points of the connector and notify them of the
+        # disconnection.
+    
+        set from [dict get $connectorDict from]
+        set to   [dict get $connectorDict to]
+        
+        set fromObj [$self _findObject $currentObjects($from) $c]
+        set toObj   [$self _findObject $currentObjects($to) $c]
+        
+        $fromObj disconnect $toObj
+        $toObj   disconnect $fromObj
+        
+        # Destroyting the connector destroys its graphical rep but we alson
+        # need to remove it from currentConnectors:
+        
+        
+        set currentConnectors [lreplace $currentConnectors $idx $idx]
+        
+        $conn destroy
+        
+    }
+    ##
+    # _deleteConnector
+    #   Undo a connection
+    #
+    # @param c - canvas on which the connector lives.
+    # @param conn - connector object name.
+    #
+    method _deleteConnector {c conn} {
+        set confirm [tk_messageBox                                      \
+            -parent $c -title {remove connection}    \
+            -type yesno -message {Are you sure you want to delete this connection?} \
+            -icon question                                              \
+        ]
+        if {$confirm eq "yes"} {
+            $self _removeConnector $c $conn
+        }
+    }
+    ##
+    #  _connectorContextMenu
+    #   Pops up the context menu for connectors.
+    #   Currently this has a Delete... element only.
+    #
+    # @param c  - Canvas the connector is draw on.
+    # @param item- Connector object that was clicked.
+    # @param x,y - The root window coordinates of the pointer when the button
+    #              was pressed.
+    #
+    method _connectorContextMenu {c item x y} {
+
+        
+        # Set the commands for the context menu item(s) that make this specific
+        # to the item for which it will be posted:
+        
+        .connectorContextmenu entryconfigure 0 -command [mymethod _deleteConnector $c $item]
+        
+        # Post the menu
+        
+        .connectorContextmenu post $x $y
+    }
+    ##
     # _connect
     #   item1 and item2 will be connected.
     #
@@ -314,6 +414,8 @@ snit::type ConnectorInstaller {
         set item [connector %AUTO% \
             -from $item1 -to $item2 -fromcoords $from -tocoords $to \
             -arrow last -canvas $c]
+        
+        $c bind [$item getId] <Button-3> [mymethod _connectorContextMenu $c $item %X %Y]
         
         lappend currentConnectors [dict create object $item from $item1 to $item2 canvas $c]
         
