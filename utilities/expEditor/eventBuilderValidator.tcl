@@ -45,13 +45,17 @@ namespace eval ::Validation {}
 proc ::Validation::validateEventBuilders builders {
     set result [list]
     set nonames 0
-
+    array set names [list]
     foreach evb $builders {
 	set p [$evb getProperties]
 	set name [[$p find name] cget -value]
 	if {$name eq ""} {
 	    incr nonames
 	    set name -no-name-
+	} elseif {[array names names $name] ne ""} {
+	    lappend result "There is more than one event buidler named $name"
+	} else {
+	    set names($name) $name
 	}
 	if {[[$p find host] cget -value] eq ""} {
 	    lappend result "Event builder $name has not been allocated to a host"

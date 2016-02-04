@@ -43,7 +43,8 @@ namespace eval ::Validation {}
 proc ::Validation::validateRings rings {
     set namelessCount 0
     set result        [list]
-
+    array set names [list]
+    
     foreach ring $rings {
 	set p [$ring getProperties]
 	set name [[$p find name] cget -value]
@@ -51,10 +52,16 @@ proc ::Validation::validateRings rings {
 	    incr namelessCount
 	    set name -no-name-
 	}
-	if {[[$p find host] cget -value] eq ""} {
+	set host [[$p find host] cget -value]
+	if {$host eq ""} {
 	    lappend result "Ring $name has not been assigned to a host"
 	}
-    }
+	if {($name ne "") && ($host ne "") && ([array names names $name@$host] ne "")} {
+	    lappend result "There is more than one ring $name@$host"
+	} else {
+	    set names($name@$host) $name@$host
+	}
+      }
 
     if {$namelessCount} {
 	lappend result "There are ring buffers that have not been named"

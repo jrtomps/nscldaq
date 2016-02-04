@@ -46,7 +46,7 @@ namespace eval ::Validation {}
 proc ::Validation::validateDataSources dataSources {
     set unamed 0
     set result [list]
-
+    array set names [list]
     foreach src $dataSources {
 	set p [$src getProperties]
 	set name [[$p find name] cget -value]
@@ -54,9 +54,16 @@ proc ::Validation::validateDataSources dataSources {
 	    incr unamed
 	    set name -no-name-
 	}
-
-	if {[$src getEventBuilder] eq ""} {
+	set evb [$src getEventBuilder]
+	if {$evb eq ""} {
 	    lappend result "Data source $name is not connected to an event builder"
+	} else {
+	    set evbName [[[$evb getProperties] find name] cget -value]
+	    if {($name ne "") && ([array names names $evbName:$name] ne "")} {
+		lappend result "Event builder $evbName has more than one event source named $name"
+	    } else {
+		set names($evbName:$name) $evbName:$name;                    # Does't really mattern
+	    }
 	}
 	if {[[$p find host] cget -value] eq ""} {
 	    lappend result "Data source $name has not been allocated to a host"

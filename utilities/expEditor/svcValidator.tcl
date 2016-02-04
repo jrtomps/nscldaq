@@ -45,13 +45,18 @@ namespace eval ::Validation {}
 proc ::Validation::validateServices svcs {
     set namelessCount 0
     set result [list]
-
+    array set names [list]
+    
     foreach svc $svcs {
 	set p [$svc getProperties]
 	set name [[$p find name] cget -value]
 	if {$name eq ""} {
 	    incr namelessCount
 	    set name -no-name-
+	} elseif {[array names names $name] ne ""} {
+	    lappend result "There is more than one service named $name"
+	} else {
+	    set names($name) $name
 	}
 	if {[[$p find host] cget -value] eq ""} {
 	    lappend result "Service $name has not been assigned to a host"

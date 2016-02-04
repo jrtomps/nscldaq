@@ -43,6 +43,7 @@ namespace eval ::Validation {}
 proc ::Validation::validateStatePrograms programs {
     set nameless 0
     set result [list]
+    array set names [list]
 
     foreach sp $programs {
 	set p [$sp getProperties]
@@ -51,6 +52,10 @@ proc ::Validation::validateStatePrograms programs {
 	if {$name eq ""} {
 	    incr nameless
 	    set name -no-name-
+	} elseif {[array names names $name] ne ""} {
+	    lappend result "There is more than one state sensitive program named $name"
+	} else {
+	    set names($name) $name
 	}
 	if {[[$p find host] cget -value] eq ""} {
 	    lappend result "The state program $name has not been allocated to a host"
