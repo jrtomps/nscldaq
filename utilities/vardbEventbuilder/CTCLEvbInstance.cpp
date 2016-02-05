@@ -545,6 +545,7 @@ CTCLEvbInstance::addSource(CTCLInterpreter& interp, std::vector<CTCLObject>& obj
     std::string path    = objv[5];
     std::string ringUri = objv[6];
     
+    
     // Marshall objv[6] into a vector<unsigned>
     
     std::vector<unsigned> srcIds;
@@ -587,8 +588,15 @@ CTCLEvbInstance::addSource(CTCLInterpreter& interp, std::vector<CTCLObject>& obj
         tsExtractLib = strValue;
     }
     
+    // If the evbName is an empty string this is a ronin event builder:'
+    //
+    const char *pEvbName = evbName.c_str();
+    if (evbName == "") {
+        pEvbName = 0; 
+    }
+    
     m_pApi->addDataSource(
-        evbName.c_str(), srcName.c_str(), host.c_str(),
+        pEvbName, srcName.c_str(), host.c_str(),
         path.c_str(), ringUri.c_str(),
         srcIds, info.c_str(), expectBodyHeaders, defaultId, tsExtractLib.c_str()
         

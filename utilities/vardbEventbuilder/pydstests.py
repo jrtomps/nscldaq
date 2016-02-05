@@ -262,6 +262,15 @@ class TestDataSourceApi(unittest.TestCase):
         self.assertEquals(1,len(ls))
         self.assertEquals('ds2', ls[0]['name'])
         
+    def test_roninSource(self ):
+        self._api.addDataSource(None, 'ds1', 'spdaq20',
+            '/usr/opt/daq/current/bin/ringFragmentSource',
+            'tcp://spdaq20/0400x', (1,))
+        
+        evbs = self._db.ls('/EventBuilder')
+        self.assertIn(' ', evbs)
+        
+    
         
         
 if __name__ == '__main__':

@@ -855,7 +855,7 @@ VardbEvb_addDataSource(PyObject* self, PyObject* args, PyObject* kwargs)
     // where appropriate.  Note that for some we need two sets of variables
     // as the stuff provided by PyArg_ParseTupleAndKeywords needs post processing.
     
-    char*                 evbName(0);
+    PyObject*             evbName(0);
     char*                 srcName(0);
     char*                 host(0);
     char*                 dsPath(0);
@@ -867,6 +867,7 @@ VardbEvb_addDataSource(PyObject* self, PyObject* args, PyObject* kwargs)
     PyObject*             oBodyHeader(0);         // Py Boolean of body header flag.
     unsigned              defaultId(0);
     const char*           timestampExtractor = "";
+    char*                 pEvbName;
     
     // These are the keywords we recognize.  Note that we need to supply keywords
     // for the positional parameters a s well:
@@ -883,12 +884,24 @@ VardbEvb_addDataSource(PyObject* self, PyObject* args, PyObject* kwargs)
     //     parameters.
     
     if (!PyArg_ParseTupleAndKeywords(
-        args, kwargs, "sssssO|sOIs",  const_cast<char**>(keywords),
+        args, kwargs, "OssssO|sOIs",  const_cast<char**>(keywords),
         &evbName, &srcName, &host, &dsPath, &ringUri, &oIds,
         &info, &oBodyHeader, &defaultId, &timestampExtractor
     )) {
         return NULL;
     }
+    // The event builder name can be either None or it can be a string.
+    // If None then the pEvbName is null else it's the string value
+    
+    if (evbName == Py_None) {
+        pEvbName = NULL;
+    } else if (PyString_Check(evbName)) {
+        pEvbName = PyString_AsString(evbName);
+    } else {
+        PyErr_SetString(exception, "Event builder name must be either a string or None");
+        return NULL;
+    }
+    
     // oids must be iterable -- containng integers that can be pulled into ids.
     
     try {
@@ -912,7 +925,7 @@ VardbEvb_addDataSource(PyObject* self, PyObject* args, PyObject* kwargs)
     CVardbEventBuilder* pApi = getApi(self);
     try {
         pApi->addDataSource(
-            evbName, srcName, host, dsPath, ringUri, ids, info, bodyHeaders,
+            pEvbName, srcName, host, dsPath, ringUri, ids, info, bodyHeaders,
             defaultId, timestampExtractor
         );
         

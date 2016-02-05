@@ -453,6 +453,11 @@ CVardbEventBuilder::listEventBuilders()
  * @param timestampExtractor - If a ring item does not have a body header this
  *                   is a path to a shared library that is supposed to have code
  *                   that can extract the timestamp from the item.
+ *  @note In order to support the experiment editor's ability to save configurations
+ *        that have data sources not yet attached to event builders, if the
+ *        evName is a null pointer, the data source will be placed in a directory
+ *        named " ".    This is not a real data source but a parking directory for
+ *        so-called ronin data sources.
  */
  void
  CVardbEventBuilder::addDataSource(
@@ -461,6 +466,19 @@ CVardbEventBuilder::listEventBuilders()
     bool expectBodyHeaders, unsigned defaultId, const char* timestampExtractor
  )
  {
+    // If t evbName is null -- create the "/EventBuilder/ " directory and
+    // substitute that for evbName:
+    
+    if (!evbName) {
+        evbName = " ";
+        try {
+            m_pApi->mkdir(evbDirname(evbName).c_str());
+        }
+        catch(...) {
+            // This catch block is here in case the directory already exists.
+        }
+    }
+    
     // What we do might throw so we're going to do everything in a try/catch
     // block to ensure we get the wd back to "/"
     

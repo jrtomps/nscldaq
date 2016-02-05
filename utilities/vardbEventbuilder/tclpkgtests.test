@@ -1059,6 +1059,34 @@ tcltest::test getdsYPosition {Get data source editor canvas y position} \
     evb dsSetEditorPosition test src1 200 400
     evb dsGetEditorYPosition test src1
 } -result 400
+
+
+tcltest::test makeRoninSource {Create a data source with no event builder} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    set h [vardb::open $file]
+    
+}                                         \
+-cleanup {
+    vardb::close $h
+    
+    ::nscldaq::evb destroy evb
+    
+    destroyDbFile $file   
+}                                         \
+-body {
+    evb addSource \
+        "" ronin charlie /usr/opt/daq/current/bin/ringFragmentSource \
+        tcp://charlie/fox [list 1]
+    
+    # Check for the directory:
+    
+    set dirs [vardb::ls $h "/EventBuilder/ "]
+} -result "ronin"
 #-------------------------------------------
 #-------------------------------------------------------------------------------
 #

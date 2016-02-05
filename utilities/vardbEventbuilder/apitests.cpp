@@ -89,6 +89,7 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   // Other tests:
   
   CPPUNIT_TEST(rmEvbWSources);
+  CPPUNIT_TEST(mkRoninDataSource);
   
   CPPUNIT_TEST_SUITE_END();
 
@@ -145,6 +146,7 @@ protected:
   void rmds();
   
   void rmEvbWSources();
+  void mkRoninDataSource();
 private:
   CVarMgrApi*         m_pApi;
   CVardbEventBuilder* m_pEvbApi;
@@ -727,4 +729,39 @@ void VarMgrEvbtests::dsGetYPosition()
   m_pEvbApi->dsSetEditorPosition("test", "ds1", 200, 300);
   
   EQ(300, m_pEvbApi->dsGetEditorYPosition("test", "ds1"));
+}
+/**
+ *  mkRoninDataSource
+ *     Create a pair of data sources that don't have an event builder:
+ */
+void VarMgrEvbtests::mkRoninDataSource()
+{
+  std::vector<unsigned> ids;
+  ids.push_back(1);
+  
+  m_pEvbApi->addDataSource(
+    0, "ronin1", "charlie", "/usr/opt/daq/current/bin/ringFragmentSource",
+    "tcp://charlie/fox", ids
+  );
+  
+  ids.clear();
+  ids.push_back(2);
+  CPPUNIT_ASSERT_NO_THROW(
+    m_pEvbApi->addDataSource(
+      0, "ronin2", "charlie", "/usr/opt/daq/current/bin/ringFragmentSource",
+      "tcp://charlie/fox", ids
+    )
+  );
+  
+  // We're just going to verify the existence of the directories:
+  
+  CPPUNIT_ASSERT_NO_THROW(
+    m_pApi->cd("/EventBuilder/ ");
+  );
+  CPPUNIT_ASSERT_NO_THROW(
+    m_pApi->cd("ronin1")
+  );
+  CPPUNIT_ASSERT_NO_THROW(
+    m_pApi->cd("../ronin2")
+  );
 }
