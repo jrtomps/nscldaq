@@ -447,7 +447,11 @@ proc connectDataSourcesToEvbs {dataSources evbs} {
     # now reconnect data sources to their names:
     
     foreach [list evbName ds] $dataSources {
-        connectObjects $ds $eventBuilders($evbName)
+        # Ronin data sources have no event builder to connect with.
+        
+        if {$evbName ne " "} {
+            connectObjects $ds $eventBuilders($evbName)
+        }
     }
 }
 ##

@@ -119,22 +119,27 @@ proc ::Serialize::deserializeEventBuilders dburi {
     
     foreach evb [_evbApi evbList] {
         set name [dict get $evb name]
-        set x    [_evbApi evbGetEditorXPosition $name]
-        set y    [_evbApi evbGetEditorYPosition $name]
-        set obj  [EventBuilderObject %AUTO%]
-        set props [$obj getProperties]
-
-        foreach p [list                                                       \
-                    name host servicePrefix serviceSuffix coincidenceInterval \
-                    build timestampPolicy sourceId ring]                      \
-                d [list                                                       \
-                    name host prefix        suffix        dt                  \
-                    build tspolicy        sourceId  ring                      \
-                   ] {
-            [$props find $p] configure -value [dict get $evb $d]
-        }
         
-        lappend result [dict create object $obj x $x y $y]
+        # Don't try to restore the ronin dire because it's not possible
+        
+        if {$name ne " "} {
+            set x    [_evbApi evbGetEditorXPosition $name]
+            set y    [_evbApi evbGetEditorYPosition $name]
+            set obj  [EventBuilderObject %AUTO%]
+            set props [$obj getProperties]
+    
+            foreach p [list                                                       \
+                        name host servicePrefix serviceSuffix coincidenceInterval \
+                        build timestampPolicy sourceId ring]                      \
+                    d [list                                                       \
+                        name host prefix        suffix        dt                  \
+                        build tspolicy        sourceId  ring                      \
+                       ] {
+                [$props find $p] configure -value [dict get $evb $d]
+            }
+            
+            lappend result [dict create object $obj x $x y $y]
+        }
     }
     
     ::nscldaq::evb destroy _evbApi
