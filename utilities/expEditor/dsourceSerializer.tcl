@@ -53,30 +53,41 @@ namespace eval ::Serialize {
 #
 proc ::Serialize::_saveSource {api ds} {
     set evb [$ds getEventBuilder]
+    
     if {$evb ne ""} {
         set evbName [[[$evb getProperties] find name] cget -value]
-        set props [$ds getProperties]
-        
-        # Get the properties that are creation arguments.
-        
-        foreach prop [list name host path ring ids] {
-           set $prop [[$props find $prop] cget -value]   
-        }
-        
-        # Get the properties that are in the options dict:
-        
-        set opts [dict create]
-        foreach key [list info expectBodyHeaders defaultId timestampExtractor] {
-           dict set opts $key [list [[$props find $key] cget -value] ]
-        }
-         
-         # Create the data source.
-         
-        $api addSource $evbName $name $host $path $ring  $ids $opts
-        # Save its position.
-        set pos [$ds getPosition]
-        $api dsSetEditorPosition $evbName $name [lindex $pos 0] [lindex $pos 1]
+    } else {
+        set evbName "";            # Ronin source.
     }
+    set props [$ds getProperties]
+    
+    # Get the properties that are creation arguments.
+    
+    foreach prop [list name host path ring ids] {
+       set $prop [[$props find $prop] cget -value]   
+    }
+    
+    # Get the properties that are in the options dict:
+    
+    set opts [dict create]
+    foreach key [list info expectBodyHeaders defaultId timestampExtractor] {
+       dict set opts $key [list [[$props find $key] cget -value] ]
+    }
+     
+     # Create the data source.
+     
+    $api addSource $evbName $name $host $path $ring  $ids $opts
+    # Save its position.
+    set pos [$ds getPosition]
+    
+    #  A bit of a trick to save positions for ronin sources:
+    
+    if {$evbName eq ""} {
+        set evbName " ";                  #directory it's really in.
+    }
+    
+    $api dsSetEditorPosition $evbName $name [lindex $pos 0] [lindex $pos 1]
+    
 }
 
 ##
