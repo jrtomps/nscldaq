@@ -1190,18 +1190,20 @@ CTCLEvbInstance::evbInfoToDict(
     Tcl_Obj* pDict = Tcl_NewDictObj();
     
     setDictValue(interp, pDict, "name", pInfo->s_name.c_str());
-    setDictValue(interp, pDict, "host", pInfo->s_host.c_str());
-    setDictValue(interp, pDict, "dt",   pInfo->s_coincidenceInterval);
-    setDictValue(interp, pDict, "ring", pInfo->s_ring.c_str());
-    setDictValue(interp, pDict, "prefix", pInfo->s_servicePrefix.c_str());
-    setDictValue(interp, pDict, "suffix", pInfo->s_serviceSuffix.c_str());
-    setDictValue(interp, pDict, "build", pInfo->s_build);
-    setDictValue(interp, pDict, "sourceId", pInfo->s_sourceId);
-    setDictValue(
-        interp, pDict, "tspolicy",
-        tsPolicyToText(pInfo->s_timestampPolicy).c_str()
-    );
+    if (pInfo->s_name != " ") {
+        setDictValue(interp, pDict, "host", pInfo->s_host.c_str());
+        setDictValue(interp, pDict, "dt",   pInfo->s_coincidenceInterval);
+        setDictValue(interp, pDict, "ring", pInfo->s_ring.c_str());
+        setDictValue(interp, pDict, "prefix", pInfo->s_servicePrefix.c_str());
+        setDictValue(interp, pDict, "suffix", pInfo->s_serviceSuffix.c_str());
+        setDictValue(interp, pDict, "build", pInfo->s_build);
+        setDictValue(interp, pDict, "sourceId", pInfo->s_sourceId);
+        setDictValue(
+            interp, pDict, "tspolicy",
+            tsPolicyToText(pInfo->s_timestampPolicy).c_str()
+        );
 
+    }
     infoDict = pDict;   
 }
 

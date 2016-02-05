@@ -90,7 +90,8 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   
   CPPUNIT_TEST(rmEvbWSources);
   CPPUNIT_TEST(mkRoninDataSource);
-  
+  CPPUNIT_TEST(killRonins);
+  CPPUNIT_TEST(evblsWithRonins);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -147,6 +148,8 @@ protected:
   
   void rmEvbWSources();
   void mkRoninDataSource();
+  void killRonins();
+  void evblsWithRonins();
 private:
   CVarMgrApi*         m_pApi;
   CVardbEventBuilder* m_pEvbApi;
@@ -764,4 +767,36 @@ void VarMgrEvbtests::mkRoninDataSource()
   CPPUNIT_ASSERT_NO_THROW(
     m_pApi->cd("../ronin2")
   );
+}
+
+/**
+ *  killRonins
+ *    After making a ronin source it should be possible to kill it's pseudo
+ *    event builder off.
+ */
+void VarMgrEvbtests::killRonins()
+{
+  mkRoninDataSource();                  // gives us some ronins.
+  m_pEvbApi->rmEventBuilder(" ");       // Kill off the psuedo event builder.
+  
+  CPPUNIT_ASSERT_THROW(
+    m_pApi->cd("/EventBuilder/ "),
+    std::exception
+  );
+}
+// Special case code is needed for listing event builders with a ronin dir.
+// that's going to give a struct that only has the name filled in:
+
+void VarMgrEvbtests::evblsWithRonins()
+{
+  mkRoninDataSource();
+  
+  CVardbEventBuilder::EvbDescription info;
+  CPPUNIT_ASSERT_NO_THROW(
+    info = m_pEvbApi->evbInfo(" ")  // Ronin dir.
+  );
+  EQ(std::string(" "), info.s_name);
+
+  // The remainder ar undefined.
+  
 }

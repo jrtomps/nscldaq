@@ -386,15 +386,16 @@ CVardbEventBuilder::evbInfo(const char* name)
     // Fill in the result from the variable values:
     
     result.s_name = name;
-    result.s_host          = m_pApi->get("host");
-    result.s_servicePrefix = m_pApi->get("servicePrefix");
-    result.s_serviceSuffix = m_pApi->get("serviceSuffix");
-    result.s_coincidenceInterval = atoi(m_pApi->get("coincidenceInterval").c_str());
-    result.s_ring          = m_pApi->get("ring");
-    result.s_build         = m_pApi->get("build") == std::string("true") ? true : false;
-    result.s_timestampPolicy = textToPolicy(m_pApi->get("timestampPolicy"));
-    result.s_sourceId     = atoi(m_pApi->get("sourceId").c_str());
-    
+    if (std::string(name) != " ") {               // Not the dir for ronin data sources.
+        result.s_host           = m_pApi->get("host");
+        result.s_servicePrefix = m_pApi->get("servicePrefix");
+        result.s_serviceSuffix = m_pApi->get("serviceSuffix");
+        result.s_coincidenceInterval = atoi(m_pApi->get("coincidenceInterval").c_str());
+        result.s_ring          = m_pApi->get("ring");
+        result.s_build         = m_pApi->get("build") == std::string("true") ? true : false;
+        result.s_timestampPolicy = textToPolicy(m_pApi->get("timestampPolicy"));
+        result.s_sourceId     = atoi(m_pApi->get("sourceId").c_str());
+    }    
     //
     
     m_pApi->cd("/");

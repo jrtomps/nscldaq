@@ -123,18 +123,19 @@ evbInfoToDict(const CVardbEventBuilder::EvbDescription& info)
 {
     PyObject* result = PyDict_New();
     AddToDict(result, "name", info.s_name.c_str());
-    AddToDict(result, "host", info.s_host.c_str());
-    AddToDict(result, "coincidenceInterval", info.s_coincidenceInterval);
-    AddToDict(result, "ring", info.s_ring.c_str());
-    AddToDict(result, "servicePrefix", info.s_servicePrefix.c_str());
-    AddToDict(result, "serviceSuffix", info.s_serviceSuffix.c_str());
-    AddToDict(result, "build", info.s_build);
-    AddToDict(result, "sourceId", info.s_sourceId);
-    AddToDict(
-        result, "timestampPolicy",
-        tsPolicyToString(info.s_timestampPolicy).c_str()
-    );
-    
+    if (info.s_name != " ") {
+        AddToDict(result, "host", info.s_host.c_str());
+        AddToDict(result, "coincidenceInterval", info.s_coincidenceInterval);
+        AddToDict(result, "ring", info.s_ring.c_str());
+        AddToDict(result, "servicePrefix", info.s_servicePrefix.c_str());
+        AddToDict(result, "serviceSuffix", info.s_serviceSuffix.c_str());
+        AddToDict(result, "build", info.s_build);
+        AddToDict(result, "sourceId", info.s_sourceId);
+        AddToDict(
+            result, "timestampPolicy",
+            tsPolicyToString(info.s_timestampPolicy).c_str()
+        );
+    }
     return result;
 }
 
