@@ -128,6 +128,7 @@ public:
   void   setDefaultSourceId(unsigned sourceId);
   void   setBufferSize(size_t newSize);
   size_t getBufferSize() const;
+  void   PreStart(); 
   void   Start(bool resume=false);
   void   Stop(bool pause=false);
   void   AddEventSegment(CEventSegment*    pSegment);

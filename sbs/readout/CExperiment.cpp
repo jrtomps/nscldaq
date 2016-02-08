@@ -148,6 +148,35 @@ CExperiment::getBufferSize() const
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * PreStart
+ *    Do begin run/resume run initialization of both DAQ devices and scalers.
+ *    This is part of Feature #5525 Task #5576 - two phase transition to Active.
+ *    it allows the initialization to throw an error that aborts the start.
+ *    It also supports a closer synchronization between the begin runs for
+ *    multiple devices.
+ *    We're going to assume the run control package is is command here and
+ *    not do redundant checks on the run state.
+ *  
+ */
+void
+CExperiment::PreStart()
+{
+    /*
+      If the readout and scaler devices have been established, initialize them.
+      Note the actual clear will be done at the transition to Active.
+      since the actions here may result in the digitizers/scalers accepting
+     'events'.
+    */
+    
+    if (m_pReadout) {
+      m_pReadout->initialize();
+    }
+    if (m_pScalers) {
+      m_pScalers->initialize();
+    }
+    m_pRunState->m_state = RunState::starting;
+}
 /*!
   Start a new run. 
   - This is illegal if a run is active.
@@ -160,22 +189,6 @@ void
 CExperiment::Start(bool resume)
 {
 
-  // The run must be in the correct state:
-
-  if (resume && (m_pRunState->m_state != RunState::paused)) {
-    throw CStateException(m_pRunState->stateName().c_str(),
-			  RunState::stateName(RunState::paused).c_str(),
-			  "Starting data taking");
-  }
-  if (!resume && (m_pRunState->m_state != RunState::inactive)) {
-    throw CStateException(m_pRunState->stateName().c_str(),
-			  RunState::stateName(RunState::inactive).c_str(),
-			  "Starting data taking");
-  }
-
-
-
-
   // Can only start it if the triggers have been established:
   
   if (m_pEventTrigger && m_pScalerTrigger) {
@@ -185,16 +198,6 @@ CExperiment::Start(bool resume)
 
     if (!m_pTriggerLoop) {
       m_pTriggerLoop = new CTriggerLoop(*this);
-    }
-    // Initialize/clear the hardware:
-    
-    if (m_pReadout) {
-      m_pReadout->initialize();
-      m_pReadout->clear();
-    }
-    if (m_pScalers) {
-      m_pScalers->initialize();
-      m_pScalers->clear();
     }
 
     // If not resuming we'll also output a ring format item so that the
@@ -250,6 +253,14 @@ CExperiment::Start(bool resume)
     count.commitToRing(*m_pRing);
     }
     
+    // clear the hardware -- At the last possible momement.
+    
+    if (m_pReadout) {
+      m_pReadout->clear();
+    }
+    if (m_pScalers) {
+      m_pScalers->clear();
+    }
     
     m_pTriggerLoop->start();
     if (m_pBusy) {

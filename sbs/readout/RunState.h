@@ -50,8 +50,12 @@ public:
 
   typedef enum _State {
     inactive,
+    starting,
     active,
-    paused
+    pausing,
+    paused,
+    resuming,
+    halting,
   } State;
 
   // The instance pointer remains private:

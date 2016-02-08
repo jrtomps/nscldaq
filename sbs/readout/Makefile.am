@@ -38,6 +38,7 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CRunControlPackage.cpp		\
 						options.c			\
 						CBeginCommand.cpp		\
+						CPreBeginCommand.cpp		\
 						CPauseCommand.cpp		\
 						CResumeCommand.cpp		\
 						CEndCommand.cpp			\
@@ -70,7 +71,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CEndCommand.h CInitCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
 			CReadoutException.h CInvalidPacketStateException.h	\
 			CEventPacket.h CVarList.h CDocumentedVars.h CVariableBuffers.h \
-			CBusy.h CCAENV262Busy.h CV977Busy.h CRingCommand.h
+			CBusy.h CCAENV262Busy.h CV977Busy.h CRingCommand.h CPreBeginCommand.h
 
 
 
@@ -159,6 +160,7 @@ tests_LDADD = 	libSBSProductionReadout_la-CExperiment.lo	\
 		libSBSProductionReadout_la-CEventTrigger.lo libSBSProductionReadout_la-CTimedTrigger.lo	\
 		libSBSProductionReadout_la-CNullTrigger.lo	libSBSProductionReadout_la-CRunControlPackage.lo		\
 		libSBSProductionReadout_la-CBeginCommand.lo				\
+		libSBSProductionReadout_la-CPreBeginCommand.lo	\
 		libSBSProductionReadout_la-CPauseCommand.lo				\
 		libSBSProductionReadout_la-CResumeCommand.lo				\
 		libSBSProductionReadout_la-CEndCommand.lo					\

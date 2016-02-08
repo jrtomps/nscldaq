@@ -24,6 +24,7 @@
 #include <CReadoutMain.h>
 #include <StateException.h>
 #include "CBeginCommand.h"
+#include "CPreBeginCommand.h"
 #include "CPauseCommand.h"
 #include "CResumeCommand.h"
 #include "CEndCommand.h"
@@ -105,13 +106,30 @@ CRunControlPackage::getInstance(CTCLInterpreter& interp)
   return m_pInstance;
 }
 
+/**
+ *  Setup to start the run(hardware initialization).
+ */
+void
+CRunControlPackage::preBegin()
+{
+  if (m_pTheState->m_state == RunState::inactive) {
+    m_pTheExperiment->PreStart();
+  } else {
+    throw CStateException(
+      m_pTheState->stateName().c_str(),
+      RunState::stateName(RunState::inactive).c_str(),
+      "Attempting pre-begin initialization"
+    );
+  }
+}
+
 /*!
    Start a new run; Run state must be halted.
 */
 void
 CRunControlPackage::begin()
 {
-  if (m_pTheState->m_state == RunState::inactive) {
+  if (m_pTheState->m_state == RunState::starting) {
     m_pTheExperiment->Start(false);	// not a resume.
     m_pTimer = new RunTimer(m_pInterp);
   }
@@ -199,6 +217,7 @@ CRunControlPackage::getState() const
 void CRunControlPackage::createCommands(CTCLInterpreter& interp)
 {
   addCommand(new CBeginCommand(interp));
+  addCommand(new CPreBeginCommand(interp));
   addCommand(new CPauseCommand(interp));
   addCommand(new CResumeCommand(interp));
   addCommand(new CEndCommand(interp));

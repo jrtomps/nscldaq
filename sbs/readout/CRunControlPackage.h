@@ -85,6 +85,7 @@ public:
   // The following are useful functions both for the individual commands, and perhaps
   // for application extensions:
 public:
+  void preBegin();              // Do initializations prior to run-start.
   void begin();			// Begin a new run.
   void end();			// End an active run.
   void pause();			// Pause an active run.,

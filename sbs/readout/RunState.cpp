@@ -65,6 +65,14 @@ RunState::stateName(RunState::State state)
     return "Active";
   case paused:
     return "Paused";
+  case starting:
+    return "Starting";
+  case pausing:
+    return "Pausing";
+  case resuming:
+    return "Resuming";
+  case halting:
+    return "Halting";
   }
   return "Invalid state";
 }
