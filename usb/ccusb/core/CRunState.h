@@ -51,8 +51,12 @@ class CRunState : public CGaurdedObject
 public:
   typedef enum _RunState {	// Simplified model.
     Idle,
+    Starting,
     Active,
-    Paused
+    Pausing,
+    Paused,
+    Resuming,
+    Ending
   } RunState;
 
   // Class level data:

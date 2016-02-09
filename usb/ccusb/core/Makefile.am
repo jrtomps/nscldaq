@@ -38,7 +38,8 @@ noinst_HEADERS		= CAcquisitionThread.h		\
 										CSetCommand.h  \
 										CUpdateCommand.h  \
 										tclUtil.h \
-										Events.h
+										Events.h	\
+										CCCUSBHighLevelController.h
 
 libCCUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \
