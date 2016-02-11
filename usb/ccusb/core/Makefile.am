@@ -1,5 +1,5 @@
 lib_LTLIBRARIES		= libCCUSBCore.la
-libCCUSBCore_la_SOURCES	= CAcquisitionThread.cpp 	\
+libCCUSBCore_la_SOURCES	= Globals.cpp CAcquisitionThread.cpp 	\
 													CControlQueues.cpp \
 													COutputThread.cpp \
 													CRunState.cpp \
@@ -18,9 +18,10 @@ libCCUSBCore_la_SOURCES	= CAcquisitionThread.cpp 	\
 													CSetCommand.cpp  \
 													CUpdateCommand.cpp  \
 													tclUtil.cpp	\
-													CCCUSBHighLevelController.cpp
+													CCCUSBHighLevelController.cpp \
+													CPreBeginCommand.cpp
 
-noinst_HEADERS		= CAcquisitionThread.h		\
+noinst_HEADERS		= Globals.h CAcquisitionThread.h		\
 										CControlQueues.h \
 										COutputThread.h \
 										CRunState.h \
@@ -40,7 +41,8 @@ noinst_HEADERS		= CAcquisitionThread.h		\
 										CUpdateCommand.h  \
 										tclUtil.h \
 										Events.h	\
-										CCCUSBHighLevelController.h
+										CCCUSBHighLevelController.h  \
+										CPreBeginCommand.h
 
 libCCUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \

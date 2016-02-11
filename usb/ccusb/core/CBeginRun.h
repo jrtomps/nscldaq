@@ -15,8 +15,8 @@
 */
 
 
-#ifndef __CBEGINRUN_H
-#define __CBEGINRUN_H
+#ifndef CBEGINRUN_H
+#define CBEGINRUN_H
 
 #ifndef __TCLOBJECTPROCESSOR_H
 #include <TCLObjectProcessor.h>

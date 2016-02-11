@@ -80,6 +80,7 @@ libCCUSBDaqConfig_la_CPPFLAGS		= \
 				-I@top_srcdir@/usb/ccusb/daqconfig		\
 				-I@top_srcdir@/usb/common/devices		\
 				-I@top_srcdir@/usb/common/configurableobject \
+				-I@top_srcdir@/usb/ccusb/core		\
 				-I@top_srcdir@/base/headers		\
 				@LIBTCLPLUS_CFLAGS@		\
 				@TCL_FLAGS@ \

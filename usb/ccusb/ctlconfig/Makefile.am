@@ -39,6 +39,7 @@ libCCUSBCtlConfig_la_CPPFLAGS	= -I@top_srcdir@/usb/ccusb		\
 					-I@top_srcdir@/usb/ccusb/daqconfig	\
 					-I@top_srcdir@/usb/ccusb/rdothread	\
 					-I@top_srcdir@/usb/ccusb/router	\
+					-I@top_srcdir@/usb/ccusb/core	\
 					-I@top_srcdir@/usb/common/slowcontrols	\
 					@LIBTCLPLUS_CFLAGS@	\
 					-I@top_srcdir@/base/headers	\
@@ -70,8 +71,8 @@ bin_PROGRAMS = unittests
 
 unittests_SOURCES = \
 			TestRunner.cpp \
-   		cctlconfigurationtest.cpp \
-   		cccusbcontroltests.cpp
+			cctlconfigurationtest.cpp \
+			cccusbcontroltests.cpp
 
 unittests_CXXFLAGS = \
 	    -I@srcdir@ \
@@ -82,6 +83,7 @@ unittests_CXXFLAGS = \
 	    -I@top_srcdir@/usb/ccusb \
 	    -I@top_srcdir@/usb/common/slowcontrols \
 	    -I@top_srcdir@/usb/common/configurableobject \
+	-I@top_srcdir@/usb/ccusb/core	\
 			@TCL_FLAGS@ \
 			@LIBTCLPLUS_CFLAGS@ \
 			$(CPPUNIT_INCLUDES)
@@ -95,7 +97,7 @@ unittests_LDADD = \
 
 unittests_DEPENDENCIES = \
 			@top_builddir@/usb/ccusb/ctlconfig/libCCUSBCtlConfig.la 
-		  
+
 check-TESTS: 
 		./unittests
 

@@ -24,6 +24,7 @@ unittests_CPPFLAGS = \
 		-I@top_srcdir@/usb/ccusb \
 		-I@top_srcdir@/usb/ccusb/daqconfig \
 		-I@top_srcdir@/usb/ccusb/ccusb \
+		-I@top_srcdir@/usb/ccusb/core	\
 		-I@prefix@/include
 
 unittests_LDFLAGS =  -Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" 
