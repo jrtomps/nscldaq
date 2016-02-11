@@ -17,7 +17,8 @@ libCCUSBCore_la_SOURCES	= CAcquisitionThread.cpp 	\
 													CGetCommand.cpp  \
 													CSetCommand.cpp  \
 													CUpdateCommand.cpp  \
-													tclUtil.cpp
+													tclUtil.cpp	\
+													CCCUSBHighLevelController.cpp
 
 noinst_HEADERS		= CAcquisitionThread.h		\
 										CControlQueues.h \

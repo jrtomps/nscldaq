@@ -21,6 +21,7 @@
 */
 #ifndef CCCUSBHIGHLEVELCONTROLLER_H
 #define CCCUSBHIGHLEVELCONTROLLER_H
+#include <stddef.h>
 
 class CCCUSB;                       // CCUSB Controller.
 class CConfiguration;
@@ -42,13 +43,14 @@ class CConfiguration;
 class CCCUSBHighLevelController
 {
 private:
-    CCCUSBController*  m_pController;
-    CConfiguration*  m_pConfiguration;
+    CCCUSB*            m_pController;
+    CConfiguration*    m_pConfiguration;
+    bool               m_haveScalerStack;
     
     // Canonical methods:
     
 public:
-    CCCUSBHighLevelController(CCCUSBController& controller);
+    CCCUSBHighLevelController(CCCUSB& controller);
     virtual ~CCCUSBHighLevelController();
     
     // operations:
@@ -66,6 +68,6 @@ public:
     void flushBuffers();
     void reconnect();
     bool checkStackSize();
-    bool readData(void* pBuffer, unsigned maxBytes, unsigned& bytesRead);
+    bool readData(void* pBuffer, size_t maxBytes, size_t& bytesRead, int timeout);
 };
 #endif
