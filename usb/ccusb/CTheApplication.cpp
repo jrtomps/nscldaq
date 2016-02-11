@@ -41,6 +41,7 @@
 #include <CAcquisitionThread.h>
 #include <CRunState.h>
 #include <CControlQueues.h>
+#include <CCCUSBHighLevelController.h>
 
 #include <CPortManager.h>
 #include <Events.h>
@@ -305,6 +306,7 @@ CTheApplication::createUsbController(const char* pSerialNo)
   }
 
   Globals::pUSBController = new CCCUSBusb(pMyController);
+  Globals::pController    = new CCCUSBHighLevelController(*::Globals::pUSBController);
 
 }
 

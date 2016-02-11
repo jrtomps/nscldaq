@@ -25,6 +25,7 @@ class CConfiguration;
 class CCCUSB;
 class TclServer;
 class COutputThread;
+class CCCUSBHighLeveLController;
 
 namespace Globals {
   CConfiguration*    pConfig;
@@ -39,4 +40,5 @@ namespace Globals {
   CTCLInterpreter*   pMainInterpreter(0);
   Tcl_ThreadId           mainThread;
   COutputThread*     pOutputThread;
+  CCCUSBHighLeveLController* pController;
 };

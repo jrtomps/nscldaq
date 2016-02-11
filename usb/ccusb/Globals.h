@@ -37,7 +37,7 @@ class CCCUSB;
 class TclServer;
 class CTCLInterpreter;
 class COutputThread;
-
+class CCCUSBHighLevelController;
 
 
 #include <stdint.h>
@@ -66,6 +66,7 @@ namespace Globals {
   extern CTCLInterpreter* pMainInterpreter;
   extern Tcl_ThreadId           mainThread;   
   extern COutputThread*   pOutputThread;
+  extern CCCUSBHighLevelController* pController;
 };
 
 #endif
