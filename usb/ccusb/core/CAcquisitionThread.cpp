@@ -34,6 +34,8 @@
 #include <os.h>
 #include <Events.h>
 #include <tcl.h>
+#include <CCCUSBHighLevelController.h>
+
 
 #include <iostream>
 
@@ -58,6 +60,7 @@ static const unsigned ScalerStackNum(1);
 
 bool                CAcquisitionThread::m_Running(false);
 CCCUSB*             CAcquisitionThread::m_pCamac(0);
+CCCUSBHighLevelController*  CAcquisitionThread::m_pController(0);
 CAcquisitionThread* CAcquisitionThread::m_pTheInstance(0);
 
 
@@ -94,12 +97,11 @@ CAcquisitionThread::getInstance()
    - Initiate the thread which gets the ball rolling.
    \param usb    :CCCUSB*
       Pointer to the vme interface object we use to deal with all this stuff.
-
+  @param pController - pointer to ccusb high level controller.
 
 */
 void
-CAcquisitionThread::start(CCCUSB* usb)
-
+CAcquisitionThread::start(CCCUSB* usb, CCCUSBHighLevelController* pController)
 {
   CRunState* pState = CRunState::getInstance();
   pState->setState(CRunState::Active);
@@ -107,6 +109,7 @@ CAcquisitionThread::start(CCCUSB* usb)
 
   CAcquisitionThread* pThread = getInstance();
   m_pCamac = usb;
+  m_pController = pController;
 
 
 
@@ -232,10 +235,11 @@ CAcquisitionThread::mainLoop()
       // Event data from the VM-usb.
       if (m_Running) {
 	size_t bytesRead;
-	int status = m_pCamac->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-				       &bytesRead,
-				       USBTIMEOUT*1000 );
-	if (status == 0) {
+	
+	if (m_pController->readData(
+	  pBuffer->s_rawData,
+	  static_cast<size_t>(pBuffer->s_storageSize), bytesRead, USBTIMEOUT*1000
+	)) {
 	  pBuffer->s_bufferSize = bytesRead;
 	  pBuffer->s_bufferType   = TYPE_EVENTS;
 	  processBuffer(pBuffer);	// Submitted to output thread so...
@@ -355,8 +359,8 @@ CAcquisitionThread::startDaq()
 {
   char junk[100000];
   size_t moreJunk;
-  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
 
+  m_pController->flushBuffers();
   m_pCamac->writeActionRegister(CCCUSB::ActionRegister::clear);
 
 
@@ -373,53 +377,6 @@ CAcquisitionThread::startDaq()
   cerr << "CCUSB located firmware revision: " << hex << fware << dec << endl;
 
 
-  // DEFAULTS SETTINGS FOR TRANSFER
-  // Set up the buffer size and mode:
-  // don't want multibuffering...1sec timeout is fine.
-  m_pCamac->writeUSBBulkTransferSetup(0 << CCCUSB::TransferSetupRegister::timeoutShift);
-
-  // The global mode:
-  //   4kword buffer
-  //   Single event seperator.
-  //   Single header word.
-  //
-  m_pCamac->writeGlobalMode((CCCUSB::GlobalModeRegister::bufferLen4K << CCCUSB::GlobalModeRegister::bufferLenShift));
-
-  // Set up the default  ouptuts, 
-  //  NIM 01  - Busy.
-  //  NIM 02  - Acquire
-  //  NIM 03  - end of busy.
-  m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
-      CCCUSB::OutputSourceRegister::nimO2Acquire |
-      CCCUSB::OutputSourceRegister::nimO3BusyEnd);
-
-  // Process the configuration. This must be done in a way that preserves the
-  // Interpreter since loadStack and Initialize for each stack will need the
-  // interpreter for our support of tcl drivers.
-
-  Globals::pConfig = new CConfiguration;
-  Globals::pConfig->processConfiguration(Globals::configurationFilename);
-  std::vector<CReadoutModule*> Stacks = Globals::pConfig->getStacks();
-
-
-  // The CCUSB has two stacks to load; an event stack and a scaler stack.
-  // though the loop below makes you believe it might have an arbitrary number...
-  // it still should work.
-
-  cerr << "Loading " << Stacks.size() << " Stacks to cc-usb\n";
-  m_haveScalerStack = false;
-  for(int i =0; i < Stacks.size(); i++) {
-    CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
-    assert(pStack);
-    if (pStack->getTriggerType() == CStack::Scaler) {
-      m_haveScalerStack = true;
-    }
-    pStack->Initialize(*m_pCamac);    // INitialize daq hardware associated with the stack.
-    pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
-    pStack->enableStack(*m_pCamac);   // Enable the trigger logic for the stack.
-  }
- 
-
   CCusbToAutonomous();
 
 }
@@ -432,20 +389,11 @@ CAcquisitionThread::startDaq()
 void
 CAcquisitionThread::stopDaq()
 {
-
-  int actionRegister = 0;
-  if (m_haveScalerStack) actionRegister |= CCCUSB::ActionRegister::scalerDump;
-  m_pCamac->writeActionRegister(actionRegister);
-
+  m_pController->stopAcquisition();
 
   drainUsb();
 
-  std::vector<CReadoutModule*> Stacks = Globals::pConfig->getStacks();
-  for(int i =0; i < Stacks.size(); i++) {
-    CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
-    assert(pStack);
-    pStack->onEndRun(*m_pCamac);    // Call onEndRun for daq hardware associated with the stack.
-  }
+  m_pController->performStopOperations();
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 
@@ -498,7 +446,7 @@ CAcquisitionThread::pauseDaq()
 void
 CAcquisitionThread::CCusbToAutonomous()
 {
-  m_pCamac->writeActionRegister(CCCUSB::ActionRegister::startDAQ);
+  m_pController->startAcquisition();
 }
 /*!
   Drain usb - We read buffers from the DAQ (with an extended timeout)
@@ -514,9 +462,11 @@ CAcquisitionThread::drainUsb()
   size_t bytesRead;
   cerr << "CAcquisitionThread::drainUsb...\n";
   do {
-    int status = m_pCamac->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-                                   &bytesRead, DRAINTIMEOUTS*1000); // 5 second timeout!!
-    if (status == 0) {
+    
+    if (m_pController->readData(
+      pBuffer->s_rawData,
+      static_cast<size_t>(pBuffer->s_storageSize), bytesRead, DRAINTIMEOUTS*1000
+    )) {
       pBuffer->s_bufferSize = bytesRead;
       pBuffer->s_bufferType   = TYPE_EVENTS;
       cerr << "Got a buffer, with type header: " << hex << pBuffer->s_rawData[0] << endl;
@@ -535,12 +485,9 @@ CAcquisitionThread::drainUsb()
         uint32_t junk;
         cerr << "Desparate measures being employed to attempt final drain\n";
         m_pCamac->writeActionRegister(CCCUSB::ActionRegister::clear);
-        m_pCamac->writeActionRegister(0);
+        m_pController->stopAcquisition();
         Os::usleep(100);
-        status = m_pCamac->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-            &bytesRead, DRAINTIMEOUTS*1000);
-        cerr << "Final desparate attempt to flush usb fifo got status: " 
-          << status << endl;
+	m_pController->flushBuffers();
         done = true;
       }
     }

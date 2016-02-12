@@ -142,7 +142,7 @@ CBeginRun::operator()(CTCLInterpreter& interp,
 
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
-  pReadout->start(Globals::pUSBController);
+  pReadout->start(Globals::pUSBController, Globals::pController);
 
   interp.setResult("Begin - Run started");
   return TCL_OK;

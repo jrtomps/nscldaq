@@ -46,6 +46,7 @@ using namespace std;		// required for spectrodaq includes.
 class CCCUSB;
 class CReadoutModule;
 class CCCUSBReadoutList;
+class CCCUSBHighLevelController;
 struct DataBuffer;
 
 
@@ -59,7 +60,8 @@ class CAcquisitionThread : public CSynchronizedThread
 {
 private:
   static bool                   m_Running;	//!< thread is running.
-  static CCCUSB*                m_pCamac;		//!< VME interface.
+  static CCCUSB*                m_pCamac;       //!< CAMACinterface.
+  CCCUSBHighLevelController*    m_pController;  // High level controller methods.
 
   bool                          m_haveScalerStack;
 
@@ -76,7 +78,7 @@ public:
   // Thread functions:
 
 public:
-  static void start(CCCUSB* usb);
+  static void start(CCCUSB* usb, CCCUSBHighLevelController* pController);
   static bool isRunning();
   static void waitExit();	/* Wait for this thread to exit (join). */
 
