@@ -2,6 +2,7 @@
 
 #include "CSystemControl.h"
 
+#include <CPreBeginCommand.h>
 #include <CBeginRun.h>
 #include <CEndRun.h>
 #include <CPauseRun.h>
@@ -26,6 +27,7 @@ using namespace std;
 // static data member initialization
 //
 string CSystemControl::m_initScript;
+unique_ptr<CPreBeginCommand> CSystemControl::m_pPreBegin;
 unique_ptr<CBeginRun>  CSystemControl::m_pBeginRun;
 unique_ptr<CEndRun>    CSystemControl::m_pEndRun;
 unique_ptr<CPauseRun>  CSystemControl::m_pPauseRun;
@@ -59,7 +61,8 @@ int CSystemControl::AppInit( Tcl_Interp* interp)
   Globals::pMainInterpreter = new CTCLInterpreter(interp);
   Globals::mainThread     = Tcl_GetCurrentThread();
 
-  m_pBeginRun.reset(new CBeginRun(*Globals::pMainInterpreter));
+  m_pPreBegin.reset(new CPreBeginCommand(*Globals::pMainInterpreter));
+  m_pBeginRun.reset(new CBeginRun(*Globals::pMainInterpreter, m_pPreBegin.get()));
   m_pEndRun.reset(new CEndRun(*Globals::pMainInterpreter));
   m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter));
   m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter));

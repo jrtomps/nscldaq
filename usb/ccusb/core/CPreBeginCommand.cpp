@@ -109,8 +109,14 @@ CPreBeginCommand::performPreBeginInitialization()
     Globals::pController->readConfiguration(
         Globals::configurationFilename.c_str()
     );
+    // Ensure the stack size is ok:
+    
+    if (!Globals::pController->checkStackSize()) {
+        throw std::string("Stacks won't fit in stack memory.");
+    }
+    
     Globals::pController->initializeController();
-    Globals::pController->initializeModules();
+    Globals::pController->initializeModules();    
     Globals::pController->loadStacks();
     ::Globals::pController->performStartOperations();
 }

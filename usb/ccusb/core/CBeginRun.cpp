@@ -29,7 +29,8 @@
 #include <CCCUSB.h>
 #include <CCCUSBReadoutList.h>
 #include <CReadoutModule.h>
-
+#include <CPreBeginCommand.h>
+#include <stdexcept>
 
 static const size_t MAX_STACK_STORAGE(1024);
 
@@ -48,9 +49,11 @@ static const string usage(
   Construct the begin command 
   \param interp : CTCLInterpreter&
      Interpreter on which this command will be registered.
+  @param preBegin - pointer to a pre begin command object.
 */
-CBeginRun::CBeginRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, "begin")
+CBeginRun::CBeginRun(CTCLInterpreter& interp, CPreBeginCommand* preBegin) :
+  CTCLObjectProcessor(interp, "begin"),
+  m_pPreBegin(preBegin)
 {}
 /*!
    Destructor does nothing important.
@@ -91,12 +94,31 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
 
+
   CRunState* pState = CRunState::getInstance();
-  if (pState->getState() != CRunState::Idle) {
+  CRunState::RunState state = pState->getState();
+  
+  if ((state != CRunState::Idle)  && (state != CRunState::Starting)){
     tclUtil::Usage(interp,
 		   "Invalid run state for begin be sure to stop the run",
 		   objv,
 		   usage);
+    return TCL_ERROR;
+  }
+  try {
+    m_pPreBegin->performPreBeginInitialization();
+    
+  }
+  catch (std::exception& e) {
+    interp.setResult(e.what());
+    return TCL_ERROR;
+  }
+  catch (std::string msg) {
+    interp.setResult(msg);
+    return TCL_ERROR;
+  }
+  catch (...) {
+    interp.setResult("begin command - unanticipated exception thrown");
     return TCL_ERROR;
   }
   // Set the state to match the appropriate set of variables:
@@ -117,68 +139,12 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   }
   pState->setTitle(string(titleString));
   
-  // Re-establish connection to the controller:
 
-  Globals::pUSBController->reconnect();
-
-  // Check that the configuration file processes correctly:
-
-  CConfiguration* pConfig = new CConfiguration;
-  Globals::pConfig = pConfig;
-  string errorMessage = "Begin - configuration file processing failed: ";
-  try {
-    pConfig->processConfiguration(Globals::configurationFilename);
-  }
-  catch (string msg) {
-    errorMessage += msg;
-    tclUtil::setResult(interp, errorMessage);
-    return TCL_ERROR;
-  }
-  catch (const char* msg) {
-    errorMessage += msg;
-    tclUtil::setResult(interp, errorMessage);
-    return TCL_ERROR;
-  }
-  catch (CException& e) {
-    errorMessage += e.ReasonText();
-    tclUtil::setResult(interp, errorMessage);
-    return TCL_ERROR;
-  }
-  catch (...) {
-    // Configuration file processing error of some sort...
-
-    tclUtil::setResult(interp, errorMessage);
-    return TCL_ERROR;
-		       
-  }
-  // Figure out how big the stacks are...the two stack + any headers must
-  // fit into the 1Kx16 stack memory the CUSB has:
-  
-  std::vector<CReadoutModule*> stackModules = pConfig->getStacks();
-  size_t totalSize = 0;
-  CCCUSBReadoutList stacks;
-  
-  // Just build one gimungous stack from one or both stacks:
-  
-  for (int i = 0; i < stackModules.size(); i++) {
-    stackModules[i]->addReadoutList(stacks);
-  }
-  if (stacks.size() > MAX_STACK_STORAGE) {
-    tclUtil::setResult(interp, "**** Your configuration file exceeds the maximum stack storage space ****");
-    return TCL_ERROR;
-  }
-  
-  // It did so we can kill it off and start the run.
-  // we kill it off because supporting Tcl drivers requires the configuration be processed a bit specially
-  // so that the interpreter is still around and the Tcl thread model isn't violated.
-  // 
-  // delete pConfig;
-  Globals::pConfig = 0;
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
   pReadout->start(Globals::pUSBController);
 
-  tclUtil::setResult(interp, string("Begin - Run started"));
+  interp.setResult("Begin - Run started");
   return TCL_OK;
 }
 

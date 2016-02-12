@@ -40,6 +40,7 @@
 
 class CTCLInterpreter;
 class CTCLInterpreterObject;
+class CPreBeginCommand;
 
 /*!
     This class provides the begin command for the readout main
@@ -53,9 +54,12 @@ class CTCLInterpreterObject;
 */
 class CBeginRun : public CTCLObjectProcessor
 {
+private:
+  CPreBeginCommand* m_pPreBegin;
+  
   // Canonicals:
 public:
-  CBeginRun(CTCLInterpreter& interp);
+  CBeginRun(CTCLInterpreter& interp, CPreBeginCommand* preBegin);
   virtual ~CBeginRun();
 private:
   CBeginRun(const CBeginRun& rhs);

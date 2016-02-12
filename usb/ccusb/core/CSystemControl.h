@@ -11,6 +11,7 @@ class CTCLInterpreter;
 struct Tcl_Interp;
 struct Tcl_Event;
 
+class CPreBeginCommand;
 class CBeginRun;
 class CEndRun;
 class CPauseRun;
@@ -37,6 +38,8 @@ class CSystemControl
     // various commands that will be registered in the main tcl interpreter
     // we make them unique_ptrs so that their destructors get called at
     // program completion.
+    
+    static std::unique_ptr<CPreBeginCommand> m_pPreBegin;
     static std::unique_ptr<CBeginRun>  m_pBeginRun;
     static std::unique_ptr<CEndRun>    m_pEndRun;
     static std::unique_ptr<CPauseRun>  m_pPauseRun;
