@@ -16,7 +16,7 @@
 
 #include <config.h>
 #include <CConfiguration.h>
-#include "CStack.h"
+#include <CStack.h>
 #include <CReadoutModule.h>
 #include <CCCUSB.h>
 #include <CCCUSBReadoutList.h>
@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <string.h>
 #include <Globals.h>
+#include <CConfiguration.h>
 
 
 #include <iostream>
@@ -56,9 +57,12 @@ bool CStack::m_incrementalScalers(true);
 /*!
    Construct a stack. The work of preparing the configuration and attaching it
    is done in onAttach.
+   
+   @param pConfig - daq configuration.
 */
-CStack::CStack() :
-  m_pConfiguration(0)
+CStack::CStack(CConfiguration* pConfig) :
+  m_pConfiguration(0),
+  m_pDaqConfig(pConfig)
 {}
 
 /*!
@@ -71,6 +75,7 @@ CStack::CStack(const CStack& rhs) :
 {
   if (rhs.m_pConfiguration) {
     m_pConfiguration = new CReadoutModule(*(rhs.m_pConfiguration));
+    m_pDaqConfig     = rhs.m_pDaqConfig;
  
   }
 }
@@ -360,7 +365,7 @@ Returns:
 CStack::StackElements
 CStack::getStackElements()
 {
-  CConfiguration* pConfiguration   = Globals::pConfig;
+  CConfiguration* pConfiguration   = m_pDaqConfig;
   int             argc;
   const char**    argv;
   StackElements   result;

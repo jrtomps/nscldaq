@@ -27,6 +27,7 @@
 #include "Globals.h"
 #include <stdexcept>
 #include <CRunState.h>
+#include <iostream>
 
 
 /**
@@ -106,6 +107,8 @@ CPreBeginCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& o
 void
 CPreBeginCommand::performPreBeginInitialization()
 {
+    std::cerr << "Pre begin starting\n";
+
     Globals::pController->readConfiguration(
         Globals::configurationFilename.c_str()
     );
@@ -119,4 +122,6 @@ CPreBeginCommand::performPreBeginInitialization()
     Globals::pController->initializeModules();    
     Globals::pController->loadStacks();
     ::Globals::pController->performStartOperations();
+    
+    std::cerr << "pre begin done\n";
 }

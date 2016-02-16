@@ -106,7 +106,12 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
   try {
-    m_pPreBegin->performPreBeginInitialization();
+    // If pre-begin not yet performed do it for compatibility with old
+    // controls.
+    
+    if (state == CRunState::Idle) {
+      m_pPreBegin->performPreBeginInitialization();
+    }
     
   }
   catch (std::exception& e) {

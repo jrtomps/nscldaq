@@ -139,7 +139,7 @@ CStackCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
   }
   // This is a unique module so we can create it:
 
-  CStack* pStack = new CStack;
+  CStack* pStack = new CStack(&m_Config);
   pModule    = new CReadoutModule(name, *pStack);
 
 

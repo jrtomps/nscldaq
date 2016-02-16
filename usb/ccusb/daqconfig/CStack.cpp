@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <string.h>
 #include <Globals.h>
+#include <CConfiguration.h>
 
 
 #include <iostream>
@@ -56,9 +57,12 @@ bool CStack::m_incrementalScalers(true);
 /*!
    Construct a stack. The work of preparing the configuration and attaching it
    is done in onAttach.
+   
+   @param pConfig - daq configuration.
 */
-CStack::CStack() :
-  m_pConfiguration(0)
+CStack::CStack(CConfiguration* pConfig) :
+  m_pConfiguration(0),
+  m_pDaqConfig(pConfig)
 {}
 
 /*!
@@ -71,8 +75,10 @@ CStack::CStack(const CStack& rhs) :
 {
   if (rhs.m_pConfiguration) {
     m_pConfiguration = new CReadoutModule(*(rhs.m_pConfiguration));
+   
  
   }
+   m_pDaqConfig     = rhs.m_pDaqConfig;
 }
 
 
@@ -131,7 +137,7 @@ CStack::onAttach(CReadoutModule& configuration)
 
 
   m_pConfiguration->addParameter("-modules",
-				CStack::moduleChecker, NULL, "");
+				CStack::moduleChecker, this, "");
 
 
   // options valid for event stacks:
@@ -360,7 +366,7 @@ Returns:
 CStack::StackElements
 CStack::getStackElements()
 {
-  CConfiguration* pConfiguration   = Globals::pConfig;
+  CConfiguration* pConfiguration   = m_pDaqConfig;
   int             argc;
   const char**    argv;
   StackElements   result;
@@ -429,10 +435,11 @@ Returns:
 bool
 CStack::moduleChecker(string name, string proposedValue, void* arg)
 {
+  CStack*         pObj = reinterpret_cast<CStack*>(arg);
   int             argc;
   const char**    argv;
   int             status;
-  CConfiguration* pConfiguration = Globals::pConfig;
+  CConfiguration* pConfiguration = pObj->m_pDaqConfig;
   string          Name;
   CReadoutModule* pModule;
 

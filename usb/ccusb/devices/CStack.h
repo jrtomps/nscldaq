@@ -47,6 +47,7 @@
 class CReadoutModule;
 class CVMUSB;
 class CVMUSBReadoutList;
+class CConfiguration;
 
 /*!
   The CStack class represents a CC-USB triggered readout list.   
@@ -94,12 +95,13 @@ public:
 private:
   CReadoutModule*    m_pConfiguration;
   static bool        m_incrementalScalers;
+  CConfiguration*    m_pDaqConfig;
 
 
 public:
   // Canonicals:
 
-  CStack();
+  CStack(CConfiguration* pConfig);
   CStack(const CStack& rhs);
   virtual ~CStack();
   CStack& operator=(const CStack& rhs);
