@@ -68,6 +68,7 @@ void
 CCCUSBHighLevelController::readConfiguration(const char* pFilename)
 {
     delete m_pConfiguration;
+    m_pConfiguration = 0;
     m_pConfiguration = new CConfiguration;
     m_pConfiguration->processConfiguration(pFilename);
 }
@@ -251,9 +252,11 @@ CCCUSBHighLevelController::startAcquisition()
 void
 CCCUSBHighLevelController::stopAcquisition()
 {
-    uint16_t actionRegister = 0;
-    if (m_haveScalerStack) actionRegister |= CCCUSB::ActionRegister::scalerDump;
-    m_pController->writeActionRegister(actionRegister);
+    
+    if (m_haveScalerStack) {
+        m_pController->writeActionRegister(CCCUSB::ActionRegister::scalerDump);
+    }
+    m_pController->writeActionRegister(0);
 }
 /**
  * flushBuffers
