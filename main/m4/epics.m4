@@ -67,8 +67,9 @@ fi
 if test $haveepics == "yes"
 then
 	# Have epics:
+        # Note for now assume gcc is the compiler
 
-   EPICS_INCLUDES="-I$epicsroot/include -I$epicsroot/include/os/Linux"
+   EPICS_INCLUDES="-I$epicsroot/include -I$epicsroot/include/os/Linux -I$epicsroot/include/compiler/gcc"
    EPICS_LDFLAGS="-L$epicsroot/lib/$epicsarch -lca -Wl,\"-rpath=$epicsroot/lib/$epicsarch\""
    EPICS_BIN="-DEPICS_BIN=\"\\\"$epicsroot/bin/$epicsarch\\\"\""
 
