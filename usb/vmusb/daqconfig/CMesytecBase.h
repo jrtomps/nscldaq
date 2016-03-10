@@ -42,7 +42,8 @@ public:
   typedef enum _ChainPosition {                // Where module is in a readout chain.
     first,
     middle,
-    last
+    last,
+    only
   } ChainPosition;  
 public:
   // The following functions are used by the madcchain module.

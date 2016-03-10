@@ -562,6 +562,9 @@ CMADC32::setChainAddresses(CVMUSB&                controller,
     controlRegister |= FIRSTDIS | LASTENB;
     cerr << "Last\n";
     break;
+  case only:
+    controlRegister |= FIRSTENB | LASTENB;
+    break;
   }
   cerr << "Setting chain address with " << hex << controlRegister << dec << endl;
 

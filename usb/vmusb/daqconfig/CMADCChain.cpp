@@ -148,6 +148,10 @@ CMADCChain::Initialize(CVMUSB& controller)
       cerr << "Last In chain\n";
       pos = CMADC32::last;
     }
+    if (m_Chain.size() == 1) {
+      cerr << "First and last means only";
+      pos = CMADC32::only;
+    }
     (*i)->Initialize(controller);
     (*i)->setChainAddresses(controller, pos, cbltAddress, mcastAddress);
 
@@ -275,7 +279,7 @@ CMADCChain::moduleChecker(string name, string value, void* arg)
 
   // Check that we have enough elements to make a chain:
 
-  if (argc < 2) {		// Note that zero length lists can be legal!
+  if (argc < 1) {		// Note that zero length lists can be legal!
     Tcl_Free((char*)argv);
     return false;
   }
