@@ -44,7 +44,7 @@ private:
 
 public:
     CVMUSBHighLevelController(CVMUSB& controller);
-    virtual ~CVMSUBHighLevelController();
+    virtual ~CVMUSBHighLevelController();
     
     // Controlle high level operations:
 public:
@@ -57,7 +57,7 @@ public:
     void performStopOperations();
     void startAcquisition();
     void stopAcquisition();
-    void flushBuffers();
+    void flushBuffers(); 
     void reconnect();
     bool checkStackSize();
     bool readData(void* pBuffer, size_t maxBytes, size_t& bytesRead, int timeout);    
