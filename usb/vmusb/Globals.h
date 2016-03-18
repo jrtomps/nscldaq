@@ -37,6 +37,7 @@ class CVMUSB;
 class TclServer;
 class CTCLInterpreter;
 class COutputThread;
+class CVMUSBHighLevelController;
 
 
 /*!
@@ -64,6 +65,7 @@ namespace Globals {
   extern Tcl_ThreadId           mainThreadId;
   extern CTCLInterpreter*       pMainInterpreter;
   extern COutputThread*  pOutputThread;
+  extern CVMUSBHighLevelController* pHLController;
 };
 
 #endif

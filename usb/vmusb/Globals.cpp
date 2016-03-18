@@ -25,6 +25,7 @@ class CVMUSB;
 class TclServer;
 class CTCLInterpreter;
 class COutputThread;
+class CVMUSBHighLevelController;
 
 
 namespace Globals {
@@ -41,4 +42,5 @@ namespace Globals {
   Tcl_ThreadId           mainThreadId = 0;
   CTCLInterpreter*       pMainInterpreter = 0;
   COutputThread*      pOutputThread = 0;
+  CVMUSBHighLevelController* pHLController = 0;
 };
