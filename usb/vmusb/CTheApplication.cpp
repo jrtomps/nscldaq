@@ -38,6 +38,7 @@
 #include <CControlQueues.h>
 
 #include <CPortManager.h>
+#include <CVMUSBHighLevelController.h>
 
 #include <vector>
 #include <cstdlib>
@@ -179,6 +180,7 @@ int CTheApplication::operator()(int argc, char** argv)
 #endif
 
     Globals::pUSBController  = CVMUSBFactory::createUSBController(type, connectionString);
+    Globals::pHLController   = new CVMUSBHighLevelController(*Globals::pUSBController);
     
     std::cerr << "Attached VMUSB controller with firmware: " << std::hex << 
       Globals::pUSBController->readFirmwareID() << std::dec << std::endl;
