@@ -17,6 +17,7 @@ class CPauseRun;
 class CResumeRun;
 class CInit;
 class CExit;
+class CPreBeginCommand;
 
 /*! \brief Encapsulation of UI control 
  *
@@ -43,6 +44,7 @@ class CSystemControl
     static std::unique_ptr<CResumeRun> m_pResumeRun;
     static std::unique_ptr<CInit>      m_pInit;
     static std::unique_ptr<CExit>      m_pExit;
+    static std::unique_ptr<CPreBeginCommand> m_pPreBegin;
 
   public:
 
