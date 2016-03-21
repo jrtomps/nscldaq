@@ -51,6 +51,34 @@ below.  The lack of an optional feature in a given package is not
 necessarily a bug.  More recommendations for GNU packages can be found
 in *note Makefile Conventions: (standards)Makefile Conventions.
 
+fox@charlie:/scratch/fox/daq/daq.git$ cit cat INSTALL
+-bash: cit: command not found
+fox@charlie:/scratch/fox/daq/daq.git$ gat INSTALL
+-bash: gat: command not found
+fox@charlie:/scratch/fox/daq/daq.git$ cat INSTALL
+Installation Instructions
+*************************
+
+Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005,
+2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+
+   Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without warranty of any kind.
+
+Basic Installation
+==================
+
+   Briefly, the shell commands `./configure; make; make install' should
+configure, build, and install this package.  The following
+more-detailed instructions are generic; see the `README' file for
+instructions specific to this package.  Some packages provide this
+`INSTALL' file but do not implement all of the features documented
+below.  The lack of an optional feature in a given package is not
+necessarily a bug.  More recommendations for GNU packages can be found
+in *note Makefile Conventions: (standards)Makefile Conventions.
+
    The `configure' shell script attempts to guess correct values for
 various system-dependent variables used during compilation.  It uses
 those values to create a `Makefile' in each directory of the package.
