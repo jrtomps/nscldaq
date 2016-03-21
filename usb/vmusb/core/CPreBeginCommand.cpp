@@ -57,7 +57,7 @@ CPreBeginCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& o
     
     try {
        requireExactly(1, objv, "prebegin does not allow any parameters");
-       
+       perform();
     }
     catch (const char* msg) {
         interp.setResult(msg);
