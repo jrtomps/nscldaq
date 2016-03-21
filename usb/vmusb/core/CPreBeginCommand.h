@@ -44,8 +44,9 @@ class CPreBeginCommand : public CTCLObjectProcessor
 {
 public:
     CPreBeginCommand(CTCLInterpreter& interp);
-    virtual ~CPreBeginCommand();
+    virtual ~CPreBeginCommand();1
     int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void perform();
 };
 
 #endif
