@@ -97,7 +97,7 @@ CBeginRun::operator()(CTCLInterpreter& interp,
 
   CRunState* pState = CRunState::getInstance();
   CRunState::RunState state = pState->getState();
-  if ((state != CRunState::Idle) && (state != CRunSsate::starting)) {
+  if ((state != CRunState::Idle) && (state != CRunState::Starting)) {
     tclUtil::Usage(interp,
 		   "Invalid run state for begin be sure to stop the run",
 		   objv,
@@ -109,8 +109,8 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   
   // If we are idle -- need to prebegin:
   
-  if (state == CRunState::idle)  {
-    m_pPreBegin->perform();                      // Pre begin operations.
+  if (state == CRunState::Idle)  {
+    m_preBegin->perform();                      // Pre begin operations.
   }
   // Now the state is 'starting'.
   
