@@ -23,7 +23,7 @@ East Lansing, MI 48824-1321
 #ifndef CPREBEGINCOMMAND_H
 #define CPREBEGINCOMMAND_H
 
-#include <TCLObbjectProcessor.h>
+#include <TCLObjectProcessor.h>
 
 class CTCLInterpreter;
 class CTCLObject;

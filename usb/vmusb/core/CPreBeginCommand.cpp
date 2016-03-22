@@ -20,7 +20,7 @@ East Lansing, MI 48824-1321
  */
 
 #include "CPreBeginCommand.h"
-#include <TCLObjectProcessor.h>
+#include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <Exception.h>
 
