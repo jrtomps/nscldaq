@@ -94,6 +94,7 @@ CPreBeginCommand::perform()
     }
     
     Globals::pHLController->reconnect();
+    Globals::pHLController->stopAcquisition();
     
     // Read the configuration -- check stacksize
        
