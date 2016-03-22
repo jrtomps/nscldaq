@@ -56,7 +56,7 @@ CPreBeginCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& o
     bindAll(interp, objv);
     
     try {
-       requireExactly(1, objv, "prebegin does not allow any parameters");
+       requireExactly( objv, 1, "prebegin does not allow any parameters");
        perform();
     }
     catch (const char* msg) {
@@ -89,7 +89,7 @@ CPreBeginCommand::perform()
     CRunState* pState = CRunState::getInstance();
     // Ensure the run state is idle:
        
-    if (pState->getState() != CRunState::idle) {
+    if (pState->getState() != CRunState::Idle) {
      throw std::logic_error("prebegin - run state is incorrect must be 'idle'.");
     }
     
@@ -98,9 +98,9 @@ CPreBeginCommand::perform()
     
     // Read the configuration -- check stacksize
        
-    Globals::pHLController->readConfiguration(Globals::configurationFilename);
-    if(!checkStackSize()) {
-     throw std::system_error("prebegin - the stack sizes requested by the configuration won't fit in the VMUSB");
+    Globals::pHLController->readConfiguration(Globals::configurationFilename.c_str());
+    if(!::Globals::pHLController->checkStackSize()) {
+     throw std::invalid_argument("prebegin - the stack sizes requested by the configuration won't fit in the VMUSB");
     }
     // Initialize the controller and the hardware.
     
