@@ -52,7 +52,7 @@ static const size_t MAX_STACK_STORAGE(4096/sizeof(uint32_t));
      Interpreter on which this command will be registered.
   @param pre - pointer to the pre-begin command we use for our pre-begin run actions.
 */
-CBeginRun::CBeginRun(CTCLInterpreter& interp, CPreBeginCommand* pre)) :
+CBeginRun::CBeginRun(CTCLInterpreter& interp, CPreBeginCommand* pre) :
   CTCLObjectProcessor(interp, "begin"), m_preBegin(0)
 {
     m_preBegin = pre;
