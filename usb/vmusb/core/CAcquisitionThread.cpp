@@ -542,7 +542,7 @@ CAcquisitionThread::endRun()
   void
 CAcquisitionThread::bootToTheHead()
 {
-  ::Globals::pHLcontroller->stopAcquisition();
+  ::Globals::pHLController->stopAcquisition();
   ::Globals::pHLController->flushBuffers();
 
 }
