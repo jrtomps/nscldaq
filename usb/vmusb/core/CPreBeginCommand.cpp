@@ -93,6 +93,8 @@ CPreBeginCommand::perform()
      throw std::logic_error("prebegin - run state is incorrect must be 'idle'.");
     }
     
+    Globals::pHLController->reconnect();
+    
     // Read the configuration -- check stacksize
        
     Globals::pHLController->readConfiguration(Globals::configurationFilename);

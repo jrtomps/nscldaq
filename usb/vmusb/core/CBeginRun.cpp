@@ -49,10 +49,13 @@ static const size_t MAX_STACK_STORAGE(4096/sizeof(uint32_t));
   Construct the begin command 
   \param interp : CTCLInterpreter&
      Interpreter on which this command will be registered.
+  @param pre - pointer to the pre-begin command we use for our pre-begin run actions.
 */
-CBeginRun::CBeginRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, "begin")
-{}
+CBeginRun::CBeginRun(CTCLInterpreter& interp, CPreBeginCommand* pre)) :
+  CTCLObjectProcessor(interp, "begin"), m_preBegin(0)
+{
+    m_preBegin = pre;
+}
 /*!
    Destructor does nothing important.
 */
@@ -93,13 +96,24 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   }
 
   CRunState* pState = CRunState::getInstance();
-  if (pState->getState() != CRunState::Idle) {
+  CRunState::RunState state = pState->getState();
+  if ((state != CRunState::Idle) && (state != CRunSsate::starting)) {
     tclUtil::Usage(interp,
 		   "Invalid run state for begin be sure to stop the run",
 		   objv,
 		   usage);
     return TCL_ERROR;
   }
+ 
+  Globals::pConfig = new CConfiguration;
+  
+  // If we are idle -- need to prebegin:
+  
+  if (state == CRunState::idle)  {
+    m_pPreBegin->perform();                      // Pre begin operations.
+  }
+  // Now the state is 'starting'.
+  
   // Set the state to match the appropriate set of variables:
   //
   CTCLVariable run(&interp, "run", false);
@@ -120,61 +134,6 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   
   // Now we can start the run.
 
-  Globals::pConfig = new CConfiguration;
-  string errorMessage = "begin - Configuration file processing failed: ";
-  try {
-    Globals::pConfig->processConfiguration(Globals::configurationFilename);
-  }
-  catch (string msg) {
-    errorMessage += msg;
-    tclUtil::setResult(interp,  errorMessage);
-    return TCL_ERROR;
-  }
-  catch (const char* msg) {
-    errorMessage += msg;
-    tclUtil::setResult(interp, errorMessage);
-    return TCL_ERROR;
-  }
-  catch (CException& e) {
-    errorMessage += e.ReasonText();
-    tclUtil::setResult(interp, errorMessage);
-    return TCL_ERROR;
-  }
-  catch (...) {
-    // Configuration file processing error of some sort...
-
-    tclUtil::setResult(interp, errorMessage);
-    return TCL_ERROR;
-		       
-  }
-  // Now size the stacks and exit with error/message if there's not enough
-  // stack storage for all the stacks.  note that each stack has a 2 longword
-  // header in addition to its actual size.
-  
-  std::vector<CReadoutModule*> stacks = Globals::pConfig->getStacks();
-  size_t headerSize = 0;
-  CVMUSBReadoutList fullstack;
-  for (int i =0; i < stacks.size(); i++) {
-    stacks[i]->addReadoutList(fullstack);
-    headerSize += 2;
-  }
-  // If there's a monitor list, fold it in too:
-
-  if (::Globals::pTclServer->getMonitorList().size() > 0) {
-    headerSize += 2 + ::Globals::pTclServer->getMonitorList().size();
-  }
-
-  if ((fullstack.size() + headerSize) > MAX_STACK_STORAGE) {
-    tclUtil::setResult(interp,
-        "***  Your readout configuration overflows the available stack space ***");
-    return TCL_ERROR;
-  }
-  
-  pState->setState(CRunState::Starting);     // Prevent monitor thread for accessing.
-
-  // Reconnect the VM-USB:
-
-  Globals::pUSBController->reconnect();
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
   pReadout->start(Globals::pUSBController);
