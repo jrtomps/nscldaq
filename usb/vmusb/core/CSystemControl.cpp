@@ -78,13 +78,14 @@ int CSystemControl::AppInit( Tcl_Interp* interp)
 
   Globals::pMainInterpreter = new CTCLInterpreter(interp);
 
-  m_pBeginRun.reset(new CBeginRun(*Globals::pMainInterpreter));
+  m_pPreBegin.reset(new CPreBeginCommand(*Globals::pMainInterpreter));
+  m_pBeginRun.reset(new CBeginRun(*Globals::pMainInterpreter, m_pPreBegin.get()));
   m_pEndRun.reset(new CEndRun(*Globals::pMainInterpreter));
   m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter));
   m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter));
   m_pInit.reset(new CInit(*Globals::pMainInterpreter));
   m_pExit.reset(new CExit(*Globals::pMainInterpreter));
-  m_pPreBegin.reset(new CPreBeginCommand(*Globals::pMainInterpreter));
+ 
   
   // If there's an initialization script then run it now:
   
