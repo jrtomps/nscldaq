@@ -12,7 +12,7 @@ libVMUSBCore_la_SOURCES	= CAcquisitionThread.cpp 	\
 													CInit.cpp \
 													CExit.cpp  \
 													TclServer.cpp \
-													Server.cpp \
+													server.cpp \
 													serverinstance.cpp \
 													CRunStateCommand.cpp  \
 													CGetCommand.cpp  \
