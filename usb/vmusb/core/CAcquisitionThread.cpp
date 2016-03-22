@@ -36,6 +36,7 @@ East Lansing, MI 48824-1321
 #include <TclServer.h>
 #include <os.h>
 #include <tcl.h>
+#include <CVMUSBHighLevelController.h>
 
 #include <iostream>
 
