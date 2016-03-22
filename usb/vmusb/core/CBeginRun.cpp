@@ -29,6 +29,7 @@
 #include <CVMUSBReadoutList.h>
 #include <CReadoutModule.h>
 #include <TclServer.h>
+#include <CPreBeginCommand.h>
 
 using std::vector;
 using std::string;
