@@ -10,11 +10,11 @@ unittests_SOURCES = @srcdir@/TestRunner.cpp \
 		@srcdir@/cxlmcontrolstest.cpp \
 		@srcdir@/cvmusbmoduletest.cpp \
 		@srcdir@/cwienermdgg16test.cpp \
+		@top_srcdir@/usb/vmusb/Globals.cpp	\
 		@srcdir@/cmdgg16controltest.cpp 
 
 
-unittests_LDADD = @top_builddir@/usb/vmusb/core/libVMUSBCore.la \
-		@top_builddir@/Globals.lo
+unittests_LDADD = @top_builddir@/usb/vmusb/core/libVMUSBCore.la \1111
 		@top_builddir@/usb/vmusb/ctlconfig/libVMUSBCtlConfig.la \
 		@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 		@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
