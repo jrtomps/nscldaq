@@ -10,7 +10,6 @@ unittests_SOURCES = @srcdir@/TestRunner.cpp \
 		@srcdir@/cxlmcontrolstest.cpp \
 		@srcdir@/cvmusbmoduletest.cpp \
 		@srcdir@/cwienermdgg16test.cpp \
-		@top_srcdir@/usb/vmusb/Globals.cpp	\
 		@srcdir@/cmdgg16controltest.cpp 
 
 

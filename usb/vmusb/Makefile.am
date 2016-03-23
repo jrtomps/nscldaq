@@ -35,13 +35,13 @@ VMUSBReadout_CXXFLAGS= \
 
 VMUSBReadout_CCFLAGS=@THREADC_FLAGS@
 
-VMUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp 
+VMUSBReadout_SOURCES = CTheApplication.cpp 
 
 VMUSBReadout_DEPENDENCIES = cmdline.o
 
 BUILT_SOURCES = cmdline.h
 
-noinst_HEADERS = CTheApplication.h Globals.h event.h
+noinst_HEADERS = CTheApplication.h event.h
 
 
 

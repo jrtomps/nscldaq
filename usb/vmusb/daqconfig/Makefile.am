@@ -132,6 +132,7 @@ libVMUSBDaqConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
 libVMUSBDaqConfig_la_CPPFLAGS = \
 				-I@top_srcdir@/usb/common/configurableobject \
 				-I@top_srcdir@/usb/vmusb			\
+				-I@top_srcdir@/usb/vmusb/core			\
 				-I@top_srcdir@/usb/vmusb/vmusb			\
 				-I@top_srcdir@/usb/common/devices		\
 				@LIBTCLPLUS_CFLAGS@			\
