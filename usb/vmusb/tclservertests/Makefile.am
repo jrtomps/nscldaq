@@ -14,6 +14,7 @@ unittests_SOURCES = @srcdir@/TestRunner.cpp \
 
 
 unittests_LDADD = @top_builddir@/usb/vmusb/core/libVMUSBCore.la \
+		@top_builddir@/Globals.lo
 		@top_builddir@/usb/vmusb/ctlconfig/libVMUSBCtlConfig.la \
 		@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 		@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
