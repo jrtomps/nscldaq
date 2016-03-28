@@ -181,7 +181,7 @@ int CTheApplication::operator()(int argc, char** argv)
 
     Globals::pUSBController  = CVMUSBFactory::createUSBController(type, connectionString);
     Globals::pHLController   = new CVMUSBHighLevelController(*Globals::pUSBController);
-    
+    Globals::pHLController->flushBuffers(); 
     std::cerr << "Attached VMUSB controller with firmware: " << std::hex << 
       Globals::pUSBController->readFirmwareID() << std::dec << std::endl;
 
