@@ -23,6 +23,7 @@
 #include <CReadoutHardware.h>
 #include <Exception.h>
 #include <Globals.h>
+#include <CVMUSBHighLevelController.h>
 
 using namespace std;
 
@@ -404,7 +405,7 @@ CUserCommand::configMessage(std::string base,
 void
 CUserCommand::addDriver(std::string command, CReadoutHardware* pTemplateObject)
 {
-  CConfiguration* pConfig = Globals::pConfig;
+  CConfiguration* pConfig = Globals::pHLController->getConfig();
   new CUserCommand(*(pConfig->getInterpreter()),
 		   *pConfig, command, pTemplateObject);
 }

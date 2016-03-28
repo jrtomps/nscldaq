@@ -263,7 +263,7 @@ CDeviceCommand::Usage(
   result += "Usage\n";
   result += "    ";
   result += cmdName;
-  result += "  create name -slot n\n";
+  result += "  create name\n";
   result += "    ";
   result += cmdName;
   result += " config name config-params...\n";

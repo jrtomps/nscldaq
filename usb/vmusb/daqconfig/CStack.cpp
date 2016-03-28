@@ -25,6 +25,7 @@
 #include <tcl.h>
 #include <Globals.h>
 #include <stdlib.h>
+#include <CVMUSBHighLevelController.h>
 
 #include <set>
 
@@ -533,7 +534,7 @@ Returns:
 CStack::StackElements
 CStack::getStackElements()
 {
-  CConfiguration* pConfiguration   = Globals::pConfig;
+  CConfiguration* pConfiguration   = Globals::pHLController->getConfig();
   int             argc;
   const char**    argv;
   StackElements   result;
@@ -607,7 +608,7 @@ CStack::moduleChecker(string name, string proposedValue, void* arg)
   int             argc;
   const char**    argv;
   int             status;
-  CConfiguration* pConfiguration = Globals::pConfig;
+  CConfiguration* pConfiguration = Globals::pHLController->getConfig();
   string          Name;
   CReadoutModule* pModule;
 

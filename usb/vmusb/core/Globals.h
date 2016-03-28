@@ -52,7 +52,7 @@ class CVMUSBHighLevelController;
 */
 
 namespace Globals {
-  extern CConfiguration* pConfig;
+  extern CConfiguration* pConfig;             // For tests.
   extern std::string     configurationFilename;
   extern std::string     controlConfigFilename;
   extern CVMUSB*         pUSBController;

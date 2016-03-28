@@ -26,6 +26,7 @@
 #include <CConfiguration.h>
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
+#include <CVMUSBHighLevelController.h>
 
 
 #include <tcl.h>
@@ -135,7 +136,7 @@ CHiRA::Initialize(CVMUSB& controller)
 
   // If we can't get a module that's an error:
 
-  CConfiguration* pConfig = Globals::pConfig;
+  CConfiguration* pConfig = Globals::pHLController->getConfig();
   CReadoutModule* pXLM = pConfig->findAdc(xlm);
   if (!pXLM) {
     throw std::string("-xlm must define a module and does not");
@@ -175,7 +176,7 @@ CHiRA::addReadoutList(CVMUSBReadoutList& list)
 
   // Locate the fadc.
 
-  CConfiguration* pConfig = Globals::pConfig;
+  CConfiguration* pConfig = Globals::pHLController->getConfig();
   
   CReadoutModule* pFADC = pConfig->findAdc(fadc);
   
@@ -227,7 +228,7 @@ CHiRA::clone() const
 bool
 CHiRA::isModule(std::string name, std::string value, void* pArg)
 {
-  CConfiguration* pConfiguration = Globals::pConfig;
+  CConfiguration* pConfiguration = Globals::pHLController->getConfig();
 
   return (pConfiguration->findAdc(value) != NULL);
 

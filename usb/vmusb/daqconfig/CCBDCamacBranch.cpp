@@ -8,6 +8,7 @@
 #include "Globals.h"
 #include <tcl.h>
 #include "CConfiguration.h"
+#include <CVMUSBHighLevelController.h>
 
 CCBDCamacBranch::CCBDCamacBranch() 
 : CReadoutHardware(), 
@@ -184,7 +185,7 @@ void CCBDCamacBranch::onEndRun(CVMUSB& controller)
 CCBDCamacBranch::BranchElements CCBDCamacBranch::getBranchElements()
 {
 
-    CConfiguration* pConfiguration   = Globals::pConfig;
+    CConfiguration* pConfiguration   = Globals::pHLController->getConfig();
     int             argc;
     const char**    argv;
     BranchElements   result;
@@ -235,7 +236,7 @@ bool CCBDCamacBranch::crateChecker(std::string name, std::string proposedValue, 
   int             argc;
   const char**    argv;
   int             status;
-  CConfiguration* pConfiguration = Globals::pConfig;
+  CConfiguration* pConfiguration = Globals::pHLController->getConfig();
   std::string          Name;
   CReadoutModule* pModule;
 

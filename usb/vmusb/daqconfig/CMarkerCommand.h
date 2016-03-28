@@ -88,6 +88,11 @@ public:
 private:
   virtual int create(CTCLInterpreter& interp, 
 		     std::vector<CTCLObject>& objv);
+protected:
+    virtual void Usage(
+        CTCLInterpreter& interp, std::string msg,
+        std::vector<CTCLObject> objv
+    );
 };
 
 #endif

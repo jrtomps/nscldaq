@@ -127,7 +127,7 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				MQDC32Registers.h
 
 
-libVMUSBDaqConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
+libVMUSBDaqConfig_la_CXXFLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/core
 
 libVMUSBDaqConfig_la_CPPFLAGS = \
 				-I@top_srcdir@/usb/common/configurableobject \
@@ -144,6 +144,7 @@ libVMUSBDaqConfig_la_CPPFLAGS = \
 libVMUSBDaqConfig_la_LIBADD	= \
 				@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 				@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
+				@top_builddir@/usb/vmusb/core/libVMUSBCore.la \
 				@LIBTCLPLUS_LDFLAGS@	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 

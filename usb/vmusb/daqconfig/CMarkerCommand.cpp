@@ -123,3 +123,40 @@ CMarkerCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
   return TCL_OK;
   
 }
+
+/**
+ * Usage
+ *    Sets the interpreter result to a usage string.
+ *
+ *  @param interp - Intepreter whose result gets set.
+ *  @param msg    - Base message.
+ *  @param objv   - Command word vector.
+ */
+void
+CMarkerCommand::Usage(
+  CTCLInterpreter& interp, std::string msg, std::vector<CTCLObject> objv
+)
+{
+  std::string result("ERROR: ");
+  std::string cmdName = objv[0];
+
+  result += msg;
+  result += "\n";
+  for (int i = 0; i < objv.size(); i++) {
+    result += std::string(objv[i]);
+    result += ' ';
+  }
+  result += "\n";
+  result += "Usage\n";
+  result += "    ";
+  result += cmdName;
+  result += "  create name value\n";
+  result += "    ";
+  result += cmdName;
+  result += " config name config-params...\n";
+  result += "    ";
+  result += cmdName;
+  result += " cget name";
+  
+  interp.setResult(result);  
+}

@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <string.h>
 #include "MADC32Registers.h"
+#include <CVMUSBHighLevelController.h>
 
 #include <iostream>
 #include <unistd.h>
@@ -243,7 +244,7 @@ CMADCChain::getModules()
 void
 CMADCChain::namesToList(list<string> moduleNames)
 {
-  CConfiguration*   pModules = Globals::pConfig;
+  CConfiguration*   pModules = Globals::pHLController->getConfig();
   m_Chain.clear();
 
 
@@ -287,7 +288,7 @@ CMADCChain::moduleChecker(string name, string value, void* arg)
   // dynamic_cast is used to ensure the C785-edness of CReadoutModule
   // pointers as it uses RTTI to ensure the cast is truly compatible.
   
-  CConfiguration* pConfiguration = Globals::pConfig;
+  CConfiguration* pConfiguration = Globals::pHLController->getConfig();
   
   
   for (int i = 0; i < argc; i++) {

@@ -46,7 +46,7 @@ public:
     CVMUSBHighLevelController(CVMUSB& controller);
     virtual ~CVMUSBHighLevelController();
     
-    // Controlle high level operations:
+    // Controller high level operations:
 public:
     void readConfiguration(const char* pFilename);
     void initializeModules();
@@ -60,7 +60,9 @@ public:
     void flushBuffers(); 
     void reconnect();
     bool checkStackSize();
-    bool readData(void* pBuffer, size_t maxBytes, size_t& bytesRead, int timeout);    
+    bool readData(void* pBuffer, size_t maxBytes, size_t& bytesRead, int timeout);
+    
+    CConfiguration* getConfig() { return m_pConfiguration;}
 };
 
 #endif

@@ -106,7 +106,6 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
  
-  Globals::pConfig = new CConfiguration;
   
   // If we are idle -- need to prebegin:
   

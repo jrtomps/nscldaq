@@ -70,7 +70,7 @@ protected:
         std::string base, std::string key, std::string value,
         std::string errorMessage
     );
-    void Usage(
+    virtual void Usage(
         CTCLInterpreter& interp, std::string msg,
         std::vector<CTCLObject> objv
     );
