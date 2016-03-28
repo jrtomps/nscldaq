@@ -14,6 +14,11 @@
 
 #include "CConfiguration.h"
 
+// NOTE:
+//     If we ever make the HiRA driver validate modules we need to modify this
+//     to use a CVMUSBHighLevelController object since that's how things are done
+//     nowadays --- and that's where the configuration is actually stored/located
+//     by the static validators in that class.
 
 namespace Globals {
   extern CConfiguration* pConfig;
