@@ -330,7 +330,6 @@ TclServer::EventLoop()
   while(!m_exitNow) {
     Tcl_DoOneEvent(TCL_ALL_EVENTS);
   }
- std::cerr << "The Tcl Server event loop has exited.\n"; 
 }
 
 
@@ -439,7 +438,6 @@ TclServer::MonitorDevices(void* pData)
 {
   TclServer* pObject = reinterpret_cast<TclServer*>(pData);
 
-
   // If the run is active  we just trigger list 7.
   // otherwise we execute the list immediate and ship the data around
   // to the various devices... however if the run isin transition
@@ -473,7 +471,6 @@ TclServer::MonitorDevices(void* pData)
 	
     }						 
   }
-
   Tcl_Interp* pInterp = pObject->m_pInterpreter->getInterpreter();
   Tcl_CreateTimerHandler(MonitorInterval*1000, TclServer::MonitorDevices, pData);
 }
@@ -536,6 +533,7 @@ TclServer::receiveMonitorData(Tcl_Event* pEvent, int flags)
     }
     memcpy(&(pServer->m_pMonitorData)[pServer->m_nMonitorDataSize], &pData[1], nWords*sizeof(uint16_t));
     pServer->m_nMonitorDataSize += nWords;
+    
     
     // If the continuation bit is not set we can process the data:
     

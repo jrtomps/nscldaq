@@ -259,6 +259,7 @@ COutputThread::processBuffer(DataBuffer& buffer)
     startRun(buffer);
   }
   else if (buffer.s_bufferType == TYPE_STOP) {
+    std::cerr << "Stop item\n";
     endRun(buffer);
   }
   
@@ -375,6 +376,7 @@ COutputThread::endRun(DataBuffer& buffer)
   timespec microdiff;
   mytimersub(&microtime, &m_startTimestamp, &microdiff);
   
+  std::cerr << "queueing end run item\n";
   CRingStateChangeItem end(NULL_TIMESTAMP, Globals::sourceId, BARRIER_END,
                            END_RUN,
 			   m_runNumber,

@@ -375,7 +375,6 @@ COutputThread::endRun(DataBuffer& buffer)
 			   m_title);
 
   end.commitToRing(*m_pRing);
-			   
 
 
 }
