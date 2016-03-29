@@ -208,6 +208,7 @@ void CAcquisitionThread::operator()()
     errorMessage = err.ReasonText();
   }
   catch (...) {
+    std::cerr << "Acquisition thread exiting\n";
     //  This is a normal exit...
   }
   Globals::running = false;
@@ -215,7 +216,7 @@ void CAcquisitionThread::operator()()
   CRunState* pState = CRunState::getInstance();
   pState->setState(CRunState::Idle);
   endRun();			// Emit end run buffer.
-
+  std::cerr << "End run item emitted .. VMUSB already stopped\n";
   // If there's an error message report the error to the main thread:
 
   if (errorMessage != "") {
@@ -226,7 +227,7 @@ void CAcquisitionThread::operator()()
   Globals::running = false;
   pState->setState(CRunState::Idle);
   m_Running = false;
-
+  std::cerr << "Acquisition thread exiting\n";
 }
 
 /*!

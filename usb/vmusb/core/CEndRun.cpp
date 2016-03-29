@@ -77,11 +77,14 @@ CEndRun::operator()(CTCLInterpreter& interp,
   // Now stop the run...that is if the acquisition thread is still running
 
   if(CAcquisitionThread::getInstance()->isRunning()) {
+    std::cerr << "Acquisition thread is running requesting stop\n";
     CControlQueues* pRequest = CControlQueues::getInstance();
     pRequest->EndRun();
   
+    std::cerr << "Joining with acqthread\n";
   
     CAcquisitionThread::waitExit();
+    std::cerr << "Join complete\n";
   }
 
   pState->setState(CRunState::Idle);
