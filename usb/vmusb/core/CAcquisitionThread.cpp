@@ -216,9 +216,6 @@ void CAcquisitionThread::operator()()
   pState->setState(CRunState::Idle);
   endRun();			// Emit end run buffer.
 
-
-  m_Running = false;		// Exiting.
-
   // If there's an error message report the error to the main thread:
 
   if (errorMessage != "") {
