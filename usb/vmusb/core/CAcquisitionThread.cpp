@@ -367,7 +367,7 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   // The output thread get all other stack data and will ensure that
   // stack 1 completions are scalers and all others are events.
 
-  if ((pBuffer->s_bufferType == TYPE_EVENTS) &&((pBuffer->s_rawData[1] >> 13) & 0x7) == 7) {
+  if ((pBuffer->s_bufferType == TYPE_EVENTS) &&((pBuffer->s_rawData[0] >> 13) & 0x7) == 7) {
     ::Globals::pTclServer->QueueBuffer(pBuffer);
     gFreeBuffers.queue(pBuffer);
 

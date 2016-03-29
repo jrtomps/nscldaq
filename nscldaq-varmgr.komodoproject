@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Komodo Project File - DO NOT EDIT -->
 <project id="22af942e-dbcd-48ba-9de3-43e803a0ba73" kpf_version="5" name="nscldaq-varmgr.komodoproject">
+<preference-set idref="22af942e-dbcd-48ba-9de3-43e803a0ba73" id="project" preftype="project">
+  <long id="prefs_version">1</long>
+</preference-set>
 </project>
