@@ -217,7 +217,6 @@ void CAcquisitionThread::operator()()
   endRun();			// Emit end run buffer.
 
 
-  m_Running = false;		// Exiting.
 
   // If there's an error message report the error to the main thread:
 
@@ -226,9 +225,11 @@ void CAcquisitionThread::operator()()
     return;
   }
 
+  sleep(4);                         // Seems to need some time for the VMUSB to settle.
   Globals::running = false;
   pState->setState(CRunState::Idle);
   m_Running = false;
+ 
 
 }
 
