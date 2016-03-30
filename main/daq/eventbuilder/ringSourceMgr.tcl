@@ -67,9 +67,10 @@ namespace eval ::RingSourceMgr {
 # @param oneshot    If provided number of ends that result in exit.
 # @param timeout    If provided, timeout in seconds after first end to wait for all ends
 #                   in --oneshot mode.
+# @param offset     Time offset added to the timestamp from this source.
 #
 proc ::RingSourceMgr::addSource [list source tstamplib {id ""} \
-  {info ""} {expectHeaders 0} {oneshot ""} {timeout ""} ] {
+  {info ""} {expectHeaders 0} {oneshot ""} {timeout ""} {offset 0} ] {
     variable sourceDict
 
     # there will only ever be 1 ringFragmentSource launched per ring at a given a time
@@ -80,6 +81,7 @@ proc ::RingSourceMgr::addSource [list source tstamplib {id ""} \
       expecthdrs $expectHeaders \
       oneshot    $oneshot       \
       timeout    $timeout       \
+      offset     $offset        \
       fd ""]
     
     
@@ -166,7 +168,7 @@ proc ::RingSourceMgr::resetSources {} {
 #
 # @returns file handle
 proc ::RingSourceMgr::startSource {sourceRingUrl timestampExtractorLib id info
-  {expectHeaders 0} {oneshot ""} {timeout ""} } {
+  {expectHeaders 0} {oneshot ""} {timeout ""} {offset 0} } {
 
   set port [::RingSourceMgr::getOrdererPort]
   #  Construct the command we're going to run
@@ -177,7 +179,7 @@ proc ::RingSourceMgr::startSource {sourceRingUrl timestampExtractorLib id info
     $timestampExtractorLib \
     $id \
     $info \
-    $expectHeaders $oneshot $timeout]
+    $expectHeaders $oneshot $timeout $offset]
 
   append ringSource $switches
 
@@ -312,10 +314,11 @@ namespace eval ::RingSourceMgr {
 # @param expectHeaders    boolean to specify --expectbodyheaders flag
 # @param oneshot          --oneshot count "" if not using.
 # @param timeout          --timeout seconds or "" if default.
+# @param offset           --offset dt in timestamp ticks.
 # @returns string containing command line arguments to use
 #
 proc ::RingSourceMgr::_computeRingSourceSwitches {port url tstampExtractor ids
-  info expectHeaders oneshot timeout} {
+  info expectHeaders oneshot timeout offset} {
 
   set switches ""
   append switches " --evbhost=localhost --evbport=$port"
@@ -337,6 +340,9 @@ proc ::RingSourceMgr::_computeRingSourceSwitches {port url tstampExtractor ids
   }
   if {$timeout ne ""} {
     append switches " --timeout=$timeout"
+  }
+  if {$offset != 0} {
+    append switches " --offset=$offset"
   }
 
   return $switches

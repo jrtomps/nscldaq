@@ -112,6 +112,8 @@ CRingSource::CRingSource(int argc, char** argv) :
     m_fOneshot = false;
   }
   m_nTimeout = m_pArgs->timeout_arg * 1000;        // End run timeouts in ms.
+  m_nTimeOffset = m_pArgs->offset_arg;             // tick time offset.
+  
 }
 /**
  * destructor
@@ -330,6 +332,7 @@ void CRingSource::transformAvailableData(uint8_t*& pFragments)
     }
 
     ClientEventFragment frag = m_wrapper(p.get(), pDest);
+    frag.s_timestamp += m_nTimeOffset;
     pDest += frag.s_size;
     bytesPackaged += frag.s_size;
 

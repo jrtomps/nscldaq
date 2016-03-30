@@ -42,6 +42,7 @@ BUILT_SOURCES = @srcdir@/rfcmdline.c @srcdir@/rfcmdline.h  \
 		@srcdir@/options.ggo
 	echo option \"oneshot\" o \"One shot after n end run items\" optional  int default=\"1\" >> @srcdir@/options.ggo
 	echo option \"timeout\" T \"Timeout waiting for end runs in oneshot mode\" int default=\"10\" optional  >>@srcdir@/options.ggo
+	echo option \"offset\"  O \"Signed time offset to add to the extracted timestamp\" int default=\"0\" optional >>@srcdir@/options.ggo
 
 @srcdir@/rfcmdline.c: @srcdir@/rfcmdline.h
 

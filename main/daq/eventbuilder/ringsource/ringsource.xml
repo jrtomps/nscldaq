@@ -134,7 +134,7 @@ $DAQROOT/bin/ringFragmentSource <replaceable>options...</replaceable>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term><option>timeout</option>=<replaceable>seconds</replaceable></term>
+                    <term><option>--timeout</option>=<replaceable>seconds</replaceable></term>
                     <listitem>
                         <para>
                           If <option>--oneshot</option> is present, this is the
@@ -142,6 +142,17 @@ $DAQROOT/bin/ringFragmentSource <replaceable>options...</replaceable>
                           endrun item to occur after seeing the first one.  If
                           not present, the timeout defaults to <literal>10</literal>
                           seconds.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                      <option>--offset</option>=<replaceable>dt</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                          Number of clock ticks to add to the timestamp for each
+                          event.  This is a signed integer value.
                         </para>
                     </listitem>
                 </varlistentry>
