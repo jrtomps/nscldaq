@@ -594,7 +594,7 @@ void TestStateTransitions::waitBeginningToActive()
     
     std::vector<std::string> programTrans;
     programTrans.push_back("Beginning");
-    programTrans.push_back("Active");
+
 
     CallbackRecorder r;
     
@@ -613,17 +613,16 @@ void TestStateTransitions::waitBeginningToActive()
     
     std::vector<std::pair<std::string, std::string> > states =
         sm.getParticipantStates();
-    EQ(std::string("Active"), states[0].second);
+    EQ(std::string("Beginning"), states[0].second);
     
     // Global state is Ready.
     
-    EQ(std::string("Active"), sm.getGlobalState());
+    EQ(std::string("Beginning"), sm.getGlobalState());
     
     // Recorded -> Readying -> Ready
     
-    EQ(size_t(2), r.m_states.size());
+    EQ(size_t(1), r.m_states.size());
     EQ(std::string("Beginning"), r.m_states[0]);
-    EQ(std::string("Active"),    r.m_states[1]);    
 }
 
 void TestStateTransitions::waitPausingToPaused()
