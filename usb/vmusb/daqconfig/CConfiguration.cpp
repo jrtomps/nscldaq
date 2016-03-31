@@ -210,7 +210,6 @@ CConfiguration::processConfiguration(string configFile)
     cerr << "CConfiguration::processConfiguration caught an unknown exception type\n";
     throw;
   }
-  cout << "Configuration file successfully processed. \n";
 }
 /*!
    Locate an adc module by name.  This is used e.g. by configuration commands
