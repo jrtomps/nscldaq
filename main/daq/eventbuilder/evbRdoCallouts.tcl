@@ -595,6 +595,16 @@ proc EVBC::onBegin {} {
         if {[info commands startEVBSources] ne ""} {
           ::EVBC::_waitForEventBuilder
           startEVBSources
+          
+            # Before allowing the reaout(s) to start we want to wait a bit to be
+            # sure the sources are connected to the ring master and all that rot.
+            # this is needed in case the begin run action is quick.  We'll wait
+            # two seconds for now.  In testing with systems that essentially don't
+            # have initialization, I observed that sometimes the begin run events
+            # would get missed and this is why I think it happens.
+        
+            after 2000
+          
         }
     } else {
 	EVBC::reset
