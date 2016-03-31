@@ -27,31 +27,8 @@
 #include <iostream>
 #include <cstdlib>
 #include "tracker.h"
+#include "transition.h"
 
-// Do a state transition/wait.
-
-static void transition(CStateManager& sm, const char* pState, bool verbose)
-{
-    sm.setGlobalState(pState);
-    CStateManager::TransitionCallback cb(0);
-    
-    if (verbose) {
-        cb = tracker;
-    }
-    try {
-        sm.waitTransition(cb, nullptr);
-    }
-    catch(std::runtime_error& err) {
-        std::cerr << "Begin run failed: " << err.what() << std::endl;
-        std::cerr << "Failing the system\n";
-        try {
-            sm.setGlobalState("NotReady");   // brings everything down.
-        }
-        catch(...) {}                         // Ignore exceptions from that.
-        std::exit(EXIT_FAILURE);
-    }
-    
-}
 
 int main(int argc, char** argv)
 {
@@ -66,14 +43,17 @@ int main(int argc, char** argv)
     // Require the state to be "Ready"
     
     std::string gstate = sm.getGlobalState();
-    if (gstate != "Ready") {
-        std::cerr << "To begin a run the global state must be 'Ready' ";
+    if ((gstate != "Ready")  && (gstate == "Starting")) { 
+        std::cerr << "To begin a run the global state must be 'Ready' or 'Starting' ";
         std::cerr << " however it is: '" << gstate << "'\n";
         std::exit(EXIT_FAILURE);
     }
     // initiate the state transition:
     
-    transition(sm, "Beginning", verbose);
+    if (gstate == "Ready") {
+        transition(sm, "Beginning", verbose);
+    }
+    
     transition(sm, "Active", verbose);
     
     return EXIT_SUCCESS;
