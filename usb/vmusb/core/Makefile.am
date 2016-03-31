@@ -20,8 +20,7 @@ libVMUSBCore_la_SOURCES	= CAcquisitionThread.cpp 	\
 													CUpdateCommand.cpp  \
 													tclUtil.cpp	\
 													CVMUSBHighLevelController.cpp \
-													CPreBeginCommand.cpp       \
-	Globals.cpp Globals.h
+													CPreBeginCommand.cpp 
 
 noinst_HEADERS		= CAcquisitionThread.h		\
 										CControlQueues.h \
@@ -67,10 +66,11 @@ libVMUSBCore_la_CPPFLAGS = \
 
 
 
+
 libVMUSBCore_la_LIBADD	= \
-			@top_builddir@/usb/vmusb/daqconfig/libVMUSBDaqConfig.la	\
-			@top_builddir@/usb/vmusb/ctlconfig/libVMUSBCtlConfig.la	\
 		  @top_builddir@/usb/vmusb/vmusb/libVMUSB.la		\
+		  @top_builddir@/usb/vmusb/daqconfig/libVMUSBDaqConfig.la	\
+		  @top_builddir@/usb/vmusb/ctlconfig/libVMUSBCtlConfig.la		\
 			@LIBTCLPLUS_LDFLAGS@					\
 			@top_builddir@/base/thread/libdaqthreads.la \
 			@top_builddir@/base/os/libdaqshm.la	\

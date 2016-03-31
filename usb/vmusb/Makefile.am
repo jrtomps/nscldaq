@@ -1,7 +1,7 @@
 SUBDIRS = 	vmusb 		\
+		daqconfig	\
 		ctlconfig \
 		core \
-		daqconfig	\
 		driverkit	\
 		tcldrivers	\
 		controlpanels	\

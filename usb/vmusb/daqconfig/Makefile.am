@@ -59,7 +59,7 @@ libVMUSBDaqConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				@top_srcdir@/usb/common/devices/CCamacBranchException.cpp \
 				CMQDC32StackBuilder.cpp \
 				CMQDC32RdoHdwr.cpp	\
-				CDeviceCommand.cpp
+				CDeviceCommand.cpp Globals.cpp
 
 
 
@@ -124,7 +124,7 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				@top_srcdir@/usb/common/devices/CCamacBranchException.h  \
 				CMQDC32StackBuilder.h \
 				CMQDC32RdoHdwr.h \
-				MQDC32Registers.h
+				MQDC32Registers.h Globals.h
 
 
 libVMUSBDaqConfig_la_CXXFLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/core
@@ -141,10 +141,11 @@ libVMUSBDaqConfig_la_CPPFLAGS = \
 				$(TCL_FLAGS) 
 
 
+#				@top_builddir@/usb/vmusb/core/libVMUSBCore.la 
+
 libVMUSBDaqConfig_la_LIBADD	= \
 				@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 				@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
-				@top_builddir@/usb/vmusb/core/libVMUSBCore.la \
 				@LIBTCLPLUS_LDFLAGS@	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 
