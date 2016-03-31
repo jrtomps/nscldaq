@@ -67,19 +67,19 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h CS
 #  the system:
 
 
-bin_PROGRAMS=status begin pause resume end title trtimeout \
+bin_PROGRAMS=status begin prebegin pause resume end title trtimeout \
 	recording programdir runnum
 noinst_HEADERS=tracker.h
 
 
-EXTRA_DIST=statusopts.ggi  beginopts.ggi \
+EXTRA_DIST=statusopts.ggi prebeginopts.ggi beginopts.ggi \
 		resumeopts.ggi endopts.ggi titleopts.ggi pauseopts.ggi  \
 		transitionopts.ggi timeoutopts.ggi recordingopts.ggi \
 		programdiropts.ggi runnumopts.ggi \
 		 standardopts.ggo  
 
 BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h titleopts.h pauseopts.h timeoutopts.h \
-	recordingopts.h programdiropts.h runnumopts.h
+	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
@@ -89,6 +89,7 @@ clean-local:
 	rm -f statusopts.c endopts.c titleopts.c pauseopts.c transitionopts.c
 	rm -f timeoutopts.c recordingopts.c programdiropts.c runnumopts.c
 	rm -f resumeopts.c beginopts.c
+	rm -f prebeginopts.c prebeginopts.o
 	rm -f statusopts.o endopts.o titleopts.o pauseopts.o transitionopts.o
 	rm -f timeoutopts.o recordingopts.o programdiropts.o runnumopts.o
 	rm -f resumeopts.o beginopts.o 
@@ -115,7 +116,7 @@ statusopts.o: @builddir@/statusopts.ggo
 @builddir@/statusopts.ggo: statusopts.ggi standardopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/statusopts.ggi  |tr -d "\\\\" >@builddir@/statusopts.ggo
 
-begin_SOURCES=begin.cpp beginopts.h tracker.cpp
+begin_SOURCES=begin.cpp beginopts.h tracker.cpp transition.cpp transition.h
 begin_DEPENDENCIES=beginopts.o
 begin_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
 begin_LDADD=beginopts.o
