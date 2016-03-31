@@ -79,13 +79,13 @@ EXTRA_DIST=statusopts.ggi prebeginopts.ggi beginopts.ggi \
 		 standardopts.ggo  
 
 BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h titleopts.h pauseopts.h timeoutopts.h \
-	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h
+	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h 
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
 	rm -f statusopts.ggo endopts.ggo titleopts.ggo pauseopts.ggo transitionopts.ggo
 	rm -f timeoutopts.ggo recordingopts.ggo programdiropts.ggo runnumopts.ggo
-	rm -f resumeopts.ggo beginopts.ggo 
+	rm -f resumeopts.ggo beginopts.ggo prebeginopts.ggo
 	rm -f statusopts.c endopts.c titleopts.c pauseopts.c transitionopts.c
 	rm -f timeoutopts.c recordingopts.c programdiropts.c runnumopts.c
 	rm -f resumeopts.c beginopts.c
@@ -116,6 +116,17 @@ statusopts.o: @builddir@/statusopts.ggo
 @builddir@/statusopts.ggo: statusopts.ggi standardopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/statusopts.ggi  |tr -d "\\\\" >@builddir@/statusopts.ggo
 
+prebegin_SOURCES=prebegin.cpp prebeginopts.h tracker.cpp transition.cpp transition.h tracker.h
+
+prebeginopts.o: @builddir@/prebeginopts.ggo
+	$(GENGETOPT) <@builddir@/prebeginopts.ggo --file=@builddir@/prebeginopts
+	$(CC) -c -o @builddir@/prebeginopts.o @builddir@/prebeginopts.c
+
+
+@builddir@/prebeginopts.ggo: prebeginopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/prebeginopts.ggi  |tr -d "\\\\" >@builddir@/prebeginopts.ggo
+
+
 begin_SOURCES=begin.cpp beginopts.h tracker.cpp transition.cpp transition.h
 begin_DEPENDENCIES=beginopts.o
 begin_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
@@ -123,7 +134,6 @@ begin_LDADD=beginopts.o
 begin_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
 
 beginopts.h: @builddir@/beginopts.o
-
 
 
 beginopts.o: @builddir@/beginopts.ggo
