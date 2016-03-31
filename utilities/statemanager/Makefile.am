@@ -117,6 +117,11 @@ statusopts.o: @builddir@/statusopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/statusopts.ggi  |tr -d "\\\\" >@builddir@/statusopts.ggo
 
 prebegin_SOURCES=prebegin.cpp prebeginopts.h tracker.cpp transition.cpp transition.h tracker.h
+prebegin_DEPENDENCIES=prebeginopts.o
+prebegin_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir
+prebegin_LDADD=prebeginopts.o
+
+
 
 prebeginopts.o: @builddir@/prebeginopts.ggo
 	$(GENGETOPT) <@builddir@/prebeginopts.ggo --file=@builddir@/prebeginopts
