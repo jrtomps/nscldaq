@@ -109,8 +109,6 @@ proc startRunOrDie {} {
         exit -1
     }    
     set ::state::runActive 1
-    ::state::client setstate Active
-
 }
 
 proc pauseRunOrDie {} {
@@ -121,7 +119,7 @@ proc pauseRunOrDie {} {
         exit -1
     }
     set ::state::runActive 1 ;             # Should already be.
-    ::state::client setstate Paused
+    
 }
 
 proc resumeOrDie {} {
@@ -183,7 +181,8 @@ proc handleStandaloneStateTransition newState {
     } elseif {$newState eq "Ending"} {
         endOrDie
     }
-    # Ignore all other transitions.
+    # Echo the new state in our state:
+    
 }
 ##
 # handleGlobalStateTransition
@@ -193,13 +192,13 @@ proc handleStandaloneStateTransition newState {
 #
 proc handleGlobalStateTransition newState {
     #
-    #  The main differene between standalone and global state transitions
-    #  is that us global transition handlers must first echo the 'ing state.
+    #  only nandle the state transitions we support.
+    #  
     
     if {$newState in $::state::handledStates} {
-        ::state::client setstate $newState
+        handleStandaloneStateTransition $newState
     }
-    handleStandaloneStateTransition $newState
+    ::state::client setstate $newState;     # Must echo new state as local state.
 }
 
 ##
