@@ -77,7 +77,10 @@ if {[catch {::state::client setstate Ready} msg]} {
 
 ::state::client onStateChange stateChanged
 
-proc startRunOrDie {} {
+##
+#  Do a pre-begin or die trying .  This puts us in the 'Starting' state.
+#
+proc prebeginOrDie {} {
     
     # Let's update the title and run numbers...these might fail if the run is
     # active, in which case the begin will also fail:
@@ -88,6 +91,15 @@ proc startRunOrDie {} {
     if {$outring ne ""} {
         catch {ring $outring}
     }
+    if {[catch prebegin msg]} {
+        ::state::client setstate NotReady
+        error "Failed to perform pre-begin operations: $msg"
+        exit -1
+    }
+    ::state::client setstate Beginning
+}
+proc startRunOrDie {} {
+
 
     
     if {[catch begin msg]} {
@@ -153,8 +165,11 @@ proc handleStandaloneStateTransition newState {
         exit 0
         
         #  Beginning a run - key point don't echo Beginning - that's not legal.
-    } elseif {$newState eq "Beginning" } {
-        startRunOrDie
+    } elseif {$newState eq "Beginning"} {
+        prebeginOrDie
+        
+    } elseif {$newState eq "Active"} {
+        beginRunOrDie
         
         # Pausing a run:
     } elseif {$newState eq "Pausing"} {
