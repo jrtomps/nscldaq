@@ -48,7 +48,7 @@ namespace eval state {
     variable subUri      $::env(SUB_URI)
     variable programName $::env(PROGRAM)
     variable runActive    0
-    variable handledStates [list NotReady Beginning Ending Pausing Resuming]
+    variable handledStates [list NotReady Beginning Active Ending Pausing Resuming]
 
 }
 
@@ -98,7 +98,7 @@ proc prebeginOrDie {} {
     }
     
 }
-proc startRunOrDie {} {
+proc beginRunOrDie {} {
 
 
     
@@ -109,6 +109,7 @@ proc startRunOrDie {} {
         exit -1
     }    
     set ::state::runActive 1
+
 }
 
 proc pauseRunOrDie {} {
@@ -130,7 +131,7 @@ proc resumeOrDie {} {
         exit -1
     }
     set ::state::runActive 1;                # Should already be
-    ::state::client setstate Active
+    
 }
 
 proc endOrDie {} {
@@ -140,7 +141,7 @@ proc endOrDie {} {
         exit -1
     }
     set ::state::runActive 0
-    ::state::client setstate Ready
+    
 }
 
 ##
@@ -148,6 +149,8 @@ proc endOrDie {} {
 #   Handle a standalone state transition.
 #
 # @param newState - the new local state.
+# @return nextState - Next the program state should be set to if this is a
+#                     global state transition.
 #
 proc handleStandaloneStateTransition newState {
     #
@@ -159,27 +162,36 @@ proc handleStandaloneStateTransition newState {
     if {$newState eq "NotReady"} {
         if {$::state::runActive} {
             end
+            return "NotReady"
         }
         exit 0
         
         #  Beginning a run - key point don't echo Beginning - that's not legal.
     } elseif {$newState eq "Beginning"} {
         prebeginOrDie
+        return "Beginning"
         
     } elseif {$newState eq "Active"} {
         beginRunOrDie
+        return "Active"
         
         # Pausing a run:
     } elseif {$newState eq "Pausing"} {
         pauseRunOrDie
+        ::state::client setstate Pausing
+        return Paused
         
         # Resuming a run:
     } elseif {$newState eq "Resuming"} {
         resumeOrDie
+        ::state::client setstate "Resuming"
+        return Active
         
         # Ending a run:
     } elseif {$newState eq "Ending"} {
         endOrDie
+        ::state::client setstate Ending
+        return Ready
     }
     # Echo the new state in our state:
     
@@ -196,9 +208,9 @@ proc handleGlobalStateTransition newState {
     #  
     
     if {$newState in $::state::handledStates} {
-        handleStandaloneStateTransition $newState
+        ::state::client setstate [handleStandaloneStateTransition $newState]
     }
-    ::state::client setstate $newState;     # Must echo new state as local state.
+    
 }
 
 ##
