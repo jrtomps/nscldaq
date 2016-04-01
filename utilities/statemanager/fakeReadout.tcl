@@ -68,3 +68,7 @@ proc ring {name} {
     puts "Output ring buffer changed to $name"
     
 }
+
+package require StateManagerControl
+
+vwait forever
