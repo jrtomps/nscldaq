@@ -96,7 +96,7 @@ proc prebeginOrDie {} {
         error "Failed to perform pre-begin operations: $msg"
         exit -1
     }
-    ::state::client setstate Beginning
+    
 }
 proc startRunOrDie {} {
 
