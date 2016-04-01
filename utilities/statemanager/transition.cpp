@@ -34,7 +34,7 @@
  *    @param pState - name of the desired state.
  *    @param verbose - true if verbose messages go to  stdout/err
 */
-static void transition(CStateManager& sm, const char* pState, bool verbose)
+void transition(CStateManager& sm, const char* pState, bool verbose)
 {
     sm.setGlobalState(pState);
     CStateManager::TransitionCallback cb(0);

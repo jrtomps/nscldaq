@@ -44,7 +44,7 @@ int main(int argc, char** argv)
     
     std::string gstate = sm.getGlobalState();
     if ((gstate != "Ready") ) { 
-        std::cerr << "To prebegin a run the global state must be 'Ready' ;
+        std::cerr << "To prebegin a run the global state must be 'Ready' ";
         std::cerr << " however it is: '" << gstate << "'\n";
         std::exit(EXIT_FAILURE);
     }

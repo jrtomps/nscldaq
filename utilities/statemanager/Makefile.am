@@ -120,8 +120,10 @@ prebegin_SOURCES=prebegin.cpp prebeginopts.h tracker.cpp transition.cpp transiti
 prebegin_DEPENDENCIES=prebeginopts.o
 prebegin_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir
 prebegin_LDADD=prebeginopts.o
+prebegin_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
 
 
+prebeginopts.h: @builddir@/prebeginopts.o
 
 prebeginopts.o: @builddir@/prebeginopts.ggo
 	$(GENGETOPT) <@builddir@/prebeginopts.ggo --file=@builddir@/prebeginopts
