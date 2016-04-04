@@ -49,6 +49,7 @@ namespace eval state {
     variable programName $::env(PROGRAM)
     variable runActive    0
     variable handledStates [list NotReady Beginning Active Ending Pausing Resuming]
+    variable lastGlobalState Readying
 
 }
 
@@ -71,6 +72,7 @@ if {[catch {::state::client setstate Ready} msg]} {
     error "Unable to set program state to 'Ready': $msg"
     exit 1
 }
+
 
 
 # enable callback to andle state transitions:
@@ -152,7 +154,7 @@ proc endOrDie {} {
 # @return nextState - Next the program state should be set to if this is a
 #                     global state transition.
 #
-proc handleStandaloneStateTransition newState {
+proc handleStandaloneStateTransition  newState {
     #
     # Handle all the externally stimulated transitions. Note that we'll get
     # notified of the internally stimulated transitions so we're going to ignore those.
@@ -193,7 +195,40 @@ proc handleStandaloneStateTransition newState {
         ::state::client setstate Ending
         return Ready
     }
-    # Echo the new state in our state:
+
+    
+}
+##
+# dispatchStateTransition
+#
+#   Called when we have a global state transition we do want to handle.
+#   What we do may depend on the prior state as well as the requested state.
+#
+#   If action is required, we will pass that on to handleStandaloneStateTransition
+#   otherwise the 'ing state has already set the correct final state.
+#
+# @param from - Prior global state.
+# @param to   - New global state.
+# @return next desired state of program. "" means don't set the state.
+#
+proc dispatchStateTransition {from to} {
+    
+    # At present the only thing that's affected is a transition to the Active
+    # state.... If we got here from Resuming, we do nothing... as Resume
+    # will set us active already:
+    
+    if {$to eq "Active"} {
+        if {$from eq "Beginning"} {
+            return [handleStandaloneStateTransition $to]
+        } else {
+            return ""
+        }
+    } else {
+        #  All other transitions are ok to pass on unconditionally -- for now.
+        
+        return [handleStandaloneStateTransition $to]
+    }
+
     
 }
 ##
@@ -208,8 +243,14 @@ proc handleGlobalStateTransition newState {
     #  
     
     if {$newState in $::state::handledStates} {
-        ::state::client setstate [handleStandaloneStateTransition $newState]
+         set nextState [dispatchStateTransition \
+            $::state::lastGlobalState $newState                 \
+        ]
+        if {$nextState ne ""} {
+            ::state::client setstate $nextState
+        }
     }
+    set state::lastGlobalState $newState;     # Need to know come from.
     
 }
 
