@@ -27,6 +27,7 @@
 #include "CPreBeginCommand.h"
 #include "CPauseCommand.h"
 #include "CResumeCommand.h"
+#include "CPreEndCommand.h"
 #include "CEndCommand.h"
 #include "CInitCommand.h"
 #include <TCLTimer.h>
@@ -134,12 +135,39 @@ CRunControlPackage::begin()
     m_pTimer = new RunTimer(m_pInterp);
   }
   else {
+    std::string validStates = RunState::stateName(RunState::inactive);
+    validStates             += " or ";
+    validStates             += RunState::stateName(RunState::starting);
     throw CStateException(m_pTheState->stateName().c_str(),
-			 RunState::stateName(RunState::inactive).c_str(),
+			 validStates.c_str(),
 			 "Attempting to start a run");
 			 
   }
 }
+/**
+ * preEnd
+ *    Perform any operations requried prior to the end of the run.  Note that
+ *    this is currently a stub.  At some point we may expand the CEventSegment
+ *    to provide for code to be attached to this state transition.  If/When that
+ *    happens, the code should just disable the digitizers from acquiring data.
+ */
+void
+CRunControlPackage::preEnd()
+{
+  // Must be called in the halted Active state:
+  
+  RunState::State state = m_pTheState->m_state;
+  if (state != RunState::active) {
+    throw CStateException(
+      m_pTheState->stateName().c_str(),
+      RunState::stateName(RunState::active).c_str(),
+      "Attempting run pre-end actions."
+    );
+  
+  }
+  
+}
+
 /*!
    Halt a run.  The state must be activfe or paused for this to be legal.
 */
@@ -147,15 +175,20 @@ void
 CRunControlPackage::end()
 {
   RunState::State state = m_pTheState->m_state;
-  if((state == RunState::active) || (state == RunState::paused)) {
+  if((state == RunState::active) || (state == RunState::paused) || (state == RunState::halting)) {
+    if (state != RunState::halting) {
+      preEnd();
+    }
     m_pTheExperiment->Stop(false);	// Not a pause.
     delete m_pTimer;
     m_pTimer = reinterpret_cast<RunTimer*>(0);
   }
   else {
     string validstates = RunState::stateName(RunState::active);
-    validstates += " or ";
+    validstates += ", ";
     validstates += RunState::stateName(RunState::paused);
+    validstates += " or ";
+    validstates += RunState::stateName(RunState::halting);
     throw CStateException(m_pTheState->stateName().c_str(),
 			 validstates.c_str(),
 			 "Attempting to end a run.");
@@ -222,4 +255,5 @@ void CRunControlPackage::createCommands(CTCLInterpreter& interp)
   addCommand(new CResumeCommand(interp));
   addCommand(new CEndCommand(interp));
   addCommand(new CInitCommand(interp));
+  addCommand(new CPreEndCommand(interp));
 }

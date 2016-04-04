@@ -72,9 +72,9 @@ CPreBeginCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& o
     try {
         requireExactly(objv, 1, "'prebegin' command does not take any parameters");
         CTCLObjectPackage*   pPack       = getPackage();
-        CRunControlPackage&  pRunControl = reinterpret_cast<CRunControlPackage&>(*pPack);
+        CRunControlPackage&  rRunControl = reinterpret_cast<CRunControlPackage&>(*pPack);
         
-        pRunControl.preBegin();               // Experiment will update the state.
+        rRunControl.preBegin();               // Experiment will update the state.
 
     }
     catch (std::exception& e) {

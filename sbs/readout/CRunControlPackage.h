@@ -87,6 +87,7 @@ public:
 public:
   void preBegin();              // Do initializations prior to run-start.
   void begin();			// Begin a new run.
+  void preEnd();                // Prepare to end a run.
   void end();			// End an active run.
   void pause();			// Pause an active run.,
   void resume();		// Resume an active run.
