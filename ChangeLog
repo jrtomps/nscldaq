@@ -1076,3 +1076,15 @@ Work on 11.0-rc11 begins
 	
 11.1-varmgr
 	merge 11.1 trunk with work done so far.
+	Feature #5519 - experiment editor validation must require unique
+	names within classes of items in the editor.
+	Feature #5522 Need a method to destroy experiment editor
+	connections.
+	Feature #5537 Save data sources not yet connected to event
+	builders to a database.. caused problems due to foreign keys.
+	Feature #5525 Support begin runs that consist of Pre-begin
+	followed by actual begin.  This can help synchronize the start
+	of data taking when initialization has disparate timing amongst
+	the nodes.
+
+	
