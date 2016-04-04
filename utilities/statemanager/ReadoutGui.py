@@ -55,11 +55,11 @@ class QNSCLReadoutGui(QtGui.QTabWidget):
         
 def main():
     if len(sys.argv) != 3:
-        print >> stderr, "Usage:"
-        print >> stderr, "   ReadoutGui requri suburi"
-        print >> stderr, "Where:"
-        print >> stderr, "   requri   - The vardbserver request URI"
-        print >> stderr, "   suburi   - The vardbserver subscription URI"
+        print >> sys.stderr, "Usage:"
+        print >> sys.stderr, "   ReadoutGui requri suburi"
+        print >> sys.stderr, "Where:"
+        print >> sys.stderr, "   requri   - The vardbserver request URI"
+        print >> sys.stderr, "   suburi   - The vardbserver subscription URI"
         sys.exit(os.EX_USAGE)
         
     requests      = sys.argv[1]
