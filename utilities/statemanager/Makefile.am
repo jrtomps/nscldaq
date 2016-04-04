@@ -72,7 +72,7 @@ bin_PROGRAMS=status begin prebegin pause resume end title trtimeout \
 noinst_HEADERS=tracker.h
 
 
-EXTRA_DIST=statusopts.ggi prebeginopts.ggi prebeginopts.ggi \
+EXTRA_DIST=statusopts.ggi beginopts.ggi prebeginopts.ggi \
 		resumeopts.ggi endopts.ggi titleopts.ggi pauseopts.ggi  \
 		transitionopts.ggi timeoutopts.ggi recordingopts.ggi \
 		programdiropts.ggi runnumopts.ggi \
