@@ -19,7 +19,7 @@ libCCUSBCore_la_SOURCES	= Globals.cpp CAcquisitionThread.cpp 	\
 													CUpdateCommand.cpp  \
 													tclUtil.cpp	\
 													CCCUSBHighLevelController.cpp \
-													CPreBeginCommand.cpp
+													CPreBeginCommand.cpp CPreEndCommand.cpp
 
 noinst_HEADERS		= Globals.h CAcquisitionThread.h		\
 										CControlQueues.h \
@@ -42,7 +42,7 @@ noinst_HEADERS		= Globals.h CAcquisitionThread.h		\
 										tclUtil.h \
 										Events.h	\
 										CCCUSBHighLevelController.h  \
-										CPreBeginCommand.h
+										CPreBeginCommand.h CPreEndCommand.h
 
 libCCUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \

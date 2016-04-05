@@ -24,6 +24,7 @@
 
 #include <CControlQueues.h>
 #include <CRunState.h>
+#include "CPreEndCommand.h"
 
 using std::vector;
 using std::string;
@@ -37,8 +38,9 @@ static string usage(
 /////////////////////////////////////////////////////////////////
 
 
-CEndRun::CEndRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, string("end"))
+CEndRun::CEndRun(CTCLInterpreter& interp, CPreEndCommand* preEnd) :
+  CTCLObjectProcessor(interp, string("end")),
+  m_preEnd(preEnd)
 {}
 CEndRun::~CEndRun()
 {}
@@ -68,11 +70,23 @@ CEndRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
   CRunState* pState = CRunState::getInstance();
-  if (pState->getState() == CRunState::Idle) {
+  CRunState::RunState state = pState->getState();
+  
+  if (
+    (state != CRunState::Active) && (state != CRunState::Paused) &&
+    (state != CRunState::Ending)
+  ) {
+    
+  
     tclUtil::Usage(interp,
-		   "Invalid state for end run. must not already be idle",
+		   "Invalid state for end run we must be in one of Active, Paused or Ending states",
 		   objv, usage);
     return TCL_ERROR;
+  }
+  // If not ending we need to fire off the preend operations.
+  
+  if (state != CRunState::Ending) {
+    m_preEnd->perform();              // Now in ending.
   }
 
   // Now stop the run... if the thread has not already exited:

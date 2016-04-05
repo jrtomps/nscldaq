@@ -13,6 +13,7 @@ struct Tcl_Event;
 
 class CPreBeginCommand;
 class CBeginRun;
+class CPreEndCommand;
 class CEndRun;
 class CPauseRun;
 class CResumeRun;
@@ -46,6 +47,7 @@ class CSystemControl
     static std::unique_ptr<CResumeRun> m_pResumeRun;
     static std::unique_ptr<CInit>      m_pInit;
     static std::unique_ptr<CExit>      m_pExit;
+    static std::unique_ptr<CPreEndCommand>    m_pPreEnd;
 
   public:
 

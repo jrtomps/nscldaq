@@ -4,6 +4,7 @@
 
 #include <CPreBeginCommand.h>
 #include <CBeginRun.h>
+#include <CPreEndCommand.h>
 #include <CEndRun.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
@@ -29,6 +30,7 @@ using namespace std;
 string CSystemControl::m_initScript;
 unique_ptr<CPreBeginCommand> CSystemControl::m_pPreBegin;
 unique_ptr<CBeginRun>  CSystemControl::m_pBeginRun;
+unique_ptr<CPreEndCommand> CSystemControl::m_pPreEnd;
 unique_ptr<CEndRun>    CSystemControl::m_pEndRun;
 unique_ptr<CPauseRun>  CSystemControl::m_pPauseRun;
 unique_ptr<CResumeRun> CSystemControl::m_pResumeRun;
@@ -63,7 +65,8 @@ int CSystemControl::AppInit( Tcl_Interp* interp)
 
   m_pPreBegin.reset(new CPreBeginCommand(*Globals::pMainInterpreter));
   m_pBeginRun.reset(new CBeginRun(*Globals::pMainInterpreter, m_pPreBegin.get()));
-  m_pEndRun.reset(new CEndRun(*Globals::pMainInterpreter));
+  m_pPreEnd.reset(new CPreEndCommand(*Globals::pMainInterpreter));
+  m_pEndRun.reset(new CEndRun(*Globals::pMainInterpreter, m_pPreEnd.get()));
   m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter));
   m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter));
   m_pInit.reset(new CInit(*Globals::pMainInterpreter));
