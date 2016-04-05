@@ -24,6 +24,7 @@
 
 #include <CControlQueues.h>
 #include <CRunState.h>
+#include "CPreEndRunCommand.h"
 
 using std::vector;
 using std::string;
@@ -37,8 +38,9 @@ static string usage(
 /////////////////////////////////////////////////////////////////
 
 
-CEndRun::CEndRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, string("end"))
+CEndRun::CEndRun(CTCLInterpreter& interp, CPreEndRunCommand* pre) :
+  CTCLObjectProcessor(interp, string("end")),
+  m_preEnd(pre)
 {}
 CEndRun::~CEndRun()
 {}
@@ -68,7 +70,9 @@ CEndRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
   CRunState* pState = CRunState::getInstance();
-  if ((pState->getState() != CRunState::Active) && (pState->getState() != CRunState::Paused)) {
+  CRunState::RunState state = pState->getState();
+  
+  if ((state == CRunState::Active) && (state == CRunState::Paused)) {
     tclUtil::Usage(interp,
 		   "Invalid state for end run must be active or paused (may be still initializing).",
 		   objv, usage);

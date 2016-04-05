@@ -38,6 +38,7 @@
 
 class CTCLInterpreter;
 class CTCLInterpreterObject;
+class CPreEndCommand;
 
 /*!
    Class to implement the end command.  This command will
@@ -46,9 +47,11 @@ class CTCLInterpreterObject;
 */
 class CEndRun : public CTCLObjectProcessor
 {
+private:
+  CPreEndCommand* m_preEnd;
   // Canonicals:
 public:
-  CEndRun(CTCLInterpreter& interp);
+  CEndRun(CTCLInterpreter& interp, CPreEndCommand* preEnd);
   virtual ~CEndRun();
 private:
   CEndRun(const CEndRun& rhs);
