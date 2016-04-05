@@ -46,6 +46,7 @@ public:
     
 public:
     int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void perform();
 };
 
 #endif
