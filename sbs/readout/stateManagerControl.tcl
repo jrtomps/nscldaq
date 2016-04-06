@@ -204,9 +204,7 @@ proc handleStandaloneStateTransition  newState {
         return Ending
         
     } elseif {$newState eq "Ready"} {
-        puts ">>>>Transition to Ready"
         if {$::state::runActive} {
-            puts "Run is active so end it"
             endOrDie
             return Ready
         }
@@ -263,25 +261,17 @@ proc handleGlobalStateTransition newState {
     #
     #  only nandle the state transitions we support.
     #  
-    puts "Global State transitionhandler: $newState"
     if {$newState in $::state::handledStates} {
-        puts "This is a handled state"
         set oldNextState $newState
-        puts "Dispatching local transition to $newState"
             
         
         set newState [dispatchStateTransition \
             $::state::lastGlobalState $newState                 \
         ]
-        puts "Local transition wants to go to '$newState'"
         if {$newState ne ""} {
-            puts "Attempting local transition:"
             if {[catch {::state::client setstate $newState} msg]} {
-                puts stderr "Failed transition to $newState - rolling back to $oldNextState"
                 set newState $oldNextState
-            } else {
-                puts "Local transition to $newState made"
-            }
+            } 
         }
     }
     set state::lastGlobalState $newState;     # Need to know come from.
