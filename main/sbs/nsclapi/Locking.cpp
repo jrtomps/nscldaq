@@ -135,6 +135,10 @@ void CVMEInterface::Unlock()
   Unlock(0);
 }
 
+bool CVMEInterface::TryLock() 
+{
+  return TryLock(0);
+}
 /*!
     Lock the semaphore.  If the semid is -1, the
     semaphore is created first.  
@@ -198,4 +202,44 @@ CVMEInterface::Unlock(int semnum)
     // on EINTR try again.
   }
   return;
+}
+
+
+bool
+CVMEInterface::TryLock(int semnum) {
+  if (semid == -1) AttachSemaphore();
+  assert(semid >= 0);
+  
+
+  bool success = false;
+  int semval = semctl(semid, semnum, GETVAL);
+  if (semval == 1) {
+    // there is no one holding the semaphore...
+    // try to acquire it.
+    struct sembuf buf;
+    buf.sem_num = semnum;
+    buf.sem_op = -1;         // acquire the sem
+    buf.sem_flg = SEM_UNDO | IPC_NOWAIT;  // don't wait
+
+    int stat = semop(semid, &buf, 1);
+    semval = semctl(semid, semnum, GETVAL);
+    if(stat == 0) { 
+      success = true; 
+    } else {
+      // failure observed...
+
+      if ((errno == EAGAIN) || (errno == EINTR)) {
+        // interrupted by signal or we were unable to take the semaphore
+        success = false;
+      } else {
+        // something bad happened. This should fail rather than returning false.
+        throw CErrnoException("CVMEInterface::TryLock semop gave bad status");
+      }
+
+    }
+  } else {
+    // someone is holding the semaphore
+    success = false;
+  }
+  return success;
 }
