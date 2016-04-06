@@ -1,4 +1,4 @@
-package "begin"
+package "prebegin"
 version "1.0"
 
 #include "transitionopts.ggi"
