@@ -429,12 +429,13 @@ proc EVBC::getOrdererPort {} {
 # @param oneshot                - If provided number of ends that result in exit.
 # @param timeout                - If provided, timeout in seconds after first end to 
 #                                 wait for all ends in --oneshot mode.
+# @param offset                 - Optinoal time offset.
 # @note Event sources are subprocesses of us but not subprocesses of the
 #       the event building pipeline.
 #
 #
-proc ::EVBC::registerRingSource {source lib id info {expectHdrs 0} {oneshot {}} {timeout {}}} {
-   ::RingSourceMgr::addSource $source $lib $id $info $expectHdrs $oneshot $timeout
+proc ::EVBC::registerRingSource {source lib id info {expectHdrs 0} {oneshot {}} {timeout {}} {timeoffset 0}} {
+   ::RingSourceMgr::addSource $source $lib $id $info $expectHdrs $oneshot $timeout $timeoffset
 }
 
 #------------------------------------------------------------------------------
@@ -594,6 +595,16 @@ proc EVBC::onBegin {} {
         if {[info commands startEVBSources] ne ""} {
           ::EVBC::_waitForEventBuilder
           startEVBSources
+          
+            # Before allowing the reaout(s) to start we want to wait a bit to be
+            # sure the sources are connected to the ring master and all that rot.
+            # this is needed in case the begin run action is quick.  We'll wait
+            # two seconds for now.  In testing with systems that essentially don't
+            # have initialization, I observed that sometimes the begin run events
+            # would get missed and this is why I think it happens.
+        
+            after 2000
+          
         }
     } else {
 	EVBC::reset

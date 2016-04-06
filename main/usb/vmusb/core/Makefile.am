@@ -33,7 +33,6 @@ noinst_HEADERS		= CAcquisitionThread.h		\
 										CInit.h \
 										CExit.h  \
 										TclServer.h \
-										Server.h \
 										server.h \
 										serverinstance.h \
 										CRunStateCommand.h \

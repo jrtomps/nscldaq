@@ -81,6 +81,7 @@ private:
   unsigned         m_nEndsSeen;
   unsigned         m_nTimeout;
   unsigned         m_nTimeWaited;
+  int              m_nTimeOffset;
   CEVBFragmentList  m_frags;
 
   CRingItemToFragmentTransform  m_wrapper;
