@@ -695,7 +695,6 @@ void TestStateTransitions::waitEndingToReady()
     
     std::vector<std::string> programTrans;
     programTrans.push_back("Ending");
-    programTrans.push_back("Ready");
 
     CallbackRecorder r;
     
@@ -714,17 +713,17 @@ void TestStateTransitions::waitEndingToReady()
     
     std::vector<std::pair<std::string, std::string> > states =
         sm.getParticipantStates();
-    EQ(std::string("Ready"), states[0].second);
+    EQ(std::string("Ending"), states[0].second);
     
     // Global state is Ready.
     
-    EQ(std::string("Ready"), sm.getGlobalState());
+    EQ(std::string("Ending"), sm.getGlobalState());
     
     // Recorded -> Readying -> Ready
     
-    EQ(size_t(2), r.m_states.size());
+    EQ(size_t(1), r.m_states.size());
     EQ(std::string("Ending"), r.m_states[0]);
-    EQ(std::string("Ready"),    r.m_states[1]);     
+
 }
 void TestStateTransitions::waitResumingToActive()
 {

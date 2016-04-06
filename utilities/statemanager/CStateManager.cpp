@@ -62,7 +62,11 @@ CStateManager::CStateManager(const char* requestURI, const char* subscriptionURI
     
     m_finalStates["Pausing"]  = "Paused";
     m_finalStates["Resuming"] = "Active";
-    m_finalStates["Ending"]   = "Ready";
+    
+    // 2-stage end run:
+    
+    m_finalStates["Ending"]   = "Ending";
+    m_finalStates["Ready"]    = "Ready";
     
 }
 
