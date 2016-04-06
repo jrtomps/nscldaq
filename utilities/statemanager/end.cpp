@@ -26,6 +26,7 @@
 #include <iostream>
 #include <cstdlib>
 #include "tracker.h"
+#include "transition.h"
 
 
 int main(int argc, char** argv)
@@ -41,23 +42,27 @@ int main(int argc, char** argv)
     // The state must be paused to resume:
     
     std::string gState = sm.getGlobalState();
-    if ((gState != "Active") && (gState != "Paused")) {
-        std::cerr << "Only runs in the 'Active' or 'Paused' state can be resumed. ";
+    if ((gState != "Active") && (gState != "Paused") && (gState != "Ending")) {
+        std::cerr << "Only runs in the 'Active' 'Paused' or 'Ending' states can be resumed. ";
         std::cerr << "The state is now '" << gState << "'\n";
         std::exit(EXIT_FAILURE);
-    }
-    // Figure out the transition callback value:
-    
-    CStateManager::TransitionCallback cb(0);
-    if (verbose) {
-        cb = tracker;
     }
     
     // Initiate and monitor the state transition:
     
-    sm.setGlobalState("Ending");
+    
     try {
-        sm.waitTransition(cb, nullptr);
+        // If the state is not already "Ending" push that transition first:
+        
+        if (gState != "Ending") {
+            transition(sm, "Ending", verbose);
+        }
+        std::cerr << "Ready to end the run\n";
+        
+        // Once we are ending we need to push the Ready state:
+        
+        transition(sm, "Ready", verbose);
+        std::cerr << "Ready completed\n";
     }
     catch(std::runtime_error& err) {
         std::cerr << "End run failed: " << err.what() << std::endl;

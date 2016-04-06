@@ -67,19 +67,19 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h CS
 #  the system:
 
 
-bin_PROGRAMS=status begin prebegin pause resume end title trtimeout \
+bin_PROGRAMS=status begin prebegin pause resume preend end title trtimeout \
 	recording programdir runnum
 noinst_HEADERS=tracker.h
 
 
-EXTRA_DIST=statusopts.ggi beginopts.ggi prebeginopts.ggi \
+EXTRA_DIST=statusopts.ggi beginopts.ggi prebeginopts.ggi preendopts.ggi \
 		resumeopts.ggi endopts.ggi titleopts.ggi pauseopts.ggi  \
 		transitionopts.ggi timeoutopts.ggi recordingopts.ggi \
 		programdiropts.ggi runnumopts.ggi \
 		 standardopts.ggo  
 
 BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h titleopts.h pauseopts.h timeoutopts.h \
-	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h 
+	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h preendopts.h
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
@@ -89,7 +89,7 @@ clean-local:
 	rm -f statusopts.c endopts.c titleopts.c pauseopts.c transitionopts.c
 	rm -f timeoutopts.c recordingopts.c programdiropts.c runnumopts.c
 	rm -f resumeopts.c beginopts.c
-	rm -f prebeginopts.c prebeginopts.o
+	rm -f prebeginopts.c prebeginopts.o preendopts.{c,h,o}
 	rm -f statusopts.o endopts.o titleopts.o pauseopts.o transitionopts.o
 	rm -f timeoutopts.o recordingopts.o programdiropts.o runnumopts.o
 	rm -f resumeopts.o beginopts.o 
@@ -190,8 +190,24 @@ resumeopts.o: @builddir@/resumeopts.ggo
 @builddir@/resumeopts.ggo: resumeopts.ggi standardopts.ggo transitionopts.ggi
 	$(PREPROCESSOR) -P @srcdir@/resumeopts.ggi  |tr -d "\\\\" >@builddir@/resumeopts.ggo
 
+preend_SOURCES=preend.cpp preendopts.h tracker.cpp transition.cpp transition.h tracker.h
+preend_DEPENDENCIES=preendopts.o
+preend_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir
+preend_LDADD=preendopts.o
+preend_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
 
-end_SOURCES=end.cpp endopts.h tracker.cpp
+
+preendopts.h: @builddir@/preendopts.o
+
+preendopts.o: @builddir@/preendopts.ggo
+	$(GENGETOPT) <@builddir@/preendopts.ggo --file=@builddir@/preendopts
+	$(CC) -c -o @builddir@/preendopts.o @builddir@/preendopts.c
+
+
+@builddir@/preendopts.ggo: preendopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/preendopts.ggi  |tr -d "\\\\" >@builddir@/preendopts.ggo
+
+end_SOURCES=end.cpp endopts.h tracker.cpp transition.cpp tracker.h transition.h
 end_DEPENDENCIES=endopts.o
 end_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
 end_LDADD=endopts.o

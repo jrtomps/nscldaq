@@ -61,6 +61,9 @@ proc pause {} {
 proc resume {} {
     puts "Resuming the run"
 }
+proc preend {} {
+    puts "Pre ending the run"
+}
 proc end {} {
     puts "Ending the run."
 }
