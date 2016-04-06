@@ -39,7 +39,7 @@ class CTCLObject;
  *     through the VMUSB (of course with a secondary controller all bets are
  *     off).
  */
-class CPreEndCommand : public TCLObjectProcessor
+class CPreEndCommand : public CTCLObjectProcessor
 {
 public:
     CPreEndCommand(CTCLInterpreter& interp);

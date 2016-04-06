@@ -52,7 +52,7 @@ CPreEndCommand::~CPreEndCommand() {}
  *          set to a human readable error message.
  */
 int
-CPreEndCommand::operator()(CTCLInterpreter& interrp, std::vector<CTCLObject>& objv)
+CPreEndCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
 {
     bindAll(interp, objv);
     
@@ -61,7 +61,7 @@ CPreEndCommand::operator()(CTCLInterpreter& interrp, std::vector<CTCLObject>& ob
         
         // State must be active or paused:
         
-        CRunState* pState = CRunState::getInstance;
+        CRunState* pState = CRunState::getInstance();
         CRunState::RunState state = pState->getState();
         
         if ((state == CRunState::Active) || (state == CRunState::Paused)) {
@@ -98,12 +98,12 @@ CPreEndCommand::operator()(CTCLInterpreter& interrp, std::vector<CTCLObject>& ob
  *    end if preend has not yet been done.
  */
 void
-CPreEnd::perform()
+CPreEndCommand::perform()
 {
-    CCVMUSBHighLevelController* p = Globals::pHLController;
+    CVMUSBHighLevelController* p = Globals::pHLController;
     CRunState* pState = CRunState::getInstance();
     
     p->performStopOperations();
     
-    pState->setState(CRunState::Ending);
+    pState->setState(CRunState::Stopping);
 }

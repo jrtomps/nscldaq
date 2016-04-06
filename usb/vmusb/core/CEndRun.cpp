@@ -24,7 +24,7 @@
 
 #include <CControlQueues.h>
 #include <CRunState.h>
-#include "CPreEndRunCommand.h"
+#include "CPreEndCommand.h"
 
 using std::vector;
 using std::string;
@@ -38,7 +38,7 @@ static string usage(
 /////////////////////////////////////////////////////////////////
 
 
-CEndRun::CEndRun(CTCLInterpreter& interp, CPreEndRunCommand* pre) :
+CEndRun::CEndRun(CTCLInterpreter& interp, CPreEndCommand* pre) :
   CTCLObjectProcessor(interp, string("end")),
   m_preEnd(pre)
 {}
@@ -72,12 +72,18 @@ CEndRun::operator()(CTCLInterpreter& interp,
   CRunState* pState = CRunState::getInstance();
   CRunState::RunState state = pState->getState();
   
-  if ((state == CRunState::Active) && (state == CRunState::Paused)) {
+  if ((state != CRunState::Active) && (state != CRunState::Paused) && (state != CRunState::Stopping)) {
     tclUtil::Usage(interp,
 		   "Invalid state for end run must be active or paused (may be still initializing).",
 		   objv, usage);
     return TCL_ERROR;
   }
+  // If we are are not preending, we need to pre end:
+  
+  if (state != CRunState::Stopping) {
+    m_preEnd->perform();                     // Now we're ending.
+  }
+  
   // Now stop the run...that is if the acquisition thread is still running
 
   if(CAcquisitionThread::getInstance()->isRunning()) {
