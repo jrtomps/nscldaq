@@ -37,6 +37,7 @@
 #endif
 #endif
 
+#include <tuple>
 
 // Forward class defs:
 
@@ -68,6 +69,9 @@ private:
 public:
   virtual int operator()(CTCLInterpreter& interp,
 			 std::vector<CTCLObject>& objv);
+
+protected:
+  std::tuple<int, std::string> end();
 
 private:
   std::string usage();
