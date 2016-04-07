@@ -218,10 +218,9 @@ CRunControlPackage::pause()
   
   if(
     (m_pTheState->m_state == RunState::active) ||
-    (m_pTheState->m_state == RunState::paused) ||
     (m_pTheState->m_state == RunState::pausing)
   ) {
-    if (m_pTheState->m_state == RunState::paused) {
+    if (m_pTheState->m_state == RunState::pausing) {
       prePause();                        // Run the prepause method.
     }
     m_pTheExperiment->Stop(true);
@@ -229,9 +228,7 @@ CRunControlPackage::pause()
     m_pTimer = reinterpret_cast<RunTimer*>(0);
   }
   else {
-    std::string validStates = m_pTheState->stateName(RunState::active);
-    validStates += ", ";
-    validStates += m_pTheState->stateName(RunState::paused);
+    std::string validStates = m_pTheState->stateName(RunState::paused);
     validStates += " or ";
     validStates += m_pTheState->stateName(RunState::pausing);
     throw CStateException(m_pTheState->stateName().c_str(),
