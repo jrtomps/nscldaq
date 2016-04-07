@@ -194,13 +194,35 @@ CRunControlPackage::end()
 			 "Attempting to end a run.");
   }
 }
+/**
+ *  prePause
+ *     Prepare to pause a run.
+ */
+void
+CRunControlPackage::prePause()
+{
+  // Pause can only happen in an active run:
+  
+  if (m_pTheState->m_state != RunState::active) {
+    throw CStateException(m_pTheState->stateName().c_str(),
+                          "Active",
+                          "Attempting to pre-pause a run");
+  }
+}
 /*!
     Pause a run.  The run state must be active.
 */
 void
 CRunControlPackage::pause()
 {
-  if(m_pTheState->m_state == RunState::active) {
+  
+  if(
+    m_pTheState->m_state == RunState::active ||
+    (m_pTheState->m_state == RunState::paused)
+  ) {
+    if (m_pTheState->m_state == RunState::paused) {
+      prePause();                        // Run the prepause method.
+    }
     m_pTheExperiment->Stop(true);
     delete m_pTimer;
     m_pTimer = reinterpret_cast<RunTimer*>(0);

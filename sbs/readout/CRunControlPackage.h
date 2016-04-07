@@ -89,6 +89,7 @@ public:
   void begin();			// Begin a new run.
   void preEnd();                // Prepare to end a run.
   void end();			// End an active run.
+  void prePause();              // Prepare to pause a run.
   void pause();			// Pause an active run.,
   void resume();		// Resume an active run.
   const RunState* getState() const; // Return the run state.
