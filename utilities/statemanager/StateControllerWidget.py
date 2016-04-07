@@ -122,8 +122,9 @@ class QNSCLRunControl(QtGui.QFrame):
         super(QNSCLRunControl, self).__init__(parent)
         
         self._state = QtGui.QLabel(state, self)
-        self._prebegin = QtGui.QPushButton("PreBegin", self)
+        self._prebegin = QtGui.QPushButton("Pre Begin", self)
         self._begin = QtGui.QPushButton("Begin", self)
+        self._preend = QtGui.QPushButton("Pre End", self)
         self._end   = QtGui.QPushButton("End", self)
         self._pause = QtGui.QPushButton("Pause", self)
         self._resume= QtGui.QPushButton("Resume", self)
@@ -134,7 +135,9 @@ class QNSCLRunControl(QtGui.QFrame):
         layout.addWidget(self._state, 0, 1)
         
         layout.addWidget(self._prebegin, 1, 0)
+        
         layout.addWidget(self._begin, 1, 0)
+        layout.addWidget(self._preend, 1, 0)
         layout.addWidget(self._end,   1, 0)      # Intentionally overlaid.
         
         layout.addWidget(self._pause, 1, 3)
@@ -147,6 +150,7 @@ class QNSCLRunControl(QtGui.QFrame):
         
         self._prebegin.clicked.connect(self._preBegin)
         self._begin.clicked.connect(self._beginRun)
+        self._preend.clicked.connect(self._preEnd)
         self._end.clicked.connect(self._endRun)
         self._pause.clicked.connect(self._pauseRun)
         self._resume.clicked.connect(self._resumeRun)
@@ -159,7 +163,8 @@ class QNSCLRunControl(QtGui.QFrame):
         self._visibility = dict()
         self._visibility[self._prebegin] = set(['Ready'])
         self._visibility[self._begin] = set(['Beginning'])
-        self._visibility[self._end]   = set(['Active', 'Paused'])
+        self._visibility[self._preend] = set(['Paused', 'Active'])
+        self._visibility[self._end]   = set(['Ending'])
         self._visibility[self._pause] = set(['Active'])
         self._visibility[self._resume] = set(['Paused'])
         
@@ -177,7 +182,7 @@ class QNSCLRunControl(QtGui.QFrame):
     #  @param state - The state of the system.
     #
     def setState(self, state):
-        for button in [self._prebegin, self._begin, self._pause, self._resume, self._end]:
+        for button in [self._prebegin, self._begin, self._pause, self._resume, self._preend, self._end]:
             if state in self._visibility[button]:
                 button.show()
             else:
@@ -204,14 +209,19 @@ class QNSCLRunControl(QtGui.QFrame):
             self.stateChange.emit('Beginning')
         else:
             self.stateChange.emit('Active')
-            
+    ##
+    # _preEnd
+    #   Handle the pre end button click by emitting a state change to
+    #   'Ending'
+    def _preEnd(self):
+        self.stateChange.emit('Ending')
     ##
     # _endRun
     #    Handle the End button click by emitting a state change to
-    #    'Ending'
+    #    'Ready'
     #
     def _endRun(self):
-        self.stateChange.emit('Ending')
+        self.stateChange.emit('Ready')
     ##
     #  _pauseRun
     #     Handle the Pause button click by emitting a state change to
