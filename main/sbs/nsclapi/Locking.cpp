@@ -24,8 +24,8 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <assert.h>
+#include <time.h>
 #include <string>
-
 
 using namespace std;
 
@@ -135,9 +135,9 @@ void CVMEInterface::Unlock()
   Unlock(0);
 }
 
-bool CVMEInterface::TryLock() 
+bool CVMEInterface::TryLock(int timeoutSeconds) 
 {
-  return TryLock(0);
+  return TryLock(0, timeoutSeconds);
 }
 /*!
     Lock the semaphore.  If the semid is -1, the
@@ -206,23 +206,26 @@ CVMEInterface::Unlock(int semnum)
 
 
 bool
-CVMEInterface::TryLock(int semnum) {
+CVMEInterface::TryLock(int semnum, int nTimeoutSeconds) {
   if (semid == -1) AttachSemaphore();
   assert(semid >= 0);
   
 
   bool success = false;
-  int semval = semctl(semid, semnum, GETVAL);
-  if (semval == 1) {
+//  int semval = semctl(semid, semnum, GETVAL);
+//  if (semval == 1) {
     // there is no one holding the semaphore...
     // try to acquire it.
     struct sembuf buf;
     buf.sem_num = semnum;
     buf.sem_op = -1;         // acquire the sem
-    buf.sem_flg = SEM_UNDO | IPC_NOWAIT;  // don't wait
+    buf.sem_flg = SEM_UNDO;  
 
-    int stat = semop(semid, &buf, 1);
-    semval = semctl(semid, semnum, GETVAL);
+    struct timespec timeout;
+    timeout.tv_sec = nTimeoutSeconds;
+    timeout.tv_nsec = 0;
+
+    int stat = semtimedop(semid, &buf, 1, &timeout);
     if(stat == 0) { 
       success = true; 
     } else {
@@ -237,9 +240,9 @@ CVMEInterface::TryLock(int semnum) {
       }
 
     }
-  } else {
-    // someone is holding the semaphore
-    success = false;
-  }
+//  } else {
+//    // someone is holding the semaphore
+//    success = false;
+//  }
   return success;
 }
