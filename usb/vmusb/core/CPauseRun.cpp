@@ -21,6 +21,7 @@
 #include <CRunState.h>
 #include <CControlQueues.h>
 #include <tclUtil.h>
+#include <CPrePauseCommand.h>
 
 using std::string;
 using std::vector;
@@ -33,8 +34,9 @@ static const string usage(
 /////////////////////////////// cannonicals //////////////////////
 //////////////////////////////////////////////////////////////////
 
-CPauseRun::CPauseRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, "pause") 
+CPauseRun::CPauseRun(CTCLInterpreter& interp, CPrePauseCommand* pre) :
+  CTCLObjectProcessor(interp, "pause") ,
+  m_pPre(pre)
 {}
 CPauseRun::~CPauseRun()
 {}
@@ -72,12 +74,17 @@ CPauseRun::operator()(CTCLInterpreter& interp,
   // check the state:
 
   CRunState* pState = CRunState::getInstance();
-  if (pState->getState() != CRunState::Active) {
+  CRunState::RunState state = pState->getState();
+  
+  if ((state != CRunState::Active)  && (state != CRunState::Pausing)) {
     tclUtil::Usage(interp,
-		   "To pause, the run must be active",
+		   "To pause, the run must be active or Pausing",
 		   objv,
 		   usage);
     return TCL_ERROR;
+  }
+  if (state == CRunState::Active) {
+    m_pPre->perform();                     // Perform the pre-pause action.
   }
   CControlQueues* pRequest = CControlQueues::getInstance();
 

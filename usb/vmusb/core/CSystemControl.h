@@ -35,6 +35,7 @@ class CInit;
 class CExit;
 class CPreBeginCommand;
 class CPreEndCommand;
+class CPrePauseCommand;
 
 /*! \brief Encapsulation of UI control 
  *
@@ -63,6 +64,7 @@ class CSystemControl
     static std::unique_ptr<CExit>      m_pExit;
     static std::unique_ptr<CPreBeginCommand> m_pPreBegin;
     static std::unique_ptr<CPreEndCommand> m_pPreEnd;
+    static std::unique_ptr<CPrePauseCommand> m_pPrePause;
 
   public:
 

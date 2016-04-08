@@ -26,6 +26,7 @@ East Lansing, MI 48824-1321
 #include <CExit.h>
 #include <CPreBeginCommand.h>
 #include <CPreEndCommand.h>
+#include <CPrePauseCommand.h>
 #include <Globals.h>
 #include <event.h>
 
@@ -51,6 +52,7 @@ unique_ptr<CInit>      CSystemControl::m_pInit;
 unique_ptr<CExit>      CSystemControl::m_pExit;
 unique_ptr<CPreBeginCommand> CSystemControl::m_pPreBegin;
 unique_ptr<CPreEndCommand> CSystemControl::m_pPreEnd;
+unique_ptr<CPrePauseCommand> CSystemControl::m_pPrePause;
 
 
 // The entry point
@@ -84,7 +86,8 @@ int CSystemControl::AppInit( Tcl_Interp* interp)
   m_pBeginRun.reset(new CBeginRun(*Globals::pMainInterpreter, m_pPreBegin.get()));
   m_pPreEnd.reset(new CPreEndCommand(*Globals::pMainInterpreter));
   m_pEndRun.reset(new CEndRun(*Globals::pMainInterpreter, m_pPreEnd.get()));
-  m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter));
+  m_pPrePause.reset(new CPrePauseCommand(*Globals::pMainInterpreter));
+  m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter, m_pPrePause.get()));
   m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter));
   m_pInit.reset(new CInit(*Globals::pMainInterpreter));
   m_pExit.reset(new CExit(*Globals::pMainInterpreter));
