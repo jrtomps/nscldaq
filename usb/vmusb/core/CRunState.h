@@ -54,7 +54,8 @@ public:
     Active,
     Paused,
     Starting,			/* Run is starting but not yet active */
-    Stopping			/* Run is stopping but not yet inactive. */
+    Stopping,			/* Run is stopping but not yet inactive. */
+    Pausing
   } RunState;
 
   // Class level data:
