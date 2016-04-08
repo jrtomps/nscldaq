@@ -208,7 +208,7 @@ CRunControlPackage::prePause()
                           "Active",
                           "Attempting to pre-pause a run");
   }
-  m_pTheState->setState(RunState::pausing);
+  m_pTheState->m_state = (RunState::pausing);
 }
 /*!
     Pause a run.  The run state must be active.
@@ -227,7 +227,7 @@ CRunControlPackage::pause()
     m_pTheExperiment->Stop(true);
     delete m_pTimer;
     m_pTimer = reinterpret_cast<RunTimer*>(0);
-    m_pTheState->setState(RunState::paused);
+    m_pTheState->m_state = (RunState::paused);
   }
   else {
     std::string validStates = m_pTheState->stateName(RunState::paused);
