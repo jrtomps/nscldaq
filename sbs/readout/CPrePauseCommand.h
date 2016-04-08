@@ -23,7 +23,7 @@
 #ifndef CPREPAUSECOMMAND_H
 #define CPREPAUSECOMMAND_H
 
-#include <TCLObjectProcessor.h>
+#include <TCLPackagedObjectProcessor.h>
 class CTCLObject;
 class CTCLInterpreter;
 
@@ -32,12 +32,13 @@ class CTCLInterpreter;
  *
  *    Command that prepares the system to stop taking data.
  */
-class CPrePauseCommand : public CTCLObjectProcessor
+class CPrePauseCommand : public CTCLPackagedObjectProcessor
 {
 public:
     CPrePauseCommand(CTCLInterpreter& interp);
     virtual ~CPrePauseCommand();
     virtual int operator()(CTCLInterpreter& interp, std::vector<CTCLObject& objv);
+    void perform();
 };
 
 #endif
