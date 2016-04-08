@@ -39,6 +39,7 @@ libSBSProductionReadout_la_SOURCES	=				\
 						options.c			\
 						CBeginCommand.cpp		\
 						CPreBeginCommand.cpp		\
+						CPrePauseCommand.cpp		\
 						CPauseCommand.cpp		\
 						CResumeCommand.cpp		\
 						CPreEndCommand.cpp		\
@@ -73,7 +74,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CReadoutException.h CInvalidPacketStateException.h	\
 			CEventPacket.h CVarList.h CDocumentedVars.h CVariableBuffers.h \
 			CBusy.h CCAENV262Busy.h CV977Busy.h CRingCommand.h CPreBeginCommand.h \
-			CPreEndCommand.h
+			CPreEndCommand.h CPrePauseCommand.h
 
 
 
@@ -166,6 +167,7 @@ tests_LDADD = 	libSBSProductionReadout_la-CExperiment.lo	\
 		libSBSProductionReadout_la-CPauseCommand.lo				\
 		libSBSProductionReadout_la-CResumeCommand.lo				\
 		libSBSProductionReadout_la-CPreEndCommand.lo	\
+		libSBSProductionReadout_la-CPrePauseCommand.lo	\
 		libSBSProductionReadout_la-CEndCommand.lo					\
 		libSBSProductionReadout_la-CInitCommand.lo					\
 		libSBSProductionReadout_la-CTriggerLoop.lo					\
