@@ -24,6 +24,7 @@
 #define CPREENDCOMMAND_H
 
 #include <TCLPackagedObjectProcessor.h>
+
 class CTCLInterpreter;
 class CTCLObject;
 
@@ -36,6 +37,7 @@ class CTCLObject;
  *     loop alive.
  *
  */
+
 class CPreEndCommand : public CTCLPackagedObjectProcessor
 {
 public:
@@ -46,6 +48,7 @@ public:
     virtual int operator()(
         CTCLInterpreter& interp, std::vector<CTCLObject>& objv
     );
+    void perform();
 };
 
 #endif

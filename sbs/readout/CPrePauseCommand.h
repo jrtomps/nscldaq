@@ -37,7 +37,7 @@ class CPrePauseCommand : public CTCLPackagedObjectProcessor
 public:
     CPrePauseCommand(CTCLInterpreter& interp);
     virtual ~CPrePauseCommand();
-    virtual int operator()(CTCLInterpreter& interp, std::vector<CTCLObject& objv);
+    virtual int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void perform();
 };
 

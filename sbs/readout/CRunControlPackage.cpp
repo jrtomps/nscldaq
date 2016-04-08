@@ -25,6 +25,7 @@
 #include <StateException.h>
 #include "CBeginCommand.h"
 #include "CPreBeginCommand.h"
+#include "CPrePauseCommand.h"
 #include "CPauseCommand.h"
 #include "CResumeCommand.h"
 #include "CPreEndCommand.h"
@@ -157,14 +158,15 @@ CRunControlPackage::preEnd()
   // Must be called in the halted Active state:
   
   RunState::State state = m_pTheState->m_state;
-  if (state != RunState::active) {
+  if ((state != RunState::active) && state != (RunState::paused)) {
     throw CStateException(
       m_pTheState->stateName().c_str(),
       RunState::stateName(RunState::active).c_str(),
       "Attempting run pre-end actions."
     );
-  
+   
   }
+   m_pTheState->m_state = RunState::halting;
   
 }
 
@@ -182,6 +184,7 @@ CRunControlPackage::end()
     m_pTheExperiment->Stop(false);	// Not a pause.
     delete m_pTimer;
     m_pTimer = reinterpret_cast<RunTimer*>(0);
+    m_pTheState->m_state = RunState::inactive;
   }
   else {
     string validstates = RunState::stateName(RunState::active);
@@ -208,7 +211,7 @@ CRunControlPackage::prePause()
                           "Active",
                           "Attempting to pre-pause a run");
   }
-  m_pTheState->m_state = (RunState::pausing);
+  m_pTheState->m_state = RunState::pausing;
 }
 /*!
     Pause a run.  The run state must be active.
@@ -219,15 +222,15 @@ CRunControlPackage::pause()
   
   if(
     (m_pTheState->m_state == RunState::active) ||
-    (m_pTheState->m_state == RunState::pausing)
+    (m_pTheState->m_state == RunState::pausing) 
   ) {
-    if (m_pTheState->m_state == RunState::pausing) {
+    if (m_pTheState->m_state != RunState::pausing) {
       prePause();                        // Run the prepause method.
     }
     m_pTheExperiment->Stop(true);
     delete m_pTimer;
     m_pTimer = reinterpret_cast<RunTimer*>(0);
-    m_pTheState->m_state = (RunState::paused);
+    m_pTheState->m_state = RunState::paused;
   }
   else {
     std::string validStates = m_pTheState->stateName(RunState::paused);
@@ -278,7 +281,9 @@ void CRunControlPackage::createCommands(CTCLInterpreter& interp)
 {
   addCommand(new CBeginCommand(interp));
   addCommand(new CPreBeginCommand(interp));
-  addCommand(new CPauseCommand(interp));
+  CPrePauseCommand* prePause = new CPrePauseCommand(interp);
+  addCommand(prePause);
+  addCommand(new CPauseCommand(interp, prePause));
   addCommand(new CResumeCommand(interp));
   addCommand(new CEndCommand(interp));
   addCommand(new CInitCommand(interp));

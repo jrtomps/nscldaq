@@ -16,25 +16,30 @@
 #include <config.h>
 #include "CPauseCommand.h"
 #include "CRunControlPackage.h"
+#include "RunState.h"
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <StateException.h>
 #include <tcl.h>
+#include "CPrePauseCommand.h"
 
 using namespace std;
+
 
 
 /*!
    Constructor.. we need to register ourself as the pause command:
    @param interp   - Reference to the interpreter object on which this
                      command will be registered.
-
+   @param prePause - the prepause command on the same interp.
    @note - The command keyword is hard coded to 'pause'.
 */
-CPauseCommand::CPauseCommand(CTCLInterpreter& interp) :
-  CTCLPackagedObjectProcessor(interp, string("pause"))
+
+CPauseCommand::CPauseCommand(CTCLInterpreter& interp, CPrePauseCommand* prePause) :
+  CTCLPackagedObjectProcessor(interp, string("pause")),
+  m_prePause(prePause)
 {
-  
+
 }
 /*!
    Destructor here just to support chaining.
@@ -79,6 +84,12 @@ CPauseCommand::operator()(CTCLInterpreter&    interp,
   bool error = false;
   string result;
   try {
+    // If we are in the active state we need to prepause:
+    
+    if(pRunControl.getState()->m_state == RunState::active) {
+        m_prePause->perform();
+    }
+    
     pRunControl.pause();
   }
   catch (CStateException& e) {

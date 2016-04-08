@@ -287,9 +287,10 @@ CExperiment::Start(bool resume)
 void
 CExperiment::Stop(bool pause)
 {
-  if (pause && (m_pRunState->m_state != RunState::active)) {
+  RunState::State state = m_pRunState->m_state;
+  if (pause && (state != RunState::pausing)) {
     throw CStateException(m_pRunState->stateName().c_str(),
-			  RunState::stateName(RunState::active).c_str(),
+			  RunState::stateName(RunState::pausing).c_str(),
 			  "Stopping data taking");
   }
   if (!pause && (m_pRunState->m_state == RunState::inactive)) {
@@ -305,7 +306,7 @@ CExperiment::Stop(bool pause)
   // Schedule the trigger thread to stop.
 
   if (m_pTriggerLoop) {
-    if (m_pRunState->m_state == RunState::active) {
+    if ((state == RunState::pausing) || (state == RunState::halting)) {
       m_pTriggerLoop->stop(pause); // run is active
     }
     else {
