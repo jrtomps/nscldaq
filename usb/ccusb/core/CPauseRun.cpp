@@ -16,11 +16,16 @@
 
 #include <config.h>
 #include "CPauseRun.h"
+
 #include <TCLObject.h>
 #include <TCLInterpreter.h>
 #include <CRunState.h>
 #include <CControlQueues.h>
 #include <tclUtil.h>
+#include <stdexcept>
+#include <Exception.h>
+
+#include "CPrePauseCommand.h"
 
 using std::string;
 using std::vector;
@@ -33,8 +38,9 @@ static const string usage(
 /////////////////////////////// cannonicals //////////////////////
 //////////////////////////////////////////////////////////////////
 
-CPauseRun::CPauseRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, "pause") 
+CPauseRun::CPauseRun(CTCLInterpreter& interp, CPrePauseCommand* pre) :
+  CTCLObjectProcessor(interp, "pause") ,
+  m_prePause(pre)
 {}
 CPauseRun::~CPauseRun()
 {}
@@ -69,19 +75,45 @@ CPauseRun::operator()(CTCLInterpreter& interp,
 		   usage);
     return TCL_ERROR;
   }
-  // check the state:
-
-  CRunState* pState = CRunState::getInstance();
-  if (pState->getState() != CRunState::Active) {
-    tclUtil::Usage(interp,
-		   "To pause, the run must be active",
-		   objv,
-		   usage);
+  try {
+    // check the state:
+  
+    CRunState* pState = CRunState::getInstance();
+    CRunState::RunState state = pState->getState();
+    if ((state != CRunState::Active) && (state != CRunState::Pausing)) {
+      tclUtil::Usage(interp,
+		     "To pause, the run must be active or pausing (prepaused)",
+		     objv,
+		     usage);
+      return TCL_ERROR;
+    }
+    // If active we must prepause first:
+    
+    if (state == CRunState::Active) {
+      m_prePause->perform();     // We're now prepaused.
+    }
+    
+    
+    // Note that the acqusition thread will set the state to paused.
+    
+    CControlQueues* pRequest = CControlQueues::getInstance();
+    pRequest->PauseRun();
+  }
+  catch (std::string msg) {
+    interp.setResult(msg);
     return TCL_ERROR;
   }
-  CControlQueues* pRequest = CControlQueues::getInstance();
-
-  pRequest->PauseRun();
-
+  catch (const char* msg) {
+    interp.setResult(msg);
+    return TCL_ERROR;
+  }
+  catch (std::exception& e) {
+    interp.setResult(e.what());
+    return TCL_ERROR;
+  }
+  catch (CException& e) {
+    interp.setResult(e.ReasonText());
+    return TCL_ERROR;
+  }
   return TCL_OK;
 }

@@ -399,6 +399,8 @@ CAcquisitionThread::stopDaq()
   Pause the daq. This means doing a stopDaq() and fielding 
   requests until resume or stop was sent.
 
+  TODO:  Get the system to emit a pause/resume item.
+  
 */
 void
 CAcquisitionThread::pauseDaq()
@@ -425,7 +427,7 @@ CAcquisitionThread::pauseDaq()
     else if (req == CControlQueues::END) {
       queues->Acknowledge();
       pState->setState(CRunState::Idle);
-      throw "Run Ending";
+      throw 1;                 // Integer exception is exit.
     }
     else if (req == CControlQueues::RESUME) {
       startDaq();

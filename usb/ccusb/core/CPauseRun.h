@@ -37,16 +37,17 @@
 
 class CTCLInterpreter;
 class CTCLObject;
-
+class CPrePauseCommand;
 /*!
    Command object that processa a pause command that puts a temporary
    pause to data taking for a run.
 */
 class CPauseRun : public CTCLObjectProcessor
 {
+CPrePauseCommand* m_prePause;
   // Cannonicals
 public:
-  CPauseRun(CTCLInterpreter& interp);
+  CPauseRun(CTCLInterpreter& interp, CPrePauseCommand* pre);
   virtual ~CPauseRun();
 
 private:

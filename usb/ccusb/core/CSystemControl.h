@@ -15,6 +15,7 @@ class CPreBeginCommand;
 class CBeginRun;
 class CPreEndCommand;
 class CEndRun;
+class CPrePauseCommand;
 class CPauseRun;
 class CResumeRun;
 class CInit;
@@ -48,6 +49,7 @@ class CSystemControl
     static std::unique_ptr<CInit>      m_pInit;
     static std::unique_ptr<CExit>      m_pExit;
     static std::unique_ptr<CPreEndCommand>    m_pPreEnd;
+    static std::unique_ptr<CPrePauseCommand>  m_pPrePause;
 
   public:
 
