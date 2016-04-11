@@ -86,6 +86,7 @@ public:
   // for application extensions:
 public:
   void preBegin();              // Do initializations prior to run-start.
+  void preResume();      // Initializations prior to resume run.
   void begin();			// Begin a new run.
   void preEnd();                // Prepare to end a run.
   void end();			// End an active run.

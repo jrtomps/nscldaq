@@ -20,6 +20,7 @@
 #include <TCLObject.h>
 #include <StateException.h>
 #include <tcl.h>
+#include <RunState.h>
 
 using namespace std;
 
@@ -77,6 +78,15 @@ CResumeCommand::operator()(CTCLInterpreter&    interp,
   bool error = false;
   string result;
   try {
+    // It might be necessary to call preresume if our state is
+    // not resuming.
+    
+    RunState* pRState = RunState::getInstance();
+    if (pRState->m_state != RunState::resuming) {
+              pRunControl->preResume();
+    }
+    // Regardless we try to resume the run:
+    
     pRunControl.resume();
   }
   catch (CStateException& e) {

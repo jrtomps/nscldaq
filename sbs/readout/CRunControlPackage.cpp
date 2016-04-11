@@ -124,6 +124,24 @@ CRunControlPackage::preBegin()
     );
   }
 }
+/**
+ * preResume
+ *    Initialization prior to resume is the same as prebegin:
+ */
+void
+CRunControlPackage::preResume()
+{
+  if(m_pTheState->m_state == RunState::paused) {
+    m_pTheExperiment->PreStart();
+    m_pTheState->setState(RunState::resuming);
+  } else {
+    throw CStateException(
+      m_pTheState->stateName().c_str(),
+      RunState::stateName(RunState::paused).c_str(),
+      "Attempting to preresume a run"
+    );
+  }
+}
 
 /*!
    Start a new run; Run state must be halted.
@@ -288,4 +306,5 @@ void CRunControlPackage::createCommands(CTCLInterpreter& interp)
   addCommand(new CEndCommand(interp));
   addCommand(new CInitCommand(interp));
   addCommand(new CPreEndCommand(interp));
+  addCommand(new CPreResumeCommand(interp));
 }
