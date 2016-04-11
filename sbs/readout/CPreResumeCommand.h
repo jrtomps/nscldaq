@@ -39,7 +39,7 @@ public:
     CPreResumeCommand(CTCLInterpreter& interp);
     virtual ~CPreResumeCommand();
     
-    int operator()(CTCLInterpreter& interp, std::vector<CTCLObject& objv);
+    int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
 };
 

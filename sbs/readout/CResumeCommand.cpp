@@ -83,7 +83,7 @@ CResumeCommand::operator()(CTCLInterpreter&    interp,
     
     RunState* pRState = RunState::getInstance();
     if (pRState->m_state != RunState::resuming) {
-              pRunControl->preResume();
+              pRunControl.preResume();
     }
     // Regardless we try to resume the run:
     

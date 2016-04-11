@@ -26,7 +26,7 @@
 #include "CRunControlPackage.h"
 
 #include <Exception.h>
-#include <stdexcdept>
+#include <stdexcept>
 
 /**
  * constructor
@@ -63,9 +63,9 @@ CPreResumeCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& 
     try {
         requireExactly(objv, 1, "preresume has no command line parameters");
         
-        CTCLObjectPackage* pRawPackage = gePackage();
+        CTCLObjectPackage* pRawPackage = getPackage();
         CRunControlPackage* pPack      =
-            reinterpret_cast<CTCLObjectPackage*>(pRawPackage);
+            reinterpret_cast<CRunControlPackage*>(pRawPackage);
         pPack->preResume();
         
     }

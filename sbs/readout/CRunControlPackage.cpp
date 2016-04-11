@@ -30,6 +30,7 @@
 #include "CResumeCommand.h"
 #include "CPreEndCommand.h"
 #include "CEndCommand.h"
+#include "CPreResumeCommand.h"
 #include "CInitCommand.h"
 #include <TCLTimer.h>
 
@@ -133,7 +134,7 @@ CRunControlPackage::preResume()
 {
   if(m_pTheState->m_state == RunState::paused) {
     m_pTheExperiment->PreStart();
-    m_pTheState->setState(RunState::resuming);
+    m_pTheState->m_state = (RunState::resuming);
   } else {
     throw CStateException(
       m_pTheState->stateName().c_str(),
