@@ -89,7 +89,7 @@ clean-local:
 	rm -f statusopts.c endopts.c titleopts.c pauseopts.c transitionopts.c
 	rm -f timeoutopts.c recordingopts.c programdiropts.c runnumopts.c
 	rm -f resumeopts.c beginopts.c
-	rm -f prebeginopts.c prebeginopts.o preendopts.{c,h,o}
+	rm -f prebeginopts.c prebeginopts.o preendopts.{c,h,o,ggo} 
 	rm -f statusopts.o endopts.o titleopts.o pauseopts.o transitionopts.o
 	rm -f timeoutopts.o recordingopts.o programdiropts.o runnumopts.o
 	rm -f resumeopts.o beginopts.o 
@@ -204,7 +204,7 @@ preendopts.o: @builddir@/preendopts.ggo
 	$(CC) -c -o @builddir@/preendopts.o @builddir@/preendopts.c
 
 
-@builddir@/preendopts.ggo: preendopts.ggi standardopts.ggo transitionopts.ggi
+@builddir@/preendopts.ggo: @srcdir@/preendopts.ggi standardopts.ggo transitionopts.ggi
 	$(PREPROCESSOR) -P @srcdir@/preendopts.ggi | tr -d "\\\\" > @builddir@/preendopts.ggo
 
 
