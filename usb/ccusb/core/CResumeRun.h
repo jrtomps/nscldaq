@@ -46,7 +46,7 @@ class CPreResumeCommand;
 class CResumeRun : public CTCLObjectProcessor
 {
 private:
-  CPreResumeCommand m_pre;
+  CPreResumeCommand* m_pre;
   
   // Cannonicals:
 public:

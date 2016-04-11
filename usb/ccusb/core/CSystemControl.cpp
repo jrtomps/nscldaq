@@ -9,7 +9,7 @@
 #include <CPrePauseCommand.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
-#include <CPreResumeCommaned.h>
+#include <CPreResumeCommand.h>
 #include <CInit.h>
 #include <CExit.h>
 #include <Globals.h>
@@ -39,7 +39,7 @@ unique_ptr<CResumeRun> CSystemControl::m_pResumeRun;
 unique_ptr<CInit>      CSystemControl::m_pInit;
 unique_ptr<CExit>      CSystemControl::m_pExit;
 unique_ptr<CPrePauseCommand> CSystemControl::m_pPrePause;
-unique_ptr<CPreResumeCommand> CSytemControl::m_pPreResume;
+unique_ptr<CPreResumeCommand> CSystemControl::m_pPreResume;
 
 // The entry point
 void CSystemControl::run(int argc, char** argv) 
