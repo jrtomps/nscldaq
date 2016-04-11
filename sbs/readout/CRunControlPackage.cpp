@@ -267,7 +267,7 @@ CRunControlPackage::pause()
 void
 CRunControlPackage::resume()
 {
-  if (m_pTheState->m_state == RunState::paused) {
+  if (m_pTheState->m_state == RunState::resuming) {
     m_pTheExperiment->Start(true);
     m_pTimer = new RunTimer(m_pInterp);
   }
