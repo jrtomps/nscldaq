@@ -20,7 +20,7 @@ libCCUSBCore_la_SOURCES	= Globals.cpp CAcquisitionThread.cpp 	\
 													tclUtil.cpp	\
 													CCCUSBHighLevelController.cpp \
 													CPreBeginCommand.cpp CPreEndCommand.cpp \
-													CPrePauseCommand.cpp
+													CPrePauseCommand.cpp CPreResumeCommand.cpp
 
 noinst_HEADERS		= Globals.h CAcquisitionThread.h		\
 										CControlQueues.h \
@@ -44,7 +44,7 @@ noinst_HEADERS		= Globals.h CAcquisitionThread.h		\
 										Events.h	\
 										CCCUSBHighLevelController.h  \
 										CPreBeginCommand.h CPreEndCommand.h \
-										CPrePauseCommand.h
+										CPrePauseCommand.h CPreResumeCommand.h
 
 libCCUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \
