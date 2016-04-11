@@ -197,16 +197,17 @@ preend_LDADD=preendopts.o
 preend_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
 
 
-preendopts.h: preendopts.o
+preendopts.h: @builddir@/preendopts.o
+
+preendopts.o: @builddir@/preendopts.ggo
+	$(GENGETOPT) <@builddir@/preendopts.ggo --file=@builddir@/preendopts
+	$(CC) -c -o @builddir@/preendopts.o @builddir@/preendopts.c
 
 
 @builddir@/preendopts.ggo: preendopts.ggi standardopts.ggo transitionopts.ggi
 	$(PREPROCESSOR) -P @srcdir@/preendopts.ggi | tr -d "\\\\" > @builddir@/preendopts.ggo
 
 
-preendopts.o: @builddir@/preendopts.ggo
-	$(GENGETOPT) <@builddir@/preendopts.ggo --file=@builddir@/preendopts
-	$(CC) -c -o @builddir@/preendopts.o @builddir@/preendopts.c
 
 
 
