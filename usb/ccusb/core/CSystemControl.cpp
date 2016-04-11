@@ -9,6 +9,7 @@
 #include <CPrePauseCommand.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
+#include <CPreResumeCommaned.h>
 #include <CInit.h>
 #include <CExit.h>
 #include <Globals.h>
@@ -38,7 +39,7 @@ unique_ptr<CResumeRun> CSystemControl::m_pResumeRun;
 unique_ptr<CInit>      CSystemControl::m_pInit;
 unique_ptr<CExit>      CSystemControl::m_pExit;
 unique_ptr<CPrePauseCommand> CSystemControl::m_pPrePause;
-
+unique_ptr<CPreResumeCommand> CSytemControl::m_pPreResume;
 
 // The entry point
 void CSystemControl::run(int argc, char** argv) 
@@ -71,7 +72,8 @@ int CSystemControl::AppInit( Tcl_Interp* interp)
   m_pEndRun.reset(new CEndRun(*Globals::pMainInterpreter, m_pPreEnd.get()));
   m_pPrePause.reset(new CPrePauseCommand(*Globals::pMainInterpreter));
   m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter, m_pPrePause.get()));
-  m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter));
+  m_pPreResume.reset(new CPreResumeCommand(*Globals::pMainInterpreter));
+  m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter, m_pPreResume.get()));
   m_pInit.reset(new CInit(*Globals::pMainInterpreter));
   m_pExit.reset(new CExit(*Globals::pMainInterpreter));
   

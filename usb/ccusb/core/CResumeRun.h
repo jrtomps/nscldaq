@@ -37,7 +37,7 @@
 
 class CTCLInterpreter;
 class CTCLObject;
-
+class CPreResumeCommand;
 /*!
    Command processor object that processes the resume run
    command.  This restarts data taking that was halted using
@@ -45,10 +45,14 @@ class CTCLObject;
 */
 class CResumeRun : public CTCLObjectProcessor
 {
+private:
+  CPreResumeCommand m_pre;
+  
   // Cannonicals:
 public:
-  CResumeRun(CTCLInterpreter& interp);
+  CResumeRun(CTCLInterpreter& interp, CPreResumeCommand* pre);
   virtual ~CResumeRun();
+
 
 private:
   CResumeRun(const CResumeRun& rhs);

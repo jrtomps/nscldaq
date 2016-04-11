@@ -21,6 +21,7 @@
 #include <CRunState.h>
 #include <CControlQueues.h>
 #include <tclUtil.h>
+#include "CPreResumeCommand.h"
 
 using std::string;
 using std::vector;
@@ -33,8 +34,9 @@ static const string usage(
 //////////////////////////////////////////////////////////////////
 
 
-CResumeRun::CResumeRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, "resume")
+CResumeRun::CResumeRun(CTCLInterpreter& interp, CPreResumeCommand* pre) :
+  CTCLObjectProcessor(interp, "resume"),
+  m_pre(pre)
 {}
 
 CResumeRun::~CResumeRun()
@@ -66,12 +68,20 @@ CResumeRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
   CRunState* pState = CRunState::getInstance();
-  if (pState->getState() != CRunState::Paused) {
+  CRunState::RunState state = pState->getState();
+  if ((state != CRunState::Paused) && (state != CRunState::Resuming)) {
     tclUtil::Usage(interp,
 		   "Invalid run state, to resume must be paused",
 		   objv, usage);
     return TCL_ERROR;
   }
+  
+  // if needed, pre-resume:
+  
+  if (state == CRunState::Paused) {
+    m_pre->perform();
+  }
+  
   // resume the run:
 
   CControlQueues* pRequest = CControlQueues::getInstance();
