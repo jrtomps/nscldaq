@@ -37,6 +37,7 @@
 
 class CTCLInterpreter;
 class CTCLObject;
+class CPreResumeCommand;
 
 /*!
    Command processor object that processes the resume run
@@ -45,13 +46,15 @@ class CTCLObject;
 */
 class CResumeRun : public CTCLObjectProcessor
 {
+private:
+  CPreResumeCommand* m_pre;
   // Cannonicals:
 public:
   CResumeRun(CTCLInterpreter& interp);
   virtual ~CResumeRun();
 
 private:
-  CResumeRun(const CResumeRun& rhs);
+  CResumeRun(const CResumeRun& rhs, CPreResumeCommand* pre);
   CResumeRun& operator=(const CResumeRun& rhs);
   int operator==(const CResumeRun& rhs) const;
   int operator!=(const CResumeRun& rhs) const;

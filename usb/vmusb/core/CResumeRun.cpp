@@ -21,20 +21,17 @@
 #include <CRunState.h>
 #include <CControlQueues.h>
 #include <tclUtil.h>
+#include "CPreResumeCommand.h"
+#include <stdexcept>
+#include <Exception.h>
 
-using std::string;
-using std::vector;
-
-static const string usage(
-"Usage:\n\
-   resume");
-//////////////////////////////////////////////////////////////////
-/////////////////////////////// cannonicals //////////////////////
+/////////////////// cannonicals //////////////////////
 //////////////////////////////////////////////////////////////////
 
 
-CResumeRun::CResumeRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, "resume")
+CResumeRun::CResumeRun(CTCLInterpreter& interp, CPreResumeCommand* pre) :
+  CTCLObjectProcessor(interp, "resume"),
+  m_pre(pre)
 {}
 
 CResumeRun::~CResumeRun()
@@ -58,25 +55,49 @@ CResumeRun::operator()(CTCLInterpreter& interp,
 {
   // Check the prereqs:
 
-  if (objv.size() != 1) {
-    tclUtil::Usage(interp,
-		   "Invalid parameter count",
-		   objv,
-		   usage);
-    return TCL_ERROR;
-  }
-  CRunState* pState = CRunState::getInstance();
-  if (pState->getState() != CRunState::Paused) {
-    tclUtil::Usage(interp,
-		   "Invalid run state, to resume must be paused",
-		   objv, usage);
-    return TCL_ERROR;
-  }
-  // resume the run:
-
-  CControlQueues* pRequest = CControlQueues::getInstance();
-  pRequest->ResumeRun();
+  bindAll(interp, objv);
+  try {
+    requireExactly(objv, 1, "resume command requires no parameters");
+    CRunState* pState = CRunState::getInstance();
+    CRunState::RunState state = pState->getState();
+    
+    if ((state!= CRunState::Paused) && (state != CRunState::Resuming)) {
+      throw std::logic_error("resume but state is neither paused nor resuming");
+    }
+    // If needed preresume:
+    
+    if(state == CRunState::Paused) {
+      m_pre->perform();
+    }
+    
+    // resume the run:
   
+    CControlQueues* pRequest = CControlQueues::getInstance();
+    pRequest->ResumeRun();
+    pState->setState(CRunState::Active);
+    
+    
+  }
+  catch (std::string msg) {
+      interp.setResult(msg);
+      return TCL_ERROR;
+  }
+  catch (const char* msg) {
+      interp.setResult(msg);
+      return TCL_ERROR;        
+  }
+  catch (CException& e) {
+      interp.setResult(e.ReasonText());
+      return TCL_ERROR;
+  }
+  catch (std::exception& e) {
+      interp.setResult(e.what());
+      return TCL_ERROR;        
+  }
+  catch (...) {
+      interp.setResult("prebegin - unexpected exception type");
+      return TCL_ERROR;
+  }
 
   return TCL_OK;
 }

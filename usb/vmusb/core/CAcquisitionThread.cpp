@@ -421,6 +421,7 @@ CAcquisitionThread::pauseDaq()
   pState->setState(CRunState::Paused);    // Fully paused.
   queues->Acknowledge();
   
+  // TODO: This should emit a Pause item.
 
   while (1) {
     CControlQueues::opCode req = queues->getRequest();
@@ -440,6 +441,9 @@ CAcquisitionThread::pauseDaq()
       throw 0;
     }
     else if (req == CControlQueues::RESUME) {
+      //
+      // TODO: This should emit a resume item.
+      
       startDaq();
       queues->Acknowledge();
       return;
