@@ -67,26 +67,47 @@ CResumeRun::operator()(CTCLInterpreter& interp,
 		   usage);
     return TCL_ERROR;
   }
-  CRunState* pState = CRunState::getInstance();
-  CRunState::RunState state = pState->getState();
-  if ((state != CRunState::Paused) && (state != CRunState::Resuming)) {
-    tclUtil::Usage(interp,
-		   "Invalid run state, to resume must be paused",
-		   objv, usage);
-    return TCL_ERROR;
+  try {
+    CRunState* pState = CRunState::getInstance();
+    CRunState::RunState state = pState->getState();
+    if ((state != CRunState::Paused) && (state != CRunState::Resuming)) {
+      throw std::logic_error("resume - run is neither paused nor resuming");
+    }
+    
+    // if needed, pre-resume:
+    
+    if (state == CRunState::Paused) {
+      m_pre->perform();
+    }
+  
+  
+    // resume the run:
+  
+    CControlQueues* pRequest = CControlQueues::getInstance();
+    pRequest->ResumeRun();
+  
   }
-  
-  // if needed, pre-resume:
-  
-  if (state == CRunState::Paused) {
-    m_pre->perform();
+  catch (std::string msg) {
+        interp.setResult(msg);
+        return TCL_ERROR;
+    }
+  catch (const char* msg) {
+      interp.setResult(msg);
+      return TCL_ERROR;        
   }
-  
-  // resume the run:
+  catch (CException& e) {
+      interp.setResult(e.ReasonText());
+      return TCL_ERROR;
+  }
+  catch (std::exception& e) {
+      interp.setResult(e.what());
+      return TCL_ERROR;        
+  }
+  catch (...) {
+      interp.setResult("prebegin - unexpected exception type");
+      return TCL_ERROR;
+  }
 
-  CControlQueues* pRequest = CControlQueues::getInstance();
-  pRequest->ResumeRun();
-  
 
   return TCL_OK;
 }

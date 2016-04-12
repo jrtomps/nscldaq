@@ -103,7 +103,7 @@ CPreResumeCommand::perform()
     // thread has relinquished control over the CCUSB.
     
     CRunState* pState = CRunState::getInstance();
-    if (pState->getState() != CRunState::Paused) {
+    if (pState->getState() == CRunState::Paused) {
         pState->setState(CRunState::Resuming);
     } else {
         throw std::logic_error("Attempted to pre-resume a run that was not paused");
