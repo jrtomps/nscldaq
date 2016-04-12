@@ -36,6 +36,7 @@ class CExit;
 class CPreBeginCommand;
 class CPreEndCommand;
 class CPrePauseCommand;
+class CPreResumeCommand;
 
 /*! \brief Encapsulation of UI control 
  *
@@ -65,7 +66,7 @@ class CSystemControl
     static std::unique_ptr<CPreBeginCommand> m_pPreBegin;
     static std::unique_ptr<CPreEndCommand> m_pPreEnd;
     static std::unique_ptr<CPrePauseCommand> m_pPrePause;
-
+    static std::unique_ptr<CPreResumeCommand> m_pPreResume;
   public:
 
     /*! \brief Wrapper around Tcl_Main 
