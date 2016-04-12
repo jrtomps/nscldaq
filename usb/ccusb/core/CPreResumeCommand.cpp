@@ -54,7 +54,7 @@ CPreResumeCommand::~CPreResumeCommand() {}
  *        readable error message string.
  */
 int
-CPreResumeCommand::operator()
+CPreResumeCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
 {
     bindAll(interp, objv);
     
@@ -102,8 +102,8 @@ CPreResumeCommand::perform()
     // CCUSB/controller as the system is out of DAQ mode and the acquisition
     // thread has relinquished control over the CCUSB.
     
-    CRunState* pState = CRunState::getInstance()
-    if (pState->getState() !-= CRunState::Paused) {
+    CRunState* pState = CRunState::getInstance();
+    if (pState->getState() != CRunState::Paused) {
         pState->setState(CRunState::Resuming);
     } else {
         throw std::logic_error("Attempted to pre-resume a run that was not paused");
