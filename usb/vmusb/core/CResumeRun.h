@@ -50,11 +50,11 @@ private:
   CPreResumeCommand* m_pre;
   // Cannonicals:
 public:
-  CResumeRun(CTCLInterpreter& interp);
+  CResumeRun(CTCLInterpreter& interp, CPreResumeCommand* pre);
   virtual ~CResumeRun();
 
 private:
-  CResumeRun(const CResumeRun& rhs, CPreResumeCommand* pre);
+  CResumeRun(const CResumeRun& rhs);
   CResumeRun& operator=(const CResumeRun& rhs);
   int operator==(const CResumeRun& rhs) const;
   int operator!=(const CResumeRun& rhs) const;

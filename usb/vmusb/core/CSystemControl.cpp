@@ -54,7 +54,7 @@ unique_ptr<CExit>      CSystemControl::m_pExit;
 unique_ptr<CPreBeginCommand> CSystemControl::m_pPreBegin;
 unique_ptr<CPreEndCommand> CSystemControl::m_pPreEnd;
 unique_ptr<CPrePauseCommand> CSystemControl::m_pPrePause;
-unique_ptr<CPreResumeCommadnd> CSystemControl::m_pPreResume;
+unique_ptr<CPreResumeCommand> CSystemControl::m_pPreResume;
 
 
 // The entry point

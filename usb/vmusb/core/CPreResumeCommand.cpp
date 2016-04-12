@@ -96,11 +96,11 @@ void CPreResumeCommand::perform()
     // Only do (nothing) if the state is paused:
     
     CRunState* pState = CRunState::getInstance();
-    CRunState::RunState = pState->getState();
+    CRunState::RunState state = pState->getState();
     
-    if (RunState == "paused") {
-        pState->setState("resuming");
+    if (state == CRunState::Paused) {
+        pState->setState(CRunState::Resuming);
     } else {
-        throw std::logic_error("Pre resuming a non-paused run"):
+        throw std::logic_error("Pre resuming a non-paused run");
     }
 }
