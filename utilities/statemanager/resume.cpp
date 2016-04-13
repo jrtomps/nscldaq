@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     try {
         // If nobody did a pre-resume:
         
-        if ((gState == "Paused")  {
+        if (gState == "Paused")  {
             transition(sm, "Resuming", verbose);
         }
         // Make the run active.

@@ -193,7 +193,8 @@ preresumeopts.o: @builddir@/preresumeopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/preresumeopts.ggi  |tr -d "\\\\" >@builddir@/preresumeopts.ggo
 
 
-resume_SOURCES=resume.cpp resumeopts.h tracker.cpp
+resume_SOURCES=resume.cpp resumeopts.h tracker.cpp transition.h transition.cpp
+
 resume_DEPENDENCIES=resumeopts.o
 resume_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
 resume_LDADD=resumeopts.o
