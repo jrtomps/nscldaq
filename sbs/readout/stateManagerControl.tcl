@@ -48,7 +48,10 @@ namespace eval state {
     variable subUri      $::env(SUB_URI)
     variable programName $::env(PROGRAM)
     variable runActive    0
-    variable handledStates [list NotReady Beginning Active Ending Ready Pausing Resuming]
+    variable handledStates [list \
+        NotReady Beginning Active Ending Ready Pausing Resuming \
+        Paused                                                  \
+    ]
     variable lastGlobalState Readying
 
 }
