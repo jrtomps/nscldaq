@@ -1,4 +1,4 @@
-package "preresume"
+package "preresumem"
 version "1.0"
 
 #include "transitionopts.ggi"

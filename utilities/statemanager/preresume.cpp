@@ -1,32 +1,31 @@
-/**
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
 
-#    This software is Copyright by the Board of Trustees of Michigan
-#    State University (c) Copyright 2013.
-#
-#    You may use this software under the terms of the GNU public license
-#    (GPL).  The terms of this license are described at:
-#
-#     http://www.gnu.org/licenses/gpl.txt
-#
-#    Author:
-#            Ron Fox
-#            NSCL
-#            Michigan State University
-#            East Lansing, MI 48824-1321
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
 
-##
-# @file   resume.cpp
-# @brief  Command to resume a paused run.
-# @author <fox@nscl.msu.edu>
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
 */
 
-#include "resumeopts.h"
+/**
+*   @file   preresume.cpp
+*   @brief  Request the system prepare to resume a run.
+*/
 
+#include "preresumeopts.h"
+#include "tracker.h"
+#include "transition.h"
 #include "CStateManager.h"
 #include <iostream>
 #include <cstdlib>
-#include "tracker.h"
-#include "transition.h"
+
 
 int main(int argc, char** argv)
 {
@@ -41,8 +40,8 @@ int main(int argc, char** argv)
     // The state must be paused to resume:
     
     std::string gState = sm.getGlobalState();
-    if ((gState != "Paused")  && (gState != "Resuming")){
-        std::cerr << "Only runs in the 'Paused' or 'Resuming states can be resumed. ";
+    if (gState != "Paused") {
+        std::cerr << "Only runs in the 'Paused' state can be preresumed. ";
         std::cerr << "The state is now '" << gState << "'\n";
         std::exit(EXIT_FAILURE);
     }
@@ -56,12 +55,8 @@ int main(int argc, char** argv)
     try {
         // If nobody did a pre-resume:
         
-        if ((gState == "Paused")  {
-            transition(sm, "Resuming", verbose);
-        }
-        // Make the run active.
-        
-        transition(sm, "Active", verbose);
+        transition(sm, "Resuming", verbose);
+        transition(sm, "Actibe", verbose);
     }
     catch(std::runtime_error& err) {
         std::cerr << "Resume run failed: " << err.what() << std::endl;

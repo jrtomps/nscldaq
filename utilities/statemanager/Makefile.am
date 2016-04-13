@@ -68,7 +68,7 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h CS
 
 
 bin_PROGRAMS=status begin prebegin prepause pause resume preend end title trtimeout \
-	recording programdir runnum
+	recording programdir runnum preresume
 noinst_HEADERS=tracker.h
 
 
@@ -76,10 +76,11 @@ EXTRA_DIST=statusopts.ggi beginopts.ggi prebeginopts.ggi preendopts.ggi \
 		resumeopts.ggi endopts.ggi titleopts.ggi pauseopts.ggi  \
 		transitionopts.ggi timeoutopts.ggi recordingopts.ggi \
 		programdiropts.ggi runnumopts.ggi \
-		 standardopts.ggo  prepauseopts.ggi
+		 standardopts.ggo  prepauseopts.ggi preresumeopts.ggi
 
 BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h titleopts.h pauseopts.h timeoutopts.h \
-	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h preendopts.h prepauseopts.h
+	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h preendopts.h prepauseopts.h \
+	preresumeopts.h
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
@@ -90,7 +91,7 @@ clean-local:
 	rm -f timeoutopts.c recordingopts.c programdiropts.c runnumopts.c
 	rm -f resumeopts.c beginopts.c
 	rm -f prebeginopts.c prebeginopts.o preendopts.{c,h,o,ggo}
-	rm -f prepauseopts.{c,h,o,ggo}
+	rm -f prepauseopts.{c,h,o,ggo} preresumeopts.{c,h,o,ggo}
 	rm -f statusopts.o endopts.o titleopts.o pauseopts.o transitionopts.o
 	rm -f timeoutopts.o recordingopts.o programdiropts.o runnumopts.o
 	rm -f resumeopts.o beginopts.o 
@@ -171,6 +172,25 @@ pauseopts.o: @builddir@/pauseopts.ggo
 @builddir@/pauseopts.ggo: pauseopts.ggi standardopts.ggo transitionopts.ggi
 	$(PREPROCESSOR) -P @srcdir@/pauseopts.ggi  |tr -d "\\\\" >@builddir@/pauseopts.ggo
 
+
+
+
+preresume_SOURCES=preresume.cpp preresumeopts.h tracker.cpp transition.cpp transition.h tracker.h
+preresume_DEPENDENCIES=preresumeopts.o
+preresume_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir
+preresume_LDADD=preresumeopts.o
+preresume_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
+
+
+preresumeopts.h: @builddir@/preresumeopts.o
+
+preresumeopts.o: @builddir@/preresumeopts.ggo
+	$(GENGETOPT) <@builddir@/preresumeopts.ggo --file=@builddir@/preresumeopts
+	$(CC) -c -o @builddir@/preresumeopts.o @builddir@/preresumeopts.c
+
+
+@builddir@/preresumeopts.ggo: preresumeopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/preresumeopts.ggi  |tr -d "\\\\" >@builddir@/preresumeopts.ggo
 
 
 resume_SOURCES=resume.cpp resumeopts.h tracker.cpp
