@@ -26,6 +26,8 @@
 #include <iostream>
 #include <cstdlib>
 #include "tracker.h"
+#include "transition.h"
+
 
 int main(int argc, char** argv)
 {
@@ -40,8 +42,8 @@ int main(int argc, char** argv)
     // Ensure that we are Active else we can't pause.
     
     std::string gState = sm.getGlobalState();
-    if (gState != "Active") {
-        std::cerr << "Only runs in the 'Active' state can be paused ";
+    if ((gState != "Active") && (gState != "Pausing")) {
+        std::cerr << "Only runs in the 'Active' or 'Pausing' state can be paused ";
         std::cerr << "Run state is currently: '" << gState << "'\n";
         std::exit(EXIT_FAILURE);
     }
@@ -55,9 +57,13 @@ int main(int argc, char** argv)
     
     // Process the transition.
     
-    sm.setGlobalState("Pausing");
     try {
-        sm.waitTransition(cb, nullptr);
+        // If needed, transition first to prepause:
+        
+        if (gState == "Active") {
+            transition (sm, "Pausing", verbose);
+        }
+        transition(sm, "Paused", verbose);
     }
     catch(std::runtime_error& err) {
         std::cerr << "Pause run failed: " << err.what() << std::endl;

@@ -153,7 +153,7 @@ beginopts.o: @builddir@/beginopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/beginopts.ggi  |tr -d "\\\\" >@builddir@/beginopts.ggo
 
 
-pause_SOURCES=pause.cpp pauseopts.h tracker.cpp
+pause_SOURCES=pause.cpp pauseopts.h tracker.cpp transition.cpp tracker.h transition.h
 pause_DEPENDENCIES=pauseopts.o
 pause_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
 pause_LDADD=pauseopts.o
