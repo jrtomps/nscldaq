@@ -113,7 +113,14 @@ proc beginRunOrDie {} {
     set ::state::runActive 1
 
 }
-
+proc prePauseRunOrDie {} {
+    if {[catch prepause msg]} {
+        ::state::client setState NotReady
+        end
+        error "Failed to prepause a run: $msg"
+    }
+    set ::state::runActive 1;    # Should aready be
+}
 proc pauseRunOrDie {} {
     if {[catch pause msg]} {
         ::state::client setstate NotReady
@@ -124,7 +131,14 @@ proc pauseRunOrDie {} {
     set ::state::runActive 1 ;             # Should already be.
     
 }
-
+proc preResumeOrDie {} {
+    if {[catch preresume msg]} {
+        ::state::client setstate NotReady
+        end
+        error "Failed to pre resume a run"
+    }
+    set ::state::runActive 1;             # Should aready be active.
+}
 proc resumeOrDie {} {
     if {[catch resume msg]} {
         ::state::client setstate NotReady
@@ -188,16 +202,19 @@ proc handleStandaloneStateTransition  newState {
         
         # Pausing a run:
     } elseif {$newState eq "Pausing"} {
+        prePauseRunOrDie
+        return Pausing
+    } elseif {$newState eq "Pause"} {
+        
         pauseRunOrDie
-        ::state::client setstate Pausing
-        return Paused
         
         # Resuming a run:
     } elseif {$newState eq "Resuming"} {
+        preResumeOrDie
+        return Resuming
+    } elseif {$newState eq "Resume"} {
         resumeOrDie
-        ::state::client setstate "Resuming"
         return Active
-        
         # Ending a run:
     } elseif {$newState eq "Ending"} {
         preEndOrDie
