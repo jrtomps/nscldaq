@@ -207,6 +207,7 @@ proc handleStandaloneStateTransition  newState {
     } elseif {$newState eq "Pause"} {
         
         pauseRunOrDie
+        return Paused
         
         # Resuming a run:
     } elseif {$newState eq "Resuming"} {
