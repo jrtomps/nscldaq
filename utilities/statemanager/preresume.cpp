@@ -56,7 +56,6 @@ int main(int argc, char** argv)
         // If nobody did a pre-resume:
         
         transition(sm, "Resuming", verbose);
-        transition(sm, "Actibe", verbose);
     }
     catch(std::runtime_error& err) {
         std::cerr << "Resume run failed: " << err.what() << std::endl;
