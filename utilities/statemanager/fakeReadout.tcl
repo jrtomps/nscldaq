@@ -58,6 +58,12 @@ proc pause {} {
     puts "Pausing the run"
     
 }
+proc prepause {} {
+   puts "Prepausing"
+}
+proc preresume {} {
+    puts "Preresuming"
+}
 proc resume {} {
     puts "Resuming the run"
 }
