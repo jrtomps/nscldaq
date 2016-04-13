@@ -253,7 +253,7 @@ proc dispatchStateTransition {from to} {
     # will set us active already:
     
     if {$to eq "Active"} {
-        if {$from eq "Beginning"} {
+        if {($from eq "Beginning") || ($from eq "Resuming")} {
             return [handleStandaloneStateTransition $to]
         } else {
             return ""
