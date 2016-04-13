@@ -45,10 +45,8 @@ CStateManager::CStateManager(const char* requestURI, const char* subscriptionURI
     m_pPrograms = new CStateProgram(m_pMonitor->getApi());    
     // For each new global state, m_finalStates provides the
     // final program and global states expected.
-    // For now we don't worry about intermediate states from the programs:
-    // This presupposes that the final state is reachable from the in-transition
-    // state.  Since the final state is at most separated from the initial
-    // state by an 'ing' state this is the case.
+    // With the two phase state transitions, the ing states are now shown and most
+    // states 'after' Ready have themselves as final states.
     
     m_finalStates["0Initial"] = "0Initial";
     m_finalStates["NotReady"] = "NotReady";
@@ -60,7 +58,8 @@ CStateManager::CStateManager(const char* requestURI, const char* subscriptionURI
     m_finalStates["Active"]    = "Active";
     
     
-    m_finalStates["Pausing"]  = "Paused";
+    m_finalStates["Pausing"]  = "Pausing";
+    m_finalStates["Paused"]   = "Paused";
     m_finalStates["Resuming"] = "Active";
     
     // 2-stage end run:

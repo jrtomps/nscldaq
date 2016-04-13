@@ -67,7 +67,7 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h CS
 #  the system:
 
 
-bin_PROGRAMS=status begin prebegin pause resume preend end title trtimeout \
+bin_PROGRAMS=status begin prebegin prepause pause resume preend end title trtimeout \
 	recording programdir runnum
 noinst_HEADERS=tracker.h
 
@@ -76,10 +76,10 @@ EXTRA_DIST=statusopts.ggi beginopts.ggi prebeginopts.ggi preendopts.ggi \
 		resumeopts.ggi endopts.ggi titleopts.ggi pauseopts.ggi  \
 		transitionopts.ggi timeoutopts.ggi recordingopts.ggi \
 		programdiropts.ggi runnumopts.ggi \
-		 standardopts.ggo  
+		 standardopts.ggo  prepauseopts.ggi
 
 BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h titleopts.h pauseopts.h timeoutopts.h \
-	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h preendopts.h
+	recordingopts.h programdiropts.h runnumopts.h prebeginopts.h preendopts.h prepauseopts.h
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
@@ -89,7 +89,8 @@ clean-local:
 	rm -f statusopts.c endopts.c titleopts.c pauseopts.c transitionopts.c
 	rm -f timeoutopts.c recordingopts.c programdiropts.c runnumopts.c
 	rm -f resumeopts.c beginopts.c
-	rm -f prebeginopts.c prebeginopts.o preendopts.{c,h,o,ggo} 
+	rm -f prebeginopts.c prebeginopts.o preendopts.{c,h,o,ggo}
+	rm -f prepauseopts.{c,h,o,ggo}
 	rm -f statusopts.o endopts.o titleopts.o pauseopts.o transitionopts.o
 	rm -f timeoutopts.o recordingopts.o programdiropts.o runnumopts.o
 	rm -f resumeopts.o beginopts.o 
@@ -209,6 +210,22 @@ preendopts.o: @builddir@/preendopts.ggo
 
 
 
+prepause_SOURCES=prepause.cpp prepauseopts.h tracker.cpp transition.cpp transition.h tracker.h
+prepause_DEPENDENCIES=prepauseopts.o
+prepause_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir
+prepause_LDADD=prepauseopts.o
+prepause_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
+
+
+prepauseopts.h: @builddir@/prepauseopts.o
+
+prepauseopts.o: @builddir@/prepauseopts.ggo
+	$(GENGETOPT) <@builddir@/prepauseopts.ggo --file=@builddir@/prepauseopts
+	$(CC) -c -o @builddir@/prepauseopts.o @builddir@/prepauseopts.c
+
+
+@builddir@/prepauseopts.ggo: @srcdir@/prepauseopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/prepauseopts.ggi | tr -d "\\\\" > @builddir@/prepauseopts.ggo
 
 
 

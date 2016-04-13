@@ -644,7 +644,6 @@ void TestStateTransitions::waitPausingToPaused()
     
     std::vector<std::string> programTrans;
     programTrans.push_back("Pausing");
-    programTrans.push_back("Paused");
 
     CallbackRecorder r;
     
@@ -663,17 +662,16 @@ void TestStateTransitions::waitPausingToPaused()
     
     std::vector<std::pair<std::string, std::string> > states =
         sm.getParticipantStates();
-    EQ(std::string("Paused"), states[0].second);
+    EQ(std::string("Pausing"), states[0].second);
     
     // Global state is Ready.
     
-    EQ(std::string("Paused"), sm.getGlobalState());
+    EQ(std::string("Pausing"), sm.getGlobalState());
     
     // Recorded -> Readying -> Ready
     
-    EQ(size_t(2), r.m_states.size());
+    EQ(size_t(1), r.m_states.size());
     EQ(std::string("Pausing"), r.m_states[0]);
-    EQ(std::string("Paused"),    r.m_states[1]);     
 
 }
 void TestStateTransitions::waitEndingToReady()

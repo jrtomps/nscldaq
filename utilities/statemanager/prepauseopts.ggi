@@ -1,0 +1,4 @@
+package "prepause"
+version "1.0"
+
+#include "transitionopts.ggi"
