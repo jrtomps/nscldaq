@@ -439,7 +439,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(CTransform8p0to10p0Tests_Scaler);
 
           m_offset = 0x12345678;
 
-          m_tstruct = {1, 2, 1971, 3, 4, 5, 6};
+          m_tstruct = {1, 2, 2000, 3, 4, 5, 6};
 
           V8::CControlBuffer ctlBuf(m_header, m_title, m_offset, m_tstruct);
 
