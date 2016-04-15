@@ -134,6 +134,7 @@ public:
   }
   void tearDown() {
     delete m_pApi;
+    usleep(100);
     stopServer();
     
     unlink(m_tempFile);
@@ -268,6 +269,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(ScmonTests);
 // server is running in localhost:
 
 void ScmonTests::goodurls() {
+  std::cerr << "Goodurls\n";
     CPPUNIT_ASSERT_NO_THROW(
         CStateClientApi("tcp://localhost", "tcp://localhost", "test")
     );
@@ -278,6 +280,7 @@ void ScmonTests::goodurls() {
 
 void ScmonTests::badrequrl()
 {
+  std::cerr << "badrequrls\n";
     CPPUNIT_ASSERT_THROW(
         CStateClientApi("file:///bin/false", "tcp://localhost", "test"),
         CStateClientApi::CException
@@ -294,6 +297,8 @@ void ScmonTests::badrequrl()
 
 void ScmonTests::badsuburl()
 {
+  std::cerr << "badsuburls\n";
+
     CPPUNIT_ASSERT_THROW(
         CStateClientApi("tcp://localhost", "file:///bin/false", "test"),
         CStateClientApi::CException
@@ -311,7 +316,10 @@ void ScmonTests::badsuburl()
 // moving the base directory too:
 
 void ScmonTests::badprogram()
+
 {
+  std::cerr << "badprogram\n";
+
     CPPUNIT_ASSERT_THROW(
         CStateClientApi("tcp://localhost", "tcp://localhost", "george"),
         CStateClientApi::CException
@@ -336,6 +344,8 @@ void ScmonTests::badprogram()
 
 void ScmonTests::initialstate()
 {
+  std::cerr << "initial state\n";
+
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     EQ(std::string("0Initial"), api.getState());
 }
@@ -344,6 +354,8 @@ void ScmonTests::initialstate()
 
 void ScmonTests::initialstateStandalone()
 {
+  std::cerr << "sainitial\n";
+
     m_pApi->set("/RunState/test/standalone", "true");
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
    
@@ -355,6 +367,8 @@ void ScmonTests::initialstateStandalone()
 
 void ScmonTests::initialStandaloneFalse()
 {
+  std::cerr << "initial sa false\n";
+
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     ASSERT(! api.isStandalone());
 }
@@ -362,6 +376,8 @@ void ScmonTests::initialStandaloneFalse()
 
 void ScmonTests::initialStandaloneTrue()
 {
+  std::cerr << "Initial sa true\n";
+
     m_pApi->set("/RunState/test/standalone", "true");
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     ASSERT(api.isStandalone());
@@ -372,6 +388,8 @@ void ScmonTests::initialStandaloneTrue()
 
 void ScmonTests::getInitialTitle()
 {
+  std::cerr << "get title\n";
+
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     EQ(std::string(""), api.title());
 }
@@ -380,18 +398,25 @@ void ScmonTests::getInitialTitle()
 
 void ScmonTests::getModifiedTitle()
 {
+  std::cerr << "get mod title\n";
+
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     EQ(std::string(""), api.title());
+  std::cerr << "Initial blank title\n";
     
     std::string newTitle = "This is a new title";
     m_pApi->set("/RunState/Title", newTitle.c_str());
+    std::cerr << "Set new title\n";
     EQ(newTitle, api.title());
+    std::cerr << "Got title back\n";
 }
 
 // Initial run number is 0:
 
 void ScmonTests::getInitialRunNum()
 {
+  std::cerr << "INitial Run\n";
+
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     EQ(0, api.runNumber());
     
@@ -400,6 +425,8 @@ void ScmonTests::getInitialRunNum()
 
 void ScmonTests::getModifiedRunNum()
 {
+  std::cerr << "modrun\n";
+
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     m_pApi->set("/RunState/RunNumber", "1234");
     EQ(1234, api.runNumber());
@@ -409,6 +436,8 @@ void ScmonTests::getModifiedRunNum()
 
 void ScmonTests::getInitialRecording()
 {
+  std::cerr << "initialrecording\n";
+
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     EQ(false, api.recording());
 }

@@ -103,6 +103,7 @@ CStateClientApi::~CStateClientApi()
     // Kill off the monitor thread:
     
     m_pMonitor->scheduleExit();
+    m_pSubscriptions->socket()->close();
     m_pMonitor->join();
     delete m_pMonitor;
     m_pMonitor = 0;

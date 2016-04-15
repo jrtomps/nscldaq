@@ -69,6 +69,7 @@ CStateTransitionMonitor::CStateTransitionMonitor(
 CStateTransitionMonitor::~CStateTransitionMonitor()
 {
     if (m_pMonitor) {
+      m_pSubscriptions->socket()->close();
         m_pMonitor->scheduleExit();
         m_pMonitor->join();
         delete m_pMonitor;
@@ -425,8 +426,8 @@ CStateTransitionMonitor::MonitorThread::MonitorThread(
 
 CStateTransitionMonitor::MonitorThread::~MonitorThread()
 {
-    m_pApi->unsubscribe("/RunState/State");
-    m_pApi->unsubscribe(m_parentDir.c_str());
+  //    m_pApi->unsubscribe("/RunState/State");
+  //    m_pApi->unsubscribe(m_parentDir.c_str());
 }
 /**
  *  init
