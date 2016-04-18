@@ -335,6 +335,13 @@ CStateClientApi::createSubscriptions(const char* uri)
             if (path == "/") path = DefaultSubscriptionService;
             m_pSubscriptions = new CVarMgrSubscriptions(host.c_str(), path.c_str());
         }
+	// Enter the subscriptons:
+	
+	m_pSubscriptions->subscribe("/RunState/State");  // gbl state.
+	m_pSubscriptions->subscribe(getProgramVarPath("State").c_str());  // Local state.
+	m_pSubscriptions->subscribe(getProgramVarPath("standalone").c_str());    // program's standalone flag.
+
+	
     }
     catch (std::string msg) {
         throw CException(msg);
@@ -462,8 +469,6 @@ CStateClientApi::CMonitorThread::scheduleExit()
 void
 CStateClientApi::CMonitorThread::init()
 {
-    std::string programPath = m_pApi->getProgramDirectory();
-    subscribe(programPath);
  
 }
 
@@ -508,30 +513,10 @@ CStateClientApi::CMonitorThread::operator()()
                 }
             }
         } else {
-	  usleep(100*1000);    // 100ms wait.
+	  usleep(10*1000);    // 10ms wait.
         }
     }
 }
-/**
- * subscribe
- *    Set the subscriptions.
- *
- *    @param path - the path to the program's private state directory.
- */
-void
-CStateClientApi::CMonitorThread::subscribe(std::string path)
-{
-    // We're using a tight set of subscriptions:
-    
-    m_pSubs->subscribe("/RunState/State");              // Global state.
-    
-    std::string localState = path;
-    localState += "/State";
-    m_pSubs->subscribe(localState.c_str());           // Standalone state.
-    
-    std::string standalone = path;
-    standalone += "/standalone";
-    m_pSubs->subscribe(standalone.c_str());          // Standalone/global flag.
-}
+
 
 
