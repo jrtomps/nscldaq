@@ -27,7 +27,7 @@
 #include <CVarMgrSubscriptions.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <unistd.h>
 
 static const std::string DefaultSubscriptionService("vardb-changes");
 
@@ -69,7 +69,6 @@ CStateTransitionMonitor::CStateTransitionMonitor(
 CStateTransitionMonitor::~CStateTransitionMonitor()
 {
     if (m_pMonitor) {
-      m_pSubscriptions->socket()->close();
         m_pMonitor->scheduleExit();
         m_pMonitor->join();
         delete m_pMonitor;
@@ -461,7 +460,7 @@ void
 CStateTransitionMonitor::MonitorThread::operator()()
 {
     while (!m_exiting) {
-        if (m_pApi->waitmsg(500)) {
+        if (m_pApi->waitmsg(0)) {
             CVarMgrSubscriptions::Message msg = m_pApi->read();
             if (m_pApi->checkFilters(msg.s_path.c_str())) {
                 // Something worth doing:
@@ -508,7 +507,9 @@ CStateTransitionMonitor::MonitorThread::operator()()
                     m_pParent->postNotification(notmsg);
                 }
             }
-        }
+        } else {
+	  usleep(100*1000);
+	}
     }
 }
 /**

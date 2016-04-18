@@ -28,6 +28,7 @@
 #include <URL.h>
 
 #include <stdlib.h>
+#include <unistd.h>
 
 static const std::string DefaultSubscriptionService("vardb-changes");
 
@@ -103,7 +104,6 @@ CStateClientApi::~CStateClientApi()
     // Kill off the monitor thread:
     
     m_pMonitor->scheduleExit();
-    //    m_pSubscriptions->socket()->close();
     m_pMonitor->join();
     delete m_pMonitor;
     m_pMonitor = 0;
@@ -489,7 +489,7 @@ CStateClientApi::CMonitorThread::operator()()
     
     
     while (!m_exit) {
-        if (m_pSubs->waitmsg(1000)) {
+        if (m_pSubs->waitmsg(0)) {
             CVarMgrSubscriptions::Message m = m_pSubs->read();
             
             // We only care about assignments:
@@ -507,6 +507,8 @@ CStateClientApi::CMonitorThread::operator()()
                 
                 }
             }
+        } else {
+	  usleep(100*1000);    // 100ms wait.
         }
     }
 }
