@@ -425,8 +425,8 @@ CStateTransitionMonitor::MonitorThread::MonitorThread(
 
 CStateTransitionMonitor::MonitorThread::~MonitorThread()
 {
-  //    m_pApi->unsubscribe("/RunState/State");
-  //    m_pApi->unsubscribe(m_parentDir.c_str());
+      m_pApi->unsubscribe("/RunState/State");
+      m_pApi->unsubscribe(m_parentDir.c_str());
 }
 /**
  *  init
