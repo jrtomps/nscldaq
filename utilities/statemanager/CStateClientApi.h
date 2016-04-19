@@ -73,7 +73,6 @@ private:
             virtual void init();
             void scheduleExit();
         private:
-            void subscribe(std::string programPath);
     };
     
 private:
