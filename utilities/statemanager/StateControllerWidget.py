@@ -126,7 +126,9 @@ class QNSCLRunControl(QtGui.QFrame):
         self._begin = QtGui.QPushButton("Begin", self)
         self._preend = QtGui.QPushButton("Pre End", self)
         self._end   = QtGui.QPushButton("End", self)
+        self._prepause = QtGui.QtPushButton("Pre-Pause", self)
         self._pause = QtGui.QPushButton("Pause", self)
+        self._preresume = QtGui.QPushButton("Pre-Resume", self)
         self._resume= QtGui.QPushButton("Resume", self)
         
         #  Use a grid layout:
@@ -140,7 +142,9 @@ class QNSCLRunControl(QtGui.QFrame):
         layout.addWidget(self._preend, 1, 0)
         layout.addWidget(self._end,   1, 0)      # Intentionally overlaid.
         
+        layout.addWidget(self._prepause, 1, 3)
         layout.addWidget(self._pause, 1, 3)
+        layout.addWidget(sefl._preresume, 1, 3)
         layout.addWidget(self._resume, 1, 3)     # Intentionally overlaid.
         
         self.setLayout(layout)
@@ -152,7 +156,9 @@ class QNSCLRunControl(QtGui.QFrame):
         self._begin.clicked.connect(self._beginRun)
         self._preend.clicked.connect(self._preEnd)
         self._end.clicked.connect(self._endRun)
+        self._prepaused.clicked.connect(self._prepauseRun)
         self._pause.clicked.connect(self._pauseRun)
+        self._preresume.clicked.connect(self._preresumeRun
         self._resume.clicked.connect(self._resumeRun)
         
         
@@ -165,8 +171,10 @@ class QNSCLRunControl(QtGui.QFrame):
         self._visibility[self._begin] = set(['Beginning'])
         self._visibility[self._preend] = set(['Paused', 'Active'])
         self._visibility[self._end]   = set(['Ending'])
-        self._visibility[self._pause] = set(['Active'])
-        self._visibility[self._resume] = set(['Paused'])
+        self._visibility[self._prepause] = set(['Active'])
+        self._visibility[self._pause] = set(['Pausing'])
+        self._visibility[self._preresume] = set(['Paused'])
+        self._visibility[self._resume] = set(['Resuming'])
         
         # Make the appropriate buttons visible/invisible.
         
@@ -223,19 +231,34 @@ class QNSCLRunControl(QtGui.QFrame):
     def _endRun(self):
         self.stateChange.emit('Ready')
     ##
+    # _prepauseRun
+    #
+    #  Request transition to pausing state.
+    #
+    def _prepauseRun(self):
+        self.stateChange.emit('Pausing')
+    ##
     #  _pauseRun
     #     Handle the Pause button click by emitting a state change to
     #    'Pausing'
     #
     def _pauseRun(self):
-        self.stateChange.emit('Pausing')
+        self.stateChange.emit('Paused')
+        
+    ##
+    # _preresumeRun
+    #     first step of resuming the run.
+    #
+    def _preresumeRun(self):
+        self.stateChange.emit('Resuming')
+
     ##
     # _resumeRun
     #    Handle a click of the Resume button by emitting a state change to
     #    'Resuming'
     #
     def _resumeRun(self):
-        self.stateChange.emit('Resuming')
+        self.stateChange.emit('Active')
 
         
         
