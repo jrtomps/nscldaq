@@ -502,6 +502,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(TestStateManager);
 // Default value should be "/RunState"
 
 void TestStateManager::getParentDirDefault() {
+
     CStateManager sm("tcp://localhost", "tcp://localhost");
     
     EQ(std::string("/RunState"), sm.getProgramParentDir());
@@ -512,6 +513,7 @@ void TestStateManager::getParentDirDefault() {
 
 void TestStateManager::getParentDirModified()
 {
+
     m_pApi->mkdir("/Programs");
     m_pApi->set("/RunState/ReadoutParentDir", "/Programs");
     
@@ -577,6 +579,7 @@ void TestStateManager::addProgramDefault()
 
 void TestStateManager::addProgramOtherDir()
 {
+
     m_pApi->mkdir("/Programs");
     CStateManager sm("tcp://localhost", "tcp://localhost");
     sm.setProgramParentDir("/Programs");

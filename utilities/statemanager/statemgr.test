@@ -122,7 +122,8 @@ proc createProgram {h name} {
     varmgr::var create $h $dir/host string "somehost.nscl.msu.edu"
     varmgr::var create $h $dir/outring string "output"
     varmgr::var create $h $dir/inring string "tcp://localhost/ring"
-    
+    varmgr::var create $h $dir/editorx integer -1
+    varmgr::var create $h $dir/editory integer -1
 }
 
 proc setup {} {
@@ -2307,8 +2308,8 @@ tcltest::test editorPosition-set {Set editor position for an object} \
 -body {
    mgr setEditorPosition test 100 200
    
-   lappend position [varmgr::var get /RunState/test/editorx]
-   lappend position [varmgr::var get /RunState/test/editory]
+   lappend position [varmgr::var get $h /RunState/test/editorx]
+   lappend position [varmgr::var get $h /RunState/test/editory]
    set position
 } -result [list 100 200]
 
@@ -2316,17 +2317,20 @@ tcltest::test editorPosition-getx {Get editor x position for an object} \
 -setup {
    setup
    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+   set h [varmgr::open tcp://localhost ]
+
 } \
 -cleanup {
    ::nscldaq::statemanager -delete mgr
     cleanup
+    varmgr::close $h
 
 } \
 -body {
    mgr setEditorPosition test 100 200
    mgr getEditorXPosition test
-   
-   lappend position [varmgr::var get /RunState/test/editory]
+    set position [list]
+   lappend position [varmgr::var get $h /RunState/test/editorx]
    set position
 } -result  100
 

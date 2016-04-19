@@ -11,6 +11,7 @@
 #include <os.h>
 #include "CStateTransitionMonitor.h"
 
+#include <iostream>
 
 static const std::string serviceName("vardb-request");
 static const std::string serverName("vardbServer");
@@ -52,7 +53,7 @@ class changeMonitorTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(setTimeout);
   
   // Global and program state changes:
-  
+ 
   CPPUNIT_TEST(noNotification);
   CPPUNIT_TEST(notification1);
   CPPUNIT_TEST(notificationMany);
@@ -614,6 +615,7 @@ void changeMonitorTests::saloneNoSuchChanged()
         mon.isStandalone("test"),
         std::runtime_error
     );
+  
 }
 
 
@@ -972,5 +974,6 @@ void changeMonitorTests::programJoinLeaves()
     
     EQ(CStateTransitionMonitor::ProgramJoins, nots[1].s_type);
     EQ(std::string("newer"), nots[1].s_program);
+
 }
      

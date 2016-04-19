@@ -800,7 +800,7 @@ void TestStateTransitions::backlogOne()
     
     m_pApi->set("/RunState/test/State", "NotReady");  // Program transition.
     
-    usleep(5000);                                    // Let messages get sent.
+    usleep(200*1000);                                    // Let messages get sent.
     sm.processMessages(BacklogRecorder::Callback, &r);
     
     EQ(size_t(1), r.m_notifications.size());
@@ -819,7 +819,7 @@ void TestStateTransitions::backlogSeveral()
     
     m_pApi->set("/RunState/State", "NotReady");
     m_pApi->set("/RunState/test/State", "NotReady");  // Program transition.
-    usleep(5000);                                     // Let messages get sent.
+    usleep(200*1000);                                     // Let messages get sent.
     sm.processMessages(BacklogRecorder::Callback, &r);
     
     EQ(size_t(2), r.m_notifications.size());
