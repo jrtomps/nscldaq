@@ -126,7 +126,7 @@ class QNSCLRunControl(QtGui.QFrame):
         self._begin = QtGui.QPushButton("Begin", self)
         self._preend = QtGui.QPushButton("Pre End", self)
         self._end   = QtGui.QPushButton("End", self)
-        self._prepause = QtGui.QtPushButton("Pre-Pause", self)
+        self._prepause = QtGui.QPushButton("Pre-Pause", self)
         self._pause = QtGui.QPushButton("Pause", self)
         self._preresume = QtGui.QPushButton("Pre-Resume", self)
         self._resume= QtGui.QPushButton("Resume", self)
@@ -144,7 +144,7 @@ class QNSCLRunControl(QtGui.QFrame):
         
         layout.addWidget(self._prepause, 1, 3)
         layout.addWidget(self._pause, 1, 3)
-        layout.addWidget(sefl._preresume, 1, 3)
+        layout.addWidget(self._preresume, 1, 3)
         layout.addWidget(self._resume, 1, 3)     # Intentionally overlaid.
         
         self.setLayout(layout)
@@ -156,9 +156,9 @@ class QNSCLRunControl(QtGui.QFrame):
         self._begin.clicked.connect(self._beginRun)
         self._preend.clicked.connect(self._preEnd)
         self._end.clicked.connect(self._endRun)
-        self._prepaused.clicked.connect(self._prepauseRun)
+        self._prepause.clicked.connect(self._prepauseRun)
         self._pause.clicked.connect(self._pauseRun)
-        self._preresume.clicked.connect(self._preresumeRun
+        self._preresume.clicked.connect(self._preresumeRun)
         self._resume.clicked.connect(self._resumeRun)
         
         
@@ -190,7 +190,7 @@ class QNSCLRunControl(QtGui.QFrame):
     #  @param state - The state of the system.
     #
     def setState(self, state):
-        for button in [self._prebegin, self._begin, self._pause, self._resume, self._preend, self._end]:
+        for button in [self._prebegin, self._begin, self._pause, self._resume, self._preend, self._end, self._prepause, self._preresume]:
             if state in self._visibility[button]:
                 button.show()
             else:
