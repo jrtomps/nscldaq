@@ -100,15 +100,21 @@ void tryLock_2()
 
     double waitTime = duration<double>(end-begin).count();
 
-    std::string actual ("Actual Time >= 1.0 sec");
-    if (waitTime < 1.0) {
+    double expectTime = 1.0 - high_resolution_clock::period;
+    std::string expected ("Actual Time >= ");
+    expected += std::to_string(expectTime);
+
+    actual = expected;
+    if (waitTime < expectTime) {
       actual = std::string("Actual Time = ");
       actual += std::to_string(waitTime) + " sec";
     }
+
     EQMSG("TryLock should return false if it was unable to lock mutex",
         false, locked);
-    EQMSG("TryLock should wait at least 1.0 sec before failing",
-          string("Actual Time >= 1.0 sec"), actual);
+
+    EQMSG("TryLock should wait expected amount of time before failing",
+           expected, actual);
 }
 
 
