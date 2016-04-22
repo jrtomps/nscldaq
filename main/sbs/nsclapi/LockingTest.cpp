@@ -100,11 +100,12 @@ void tryLock_2()
 
     double waitTime = duration<double>(end-begin).count();
 
-    double expectTime = 1.0 - high_resolution_clock::period;
+    double resolution = static_cast<double>(high_resolution_clock::period::num) / high_resolution_clock::period::den;
+    double expectTime = 1.0 - resolution;
     std::string expected ("Actual Time >= ");
     expected += std::to_string(expectTime);
 
-    actual = expected;
+    std::string actual = expected;
     if (waitTime < expectTime) {
       actual = std::string("Actual Time = ");
       actual += std::to_string(waitTime) + " sec";
