@@ -273,7 +273,9 @@ User must pass a valid value for the -module option
       To write the state of the GUI to a configuration file, you should simply
       write the name of the configuration file in the text entry at the top of
       the GUI and then press "Write". It will overwrite any existing file with
-      that name without prompting you, so tred carefully. 
+      that name without prompting you, so tred carefully. Also, the output will
+      be an array named "gd16" with elements containing the values currently 
+      displayed in the GUI. See the section <link linkend="gd16_saved_file" endterm="gd16_saved_file.title"></link>
     </para>
   </section>
 
@@ -310,6 +312,96 @@ User must pass a valid value for the -module option
       used.
     </para>
 
+  </section>
+
+
+  <section id="gd16_saved_file">
+    <title id="gd16_saved_file.title">
+      The Saved File 
+    </title>
+
+    <para>
+      As has already been described, the XLM72GateDelayControl GUI can write 
+      a configuration file to disk by the "Write" button. This file will generate
+      a TCL array whose name is "gd16" with a series of array elements. If you are
+      using the XLM72GateDelayControl GUI to write configuration scripts for the 
+      AGD16XLM72 driver, it is EXTREMELY important that you pass the correct 
+      array name in the file to the AGD16XLM72::Init method. A sample usage of
+      the AGD16XLM72 driver with an output file /path/to/configuration/script.tcl
+      that was saved by the XLM72GateDelayControl is:
+    </para>
+
+    <programlisting>
+# create an XLM72 gate delay driver for an XLM in slot 10
+AGD16XLM72 dev ::vmusb 10
+
+# pass the configuration script name as the first argument and then 
+# the name of the array as the second argument. At the moment, this array name
+# should always be "gd16"
+dev Init /path/to/configuration/script.tcl gd16
+    </programlisting>
+
+    <para>
+      A sample output file is included below:
+    </para>
+
+    <programlisting>
+# gd16 configuration file written on Thu Apr 21 22:58:01 EDT 2016
+set gd16(configFileName) /user/s800/operations/daq/usb/Configs/s800tdcdelayini.tcl
+set gd16(configuration) 0xdaba0006
+set gd16(dt) 1
+set gd16(channel1) {}
+set gd16(delay1) 27
+set gd16(width1) 2
+set gd16(channel2) {}
+set gd16(delay2) 32
+set gd16(width2) 2
+set gd16(channel3) {}
+set gd16(delay3) 27
+set gd16(width3) 2
+set gd16(channel4) {}
+set gd16(delay4) 17
+set gd16(width4) 2
+set gd16(channel5) {}
+set gd16(delay5) 7
+set gd16(width5) 0
+set gd16(channel6) {}
+set gd16(delay6) 7
+set gd16(width6) 0
+set gd16(channel7) {}
+set gd16(delay7) 6
+set gd16(width7) 0
+set gd16(channel8) {}
+set gd16(delay8) 6
+set gd16(width8) 0
+set gd16(channel9) {}
+set gd16(delay9) 27
+set gd16(width9) 2
+set gd16(channel10) {}
+set gd16(delay10) 0
+set gd16(width10) 0
+set gd16(channel11) {}
+set gd16(delay11) 5
+set gd16(width11) 2
+set gd16(channel12) {}
+set gd16(delay12) 10
+set gd16(width12) 2
+set gd16(channel13) {}
+set gd16(delay13) 1
+set gd16(width13) 0
+set gd16(channel14) {}
+set gd16(delay14) 5
+set gd16(width14) 0
+set gd16(channel15) {}
+set gd16(delay15) 3
+set gd16(width15) 0
+set gd16(channel16) {}
+set gd16(delay16) 5
+set gd16(width16) 0
+set gd16(bypass) 0x70e0
+set gd16(inspect) 0xedee
+    </programlisting>
+  
   </section>
 </chapter>
 <!-- /chapter -->
