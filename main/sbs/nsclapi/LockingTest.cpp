@@ -100,8 +100,9 @@ void tryLock_2()
 
     double waitTime = duration<double>(end-begin).count();
 
-    double resolution = static_cast<double>(high_resolution_clock::period::num) / high_resolution_clock::period::den;
-    double expectTime = 1.0 - resolution;
+    // we will say that a test that waited till within 1 ms of the 
+    // complete time is sufficient.
+    double expectTime = 1.0 - 0.001;
     std::string expected ("Actual Time >= ");
     expected += std::to_string(expectTime);
 
