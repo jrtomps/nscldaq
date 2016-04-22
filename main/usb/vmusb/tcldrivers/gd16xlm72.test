@@ -1,0 +1,44 @@
+
+package require tcltest
+package require gd16xlm72
+package require Itcl
+
+
+proc locateMissingFile {} {
+  set fname a
+  while {[file exists $fname]} {
+    append fname "a"
+  }
+  return $fname
+}
+
+tcltest::test init-0 {Test that missing file produces error during Init
+} -setup {
+  set fname [locateMissingFile]
+  AGD16XLM72 ::dev {} 1
+} -cleanup {
+  itcl::delete object ::dev
+} -body {
+  set result [catch {::dev Init $::fname SOMEARRAY} msg]
+
+  set good [expr {($result == 1) && ($msg == "AGD16XLM72::Init initialization error. File ($fname) does not exist.")}]
+  
+  set good
+} -result 1
+
+
+tcltest::test init-1 {Test that nonexistent array produces error during Init
+} -setup {
+  set ::fname [::tcltest::makeFile {} testfile.tcl]
+  AGD16XLM72 ::dev {} 1
+} -cleanup {
+  itcl::delete object ::dev
+} -body {
+  ::dev Init $::fname SOMEARRAY  
+} -returnCodes 1 \
+-result {AGD16XLM72::Init initialization error. Array named "SOMEARRAY" does not exist.}
+
+
+locateMissingFile
+
+tcltest::cleanupTests

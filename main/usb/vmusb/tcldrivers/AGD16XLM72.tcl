@@ -91,8 +91,20 @@ itcl::body AGD16XLM72::ReadFirmware {} {
 }
 
 itcl::body AGD16XLM72::Init {filename aname} {
+  if {![file exists $filename]} {
+    set msg "AGD16XLM72::Init initialization error. "
+    append msg "File ($filename) does not exist."
+    return -code error $msg
+  } 
+
+  # if we made it here, then the file exists
 	source $filename
 
+  if {![array exists $aname]} {
+    set msg "AGD16XLM72::Init initialization error. "
+    append msg "Array named \"$aname\" does not exist."
+    return -code error $msg
+  }
 	AccessBus 0x10000
 	for {set i 1} {$i <= 16} {incr i} {
     set delay [lindex [array get $aname delay$i] 1] 
