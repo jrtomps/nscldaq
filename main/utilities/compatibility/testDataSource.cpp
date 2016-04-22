@@ -291,7 +291,7 @@ main(int argc, char** argv)
             timestamp++;
             emitEvent();
         }
-        std::cerr < "Flushing prior to scaler\n";
+        std::cerr << "Flushing prior to scaler\n";
         flushEvents();
         
         scaler();
