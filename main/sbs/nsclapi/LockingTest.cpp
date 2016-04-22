@@ -6,6 +6,7 @@
 
 #include <thread>
 #include <iostream>
+#include <string>
 #include <chrono>
 
 using namespace std;
@@ -79,6 +80,7 @@ class LockingTest : public CppUnit::TestFixture {
 void tryLock_2()
 {
   using namespace std::chrono;
+  // acquire the VMEInterface::Lock() in the current thread
   ScopedVMELock lock;
 
     // Because we are never trying to access the locked variable from more
@@ -98,10 +100,15 @@ void tryLock_2()
 
     double waitTime = duration<double>(end-begin).count();
 
+    std::string actual ("Actual Time >= 1.0 sec");
+    if (waitTime < 1.0) {
+      actual = std::string("Actual Time = ");
+      actual += std::to_string(waitTime) + " sec";
+    }
     EQMSG("TryLock should return false if it was unable to lock mutex",
         false, locked);
-    ASSERTMSG("TryLock should take at least a second to fail",
-        1.0 <= waitTime);
+    EQMSG("TryLock should wait at least 1.0 sec before failing",
+          string("Actual Time >= 1.0 sec"), actual);
 }
 
 
