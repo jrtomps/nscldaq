@@ -166,6 +166,14 @@ class CVMEInterface
   // 
   static void Lock(int semnum);
   static void Unlock(int semnum);
+
+  /*! Try to lock the semaphore until a timeout
+   *
+   *  The timeout argumetns should specify the number of seconds
+   *  to wait for the timeout. This is allowed to timeout up to 1 
+   *  millisecond earlier than the user provided value.
+   *  
+   */
   static bool TryLock(int semnum, int timeoutSeconds);
  private:
   static void AttachSemaphore();
