@@ -107,7 +107,10 @@ AC_CHECK_SIZEOF([void*])
 AS_IF([test "$ac_cv_sizeof_voidp" -eq 8],
     AC_DEFINE([ADDR64],1,[Specifies that memory addresses are 64-bits ]),
      [])
-   
+
+
+AX_CHECK_COMPILE_FLAG([-Wno-error=date-time], [NODATEWARN="-Wno-error=date-time"])
+AC_SUBST(NODATEWARN)
 
 # Checks for library functions.
 
