@@ -39,7 +39,7 @@ libTclstateclient_la_SOURCES=CTCLStateClientCommand.cpp CTCLStateClientInstanceC
 	CTCLStateManagerCommand.h CTCLStateManagerInstanceCommand.h
 
 libTclstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS)   @TCL_FLAGS@
-libTclstateclient_la_LDFLAGS= libstateclient.la $(COMMON_LOADFLAGS)@LIBTCLPLUS_LDFLAGS@  @TCL_LDFLAGS@
+libTclstateclient_la_LDFLAGS= libstateclient.la $(COMMON_LOADFLAGS) @LIBTCLPLUS_LDFLAGS@  @TCL_LDFLAGS@
 
 
 # 

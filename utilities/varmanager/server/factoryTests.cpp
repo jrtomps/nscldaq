@@ -39,7 +39,7 @@ class FactoryTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(createFileApiBadPath);
   
   CPPUNIT_TEST(createServerByPortnumOK);
-  CPPUNIT_TEST(createServerByPortnumBadHost);
+  //  CPPUNIT_TEST(createServerByPortnumBadHost);  // ZMQ 3 can hang this test.
 #ifdef CONNECT_PING_IMPLEMENTED  
   CPPUNIT_TEST(createServerByPortnumBadPort);
 #endif

@@ -30,6 +30,8 @@ package require tcltest
 package require varmgr
 package require portAllocator
 
+
+
 #-----------------------------------------------------------------------------
 #   Utility procs
 
@@ -136,7 +138,7 @@ tcltest::test create-badhost {Can't create on bad host} \
     catch {varmgr::subscribe tcp://no.such.host atest}
                
     
-} -result 1
+} -result 1 -constraints [list zmq2]
 
 
 tcltest::test create-withservice {create sub with explicit service} \
@@ -309,7 +311,7 @@ tcltest::test wait-timeout {Wait with nothing expecte times out} \
 -body {
     varmgr::subscribe tcp://localhost sub
 
-    sub wait 100
+    sub wait 10
 } -result 0
 
 
@@ -367,7 +369,7 @@ tcltest::test unsubscribe-ok {Unsubscribe remove notifications} \
     
     varmgr::mkdir $handle /test/testing
     
-    sub wait 100
+    sub wait 10
 } -result 0
 
 tcltest::test unsubscribe-nosuch {unsubscribe nonexistent subscription fails} \
