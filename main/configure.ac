@@ -98,6 +98,11 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
+
+AX_CHECK_COMPILE_FLAG([-Wno-error=date-time], [NODATEWARN="-Wno-error=date-time"])
+AC_SUBST(NODATEWARN)
+
+
 # check to find the size of address
 AC_CHECK_SIZEOF([void*])
 AS_IF([test "$ac_cv_sizeof_voidp" -eq 8],
