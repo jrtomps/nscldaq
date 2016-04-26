@@ -224,7 +224,7 @@ CMADCChain::getModules()
   string sValue  = m_pConfig->cget("-modules"); // String valued parameter...
   Tcl_SplitList(NULL, sValue.c_str(), &argc, &argv);   // List has already been validated.
 
-  assert(argc > 1);		                       // Validator should have ensured this.
+  assert(argc >= 1);		                       // Validator should have ensured this.
 
   // Store the names in our result list
 
