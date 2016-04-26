@@ -22,7 +22,7 @@
 ******************************************************************************/
 
 #if !defined(LINT)
-static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $ ";
+static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $ "__DATE__;
 #endif /* !LINT */
 
 /* define USE_BIGPHYSAREA 1 if you are patching the kernel to add the bigphysarea code */

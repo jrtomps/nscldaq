@@ -21,10 +21,10 @@
 #ifndef LINT
 #ifdef  __EPI__
 __asm(".rdata");
-__asm(".ascii\"@(#)"__FILE__"  $Revision: 2330 $ \\0\"");
+__asm(".ascii\"@(#)"__FILE__"  $Revision: 2330 $ "__DATE__"\\0\"");
 __asm(".align 3; .text");
 #else
-static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $ ";
+static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $ "__DATE__;
 #endif  /* __EPI__*/
 #endif  /* !LINT */
 

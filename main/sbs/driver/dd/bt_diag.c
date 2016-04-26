@@ -18,7 +18,7 @@
 ****************************************************************************/
 
 #if !defined(LINT)
-static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $ ";
+static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $ "__DATE__;
 static const char file_rev[] = "$Revision: 2330 $";
 #endif	/* !LINT */
 

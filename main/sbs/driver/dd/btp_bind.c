@@ -17,7 +17,7 @@
 ****************************************************************************/
 
 #ifndef LINT
-static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $ ";
+static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $ "__DATE__;
 #endif  /* LINT */
 
 #include <asm/uaccess.h>

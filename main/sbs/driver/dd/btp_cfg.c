@@ -19,7 +19,7 @@
 *****************************************************************************/
 
 #ifndef LINT
-static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $";
+static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $" __DATE__;
 #endif  /* LINT */
 static const char driver_version[] = "$Name: 1003v3p1pC 1003v3p1pB $";
 
