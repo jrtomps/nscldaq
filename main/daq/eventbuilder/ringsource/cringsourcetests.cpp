@@ -38,6 +38,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <limits>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 using namespace std;
 
@@ -96,6 +97,7 @@ class CRingSourceTest : public CppUnit::TestFixture
     }
 
     void getEvent_1() {
+      std::cout << "GetEvent_1\n";
       m_pSource->setOneshot(true);
       m_pSource->setNumberOfSources(2);
       CRingStateChangeItem begin(BEGIN_RUN);
@@ -109,6 +111,7 @@ class CRingSourceTest : public CppUnit::TestFixture
 
       EQMSG("Observation of 2 end runs for 2 sources, oneshot -> complete",
           true, m_pSource->oneshotComplete());
+      std::cout << " passed\n";
     }
 
   private:

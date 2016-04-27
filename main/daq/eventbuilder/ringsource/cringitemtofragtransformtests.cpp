@@ -294,6 +294,7 @@ void CRingItemToFragmentTransformTest::transform_4()
 // type if non-scalers.
 void CRingItemToFragmentTransformTest::transform_5() 
 {
+  std::cerr << "transform_5\n";
   m_pTransform->setDefaultSourceId(1);
 
   std::stringstream log;
@@ -325,6 +326,7 @@ void CRingItemToFragmentTransformTest::transform_5()
       std::equal(pItem, pItem+item.size(), reinterpret_cast<uint8_t*>(frag.s_payload)));
 
   std::cerr.rdbuf(oldBuf);
+  std::cerr << " Passed\n";
 
 }
 
