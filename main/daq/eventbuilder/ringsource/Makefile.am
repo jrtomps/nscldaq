@@ -105,5 +105,4 @@ unittests_CPPFLAGS = -I@top_srcdir@/daq/eventbuilder -I@top_srcdir@/base/dataflo
 	@CPPUNIT_CFLAGS@ \
 	-I@top_srcdir@/base/os
 
-check-TESTS:
-		./unittests
+TESTS=	unittests
