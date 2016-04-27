@@ -22,21 +22,28 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+  std::cout << "Starting " << argv[0] << std::endl;
   CppUnit::TextUi::TestRunner   
                runner; // Control tests.
+  std::cout << "Test Runner created\n";
   CppUnit::TestFactoryRegistry& 
                registry(CppUnit::TestFactoryRegistry::getRegistry());
 
+  std::cout << "Registry created\n";
   runner.addTest(registry.makeTest());
+  std::cout << "Tests added\n";
 
   bool wasSucessful;
   try {
+    std::cout << "Running tests\n";
     wasSucessful = runner.run("",false);
+    std::cout << " Done running tests\n";
   } 
   catch(string& rFailure) {
     cerr << "Caught a string exception from test suites.: \n";
     cerr << rFailure << endl;
     wasSucessful = false;
   }
+  std::cerr << "Exiting\n";
   return !wasSucessful;
 }
