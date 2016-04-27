@@ -82,6 +82,7 @@ class CRingSourceTest : public CppUnit::TestFixture
 
     
     void getEvent_0() {
+      std::cout << "GetEvent_0\n";
       CPhysicsEventItem item;
       item.setBodyHeader(1, 2, 0);
       fillBody(item);
@@ -94,6 +95,7 @@ class CRingSourceTest : public CppUnit::TestFixture
       delete [] pBuf;
 
       ASSERT( m_pSource->getFragmentList().size() == 1);
+      std::cout << "Passed\n";
     }
 
     void getEvent_1() {
