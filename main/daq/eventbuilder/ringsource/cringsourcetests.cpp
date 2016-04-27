@@ -42,7 +42,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 
 using namespace std;
 
-uint64_t tstamp(_PhysicsEventItem*) { return 1; }
+static uint64_t tstamp(_PhysicsEventItem*) { return 1; }
 
 // A test suite 
 class CRingSourceTest : public CppUnit::TestFixture
