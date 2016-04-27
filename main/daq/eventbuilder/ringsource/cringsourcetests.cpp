@@ -86,13 +86,14 @@ class CRingSourceTest : public CppUnit::TestFixture
         CRingBuffer::remove("__test__");
       }
     }
-public:
+protected:
   void getEvent_0();
   void getEvent_1();
 private:
   void fillBody(CRingItem& item);
 };
 // Register it with the test factory
+
 CPPUNIT_TEST_SUITE_REGISTRATION( CRingSourceTest );
 
     
