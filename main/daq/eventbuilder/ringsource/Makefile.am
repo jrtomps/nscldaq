@@ -1,5 +1,5 @@
 bin_PROGRAMS    = ringFragmentSource
-noinst_PROGRAMS = ringTestSource unittests
+noinst_PROGRAMS = ringTestSource unittests srctests
 lib_LTLIBRARIES= libTimeExtractorTest.la libS800TimeExtractor.la libGretinaTimeExtractor.la
 
 libTimeExtractorTest_la_SOURCES = testTimeExtractor.c	
@@ -88,7 +88,7 @@ ringFragmentSource_LDADD=  		 \
 EXTRA_DIST=ringsource.xml ringtestoptions.ggo
 
 unittests_SOURCES = TestRunner.cpp CRingSource.cpp CRingItemToFragmentTransform.cpp \
-                    cringitemtofragtransformtests.cpp cringsourcetests.cpp rfcmdline.c
+                    cringitemtofragtransformtests.cpp rfcmdline.c
 unittests_LDADD = \
 	@top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
 	@top_builddir@/daq/format/libdataformat.la \
@@ -105,4 +105,24 @@ unittests_CPPFLAGS = -I@top_srcdir@/daq/eventbuilder -I@top_srcdir@/base/dataflo
 	@CPPUNIT_CFLAGS@ \
 	-I@top_srcdir@/base/os
 
-TESTS=	unittests
+
+srctests_SOURCES=TestRunner.cpp CRingSource.cpp CRingItemToFragmentTransform.cpp \
+                   cringsourcetests.cpp rfcmdline.c
+
+srctests_LDADD = \
+	@top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
+	@top_builddir@/daq/format/libdataformat.la \
+	@top_builddir@/base/dataflow/libDataFlow.la \
+	@top_builddir@/base/dataflow/libRingBuffer.la \
+	@top_builddir@/base/os/libdaqshm.la	\
+	@CPPUNIT_LDFLAGS@ \
+	$(THREAD_LDFLAGS)  -ldl
+
+srctests_CPPFLAGS = -I@top_srcdir@/daq/eventbuilder -I@top_srcdir@/base/dataflow \
+	-I@top_srcdir@/daq/format \
+	@LIBTCLPLUS_CFLAGS@	 \
+	 -I@top_srcdir@/base/headers \
+	@CPPUNIT_CFLAGS@ \
+	-I@top_srcdir@/base/os
+
+TESTS=	unittests srctests
