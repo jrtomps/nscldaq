@@ -49,7 +49,7 @@ class CRingSourceTest : public CppUnit::TestFixture
 {
 
   private:
-    unique_ptr<CRingSource> m_pSource;
+    CRingSource* m_pSource;
     CTestRingBuffer *m_pRing;
     bool m_ownRing;
 
@@ -76,7 +76,7 @@ class CRingSourceTest : public CppUnit::TestFixture
       okids.push_back(2);
       m_pRing = new CTestRingBuffer("__test__");
       std::cout<<"Testringbuffer made\n";
-      m_pSource.reset(new CRingSource(m_pRing,
+      m_pSource = (new CRingSource(m_pRing,
             okids, 2, tstamp));
       std::cout<< "Reset done.\n";
     }
@@ -86,9 +86,17 @@ class CRingSourceTest : public CppUnit::TestFixture
         CRingBuffer::remove("__test__");
       }
     }
+public:
+  void getEvent_0();
+  void getEvent_1();
+private:
+  void fillBody(CRingItem& item);
+};
+// Register it with the test factory
+CPPUNIT_TEST_SUITE_REGISTRATION( CRingSourceTest );
 
     
-    void getEvent_0() {
+void CRingSourceTest::getEvent_0() {
       std::cout << "GetEvent_0\n";
       CPhysicsEventItem item;
       item.setBodyHeader(1, 2, 0);
@@ -105,7 +113,7 @@ class CRingSourceTest : public CppUnit::TestFixture
       std::cout << "Passed\n";
     }
 
-    void getEvent_1() {
+void CRingSourceTest::getEvent_1() {
       std::cout << "GetEvent_1\n";
       m_pSource->setOneshot(true);
       m_pSource->setNumberOfSources(2);
@@ -123,9 +131,8 @@ class CRingSourceTest : public CppUnit::TestFixture
       std::cout << " passed\n";
     }
 
-  private:
 
-    void fillBody(CRingItem& item) {
+void CRingSourceTest::fillBody(CRingItem& item) {
       vector<uint8_t> data = {0, 1, 2, 3, 4, 5, 6, 7};
       uint8_t* pData = reinterpret_cast<uint8_t*>(item.getBodyPointer()); 
       pData = copy(data.begin(), data.end(), pData);
@@ -134,9 +141,7 @@ class CRingSourceTest : public CppUnit::TestFixture
 
     }
 
-};
 
 
-// Register it with the test factory
-CPPUNIT_TEST_SUITE_REGISTRATION( CRingSourceTest );
+
 
