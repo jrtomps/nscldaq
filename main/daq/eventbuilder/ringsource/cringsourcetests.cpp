@@ -63,15 +63,22 @@ class CRingSourceTest : public CppUnit::TestFixture
   public:
     void setUp() {
       try {
+	std::cout << "Setup\n";
         CRingBuffer::create("__test__");
         m_ownRing = true;
+	std::cout << "Myring\n";
       } catch (...) {
         m_ownRing = false;
+	std::cout << "Not my ring\n";
       }
 
+      std::vector<uint32_t> okids;
+      okids.push_back(2);
       m_pRing = new CTestRingBuffer("__test__");
+      std::cout<<"Testringbuffer made\n";
       m_pSource.reset(new CRingSource(m_pRing,
-            {2}, 2, tstamp));
+            okids, 2, tstamp));
+      std::cout<< "Reset done.\n";
     }
 
     void tearDown() {
