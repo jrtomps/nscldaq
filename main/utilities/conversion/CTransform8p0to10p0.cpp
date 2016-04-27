@@ -177,6 +177,7 @@ namespace DAQ {
       calTime.tm_hour = tstruct.hours;
       calTime.tm_min  = tstruct.min;
       calTime.tm_sec  = tstruct.sec;
+      calTime.tm_isdst= -1;
 
       return std::mktime(&calTime);
     }
