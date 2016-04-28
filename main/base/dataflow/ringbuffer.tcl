@@ -94,7 +94,7 @@ proc usage {} {
     puts stderr " ringbuffer create ?--datasize=n? ?--maxconsumers=n?   name"
     puts stderr " ringbuffer format ?--maxconsumers=n?                  name"
     puts stderr " ringbuffer delete                                     name"
-    puts stderr " ringbuffer status ?--host=hostname?                  ?name?"
+    puts stderr " ringbuffer status ?--host=hostname? ?--all? ?--user=user1,..?  ?name?"
     puts stderr " ringbuffer list   ?--host=hostname?"
 
 }
@@ -295,6 +295,58 @@ proc displayUsageData info {
     
     reportData destroy
 }
+##
+# filterRingStats
+#
+#  Given a ring usage list, filters the result by the 
+#  values given by options (see ringbuffer status).
+#  There are restrictions:
+#
+#   *  Only ringbuffers in the localhost can be filtered by user
+#      at this time, so any of the --filter options are not
+#      legal with --host
+#   *  --all and --user are mutually exclusive.
+#
+# @param ringList - ring status list from the ring master.
+# @param opts     - list in array set form that allows us to
+#                   reconstruct the parse of the command line
+#                   options.
+#
+# @return list - ringList filtered.
+#
+proc filterRingStats {ringList opts} {
+    array set options $opts
+    set filter 1;                  # Assume we can filter.
+    
+    if {$options(--host) ne $::defaultHostname} {
+	puts stderr "*Warning* filtering not done on remote rings"
+	set $filter 0
+    }
+    if {$options(--all) && ($options(--user) ne $::tcl_platform(user))} {
+	error "The --all and --user options are mutually exclusive"
+    }
+    # --all present basically does not filter:
+    if {$options(--all)} {
+	set filter 0
+    } else {
+	set userList [split $options(--user) ,]
+    }
+    set result [list]
+    foreach item $ringList {
+	if {$filter} {
+	    set ringName [lindex $item 0]
+	    set ringFile [file join /dev/shm $ringName]; #linux specific
+	    set owner [file attributes $ringFile -owner]
+	    if {$owner in $userList] {
+		lappend result $item
+	    }
+	    
+	} else {
+	    lappend result $item
+	}
+    }
+    return $result
+}
 #--------------------------------------------------------------------------
 #
 # create a ring buffer.
@@ -356,6 +408,7 @@ proc deleteRing tail {
     exit -1
   }
 }
+
 #--------------------------------------------------------------------------
 #
 #  Show the usage of the known rings.
@@ -363,7 +416,7 @@ proc deleteRing tail {
 proc displayStatus tail {
     set tail [lrange $tail 1 end]
     set pattern "*"
-    set options  [list  --host=$::defaultHostname]
+    set options  [list  --host=$::defaultHostname --all --user=$::tcl_platform(user)]
     array set parse [decodeArgs $tail $options]
 
     if {[llength $parse(Parameters)] == 1} {
@@ -387,6 +440,8 @@ proc displayStatus tail {
     # Sort the list of rings by the ring name.
 
     set resultList [lsort -index 0 $resultList]
+
+    set resultList [filterRingStats $resultList [array get $parse]]
 
     # Now format the info so humans can read it.
 
