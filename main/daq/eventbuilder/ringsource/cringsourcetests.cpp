@@ -85,8 +85,10 @@ class CRingSourceTest : public CppUnit::TestFixture
       std::cout << "Teardown\n";
       delete m_pSource;
       delete m_pRing;
+
       if (m_ownRing) {
 	std::cout << "Removing my ring\n";
+	return;
         CRingBuffer::remove("__test__");
       }
       std::cout << "Done with teardown\n";
