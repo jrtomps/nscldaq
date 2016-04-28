@@ -62,7 +62,6 @@ class CRingSourceTest : public CppUnit::TestFixture
 
   public:
     void setUp() {
-      return;
       try {
 	std::cout << "Setup\n";
         CRingBuffer::create("__test__");
