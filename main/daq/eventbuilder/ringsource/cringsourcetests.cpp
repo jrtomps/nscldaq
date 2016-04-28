@@ -63,35 +63,27 @@ class CRingSourceTest : public CppUnit::TestFixture
   public:
     void setUp() {
       try {
-	std::cout << "Setup\n";
         CRingBuffer::create("__test__");
         m_ownRing = true;
-	std::cout << "Myring\n";
       } catch (...) {
         m_ownRing = false;
-	std::cout << "Not my ring\n";
       }
 
       std::vector<uint32_t> okids;
       okids.push_back(2);
       m_pRing = new CTestRingBuffer("__test__");
-      std::cout<<"Testringbuffer made\n";
       m_pSource = (new CRingSource(m_pRing,
             okids, 2, tstamp));
-      std::cout<< "Reset done.\n";
     }
 
     void tearDown() {
-      std::cout << "Teardown\n";
       delete m_pSource;
       delete m_pRing;
 
       if (m_ownRing) {
-	std::cout << "Removing my ring\n";
 	return;
         CRingBuffer::remove("__test__");
       }
-      std::cout << "Done with teardown\n";
     }
 protected:
   void getEvent_0();
@@ -105,8 +97,6 @@ CPPUNIT_TEST_SUITE_REGISTRATION( CRingSourceTest );
 
     
 void CRingSourceTest::getEvent_0() {
-  return;
-      std::cout << "GetEvent_0\n";
       CPhysicsEventItem item;
       item.setBodyHeader(1, 2, 0);
       fillBody(item);
@@ -119,12 +109,10 @@ void CRingSourceTest::getEvent_0() {
       delete [] pBuf;
 
       ASSERT( m_pSource->getFragmentList().size() == 1);
-      std::cout << "Passed\n";
     }
 
 void CRingSourceTest::getEvent_1() {
-  return;
-      std::cout << "GetEvent_1\n";
+
       m_pSource->setOneshot(true);
       m_pSource->setNumberOfSources(2);
       CRingStateChangeItem begin(BEGIN_RUN);
@@ -138,12 +126,10 @@ void CRingSourceTest::getEvent_1() {
 
       EQMSG("Observation of 2 end runs for 2 sources, oneshot -> complete",
           true, m_pSource->oneshotComplete());
-      std::cout << " passed\n";
     }
 
 
 void CRingSourceTest::fillBody(CRingItem& item) {
-  return;
       vector<uint8_t> data = {0, 1, 2, 3, 4, 5, 6, 7};
       uint8_t* pData = reinterpret_cast<uint8_t*>(item.getBodyPointer()); 
       pData = copy(data.begin(), data.end(), pData);

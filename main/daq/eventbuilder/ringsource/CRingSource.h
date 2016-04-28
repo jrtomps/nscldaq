@@ -85,6 +85,7 @@ private:
   CEVBFragmentList  m_frags;
 
   CRingItemToFragmentTransform  m_wrapper;
+  bool             m_myRing;
  
   
   // Canonicals:
