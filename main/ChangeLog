@@ -1050,4 +1050,7 @@ Work on 11.0-rc11 begins
 11.1-003
 	*  Feature #5612 - add --offset switch to ring fragment source for
 	when source synchornize but with a constant skew.
+11.1-004
+	* Filter out rings in ringbuffer status - by default show only
+	those created by the current user.
 	
