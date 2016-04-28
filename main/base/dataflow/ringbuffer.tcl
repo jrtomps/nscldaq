@@ -314,7 +314,7 @@ proc displayUsageData info {
 #
 # @return list - ringList filtered.
 #
-proc filterRingStats {ringList opts} {
+proc filterRingStats {ringList opts}  {
     array set options $opts
     set filter 1;                  # Assume we can filter.
     
@@ -322,22 +322,25 @@ proc filterRingStats {ringList opts} {
 	puts stderr "*Warning* filtering not done on remote rings"
 	set $filter 0
     }
+
     if {$options(--all) && ($options(--user) ne $::tcl_platform(user))} {
 	error "The --all and --user options are mutually exclusive"
     }
+
     # --all present basically does not filter:
     if {$options(--all)} {
 	set filter 0
     } else {
 	set userList [split $options(--user) ,]
     }
+
     set result [list]
     foreach item $ringList {
 	if {$filter} {
 	    set ringName [lindex $item 0]
-	    set ringFile [file join /dev/shm $ringName]; #linux specific
+	    set ringFile [file join /dev/shm $ringName] ; #linux specific
 	    set owner [file attributes $ringFile -owner]
-	    if {$owner in $userList] {
+	    if {$owner in $userList} {
 		lappend result $item
 	    }
 	    
@@ -441,7 +444,7 @@ proc displayStatus tail {
 
     set resultList [lsort -index 0 $resultList]
 
-    set resultList [filterRingStats $resultList [array get $parse]]
+    set resultList [filterRingStats $resultList [array get parse]]
 
     # Now format the info so humans can read it.
 
