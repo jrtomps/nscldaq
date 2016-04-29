@@ -485,6 +485,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(CTransform8p0to10p0Tests_Scaler);
           calTime.tm_hour = m_tstruct.hours;
           calTime.tm_min  = m_tstruct.min;
           calTime.tm_sec  = m_tstruct.sec;
+	  calTime.tm_isdst= -1;
 
           std::time_t time = std::mktime(&calTime);
           std::time_t time2 = std::mktime(&calTime);

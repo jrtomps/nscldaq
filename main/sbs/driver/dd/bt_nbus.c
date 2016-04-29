@@ -22,7 +22,7 @@
 *****************************************************************************/
 
 #ifndef LINT
-static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $" __DATE__;
+static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $";
 #endif  /* LINT */
 
 /*

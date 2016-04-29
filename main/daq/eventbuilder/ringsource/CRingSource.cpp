@@ -75,7 +75,8 @@ CRingSource::CRingSource(CRingBuffer* pBuffer,
   m_nEndsSeen(0),
   m_nTimeout(0),
   m_nTimeWaited(0),
-  m_wrapper(0)
+    m_wrapper(0),
+    m_myRing(false)
 {
   m_wrapper.setTimestampExtractor(m_timestamp);
   m_wrapper.setAllowedSourceIds(m_allowedSourceIds);
@@ -123,7 +124,7 @@ CRingSource::CRingSource(int argc, char** argv) :
 CRingSource::~CRingSource() 
 {
   delete m_pArgs;
-  delete m_pBuffer;		// Just in case we're destructed w/o shutdown.
+  if (m_myRing)delete m_pBuffer;		// Just in case we're destructed w/o shutdown.
 }
 
 /*---------------------------------------------------------------------
@@ -229,8 +230,11 @@ CRingSource::initialize()
 
   // Attach the ring.
 
+  if (m_pBuffer && m_myRing) {
+    delete m_pBuffer;                // Don't leak rings
+  }
   m_pBuffer = CRingAccess::daqConsumeFrom(url);
-
+  m_myRing = true;
   
 }
 /**

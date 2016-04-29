@@ -111,7 +111,7 @@ unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
 producer_SOURCES	=	producer.cpp
 
-producer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@ -lrt
+producer_LDADD    = -L@prefix@/lib libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
 
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
@@ -119,7 +119,7 @@ producer_CPPFLAGS=$(COMPILATION_FLAGS)
 
 consumer_SOURCES	=	consumer.cpp
 
-consumer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@ -lrt
+consumer_LDADD    = -L@prefix@/lib libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
 
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 

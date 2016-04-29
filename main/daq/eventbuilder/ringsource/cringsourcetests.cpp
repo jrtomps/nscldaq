@@ -38,17 +38,18 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <limits>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 using namespace std;
 
-uint64_t tstamp(_PhysicsEventItem*) { return 1; }
+static uint64_t tstamp(_PhysicsEventItem*) { return 1; }
 
 // A test suite 
 class CRingSourceTest : public CppUnit::TestFixture
 {
 
   private:
-    unique_ptr<CRingSource> m_pSource;
+    CRingSource* m_pSource;
     CTestRingBuffer *m_pRing;
     bool m_ownRing;
 
@@ -68,19 +69,34 @@ class CRingSourceTest : public CppUnit::TestFixture
         m_ownRing = false;
       }
 
+      std::vector<uint32_t> okids;
+      okids.push_back(2);
       m_pRing = new CTestRingBuffer("__test__");
-      m_pSource.reset(new CRingSource(m_pRing,
-            {2}, 2, tstamp));
+      m_pSource = (new CRingSource(m_pRing,
+            okids, 2, tstamp));
     }
 
     void tearDown() {
+      delete m_pSource;
+      delete m_pRing;
+
       if (m_ownRing) {
+	return;
         CRingBuffer::remove("__test__");
       }
     }
+protected:
+  void getEvent_0();
+  void getEvent_1();
+private:
+  void fillBody(CRingItem& item);
+};
+// Register it with the test factory
+
+CPPUNIT_TEST_SUITE_REGISTRATION( CRingSourceTest );
 
     
-    void getEvent_0() {
+void CRingSourceTest::getEvent_0() {
       CPhysicsEventItem item;
       item.setBodyHeader(1, 2, 0);
       fillBody(item);
@@ -95,7 +111,8 @@ class CRingSourceTest : public CppUnit::TestFixture
       ASSERT( m_pSource->getFragmentList().size() == 1);
     }
 
-    void getEvent_1() {
+void CRingSourceTest::getEvent_1() {
+
       m_pSource->setOneshot(true);
       m_pSource->setNumberOfSources(2);
       CRingStateChangeItem begin(BEGIN_RUN);
@@ -111,9 +128,8 @@ class CRingSourceTest : public CppUnit::TestFixture
           true, m_pSource->oneshotComplete());
     }
 
-  private:
 
-    void fillBody(CRingItem& item) {
+void CRingSourceTest::fillBody(CRingItem& item) {
       vector<uint8_t> data = {0, 1, 2, 3, 4, 5, 6, 7};
       uint8_t* pData = reinterpret_cast<uint8_t*>(item.getBodyPointer()); 
       pData = copy(data.begin(), data.end(), pData);
@@ -122,9 +138,7 @@ class CRingSourceTest : public CppUnit::TestFixture
 
     }
 
-};
 
 
-// Register it with the test factory
-CPPUNIT_TEST_SUITE_REGISTRATION( CRingSourceTest );
+
 

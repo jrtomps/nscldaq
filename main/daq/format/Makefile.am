@@ -77,6 +77,7 @@ unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/base/uri/liburl.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
+			@top_builddir@/base/os/libdaqshm.la		\
 			@LIBEXCEPTION_LDFLAGS@
 
 unittests_CPPFLAGS=$(COMPILATION_FLAGS)

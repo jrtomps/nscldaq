@@ -15,9 +15,9 @@ libfilter_la_SOURCES = CFilterMain.cpp \
                        CAbnormalEndRunFilterHandler.cpp \
                        @srcdir@/../StringsToIntegers.cpp \
                        @srcdir@/filterargs.c \
-											 CRunStatistics.cpp  \
-											 SatisfyTclPlus.cpp 
-                       
+			CRunStatistics.cpp  \
+			 SatisfyTclPlus.cpp 
+
 #                       COneShotMediator.cpp 
 
 BUILT_SOURCES = @srcdir@/filterargs.c
@@ -26,11 +26,11 @@ noinst_HEADERS = @srcdir@/../StringsToIntegers.h \
                  @srcdir@/filterargs.h 
 
 include_HEADERS	=  CFilterMain.h \
-									 CBaseMediator.h \
+		CBaseMediator.h \
                    CMediator.h \
-									 CFakeMediator.h \
+		 CFakeMediator.h \
                    CInfiniteMediator.h \
-									 COneShotMediator.h \
+		 COneShotMediator.h \
                    COneShotHandler.h \
                    CFilter.h \
                    CCompositeFilter.h  \
@@ -40,16 +40,16 @@ include_HEADERS	=  CFilterMain.h \
                    CMediatorException.h \
                    CFatalException.h \
                    CAbnormalEndRunFilterHandler.h \
-									 CRunStatistics.h
+		 CRunStatistics.h
 
 
 #                   COneShotMediator.h 
 
 libfilter_la_CPPFLAGS	= -I@top_srcdir@/utilities \
 		-I@top_srcdir@/utilities/IO \
-    @LIBTCLPLUS_CFLAGS@	\
+		@LIBTCLPLUS_CFLAGS@	\
 		-I@top_srcdir@/base/uri		\
-    -I@top_srcdir@/daq/format \
+		-I@top_srcdir@/daq/format \
 		-I@top_srcdir@/base/os \
 		-I@top_srcdir@/base/headers
 
@@ -58,11 +58,12 @@ libfilter_la_LDFLAGS	= -version-info $(SOVERSION)	\
 				$(THREADLD_FLAGS)
 
 libfilter_la_LIBADD	= \
-											@top_builddir@/utilities/IO/libdaqio.la \
-											@top_builddir@/base/dataflow/libDataFlow.la \
-											@top_builddir@/base/uri/liburl.la		\
-											@top_builddir@/base/os/libdaqshm.la		\
-											@LIBEXCEPTION_LDFLAGS@
+			@top_builddir@/utilities/IO/libdaqio.la \
+			@top_builddir@/daq/format/libdataformat.la \
+			@top_builddir@/base/dataflow/libDataFlow.la \
+			@top_builddir@/base/uri/liburl.la		\
+			@top_builddir@/base/os/libdaqshm.la		\
+			@LIBEXCEPTION_LDFLAGS@
 
 
 libfilter_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
