@@ -30,6 +30,7 @@ using namespace std;
 
 #include <tcl.h>
 #include <TCLInterpreter.h>
+#include <TCLVariable.h>
 #include <CCCUSB.h>
 #include "CControlModule.h"
 #include "CControlHardware.h"
@@ -234,19 +235,23 @@ TclServer::readConfigFile()
   }
   catch (string msg) {
     cerr << "TclServer::readConfigFile - string exception: " << msg << endl;
+    stackTrace();
     throw;
   }
   catch (char* msg) {
     cerr << "TclServer::readConfigFile - char* exception: " << msg << endl;
+    stackTrace();
     throw;
   }
   catch (CException& error) {
     cerr << "TclServer::readConfigFile - CException: " 
 	 << error.ReasonText() << " while " << error.WasDoing() << endl;
+    stackTrace();
     throw;
   }
   catch (...) {
     cerr << "TclServer::readConfigFile - unanticipated exception type\n";
+    stackTrace();
     throw;
   }
 }
@@ -431,4 +436,19 @@ TclServer::Exit(Tcl_Event* pEvent, int flags)
 {
     ::Globals::pTclServer->m_exitNow = true;
     return 1;
+}
+
+/**
+ * stackTrace
+ *     Outputs an error stack traceback to stderr - basically
+ *     this just dumps the value of the ::errorInfo variable.
+ */
+void
+TclServer::stackTrace()
+{
+  CTCLVariable errorInfo(m_pInterpreter, "errorInfo", kfFALSE);
+  const char* msg =  errorInfo.Get(TCL_GLOBAL_ONLY);
+  if (msg) {
+    std::cerr << msg << std::endl;
+  }
 }
