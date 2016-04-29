@@ -99,6 +99,7 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/base/uri \
 						@top_srcdir@/base/CopyrightTools \
 						@top_srcdir@/base/os \
+						@top_srcdir@/base/plotchart	\
 						@top_srcdir@/base/tclwidgets  \
 						@top_srcdir@/libtcl/tclplus  \
 						@top_srcdir@/libtcl/exception 

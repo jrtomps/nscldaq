@@ -1055,5 +1055,7 @@ Work on 11.0-rc11 begins
 	show only those created by the current user.
 	* Feature #5792 Provide tracebacsk on control config file errors
 	  in XXUSBReadout program.s
-	
-	
+	* Feature #4870 Documentation:
+	   *   Task #5834 - Document missing stuff in os/thread
+	   *   Task #5822 - Document where to find Plotchart and how to
+   	       load NSCL's special version.
