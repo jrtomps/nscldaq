@@ -1051,6 +1051,9 @@ Work on 11.0-rc11 begins
 	*  Feature #5612 - add --offset switch to ring fragment source for
 	when source synchornize but with a constant skew.
 11.1-004
-	* Filter out rings in ringbuffer status - by default show only
-	those created by the current user.
+	* Feature #5663 Filter out rings in ringbuffer status - by default
+	show only those created by the current user.
+	* Feature #5792 Provide tracebacsk on control config file errors
+	  in XXUSBReadout program.s
+	
 	
