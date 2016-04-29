@@ -182,10 +182,495 @@ g++ -o myprogram obj1.o obj2.o obj3.o -L$DAQHOME/lib -ldaqshm \
         </example>
     </section>
 </chapter>
-
+<chapter>
+    <title>The <classname>Os</classname> class</title>
+    <para>
+        The <classname>Os</classname> class is a class that contains
+        a few static methods that provide abstract interfaces to the underlying
+        operating system.
+    </para>
+    <para>
+        To use this class, include the <filename>os.h</filename> header and link
+        to <filename>libdaqshm</filename>.
+    </para>
+    <para>
+        See <link linkend='manpage.os' endterm='manpage.os.title' /> for
+        reference information that describes this class.
+    </para>
+</chapter>
+<chapter>
+    <title>io</title>
+    <para>
+        The <classname>io</classname> namespace provides functions that read and
+        write data.  You might think that reading and writing binary data is
+        just a matter of using the <function>read</function>(2) and
+        <function>write</function>(2).  There are complications however:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>
+                read/write are allowed to do only partial data transfers.  To
+                correctly use them in all circumstances (e.g. on pipes, fifos
+                or sockets), you need to loop until either an endfile is seen
+                or until the desired number of bytes have been transferred.
+            </para>
+            <para>
+                read/write can be interrupted when the process handles a signal.
+                If this happens while the operation is waiting (e.g. read on a blocking
+                socket that has no data), the operation returns <literal>-1</literal>
+                but the fact that <varname>errno</varname> is <literal>EINTR</literal>
+                (or in some circumstances <literal>EAGAIN</literal>) mean that
+                the read didn't actually fail but just must be retried.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Finally if the file descriptor has been set to non blocking
+                mode but you really want to get data, you may need to
+                loop over successive occurences of return values of
+                <literal>-1</literal> and <varname>errno</varname> values of
+                <literal>EWOULDBLOCK</literal> (yes you should just set the
+                fd to blocking mode but that presupposes that the segment
+                of code doing the read/write knows the socket is nonblocking).
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        The functions in the <classname>io</classname> namespace
+        transparently handle these complications.  Furthermore, in fine
+        C++ fashion, actual errors are converted to integer exceptions whose
+        value is <varname>errno</varname> at the time the error is detected.
+    </para>
+    <para>
+        To use the I/O namespace functions, include <filename>io.h</filename>
+        and link to <filename>libdaqshm</filename>.  Full reference material
+        is in
+        <link linkend='manpage.io' endterm='manpage.io.title' />.
+    </para>
+</chapter>
 <!-- /chapter -->
 
 <!-- manpage 3daq -->
+
+<refentry id="manpage.io">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='manpage.io.title'>io</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>io</refname>
+     <refpurpose>Binary I/O operations.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;io.h&gt;
+       namespace <ooclass><classname>::io</classname></ooclass>
+{
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>writeData</methodname>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>fd</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>void* </type>
+                <parameter>pData</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>size_t </type>
+                <parameter>size</parameter>
+        </methodparam>
+        <exceptionname>int</exceptionname>
+        
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>size_t </type>
+        <methodname>readData </methodname>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>fd</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>void* </type>
+                <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>size_t </type>
+                <parameter>nBytes</parameter>
+        </methodparam>
+        <exceptionname>int</exceptionname>
+    </methodsynopsis>  
+}
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Provides encapsulations of the <literal>read(2)</literal>
+        and <literal>write(2)</literal> system calls that transparently handles
+        the various edge cases that may cause premature I/O termination.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>writeData</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>fd</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>void* </type>
+                            <parameter>pData</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>size_t </type>
+                            <parameter>size</parameter>
+                    </methodparam>
+                    <exceptionname>int</exceptionname>
+                    
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Writes <parameter>size</parameter> bytes
+                    of data pointed to by <parameter>pData</parameter>
+                    to the file descriptor <parameter>fd</parameter>.  When this
+                    function returns either all of the bytes have been writtren or
+                    an <type>int</type> exception has been thrown whose
+                    value is <varname>errno</varname> at the time the
+                    exception was thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>size_t </type>
+                    <methodname>readData </methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>fd</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>void* </type>
+                            <parameter>pBuffer</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>size_t </type>
+                            <parameter>nBytes</parameter>
+                    </methodparam>
+                    <exceptionname>int</exceptionname>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Reads at most <parameter>nBytes</parameter> of
+                    data from the file descriptor <parameter>fd</parameter>
+                    into the buffer pointed to by <parameter>pBuffer</parameter>.
+                    Returns the number of bytes actually written.
+                    When this function returns one of the following is true:
+                </para>
+                <itemizedlist>
+                    <listitem><para>
+                        All <parameter>nBytes</parameter> of data have been read.
+                    </para></listitem>
+                    <listitem><para>
+                        The return value is less than <parameter>nBytes</parameter>.
+                        This means an end of file condition was encountered when
+                        reading the data.  The return value is the nuber of bytes
+                        actually transferred.
+                    </para></listitem>
+                    <listitem><para>
+                        The function has thrown an <type>int</type> exception
+                        indicating an error of some sort.  The value of the
+                        integer thrown is <varname>errno</varname> at the
+                        time the error was detected.
+                    </para></listitem>
+                </itemizedlist>
+                            
+            </listitem>
+        </varlistentry>
+                
+     </variablelist>
+  </refsect1>
+</refentry>     
+
+<refentry id="manpage.os">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='manpage.os.title'>Os</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>Os</refname>
+     <refpurpose>Operating system interfaces.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;os.h&gt;
+       class <ooclass><classname>Os</classname></ooclass>
+{
+    <methodsynopsis>
+        <modifier>static </modifier>
+        <type>std::string </type>
+        <methodname>whoami()</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static </modifier>
+        <type>bool </type>
+        <methodname>authenticateUser</methodname>
+        <methodparam>
+            <modifier></modifier><type>std::string </type>
+                <parameter>sUser</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>std::string </type>
+                <parameter>sPassword</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static </modifier>
+        <type>int  </type>
+        <methodname>usleep</methodname>
+        <methodparam>
+            <modifier></modifier><type>useconds_t </type>
+                <parameter>usec</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>static </modifier>
+        <type>int  </type>
+        <methodname>blockSignal</methodname>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>sigNum</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>static </modifier>
+        <type>int  </type>
+        <methodname>checkStatus</methodname>
+        <methodparam>
+            <modifier></modifier><type>int status</type>
+                <parameter>, int checkStatus</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type> std::string </type>
+                <parameter>msg</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>static </modifier>
+        <type>int  </type>
+        <methodname>checkNegativeStatus</methodname>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>returnCode</parameter>
+        </methodparam>
+    </methodsynopsis>  
+  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The <classname>Os</classname> class provides a set of static methods
+        that abstract some simple operating system interfaces.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>std::string </type>
+                    <methodname>whoami()</methodname>
+                    <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the name of the user that is currently running
+                    the process.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>bool </type>
+                    <methodname>authenticateUser</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>sUser</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>sPassword</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Given a user name;  <parameter>sUser</parameter> and a
+                    password; <parameter>sPassword</parameter>, returns
+                    <literal>true</literal> if that username and password
+                    represent valid login credentials to the system,
+                    <literal>false</literal> if not.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>int  </type>
+                    <methodname>usleep</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>useconds_t </type>
+                            <parameter>usec</parameter>
+                    </methodparam>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Pauses the caller for <parameter>usec</parameter>
+                    microseconds. <literal>0</literal> is returned if
+                    the sleep was successful and for the full requested period.
+                    <literal>-1</literal> is returned if not and <varname>errno</varname>
+                    has an error code.  If <varname>errno</varname> is
+                    <literal>EINTR</literal> 
+                    the sleep was interrupted by a signal and the interval
+                    was not complete.  Other values of <varname>errno</varname>represent errors.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>int  </type>
+                    <methodname>blockSignal</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>sigNum</parameter>
+                    </methodparam>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Blocks the signal specified by <parameter>sigNum</parameter>.
+                    If the signal can be blocked it will no longer be processed
+                     by the calling process.  The method returns
+                     <literal>0</literal> on success and <literal>-1</literal>
+                     on failure.  If the call fails, <varname>errno</varname>
+                     is a code that describes why the operation failed.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>int  </type>
+                    <methodname>checkStatus</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int status</type>
+                            <parameter>, int checkStatus</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type> std::string </type>
+                            <parameter>msg</parameter>
+                    </methodparam>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Compares <parameter>status</parameter> with
+                    <parameter>checkStatus</parameter> if not equal,
+                    a <classname>std::runtime_error</classname> is thrown
+                    with <parameter>msg</parameter> as the message string.
+                    The function returns the value of <parameter>status</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>int  </type>
+                    <methodname>checkNegativeStatus</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>returnCode</parameter>
+                    </methodparam>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    If <parameter>returnCode</parameter> is negative,
+                    the method throws a <classname>CErrnoException</classname>.
+                    The exception string is the error string that corrersponds
+                    to the <parameter>returnCode</parameter> as if
+                    <parameter>returnCode</parameter> were a valid
+                    <varname>errno</varname> error value.
+                </para>
+                <para>
+                    On success, the value of <parameter>returnCode</parameter>
+                    is returned.
+                </para>
+            </listitem>
+        </varlistentry>
+                
+                
+                    
+     </variablelist>
+  </refsect1>
+
+</refentry>     
+
 	 <refentry id="daqshm-manpage">
        <refmeta>
           <refentrytitle>CDAQShm</refentrytitle>
