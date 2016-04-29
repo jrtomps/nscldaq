@@ -320,7 +320,7 @@ proc filterRingStats {ringList opts}  {
     
     if {$options(--host) ne $::defaultHostname} {
 	puts stderr "*Warning* filtering not done on remote rings"
-	set $filter 0
+	set filter 0
     }
 
     if {$options(--all) && ($options(--user) ne $::tcl_platform(user))} {
