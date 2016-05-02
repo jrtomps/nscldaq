@@ -1,0 +1,48 @@
+<!-- manpage 3tcl -->
+
+<!-- /manpage -->
+<refentry id="!ModuleName!">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle>!ModuleName!</refentrytitle>
+           <manvolnum>1tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>!ModuleName!</refname>
+           <refpurpose>!MOdule Description!</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+!Option list elements!
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
