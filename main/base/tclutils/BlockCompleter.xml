@@ -1,0 +1,4 @@
+<!-- Note BlockCompleter.tcl should not be used.  Tcl comes with
+   [info complete]  which performs this task.
+-->
+
