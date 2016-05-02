@@ -9,6 +9,7 @@
           </author>
           <productname>NSCLDAQ</productname>
           <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='tcl3.translientlabel.title'>TransientLabel</refentrytitle>
            <manvolnum>3tcl</manvolnum>
