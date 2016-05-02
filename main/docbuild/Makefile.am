@@ -102,6 +102,7 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/base/plotchart	\
 						@top_srcdir@/base/tclutils \
 						@top_srcdir@/base/tclwidgets  \
+						@top_srcdir@/base/tcpip		\
 						@top_srcdir@/libtcl/tclplus  \
 						@top_srcdir@/libtcl/exception 
 
