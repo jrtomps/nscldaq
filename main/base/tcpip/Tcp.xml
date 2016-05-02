@@ -1,0 +1,557 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>TCPIP classes</title>
+    <para>
+        This library provides a simplified C++ encapsulation of the system interface
+        to TCP/IP socket stream sockets.
+        This chapter provides:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            An overview of the library, its main class (<classname>CSocket</classname>)
+            and the exceptions objects of this class can throw.
+        </para></listitem>
+        <listitem><para>
+            Instructions for including the library in your applications at both
+            the source level and at link time.
+        </para></listitem>
+    </itemizedlist>
+    <para>
+        This tutorial information is no substitute for the reference pages:
+    </para>
+    <itemlizedlist>
+        <listitem>
+            <para>
+                <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpbadsocketstate'
+                      endterm='dq3.ctcpbadsocketstate.title'
+                />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpconnectionfailed'
+                      endterm='daq3.ctcpconnecctionfailed.title'
+                      />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpconnectionlost'
+                      endterm='daq3.ctcpconnecctionlost.title'
+                      />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpnosuchost'
+                      endterm='daq3.ctcpnosuchost.title'
+                      />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpnosuchservice'
+                      endterm='daq3.ctcpnosuchservice.title'
+                      />
+            </para>
+        </listitem>
+    </itemlizedlist>
+    <section>
+        <title>Library concepts</title>
+        <para>
+            The library supports three types of sockets.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    Client sockets
+                </term>
+                <listitem>
+                    <para>
+                        These sockets initiate connections with some service.
+                        Once connected typically they will make requests of the
+                        program that manages that service and that program will
+                        fulfil those requests as well as send response data back
+                        to the client
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    Server Sockets
+                </term>
+                <listitem>
+                    <para>
+                        These sockets define a service and passively await connections.
+                        When a connection is made, a new <classname>CSocket</classname>
+                        object is created and the client and server subsequently
+                        communicate over that new socket until their interaction
+                        is complete.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    Encapsulated sockets
+                </term>
+                <listitem>
+                    <para>
+                        An encapsulated socket is one that has been opened by
+                        directly invoking the socket(2) operation.  If you know
+                        the socket state (more about socket states later),
+                        you can wrap that socket in a <classname>CSocket</classname>
+                        class.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            It is important to know that sockets are a stateful entity.  The
+            <class>CSocket</class> class provides a data type:
+            <type>CSocket::State</type> and an internal state member variable
+            that captures this.  Depending on the state of the object, some
+            operations may be illegal.  Invoking an operation that is forbidden
+            by the current state will cause the object to throw a
+            <classname>CTCPBadSocketState</classname> exception.
+        </para>
+        <para>
+            A socket can be in one of the following states:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+        			<literal>Disconnected</literal>
+                </term>
+                <listitem>
+                    <para>
+                        When a socket is initially created, or after it has been
+                        detected that the peer has closed its end of the socket,
+                        the socket is <literal>Disconnected</literal>.
+                    </para>
+                    <para>
+                        Disconnected sockets can be Bound, turning the
+                        socket into a server
+                        socket in the <literal>Bound</literal> state or
+                        Connected which, if successful turns the socket into
+                        a <literal>Connected</literal> client socket.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>Bound</literal>
+                </term>
+                <listitem>
+                    <para>
+                        A server socket is <literal>Bound</literal> when it has
+                        been configured to offer a specific service. Once
+                        Bound an application can listen on the socket for
+                        a connection.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>Listening</literal>
+                </term>
+                <listitem>
+                    <para>
+                        A server socket is listening if it it can accept
+                        connections.  This is normally the case once the
+                        <methodname>Listen</methodname> is invoked.  Typically
+                        <methodname>Listen</methodname> is followed at some point
+                        in time by a call to <methodname>Accept</methodname>
+                        which accepts the next connection received.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>Connected</literal>
+                </term>
+                <listitem>
+                    <para>
+                        Connected sockets come about in one of two ways.
+                        Either <methodname>Accept</methodname> called on a server
+                        returns a socket that is connected to a new peer, or
+                        a client socket successfully performss a
+                        <methodname>Connect</methodname> call connecting
+                        to a server.
+                    </para>
+                    <para>
+                        Connected sockets can be closed written to an read from.
+                    </para>
+                </listitem>
+            </varlistentry> 
+        </variablelist>
+        <para>
+            The <methodname>Read</methodname> and <methodname>Write</methodname>
+            methods can be invoked on any connected socket to transfer data to
+            the peer.
+        </para>
+    </section>
+    <section>
+        <title>Incorporating the socket library</title>
+        <para>
+            Using one of the TCP/IP library classes requires that you #include
+            the appropriate header.   Doing this requires that you allow the
+            C++ compiler to search the DAQ includes directory.  This is most
+            simply done by:
+        </para>
+        <orderedlist>
+            <listitem>
+                <para>
+                    Sourcing the <filename>daqsetup.bash</filename> script
+                    for the version of NSCLDAQ you are using into your shell
+                    (you can do this in your <filename>.bashrc</filename>).
+                    Suppose, for example, I'm using the version of NSCLDAQ
+                    installed in <filename>/usr/opt/daq/11.1-004</filename>:
+                    I can:
+                    <informalexample>
+                        <programlisting>
+.   /usr/opt/daq/11.1-004/daqsetup.bash
+                        </programlisting>
+                    </informalexample>
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Adding the appropriate <literal>-I</literal> option to your
+                    compilation command line.  If you have performed step 1 above
+                    this means adding <literal>-I$DAQROOT/include</literal> to your
+                    compilation command.
+                </para>
+            </listitem>
+        </orderedlist>
+        <para>
+            Assuming you sourced the <filename>daqsetup.bash</filename>
+            environment setup file, linking with the TCPIP library requires the following additions
+            to your link command line:
+            <informalexample>
+                <programlisting>
+-L$DAQLIB -lTcp -lException -ldaqshm                    
+                </programlisting>
+            </informalexample>
+            
+        </para>
+    </section>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+<refentry id='daq3.csocket' >
+    <refentryinfo>
+        <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+    </refentryinfo>
+    <refmeta>
+       <refentrytitle id='daq3.csocket.title'>CSocket</refentrytitle>
+       <manvolnum>3daq</manvolnum>
+       <refmiscinfo class='empty'></refmiscinfo>
+    </refmeta>
+    <refnamediv>
+       <refname>CSocket</refname>
+       <refpurpose>Encapsulation of a socket file descriptor.</refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <synopsis>
+class <ooclass><classname>CSocket</classname></ooclass>
+{
+    enum State {
+      Disconnected,
+      Bound,
+      Listening,
+      Connected
+    };
+    <constructorsynopsis>
+        <methodname>
+            CSocket      
+        </methodname>
+        <void />
+    </constructorsynopsis>
+    <constructorsynopsis>
+        <methodname>
+            CSocket
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>int</type>
+            <parameter>fd</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>CSocket::State </type>
+            <parameter>state </parameter>
+        </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>int </type>
+        <methodname>
+            getSocketFd
+        </methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>CSocket::State</type>
+        <methodname>
+             getState
+        </methodname>
+        <void />
+        <methodname>const</methodname>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            Connect
+        </methodname>
+        <methodparam>
+            <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter>host</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>std::string&amp;  </type>
+            <parameter>service</parameter>
+        </methodparam>
+        
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            Bind
+        </methodname>
+        <methodparam>
+            <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter> service</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            Listen 
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned int </type>
+            <parameter>nBacklog</parameter><initializer></initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>  CSocket*  </type>
+        <methodname>
+            Accept
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>std::string&amp; </type>
+            <parameter>client</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            Shutdown
+        </methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>int </type>
+        <methodname>
+            Read 
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>void* </type>
+            <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>size_t</type>
+            <parameter> nBytes</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>int </type>
+        <methodname>
+            Write
+        </methodname>
+        <methodparam>
+            <modifier>const </modifier><type>void* </type>
+            <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>size_t </type>
+            <parameter>nBytes</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            getPeer
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned short&amp;</type>
+            <parameter>port</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>std::string&amp;</type>
+            <parameter> peer</parameter>
+        </methodparam>
+    </methodsynopsis> 
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            OOBInline
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>bool </type>
+            <parameter>State</parameter><initializer>TRUE</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>bool </type>
+        <methodname>
+            isOOBInline
+        </methodname>
+        <void />
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            setRcvLowWaterMark
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>size_t </type>
+            <parameter>nBytes</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            setSndLowWaterMark
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>size_t </type>
+            <parameter>nBytes</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>size_t </type>
+        <methodname>
+            getSndLowWaterMark
+        </methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            setRcvTimeout 
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned int </type>
+            <parameter>nMs</parameter>
+        </methodparam>
+    </methodsynopsis> 
+    <methodsynopsis>
+        <modifier></modifier><type>unsigned int </type>
+        <methodname>
+            getRcvTimeout
+        </methodname>
+        <void />
+    </methodsynopsis>  
+
+  <methodsynopsis>
+    <modifier></modifier><type>void </type>
+    <methodname>
+        setSndTimeout
+    </methodname>
+    <methodparam>
+        <modifier></modifier><type>unsigned int</type>
+        <parameter> nMs</parameter>
+    </methodparam>
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>unsigned int </type>
+    <methodname>
+        getSndTimeout 
+    </methodname>
+    <void />
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>void </type>
+    <methodname>
+        Debug
+    </methodname>
+    <methodparam>
+        <modifier></modifier><type>bool </type>
+        <parameter>fState</parameter><initializer>TRUE</initializer>
+    </methodparam>
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>bool </type>
+    <methodname>
+        isDebug
+    </methodname>
+    <void />
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>void </type>
+    <methodname>
+        SetNotRoutable
+    </methodname>
+    <methodparam>
+        <modifier></modifier><type>bool </type>
+        <parameter>fRoutable</parameter><initializer>TRUE</initializer>
+    </methodparam>
+  </methodsynopsis> 
+  <methodsynopsis>
+    <modifier></modifier><type>bool </type>
+    <methodname>
+        isNotRoutable
+    </methodname>
+    <void />
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>void </type>
+    <methodname>
+        setSndBufSize
+    </methodname>
+    <methodparam>
+        <modifier></modifier><type>size_t </type>
+        <parameter>nBufferSize</parameter>
+    </methodparam>
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>size_t </type>
+    <methodname>
+        getSndBufSize 
+    </methodname>
+    <void />
+  </methodsynopsis> 
+  
+   void setRcvBufSize (size_t nBytes)   ;
+  size_t getRcvBufSize ()   ;
+  void setLinger (bool lOn, int nLingerSeconds)   ;
+  void getLinger (bool& isLingering, int& nLingerSeconds)   ;
+
+  static std::string StateName(CSocket::State state);
+
+  void Flush();			//!< Get rid of buffered input.
+
+
+
+};
+        </synopsis>
+    </refsynopsisdiv>
+</refentry>
+
+<!-- /manpage -->
+
+
+
