@@ -1,5 +1,5 @@
 <!-- manpage 3tcl -->
-<refentry <refentry id="tcl3.transientlabel">
+<refentry id="tcl3.transientlabel">
         <refentryinfo>
           <author>
                   <personname>
@@ -9,7 +9,7 @@
           </author>
           <productname>NSCLDAQ</productname>
           <productnumber></productnumber>
-        </refentryintransientlabel<refmeta>
+        <refmeta>
            <refentrytitle id='tcl3.translientlabel.title'>TransientLabel</refentrytitle>
            <manvolnum>3tcl</manvolnum>
            <refmiscinfo class='empty'></refmiscinfo>

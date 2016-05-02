@@ -170,7 +170,7 @@ FrameSequencer <replaceable>path</replaceable>
           </cmdsynopsis>
           <cmdsynopsis>
             <command>
-<replaceable>path</replaceable> staticAdd <replaceablew>name fr parent ?onviewscript?</replaceablew>
+<replaceable>path</replaceable> staticAdd <replaceable>name fr parent ?onviewscript?</replaceable>
             </command>
           </cmdsynopsis>
           <cmdsynopsis>
@@ -206,7 +206,7 @@ FrameSequencer <replaceable>path</replaceable>
               <term>
          <cmdsynopsis>
             <command>
-<replaceable>path</replaceable> staticAdd <replaceablew>name fr parent ?onviewscript?</replaceablew>
+<replaceable>path</replaceable> staticAdd <replaceable>name fr parent ?onviewscript?</replaceable>
             </command>
           </cmdsynopsis>
                 
@@ -233,7 +233,7 @@ FrameSequencer <replaceable>path</replaceable>
             </command>
           </cmdsynopsis>                
               </term>
-              <listiten>
+              <listitem>
                 <para>
                   Adds a new widget <parameter>fr</parameter> named
                   <parameter>name</parameter>.  The widget is added after the
@@ -241,7 +241,7 @@ FrameSequencer <replaceable>path</replaceable>
                   becoming visible, the <parameter>onviewscript</parameter>,
                   if provided, is invoked.
                 </para>
-              </listiten>
+              </listitem>
             </varlistentry>
             <varlistentry>
               <term>
@@ -256,7 +256,7 @@ FrameSequencer <replaceable>path</replaceable>
                   Makes the widget associated with the <parameter>name</parameter>
                   visible.
                 </para>
-              </listitem>              </term>
+              </listitem>
 
             </varlistentry>
             <varlistentry>
