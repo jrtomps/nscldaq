@@ -1,24 +1,24 @@
 <!-- manpage 3tcl -->
 <refentry id='tcl3.process' >
     <refentryinfo>
-          <author>
-                  <personname>
-                          <firstname>Ron</firstname>
-                          <surname>Fox</surname>
-                  </personname>
-          </author>
-          <productname>NSCLDAQ</productname>
-          <productnumber></productnumber>
-        </refentryinfo>
-        <refmeta>
-           <refentrytitle id='tcl3.process.title'>Process</refentrytitle>
-           <manvolnum>3tcl</manvolnum>
-           <refmiscinfo class='empty'></refmiscinfo>
-        </refmeta>
-        <refnamediv>
-           <refname>Process</refname>
-           <refpurpose>Simplified asynchronous pipeline handling</refpurpose>
-        </refnamediv>
+		<author>
+				<personname>
+						<firstname>Ron</firstname>
+						<surname>Fox</surname>
+				</personname>
+		</author>
+		<productname>NSCLDAQ</productname>
+		<productnumber></productnumber>
+	  </refentryinfo>
+	  <refmeta>
+		 <refentrytitle id='tcl3.process.title'>Process</refentrytitle>
+		 <manvolnum>3tcl</manvolnum>
+		 <refmiscinfo class='empty'></refmiscinfo>
+	  </refmeta>
+	  <refnamediv>
+		 <refname>Process</refname>
+		 <refpurpose>Simplified asynchronous pipeline handling</refpurpose>
+	  </refnamediv>
         <refsynopsisdiv>
             <cmdsynopsis>
                 <command>
@@ -40,7 +40,11 @@ Process <replaceable>name</replaceable> | %AUTO% -command <replaceable>cmd ?opti
 <replaceable>name</replaceable> cget <replaceable>?option?</replaceable>
                 </command>
             </cmdsynopsis>
+			<cmdsynopsis>
+                <command>
 <replaceable>name</replaceable>  getPids
+                </command>
+            </cmdsynopsis>
         </refsynopsisdiv>
         <refsect1>
             <title>DESCRIPTION</title>
