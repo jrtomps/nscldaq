@@ -30,7 +30,17 @@ package require ChannelLabel
           </cmdsynopsis>
           <cmdsynopsis>
                 <command>
-ChannelLael <replaceable>path ?options...?</replaceable>
+ChannelLabel <replaceable>path ?options...?</replaceable>
+                </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> configure  <replaceable>option value ?...?</replaceable>
+                </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> cget <replaceable>?option....?</replaceable>
                 </command>
           </cmdsynopsis>
           
@@ -39,15 +49,27 @@ ChannelLael <replaceable>path ?options...?</replaceable>
         <refsect1>
            <title>DESCRIPTION</title>
            <para>
+               Provides a label widget with some built in validation.  If focus
+               is lost from the entry, and there is no text in the entry, the
+               text is reverted to some default string.  The widget supports
+               all of the configuration options of the ttk::entry onwhich it's
+               based.  
            </para>
-        </refsect1>
-        <refsect1>
-           <title>
-              OPTIONS
-           </title>
-           <variablelist>
-!Option list elements!
-           </variablelist>
+           <para>
+                The widget supports an additional option;
+                <option>-defaultstring</option> which contains the string
+                that will be set if the validation fails.
+           </para>
+           <note>
+                <title>NOTE</title>
+                <para>
+                        Unfortunately the <option>-validatecommand</option>,
+                        <option>-validate</option> and <option>-invalidcommand</option>
+                        options all remain exposed in the widget's API.  The
+                        widget will not behave as expected if these options
+                        are tampered with.
+                </para>
+           </note>
         </refsect1>
 
       </refentry>
