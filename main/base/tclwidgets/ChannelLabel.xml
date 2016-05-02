@@ -19,7 +19,7 @@
         </refmeta>
         <refnamediv>
            <refname>ChannelLabel</refname>
-           <refpurpose>Label widget that cannot be empty.</refpurpose>
+           <refpurpose>Entry widget that cannot be empty.</refpurpose>
         </refnamediv>
         
         <refsynopsisdiv>
@@ -49,7 +49,7 @@ ChannelLabel <replaceable>path ?options...?</replaceable>
         <refsect1>
            <title>DESCRIPTION</title>
            <para>
-               Provides a label widget with some built in validation.  If focus
+               Provides an entry widget with some built in validation.  If focus
                is lost from the entry, and there is no text in the entry, the
                text is reverted to some default string.  The widget supports
                all of the configuration options of the ttk::entry onwhich it's
