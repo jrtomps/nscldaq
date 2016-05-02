@@ -1,0 +1,98 @@
+<!-- manpage 3tcl -->
+<refentry <refentry id="tcl3.transientlabel">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryintransientlabel<refmeta>
+           <refentrytitle id='tcl3.translientlabel.title'>TransientLabel</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>TransientLabel</refname>
+           <refpurpose>Label widget that transforms to defau.</refpurpose>
+        </refnamediv>
+        <refsynopsisdiv>
+                <cmdsynopsis>
+                        <command>
+package require TransientLabel                                
+                        </command>
+                </cmdsynopsis>
+                <cmdsynopsis>
+                    <command>
+TransientLabel <replaceable>path ?options?</replaceable>			
+                    </command>
+                </cmdsynopsis>
+                <cmdsynopsis>
+                    <command>
+<replaceable>path</replaceable>  configure <replaceable>option value ?....?</replaceable>
+                    </command>
+                </cmdsynopsis>
+                <cmdsynopsis>
+                    <command>
+<replaceable>path</replaceable>  cget <replaceable>?option?</replaceable>
+                    </command>
+                </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+            <title>DESCRIPTION</title>
+            <para>
+                Provides a widget that allows you to set some transient text.
+                After a specified timeout, the text modified reverts to some
+                default text.  This can be useful when a label normally showing
+                some fixed information doubles as a status line.  The status
+                information can then be displayee for some fixed amount of time
+                before the label reverts to its normal function.
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>OPTIONS</title>
+            <variablelist>
+                <varlistentry>
+                        <term>
+                            <option>-defaultstring</option>    
+                        </term>
+                        <listitem>
+                                <para>
+                                        Option that containns the value of the
+                                        'normal' string.
+                                </para>
+                        </listitem>
+                </varlistentry>
+                <varlistentry>
+                        <term>
+                            <option>-timerlength</option>				
+                        </term>
+                        <listitem>
+                                <para>
+                                        Numbrer of milliseconds for which the
+                                        transient text will be displayed before
+                                        the text reverst to the
+                                        <option>-defaultstring</option>
+                                </para>
+                        </listitem>
+                </varlistentry>
+                <varlistentry>
+                        <term>
+                                <option>-text</option>				
+                        </term>
+                        <listitem>
+                                <para>
+                                        The transient text to display for the
+                                        <option>-timerlength</option> milliseconds.
+                                </para>
+                        </listitem>
+                </varlistentry>
+                
+            </variablelist>
+            
+        </refsect1>
+</refentry>
+<!-- /manpage -->
+
