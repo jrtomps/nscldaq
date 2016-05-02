@@ -1,7 +1,7 @@
 <!-- manpage 3tcl -->
 
 <!-- /manpage -->
-<refentry id="!ModuleName!">
+<refentry id="tcl3.channellabel">
         <refentryinfo>
           <author>
                   <personname>
@@ -13,20 +13,27 @@
           <productnumber></productnumber>
         </refentryinfo>
         <refmeta>
-           <refentrytitle>!ModuleName!</refentrytitle>
-           <manvolnum>1tcl</manvolnum>
+           <refentrytitle id='tcl3.channellabel.title'>ChannelLabel</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
            <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
-           <refname>!ModuleName!</refname>
-           <refpurpose>!MOdule Description!</refpurpose>
+           <refname>ChannelLabel</refname>
+           <refpurpose>Label widget that cannot be empty.</refpurpose>
         </refnamediv>
         
         <refsynopsisdiv>
           <cmdsynopsis>
-              <command>
+          <command>
+package require ChannelLabel
           </command>
           </cmdsynopsis>
+          <cmdsynopsis>
+                <command>
+ChannelLael <replaceable>path ?options...?</replaceable>
+                </command>
+          </cmdsynopsis>
+          
 
         </refsynopsisdiv>
         <refsect1>
