@@ -83,7 +83,7 @@ snit::type BlockCompleter {
   # @retval 1 - otherwise
   #
   method isComplete {} {
-    return [expr $_nLeftDelimiters == $_nRightDelimiters]
+    return [info complete $_text]
   }
 
   ## @brief Traverse string and increment delimiter counts
