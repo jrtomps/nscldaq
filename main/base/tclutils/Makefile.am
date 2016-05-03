@@ -11,7 +11,7 @@ install-exec-local:
 	echo "pkg_mkIndex -verbose $(DRIVERDest) *.tcl" | $(TCLSH_CMD)
 
 
-DOCS=BlockCompleter.xml Process.xml TCLSourceFilter.xml Utils.xml
+DOCS=BlockCompleter.xml Process.xml TclSourceFilter.xml Utils.xml
 
 check-TESTS:
 	TCLLIBPATH="@prefix@/TclLibs @libdir@ @srcdir@" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
