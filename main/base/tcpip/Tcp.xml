@@ -19,7 +19,7 @@
     <para>
         This tutorial information is no substitute for the reference pages:
     </para>
-    <itemlizedlist>
+    <itemizedlist>
         <listitem>
             <para>
                 <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
@@ -28,28 +28,28 @@
         <listitem>
             <para>
                 <link linkend='daq3.ctcpbadsocketstate'
-                      endterm='dq3.ctcpbadsocketstate.title'
+                      endterm='daq3.ctcpbadsocketstate.title'
                 />
             </para>
         </listitem>
         <listitem>
             <para>
                 <link linkend='daq3.ctcpconnectionfailed'
-                      endterm='daq3.ctcpconnecctionfailed.title'
+                      endterm='daq3.ctcpconnectionfailed.title'
                       />
             </para>
         </listitem>
         <listitem>
             <para>
                 <link linkend='daq3.ctcpconnectionlost'
-                      endterm='daq3.ctcpconnecctionlost.title'
+                      endterm='daq3.ctcpconnectionlost.title'
                       />
             </para>
         </listitem>
         <listitem>
             <para>
-                <link linkend='daq3.ctcpnosuchost'
-                      endterm='daq3.ctcpnosuchost.title'
+                <link linkend='daq3.ctcpnosuchhost'
+                      endterm='daq3.ctcpnosuchhost.title'
                       />
             </para>
         </listitem>
@@ -60,7 +60,7 @@
                       />
             </para>
         </listitem>
-    </itemlizedlist>
+    </itemizedlist>
     <section>
         <title>Library concepts</title>
         <para>
@@ -112,8 +112,7 @@
         </variablelist>
         <para>
             It is important to know that sockets are a stateful entity.  The
-            <class>CSocket</class> class provides a data type:
-            <type>CSocket::State</type> and an internal state member variable
+`            <type>CSocket::State</type> and an internal state member variable
             that captures this.  Depending on the state of the object, some
             operations may be illegal.  Invoking an operation that is forbidden
             by the current state will cause the object to throw a
@@ -308,7 +307,7 @@ class <ooclass><classname>CSocket</classname></ooclass>
              getState
         </methodname>
         <void />
-        <methodname>const</methodname>
+        <modifier>const</modifier>
     </methodsynopsis>
     <methodsynopsis>
         <modifier></modifier><type>void </type>
@@ -713,7 +712,7 @@ class <ooclass><classname>CSocket</classname></ooclass>
                              getState
                         </methodname>
                         <void />
-                        <methodname>const</methodname>
+                        <modifier>const</modifier>
                     </methodsynopsis>
                 </term>
                 <listitem>
@@ -981,14 +980,14 @@ class <ooclass><classname>CSocket</classname></ooclass>
                             with an error.  The socket is placed in the
                             <literal>CSocket::Disconnected</literal> state.
                         </para></listitem>
-                        <para><listitem>
+                        <listitem><para>
                             <classname>CTCPConnectionLost</classname> - if
                             the peer shutdown the socket or is no longer
                             communicating for some other reason (program exit
                             or system failure).  The socket is shutdown
                             and placed in the <literal>CSocket::Disconnected</literal>
                             state.
-                        </listitem></para>
+                        </para></listitem>
                     </itemizedlist>
                 </listitem>
             </varlistentry>        
@@ -1024,7 +1023,7 @@ class <ooclass><classname>CSocket</classname></ooclass>
                     <para>
                         Exceptions can be thrown as follows:
                     </para>
-                    <itemlizedlist>
+                    <itemizedlist>
                         <listitem><para>
                             <classname>CTCPBadSocketState</classname> -
                             The socket is not in the
@@ -1043,7 +1042,7 @@ class <ooclass><classname>CSocket</classname></ooclass>
                             is placed in the
                             <literal>CSocket::Disconnected</literal> state.
                         </para></listitem>
-                    </itemlizedlist>
+                    </itemizedlist>
                 </listitem>
             </varlistentry>        
             <varlistentry>
@@ -1097,7 +1096,7 @@ class <ooclass><classname>CSocket</classname></ooclass>
                         If <parameter>State</parameter> is <literal>true</literal>,
                         out of band data is included inline with the socket data.
                         
-                        If <literalfalse out of band data is not inline.
+                        If <literal>false</literal> out of band data is not inline.
                     </para>
                 </listitem>
             </varlistentry>        
@@ -1529,7 +1528,7 @@ class <ooclass><classname>CSocket</classname></ooclass>
                     <para>
                         Sets <parameter>isLingering</parameter> to the
                         state of the socket's lingering flat and
-                        <paramter>nLingerSeconds</paramter> to the linger
+                        <parameter>nLingerSeconds</parameter> to the linger
                         timeout.
                     </para>
                 </listitem>
@@ -1577,7 +1576,7 @@ class <ooclass><classname>CSocket</classname></ooclass>
     </refsect1>
     <refsect1>
         <title>DATA TYPES</title>
-    </refsect1>
+    
         <para>
             The <type>CSocket::State</type> data type is exported as public.
             This type is an enum that represents a socket state.
@@ -1593,10 +1592,11 @@ enum State {
 };
             </programlisting>
         </informalexample>
+    </refsect1>
     <refsect1>
         <title>SEE ALSO</title>
         <para>
-            <link linkend='daq3.ctcpbadsocketstate' endterm='daq3.ctcpbadsockeetstate.title' />,
+            <link linkend='daq3.ctcpbadsocketstate' endterm='daq3.ctcpbadsocketstate.title' />,
             <link linkend='daq3.ctcpconnectionfailed' endterm='daq3.ctcpconnectionfailed.title' />,
             <link linkend='daq3.ctcpconnectionlost' endterm='daq3.ctcpconnectionlost.title' />,
             <link linkend='daq3.ctcpnosuchhost' endterm='daq3.ctcpnosuchhost.title' />,
@@ -1811,7 +1811,7 @@ enum State {
 {
     <constructorsynopsis>
        <methodname>CTCPConnectionFailed</methodname>
-       <exceptionname></exceptionname><methodparam>
+       <methodparam>
         <modifier>const</modifier><type>std::string&amp;</type>
             <parameter> host</parameter>
        </methodparam>
@@ -1864,7 +1864,7 @@ enum State {
             <term>
                 <constructorsynopsis>
                    <methodname>CTCPConnectionFailed</methodname>
-                   <exceptionname></exceptionname><methodparam>
+                   <methodparam>
                     <modifier>const</modifier><type>std::string&amp;</type>
                         <parameter> host</parameter>
                    </methodparam>
@@ -2010,7 +2010,7 @@ enum State {
         <modifier></modifier>
         <type>std::string </type>
         <methodname>getPort</methodname>
-        <void /></void>
+        <void />
         <modifier>const</modifier>
     </methodsynopsis>
     <methodsynopsis>
@@ -2028,7 +2028,7 @@ enum State {
      <para>
         This class is an exception that is thrown when a <classname>CSociet</classname>
         object determines that it is no longer connected to its peer.  This is
-        normally detected during a data transfer operation (<methodmame>CSocket::Read</methodmame>
+        normally detected during a data transfer operation (<methodname>CSocket::Read</methodname>
         or <methodname>CSocket::Write</methodname>).
      </para>
   </refsect1>
@@ -2092,7 +2092,7 @@ enum State {
                     <modifier></modifier>
                     <type>std::string </type>
                     <methodname>getPort</methodname>
-                    <void /></void>
+                    <void />
                     <modifier>const</modifier>
                 </methodsynopsis>
             </term>
@@ -2104,7 +2104,8 @@ enum State {
                 </para>
             </listitem>
         </varlistentry>
-                
+        <varlistentry>
+            <term>
                 <methodsynopsis>
                     <modifier>virtual const</modifier>
                     <type> char* </type>
@@ -2112,6 +2113,15 @@ enum State {
                     <void />
                     <modifier>const</modifier>
                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Provides a human readable text that describes the reason
+                    the exception was created/thrown.
+                </para>
+            </listitem>
+        </varlistentry>        
+        
         
      </variablelist>
   </refsect1>
@@ -2122,6 +2132,347 @@ enum State {
       </para>
    </refsect1>
 </refentry>     
+<refentry id="daq3.ctcpnosuchhost">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3.ctcpnosuchhost.title'>CTCPNoSuchHost</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CTCPNoSuchHost</refname>
+     <refpurpose>CTCPNoSuchHost</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CTCPNoSuchHost.h&gt;
+       class <ooclass><classname>CTCPNoSuchHost</classname></ooclass>
+{
+    
+    <constructorsynopsis>
+       <methodname>CTCPNoSuchHost</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter>hostname</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter>Doing</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int </type>
+        <methodname>gethErrno</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int </type>
+        <methodname>gethErrno</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getHost</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual const </modifier>
+        <type>char *  </type>
+        <methodname>ReasonText </methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>int</type>
+        <methodname>ReasonCode</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        An exception class that is thrown when a
+        <methodname>CSocket::Connect</methodname> is
+        done to a host that demonstrably does not exist.  This may be because the
+        host provided to <methodname>CSocket::Connect</methodname> is incorrect or
+        because the host is not currently alive.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CTCPNoSuchHost</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>std::string&amp;</type>
+                        <parameter>hostname</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>std::string&amp;</type>
+                        <parameter>Doing</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs the exception. <parameter>hostname</parameter>
+                    is the DNS name or dotted IP address of the host that
+                    does not exist.  <parameter>Doing</parameter> is a string
+                    that describes what the library was doing when this
+                    object was constructed/thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int </type>
+                    <methodname>gethErrno</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    TCP/IP networking reports some errors via the
+                    <varname>h_errno</varname> global variable.  The value of
+                    this variable is captured and stored by the exception's
+                    constructor.  This method returns the value of
+                    <varname>h_errno</varname> as it was at construction time.
+                </para>
+                <para>
+                    <ulink url="http://linux.die.net/man/3/h_errno">
+                        http://linux.die.net/man/3/h_errno
+                    </ulink>
+                    contains a description of the values of
+                    <varname>h_errno</varname>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getHost</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the host string passed in to the contructor.  Typically
+                    this will designate the host to which a connection could
+                    not be formed.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual const </modifier>
+                    <type>char *  </type>
+                    <methodname>ReasonText </methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a human readable error message that desribes
+                    the failure.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>int</type>
+                    <methodname>ReasonCode</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Overrides the base class's method and
+                    returns the saved <varname>h_errno</varname>
+                </para>
+            </listitem>
+        </varlistentry>        
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+        <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+      </para>
+   </refsect1>
+</refentry>     
+<refentry id="daq3.ctcpnosuchservice">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3.ctcpnosuchservice.title'>CTCPNoSuchService</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CTCPNoSuchService</refname>
+     <refpurpose>Exception thrown if a nonexistent service is referenced</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CTCPNoSuchService.h&gt;
+       class <ooclass><classname>CTCPNoSuchService</classname></ooclass>
+{
+    <constructorsynopsis>
+       <methodname>CTCPNoSuchService</methodname>
+       <methodparam>
+        <modifier></modifier><type>const std::string&amp; </type>
+            <parameter>service</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter> Doing</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getService() </methodname>
+        
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual const </modifier>
+        <type>char* </type>
+        <methodname>ReasonText</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This exception class is thrown when the socket library detects an
+        attempt to connect to a nonexistent service.  This normally indicates
+        a failure to lookup a named service in the local hosts service
+        database (e.g. <filename>/etc/services</filename>).
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CTCPNoSuchService</methodname>
+                   <methodparam>
+                    <modifier></modifier><type>const std::string&amp; </type>
+                        <parameter>service</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>std::string&amp;</type>
+                        <parameter> Doing</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs the exception class.  <parameter>service</parameter>
+                    is the service string. and <parameter>Doing</parameter>
+                    is a string that describes what the library was doing when
+                    it threw the exception.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getService() </methodname>
+                    
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the service string used to construct the object.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual const </modifier>
+                    <type>char* </type>
+                    <methodname>ReasonText</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a human readable string that describes why the
+                    exception was created/thrown.
+                </para>
+            </listitem>
+        </varlistentry>        
+                
+
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+        <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+      </para>
+   </refsect1>
+</refentry>     
+
 
 
 <!-- /manpage -->
