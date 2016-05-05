@@ -48,25 +48,26 @@ libRingBuffer_la_CXXFLAGS	=	$(THREADCXX_FLAGS) \
 
 bin_PROGRAMS 	= ringtostdout stdintoring
 
-ringtostdout_SOURCES = ringtostdout.cpp  @srcdir@/ringtostdoutsw.c
+ringtostdout_SOURCES = ringtostdout.cpp  
+nodist_ringtostdout_SOURCES = ringtostdoutsw.c ringtostdoutsw.h
 
 ringtostdout_CPPFLAGS=$(COMPILATION_FLAGS)
 
-ringtostdout_DEPENDENCIES =  libDataFlow.la @srcdir@/ringtostdoutsw.h
+ringtostdout_DEPENDENCIES =  libDataFlow.la 
 
-BUILT_SOURCES=@srcdir@/ringtostdoutsw.c @srcdir@/stdintoringsw.c
+BUILT_SOURCES=ringtostdoutsw.c ringtostdoutsw.h  stdintoringsw.c stdintoringsw.h
 
-@srcdir@/ringtostdoutsw.c: ringtostdoutsw.h
+ringtostdoutsw.c: ringtostdoutsw.h
 
 ringtostdoutsw.h: ringtostdoutsw.ggo
 	@GENGETOPT@ <@srcdir@/ringtostdoutsw.ggo \
-		--output-dir=@srcdir@ --file ringtostdoutsw --unamed-opts
+		--output-dir=@builddir@ --file ringtostdoutsw --unamed-opts
 
-@srcdir@/stdintoringsw.c: stdintoringsw.h
+stdintoringsw.c: stdintoringsw.h
 
 stdintoringsw.h: stdintoringsw.ggo
 	@GENGETOPT@ <@srcdir@/stdintoringsw.ggo \
-		--output-dir=@srcdir@ --file=stdintoringsw --unamed-opts
+		--output-dir=@builtdir@ --file=stdintoringsw --unamed-opts
 
 ringtostdout_LDADD	=  libDataFlow.la \
 			@LIBEXCEPTION_LDFLAGS@	\
@@ -75,9 +76,10 @@ ringtostdout_LDADD	=  libDataFlow.la \
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
 
-stdintoring_SOURCES = stdintoring.cpp @srcdir@/stdintoringsw.c
+stdintoring_SOURCES = stdintoring.cpp 
+nodist_stdintoring_SOURCES=stdintoringsw.c stdinringtosw.h
 
-stdintoring_DEPENDENCIES = libDataFlow.la @srcdir@/stdintoringsw.h
+stdintoring_DEPENDENCIES = libDataFlow.la 
 
 
 
@@ -88,7 +90,7 @@ stdintoring_LDADD	=  libDataFlow.la	\
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
-CLEANFILES=stdintoringsw.c stdintoringsw.h ringtostdoutsw.c ringtostdoutsw.h
+#   CLEANFILES=stdintoringsw.c stdintoringsw.h ringtostdoutsw.c ringtostdoutsw.h
 
 #---------------- Tests
 

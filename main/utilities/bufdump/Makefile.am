@@ -3,12 +3,14 @@ bin_PROGRAMS	=	dumper
 
 dumper_SOURCES	=	BufdumpMain.cpp		\
 			@srcdir@/../StringsToIntegers.cpp	\
-			dumper.cpp @srcdir@/dumperargs.c
+			dumper.cpp 
+
+nodist_dumper_SOURCES= dumperargs.c dumperargs.h
 
 noinst_HEADERS	=	BufdumpMain.h		\
 			@srcdir@/../StringsToIntegers.h
 
-BUILT_SOURCES	=	@srcdir@/dumperargs.c
+BUILT_SOURCES	=	dumperargs.c dumperargs.h
 
 
 dumper_CPPFLAGS =	-I@srcdir@/.. 				\
@@ -32,16 +34,16 @@ dumper_LDADD		=		\
 				$(THREADLD_FLAGS)
 
 clean-local:
-	rm -f @srcdir@/dumperargs.h  dumperargs.o $(BUILT_SOURCES)
+	rm -f dumperargs.o $(BUILT_SOURCES)
 
 dumper_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
-@srcdir@/dumperargs.c: @srcdir@/dumperargs.h
+dumperargs.c: dumperargs.h
 
 
-@srcdir@/dumperargs.h: @srcdir@/dumperargs.ggo 
+dumperargs.h: dumperargs.ggo 
 	$(GENGETOPT) < @srcdir@/dumperargs.ggo \
-		--output-dir=@srcdir@ --file=dumperargs --unamed-opts="OPTIONS" \
+		--output-dir=@builddir@ --file=dumperargs --unamed-opts="OPTIONS" \
 		--set-version=@VERSION@
 
 

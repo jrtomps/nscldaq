@@ -5,8 +5,8 @@ noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h CLogRun.h \
 
 
 
-compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp \
-	@srcdir@/parser.c
+compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp 
+nodist_compatibilitybuffer_SOURCES = parser.c parser.h
 
 EXTRA_DIST=compatibilitybuffer.ggo loggeroptions.ggo eventlog-compat.in \
 	spectcldaq.in spectcldaq.server.tcl compatibility.xml s800toring.in \
@@ -18,14 +18,16 @@ compatibilitybuffer_LDADD = \
 compatibilitybuffer_CPPFLAGS = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
 	-I@top_srcdir@/base/os
 
-compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp \
-	@srcdir@/loggeroptions.c
+compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp 
+nodist_compatibilitylogger_SOURCES = loggeroptions.c loggeroptions.h
 compatibilitylogger_CPPFLAGS=-I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
 	-I@top_srcdir@/base/os
 
 
 
-BufferToRing_SOURCES = BufferToRing.cpp btoroptions.c
+BufferToRing_SOURCES = BufferToRing.cpp 
+nodist_BufferToRing_SOURCES = btoroptions.c btoroptions.h
+
 BufferToRing_LDADD   = @top_builddir@/daq/format/libdataformat.la \
 	@top_builddir@/base/os/libdaqshm.la
 BufferToRing_LDFLAGS = -ldl
@@ -62,28 +64,28 @@ install-exec-local:
 #  we need prior to application compilations.
 
 
-BUILT_SOURCES = @srcdir@/parser.c @srcdir@/loggeroptions.c \
-	@srcdir@/btoroptions.c @srcdir@/btoroptions.h @srcdir@/test.c @srcdir@/test.h
+BUILT_SOURCES = parser.c parser.h  loggeroptions.c loggeroptions.h \
+	btoroptions.c btoroptions.h  test.c test.h
 
-@srcdir@/parser.c: @srcdir@/parser.h
+parser.c: parser.h
 
-@srcdir@/parser.h: @srcdir@/compatibilitybuffer.ggo
+parser.h: compatibilitybuffer.ggo
 	$(GENGETOPT) <@srcdir@/compatibilitybuffer.ggo --file=parser \
-		--output-dir=@srcdir@
+		--output-dir=@builddir@
 
 
-@srcdir@/loggeroptions.c: @srcdir@/loggeroptions.h
+loggeroptions.c: loggeroptions.h
 
-@srcdir@/loggeroptions.h: @srcdir@/loggeroptions.ggo
+loggeroptions.h: loggeroptions.ggo
 	$(GENGETOPT) <@srcdir@/loggeroptions.ggo --file=loggeroptions \
-		--output-dir=@srcdir@
+		--output-dir=@builddir@
 
 
-@srcdir@/btoroptions.c: @srcdir@/btoroptions.h
+btoroptions.c: btoroptions.h
 
-@srcdir@/btoroptions.h: @srcdir@/buffertoring.ggo
+btoroptions.h: buffertoring.ggo
 	$(GENGETOPT) <@srcdir@/buffertoring.ggo --file=btoroptions \
-		--output-dir=@srcdir@
+		--output-dir=@builddir@
 
 
 #------------------------------------------------------------------------
@@ -92,7 +94,8 @@ BUILT_SOURCES = @srcdir@/parser.c @srcdir@/loggeroptions.c \
 
 noinst_PROGRAMS = testDataSource
 
-testDataSource_SOURCES = testDataSource.cpp @srcdir@/test.c
+testDataSource_SOURCES = testDataSource.cpp 
+nodist_testDataSource_SOURCES = test.c test.h
 
 testDataSource_CPPFLAGS = -I@top_srcdir@/base/os
 
@@ -101,6 +104,6 @@ testDataSource_LDADD    = @top_builddir@/base/os/libdaqshm.la
 
 test.c: test.h
 
-test.h: @srcdir@/test.ggo
+test.h: test.ggo
 	$(GENGETOPT) <@srcdir@/test.ggo --file=test \
-		--output-dir=@srcdir@
+		--output-dir=@builddir@

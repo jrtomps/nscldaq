@@ -51,7 +51,7 @@ include_HEADERS = CEventOrderClient.h fragment.h CEVBClientApp.h EVBFramework.h 
 	CEVBFrameworkApp.h  GetOpt.h fragio.h
 
 
-noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
+noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h  \
 	CInputStatsCommand.h COrdererOutput.h COutputStatsObserver.h COutputStatsCommand.h \
 	CDataLateStatistics.h CDLateStatsCommand.h CLateScriptObserver.h COnLateDataCommand.h \
 	CBarrierStatsCommand.h CBarrierStats.h CIncompleteBarrierStats.h CCompleteBarrierCallback.h \
@@ -59,6 +59,7 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
 	CReviveSocketCommand.h CFragReader.h CFragWriter.h CFlushCommand.h CResetCommand.h \
 	CConfigure.h fragio.h CDuplicateTimeStatCommand.h CXonXOffCallbackCommand.h \
 	COutOfOrderTraceCommand.h
+
 
 
 
@@ -120,7 +121,8 @@ install-exec-hook:
 noinst_PROGRAMS = unittests ordertests
 
 unittests_SOURCES = TestRunner.cpp lookupTest.cpp  \
-	connectTest.cpp  cmdline.c
+	connectTest.cpp  
+nodist_unittest_SOURCES = cmdline.c cmdline.h
 
 
 unittests_LDADD = libEventBuilderClient.la \
@@ -151,12 +153,11 @@ check-TESTS:
 
 BUILT_SOURCES=cmdline.h cmdline.c
 
-cmdline.h: options.ggo
-	$(GENGETOPT) --input=@top_srcdir@/daq/eventbuilder/options.ggo \
-		--output-dir=@top_srcdir@/daq/eventbuilder
+cmdline.c: cmdline.h
 
-cmdline.c: options.ggo
-	$(GENGETOPT) --input=@top_srcdir@/daq/eventbuilder/options.ggo \
-		--output-dir=@top_srcdir@/daq/eventbuilder
+cmdline.h: options.ggo
+	$(GENGETOPT) --input=@srcdir@/options.ggo \
+		--output-dir=@builddir@
+
 
 

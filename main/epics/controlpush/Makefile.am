@@ -22,15 +22,16 @@ bin_PROGRAMS        = controlpush
 
 BUILT_SOURCES = cmdline.h cmdline.c
 
-APPITEMS= cmdline.c CApplication.cpp CChannelList.cpp \
+APPITEMS=  CApplication.cpp CChannelList.cpp \
 			CStrings.cpp \
 			CLookupVisitor.cpp  CUnitChannel.cpp \
 			CBuildChannelData.cpp \
 			CChannel.cpp
 controlpush_SOURCES = Main.cpp $(APPITEMS)
+nodist_controlpush_SOURCES=cmdline.c cmdline.h
 
 
-noinst_HEADERS= cmdline.h CApplication.h CChannelList.h \
+noinst_HEADERS=  CApplication.h CChannelList.h \
 			CChannelVisitor.h CStrings.h \
 			CLookupVisitor.h CChannel.h CUnitChannel.h \
 			CBuildChannelData.h
@@ -53,8 +54,8 @@ controlpush_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
 
 cmdline.c: options.ggo
-	$(GENGETOPT) --unamed-opts <@top_srcdir@/epics/controlpush/options.ggo \
-		--output-dir=@top_srcdir@/epics/controlpush
+	$(GENGETOPT) --unamed-opts <@srcdir@/options.ggo \
+		--output-dir=@builddir@
 
 cmdline.h: cmdline.c
 

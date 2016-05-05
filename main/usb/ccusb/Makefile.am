@@ -12,7 +12,8 @@ SUBDIRS = 	ccusb 		\
 
 bin_PROGRAMS = CCUSBReadout
 
-CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp @srcdir@/cmdline.c
+CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp
+nodist_CCUSBReadout_SOURCES=  cmdline.c cmdline.h
 
 noinst_HEADERS = CTheApplication.h Globals.h
 
@@ -43,16 +44,16 @@ CCUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 CCUSBReadout_CXXFLAGS= -g
 
-BUILT_SOURCES = @srcdir@/cmdline.c
+BUILT_SOURCES = cmdline.c cmdline.h
 
-@srcdir@/cmdline.c: @srcdir@/cmdline.h
+cmdline.c: cmdline.h
 
-@srcdir@/cmdline.h: @srcdir@/commandline.ggo
-	@GENGETOPT@ < @srcdir@/commandline.ggo --output-dir=@srcdir@ --set-version=@VERSION@
+cmdline.h: commandline.ggo
+	@GENGETOPT@ < @srcdir@/commandline.ggo --output-dir=@builddir@ --set-version=@VERSION@
 
 EXTRA_DIST= commandline.ggo ccusbReadout_user.xml ccusbReadout_man.xml
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
-	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/*.h @builddir@/*.h @prefix@/ccusbdriver/include
