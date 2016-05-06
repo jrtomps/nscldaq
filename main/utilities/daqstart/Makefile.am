@@ -1,7 +1,11 @@
 TESTABLEUNITS=CSink.cpp CFileSink.cpp CFileSinkCreator.cpp CSinkFactory.cpp \
 	CMonitoredProgram.cpp CLocalMonitoredProgram.cpp
 bin_PROGRAMS 	= daqstart
-daqstart_SOURCES= cmdline.c daqstart.cpp CDAQStart.cpp $(TESTABLEUNITS)
+
+BUILT_SOURCES=cmdline.c cmdline.h
+
+daqstart_SOURCES=  daqstart.cpp CDAQStart.cpp $(TESTABLEUNITS)
+nodist_daqstart_SOURCES=cmdline.c cmdline.h
 
 noinst_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 		CMonitoredProgram.h  CSinkCreator.h \
@@ -21,10 +25,10 @@ daqstart_LDADD = @LIBEXCEPTION_LDFLAGS@ \
 daqstart_CXXFLAGS=$(THREADCXX_FLAGS) -D_GNU_SOURCE $(AM_CXXFLAGS)
 
 
-cmdline.h: daqstart.ggo
+cmdline.c: cmdline.h
 	$(GENGETOPT) --unamed-opts <@top_srcdir@/utilities/daqstart/daqstart.ggo
 
-cmdline.c: daqstart.ggo
+cmdline.h: daqstart.ggo
 	$(GENGETOPT) --unamed-opts <@top_srcdir@/utilities/daqstart/daqstart.ggo
 
 EXTRA_DIST=daqstart.ggo popup.tcl daqstart.xml Makefile.am

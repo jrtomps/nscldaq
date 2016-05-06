@@ -1,8 +1,9 @@
 bin_PROGRAMS = sumscaler
 
-sumscaler_SOURCES=   main.cpp App.cpp App.h options.c CRun.h CRun.cpp \
+sumscaler_SOURCES=   main.cpp App.cpp App.h  CRun.h CRun.cpp \
 	CChannel.h CIncrementalChannel.h CIncrementalChannel.cpp \
 	CCumulativeChannel.h CCumulativeChannel.cpp
+nodist_sumscaler_SOURCES=options.c options.h
 
 sumscaler_CPPFLAGS=-I@top_srcdir@/utilities/IO 			\
 		    -I@top_srcdir@/daq/format			\
@@ -11,7 +12,7 @@ sumscaler_LDFLAGS = @top_builddir@/utilities/IO/libdaqio.la 	\
     @top_builddir@/daq/format/libdataformat.la			\
     @LIBEXCEPTION_LDFLAGS@
 
-BUILT_SOURCES	= options.c
+BUILT_SOURCES	= options.c options.h
 
 options.c: options.h
 
@@ -23,7 +24,7 @@ install-exec-hook:
 	$(INSTALL_SCRIPT) @srcdir@/makeNameFile.tcl @bindir@/makeNameFile
 
 clean-local:
-	-rm -rf options.h options.h
+	-rm -rf options.h options.c
 
 noinst_PROGRAMS=unittests
 

@@ -90,12 +90,15 @@ unittests_LDFLAGS	= @CPPUNIT_LDFLAGS@ \
 TESTS=./unittests
 
 
-BUILT_SOURCES = format_converter_options.c
+BUILT_SOURCES = format_converter_options.c format_converter_options.h
 
-format_converter_options.c : format_converter_options.ggo
-	gengetopt -i $< -F @srcdir@/format_converter_options -a cmdLineOpts
+format_converter_options.c : format_converter_options.h
+format_converter_options.h: format_converter_options.ggo
+	gengetopt -i $< -F @srcdir@/format_converter_options -a cmdLineOpts \
+		--output-dir=@builddir@
 
-format_converter_SOURCES = Main.h Main.cpp format_converter_options.c
+format_converter_SOURCES = Main.h Main.cpp 
+nodist_format_converter_SOURCES = format_converter_options.c format_converter_options.h
 
 format_converter_LDADD = @builddir@/libConversion.la \
                 @top_builddir@/utilities/Buffer/libbuffer.la \
