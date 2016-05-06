@@ -67,7 +67,7 @@ stdintoringsw.c: stdintoringsw.h
 
 stdintoringsw.h: stdintoringsw.ggo
 	@GENGETOPT@ <@srcdir@/stdintoringsw.ggo \
-		--output-dir=@builtdir@ --file=stdintoringsw --unamed-opts
+		--output-dir=@builddir@ --file=stdintoringsw --unamed-opts
 
 ringtostdout_LDADD	=  libDataFlow.la \
 			@LIBEXCEPTION_LDFLAGS@	\
