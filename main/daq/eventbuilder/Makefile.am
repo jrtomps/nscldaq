@@ -122,7 +122,7 @@ noinst_PROGRAMS = unittests ordertests
 
 unittests_SOURCES = TestRunner.cpp lookupTest.cpp  \
 	connectTest.cpp  
-nodist_unittest_SOURCES = cmdline.c cmdline.h
+nodist_unittests_SOURCES = cmdline.c cmdline.h
 
 
 unittests_LDADD = libEventBuilderClient.la \
@@ -140,6 +140,7 @@ ordertests_SOURCES = TestRunner.cpp orderTests.cpp duptscmdtest.cpp \
 	configcmdtests.cpp tclflowtest.cpp \
 	CFragmentHandler.cpp fragment.c CDuplicateTimeStatCommand.cpp \
 	CConfigure.cpp CXonXOffCallbackCommand.cpp
+
 
 ordertests_LDADD = 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
