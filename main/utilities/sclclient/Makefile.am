@@ -5,7 +5,8 @@ noinst_PROGRAMS         =       testData
 sclclient_SOURCES	=	TclServerConnection.cpp		\
 				TcpClient.cpp			\
 				sclclientMain.cpp		\
-				sclclient.cpp 			\
+				sclclient.cpp 
+
 nodist_sclclient_SOURCES= sclclientargs.c sclclientargs.h
 
 noinst_HEADERS		=	TclServerConnection.h		\
