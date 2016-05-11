@@ -245,7 +245,15 @@ CExperiment::Start(bool resume)
     // if this is a start run:
     
     if (!resume) {
-    CRingPhysicsEventCountItem count;
+    CRingPhysicsEventCountItem count(NULL_TIMESTAMP, 
+        getSourceId(), 
+        BARRIER_NOTBARRIER,
+        0, // count
+        0, // time offset
+        static_cast<uint32_t>(time(NULL)), // time now
+        1);
+
+
     count.commitToRing(*m_pRing);
     }
     
@@ -556,9 +564,12 @@ CExperiment::readScalers()
   }
   // Regardless, let's emit a physics event count stamp:
 
-  CRingPhysicsEventCountItem item(m_nEventsEmitted,
-				  endTime,
-				  now);
+  CRingPhysicsEventCountItem item(NULL_TIMESTAMP, 
+                                  getSourceId(), 
+                                  BARRIER_NOTBARRIER,
+                                  m_nEventsEmitted,
+                        				  endTime,
+                        				  now);
   item.commitToRing(*m_pRing);
 }
 
