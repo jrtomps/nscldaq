@@ -1,5 +1,5 @@
-#ifndef __CVARIABLEBUFFERS_H
-#define __CVARIABLEBUFFERS_H
+#ifndef CVARIABLEBUFFERS_H
+#define CVARIABLEBUFFERS_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
@@ -92,6 +92,8 @@ private:
 
   static CVariableBuffers* m_pInstance;
 
+  static uint32_t            m_nSourceId;
+
   // constructors and other canonicals as well as the instance fetcher:
 
 public:
@@ -115,6 +117,9 @@ public:
   void triggerStateVariableBuffer(CRingBuffer* pRing,
 				  uint64_t timeoffset);
 
+  // manipulate and retrieve the source id value
+  void setSourceId(uint32_t sourceId);
+  uint32_t getSourceId() const;
 
 
  private:

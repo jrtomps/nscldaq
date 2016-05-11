@@ -95,6 +95,9 @@ CExperiment::CExperiment(string ringName,
   m_pRing = CRingBuffer::createAndProduce(ringName);
   m_pRunState = RunState::getInstance();
 
+  // ensure that the variable buffers know what source id to use.
+  CVariableBuffers::getInstance()->setSourceId(m_nDefaultSourceId);
+
 }
 
 /*!
@@ -125,6 +128,7 @@ CExperiment::setDefaultSourceId(unsigned sourceId)
 {
     m_nDefaultSourceId = sourceId;
     m_nSourceId        = sourceId;
+    CVariableBuffers::getInstance()->setSourceId(sourceId);
 }
 /*!
   Sets a new size for the event buffer.  This must be at least big enough to hold a
@@ -753,6 +757,9 @@ CExperiment::setSourceId(uint32_t id)
 {
     m_nSourceId  = id;
     m_needHeader = true;
+
+    // pass the new source id on to the variable buffers
+    CVariableBuffers::getInstance()->setSourceId(id);
 }
 /**
  * getSourceId
