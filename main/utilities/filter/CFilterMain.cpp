@@ -34,6 +34,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include "CFatalException.h"
 #include <stdexcept>
 
+
 /**! Constructor
   Constructs a mediator object with a CCompositeFilter
   as the default filter. We also set up the proper 
@@ -94,6 +95,8 @@ CFilterMain::CFilterMain(int argc, char** argv)
   }
   catch (...) {
     std::cerr << "Unanticipated exception caught. \n";
+    std::cout << exc.ReasonText() << std::endl;
+    std::cout << exc.WasDoing() << std::endl;
     throw CFatalException();
   }
 }

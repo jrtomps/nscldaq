@@ -21,6 +21,7 @@
 #include <CRunState.h>
 #include <CControlQueues.h>
 #include <tclUtil.h>
+
 #include "CPreResumeCommand.h"
 #include <stdexcept>
 
@@ -36,9 +37,11 @@ static const string usage(
 //////////////////////////////////////////////////////////////////
 
 
+
 CResumeRun::CResumeRun(CTCLInterpreter& interp, CPreResumeCommand* pre) :
   CTCLObjectProcessor(interp, "resume"),
   m_pre(pre)
+
 {}
 
 CResumeRun::~CResumeRun()
@@ -69,6 +72,7 @@ CResumeRun::operator()(CTCLInterpreter& interp,
 		   usage);
     return TCL_ERROR;
   }
+
   try {
     CRunState* pState = CRunState::getInstance();
     CRunState::RunState state = pState->getState();

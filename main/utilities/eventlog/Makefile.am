@@ -1,12 +1,15 @@
 bin_PROGRAMS		=	eventlog
 
+BUILT_SOURCES		= 	eventlogargs.c eventlogargs.h
+
 eventlog_SOURCES	=	eventlog.cpp eventlogMain.cpp
+nodist_eventlog_SOURCES =       eventlogargs.c eventlogargs.h
+
 
 noinst_HEADERS		=	eventlogMain.h
 
 eventlog_DEPENDENCIES	=	eventlogargs.o
 
-BUILT_SOURCES		= 	eventlogargs.h
 
 eventlog_CPPFLAGS       =	-I@top_srcdir@/base/headers		\
 				@LIBTCLPLUS_CFLAGS@			\
@@ -15,8 +18,7 @@ eventlog_CPPFLAGS       =	-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/os		\
 				@OPENSSL_INCLUDES@
 
-eventlog_LDADD		=	eventlogargs.o	\
-				@top_builddir@/daq/format/libdataformat.la	\
+eventlog_LDADD		=	@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@LIBEXCEPTION_LDFLAGS@			\
 				@top_builddir@/base/os/libdaqshm.la		\
@@ -26,16 +28,12 @@ eventlog_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 # Gengetopt stuff.
 
+eventlogargs.c: eventlogargs.h
+
+
 eventlogargs.h: eventlogargs.ggo
-	$(GENGETOPT) <@top_srcdir@/utilities/eventlog/eventlogargs.ggo --file=eventlogargs \
-								--set-version=@VERSION@
-	$(CC) -c -I. eventlogargs.c
-
-
-eventlogargs.o: eventlogargs.ggo
-	$(GENGETOPT) <@top_srcdir@/utilities/eventlog/eventlogargs.ggo --file=eventlogargs \
-								--set-version=@VERSION@
-	$(CC) -c -I. eventlogargs.c
+	$(GENGETOPT) <@srcdir@/eventlogargs.ggo --file=eventlogargs \
+			--set-version=@VERSION@
 
 # Extra files to distribute.
 

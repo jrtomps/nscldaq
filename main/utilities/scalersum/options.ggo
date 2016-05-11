@@ -1,0 +1,7 @@
+package "sumscaler"
+version "1.0"
+purpose "Create offline scaler sums"
+
+option "omit-labels" o "Omit labels from output file" optional
+option "name-file" n "Provide scaler label file" string optional
+option "flip"      f "Flip output orientation - scalers are columns" optional

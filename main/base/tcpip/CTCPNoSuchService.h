@@ -331,7 +331,10 @@ public:
 public:
   std::string getService() const	//!< Return service name.
   { return m_Service; }
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
   // Mutators:
 
 protected:

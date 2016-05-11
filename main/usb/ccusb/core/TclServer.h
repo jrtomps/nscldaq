@@ -91,6 +91,8 @@ protected:
   void operator()();
 
 private:
+
+  void stackTrace();
   void initInterpreter();
   void startTcpServer();
   void EventLoop();

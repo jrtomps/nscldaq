@@ -26,5 +26,6 @@ fi
 rm -rf libtcl 
 
 git clone $uri libtcl
+
 (cd libtcl; git checkout tags/$1)
 (cd libtcl; autoreconf -i)

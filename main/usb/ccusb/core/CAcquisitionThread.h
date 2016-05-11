@@ -35,6 +35,7 @@ class CCCUSBReadoutList;
 struct DataBuffer;
 class CCCUSBHighLevelController;
 
+
 /*!
    This is the thread that does the data acquisition.
    As coded this is a singleton class as well, however as a thread of execution,
@@ -46,6 +47,7 @@ class CAcquisitionThread : public CSynchronizedThread
 private:
   static bool                   m_Running;	//!< thread is running.
   static CCCUSB*                m_pCamac;		//!< VME interface.
+
   static CCCUSBHighLevelController*  m_pController;
 
   bool                          m_haveScalerStack;
@@ -63,6 +65,7 @@ public:
   // Thread functions:
 
 public:
+
   static void start(CCCUSB* usb, CCCUSBHighLevelController* pController);
   static bool isRunning();
   static void waitExit();	/* Wait for this thread to exit (join). */

@@ -51,6 +51,9 @@ static const char* TimingSourceValues[] = {"vme", "external",0};
 static const char* InputCouplingValues[] = {"AC","DC",0};
 static const char* NIMBusyModes[] = {"busy", "rcbus", "full", "overthreshold",0};
 static const char* SyncModeValues[] = {"never","begin_run","extern_oneshot",0};
+
+static const char* MultiEventModeValues[] = {"off","on","limited",0};
+
 // Legal values for the resolution...note in this case the default is explicitly defined as 8k
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,7 +124,13 @@ CMQDC32RdoHdwr::onAttach(CReadoutModule& configuration)
   m_pConfig->addIntegerParameter("-ipl", 0, 7, 0);
   m_pConfig->addIntegerParameter("-vector", 0, 0xff, 0);
   m_pConfig->addIntegerParameter("-irqthreshold", 0, 0xffff, 1);
-  m_pConfig->addBooleanParameter("-multievent", false);
+
+  m_pConfig->addEnumParameter("-multievent", MultiEventModeValues, 
+				MultiEventModeValues[0]);
+  m_pConfig->addIntegerParameter("-maxtransfers", 1, 0xffff, 1);
+  m_pConfig->addBooleanParameter("-countevents", false);
+  m_pConfig->addBooleanParameter("-skipberr", false);
+
 
   m_pConfig->addIntListParameter("-bankoffsets", 
                                   0, MQDC32::BankOffsets::Max,
@@ -198,8 +207,18 @@ CMQDC32RdoHdwr::Initialize(CVMUSB& controller)
   CVMUSB& ctlr = controller;
   m_logic.setBase(getBase());
 
+
+  // this is a workaround for a bug in the VMUSB,
+  // addWriteAcquisitionState is used because it does not add a 
+  // delay to the stack after the write.
   unique_ptr<CVMUSBReadoutList> pList(controller.createReadoutList());
   m_logic.addWriteAcquisitionState(*pList,0);
+  auto result = ctlr.executeList(*pList, 8);
+  if (result.size()==0) {
+    throw std::runtime_error("Failure while disabling MQDC32 acquisition mode.");
+  }
+
+  pList.reset(controller.createReadoutList());
 
   // First disable the interrupts so that we can't get any spurious ones during init.
   m_logic.addDisableInterrupts(*pList);
@@ -232,15 +251,17 @@ CMQDC32RdoHdwr::Initialize(CVMUSB& controller)
   // multiplicity thresholds
   configureMultiplicity(*pList);
 
+  configureTestPulser(*pList);
+
   // see page 29 of MQDC manual for starting the readout.
   // 1. Fifo reset
   // 2. Readout reset
   // 3. start acquisition
   m_logic.addInitializeFifo(*pList);
-  m_logic.addResetReadout(*pList);
-  configureTestPulser(*pList);
 
-  auto result = ctlr.executeList(*pList, 8);
+
+  result = ctlr.executeList(*pList, 8);
+
   if (result.size()==0) {
     throw std::runtime_error("Failure while executing list.");
   }
@@ -252,6 +273,7 @@ CMQDC32RdoHdwr::Initialize(CVMUSB& controller)
   // begin accepting gates.
   pList->clear();
   m_logic.addWriteAcquisitionState(*pList,true);
+  m_logic.addResetReadout(*pList);
   result = ctlr.executeList(*pList, 8);
   if (result.size()==0) {
     throw std::runtime_error("Failure while executing list.");
@@ -549,25 +571,38 @@ void CMQDC32RdoHdwr::configureIrq(CVMUSBReadoutList& list) {
 void CMQDC32RdoHdwr::configureMultiEventMode(CVMUSBReadoutList& list) {
   using namespace MQDC32::TransferMode;
 
-  uint16_t nUnits = m_pConfig->getUnsignedParameter("-irqthreshold");
-  if(m_pConfig->getBoolParameter("-multievent")) {
 
-    m_logic.addWriteIrqThreshold(list, nUnits);
-    m_logic.addWriteTransferCount(list, nUnits);
-    m_logic.addWriteMultiEventMode(list, Limited);
-  } else {
-    m_logic.addWriteIrqThreshold(list, 1);
-    m_logic.addWriteTransferCount(list, 1);
-    m_logic.addWriteMultiEventMode(list, Limited);
+  int modeIndex = m_pConfig->getEnumParameter("-multievent", MultiEventModeValues);
+  std::string mode = MultiEventModeValues[modeIndex];
 
-    // warn the user if their -maxtransfer value has been overwritten
-    if (nUnits!=1) {
-      std::cerr << "User's values for -irqthreshold and -maxtransfer options ";
-      std::cerr << "has been overridden ";
-      std::cerr << "to be 1 for proper single event readout.";
-      std::cerr << std::endl;
-    }
+  int multiEventValue = 0;
+
+  if (mode == "off") {
+    multiEventValue = Single;
+  } else if (mode == "on") {
+    multiEventValue = Unlimited;
+  } else if (mode == "limited") {
+    multiEventValue = Limited;
+  } else { 
+    string msg("CMQDC32RdoHdwr::configureMultiEventMode() invalid mode provided.");
+    throw std::runtime_error(msg);
   }
+  
+  if (m_pConfig->getBoolParameter("-skipberr")) {
+    multiEventValue |= EmitEOB;
+  }
+  if (m_pConfig->getBoolParameter("-countevents")) {
+    multiEventValue |= CountEvents;
+  }
+  m_logic.addWriteMultiEventMode(list, multiEventValue);
+
+  uint16_t nUnits = m_pConfig->getUnsignedParameter("-irqthreshold");
+  m_logic.addWriteIrqThreshold(list, nUnits);
+
+  uint16_t nTransfers = m_pConfig->getUnsignedParameter("-maxtransfers");
+  m_logic.addWriteTransferCount(list, nTransfers);
+  
+
 }
 
 /*! \brief Set up the multiplicity limits
@@ -625,12 +660,17 @@ void
 CMQDC32RdoHdwr::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t base = m_pConfig->getBoolParameter("-base");
-  if (m_pConfig->getBoolParameter("-multievent")) {
-    // 
-    uint32_t maxTransfers = m_pConfig->getUnsignedParameter("-irqthreshold");
+
+  int index = m_pConfig->getEnumParameter("-multievent", MultiEventModeValues);
+  string mode = MultiEventModeValues[index];
+  if (mode == "limited") {
+    uint32_t maxTransfers = m_pConfig->getUnsignedParameter("-maxtransfers");
     m_logic.addFifoRead(list,maxTransfers+40);
-  } else {
+  } else if (mode == "off") {
     m_logic.addFifoRead(list,40);
+  } else {
+    m_logic.addFifoRead(list, 1024);
+
   }
   m_logic.addResetReadout(list);
   list.addDelay(5);

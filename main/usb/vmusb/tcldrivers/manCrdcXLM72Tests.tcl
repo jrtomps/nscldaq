@@ -1,3 +1,5 @@
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+lappend auto_path [file join $::env(DAQLIB)]
 
 package require tcltest
 package require cvmusb
@@ -21,7 +23,9 @@ set ::ctlr  [acquireVMUSB]
 set fw [file join /home tompkins s800conv crdc5v.bit]
 set first 1
 proc setup {} {
-   ACrdcXLM72 ::dev $::ctlr 19 
+
+   ACrdcXLM72 ::dev $::ctlr 8
+
 
    if {$::first} {
      puts -nonewline "Configuring..."
@@ -45,15 +49,32 @@ proc cleanupTestsHook {} {
 }
 
 
+proc sequence {first last} {
+  set list [list]
+
+  while {$first <= $last} {
+    lappend list $first
+    incr first
+  }
+
+  return $list
+}
+
 tcltest::test samples-0 {Test that we can configure the samples
 } -setup {
   setup
 } -cleanup {
   tearDown
 } -body {
-  ::dev WriteSamples 4
-  ::dev ReadSamples
-} -result 4
+
+  set results [list]
+  for {set index 0} {$index < 512} {incr index} {
+    ::dev WriteSamples $index 
+    lappend results [::dev ReadSamples]
+  }
+  set results
+} -result [sequence 0 511]
+
 
 
 tcltest::test period-0 {Test that we can configure the period
@@ -62,9 +83,15 @@ tcltest::test period-0 {Test that we can configure the period
 } -cleanup {
   tearDown
 } -body {
-  ::dev WritePeriod 3
-  ::dev ReadPeriod
-} -result 3
+
+  set results [list]
+  for {set index 0} {$index < 4} {incr index} {
+    ::dev WritePeriod $index 
+    lappend results [::dev ReadPeriod]
+  }
+  set results
+} -result [sequence 0 3]
+
 
 
 tcltest::test delay-0 {Test that we can configure the delay
@@ -73,9 +100,16 @@ tcltest::test delay-0 {Test that we can configure the delay
 } -cleanup {
   tearDown
 } -body {
-  ::dev WriteDelay 4
-  ::dev ReadDelay
-} -result 4
+
+
+  set results [list]
+  for {set index 0} {$index < 16} {incr index} {
+    ::dev WriteDelay $index 
+    lappend results [::dev ReadDelay]
+  }
+  set results
+} -result [sequence 0 15]
+
 
 
 
@@ -85,10 +119,14 @@ tcltest::test width-0 {Test that we can configure the width
 } -cleanup {
   tearDown
 } -body {
-  ::dev WriteWidth 16
-  ::dev ReadWidth
-} -result 16
 
+  set results [list]
+  for {set index 0} {$index < 64} {incr index} {
+    ::dev WriteWidth $index 
+    lappend results [::dev ReadWidth]
+  }
+  set results
+} -result [sequence 0 63]
 
 
 tcltest::test shift-0 {Test that we can configure the shift 
@@ -97,9 +135,14 @@ tcltest::test shift-0 {Test that we can configure the shift
 } -cleanup {
   tearDown
 } -body {
-  ::dev WriteShift 4
-  ::dev ReadShift
-} -result 4
+
+  set results [list]
+  for {set index 0} {$index < 256} {incr index} {
+    ::dev WriteShift $index 
+    lappend results [::dev ReadShift]
+  }
+  set results
+} -result [sequence 0 255]
 
 
 tcltest::cleanupTests

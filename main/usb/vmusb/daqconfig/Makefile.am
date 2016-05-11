@@ -129,6 +129,7 @@ noinst_HEADERS		=	CADCCommand.h  		\
 
 libVMUSBDaqConfig_la_CXXFLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/core
 
+
 libVMUSBDaqConfig_la_CPPFLAGS = \
 				-I@top_srcdir@/usb/common/configurableobject \
 				-I@top_srcdir@/usb/vmusb			\
@@ -141,7 +142,9 @@ libVMUSBDaqConfig_la_CPPFLAGS = \
 				$(TCL_FLAGS) 
 
 
+
 #				@top_builddir@/usb/vmusb/core/libVMUSBCore.la 
+
 
 libVMUSBDaqConfig_la_LIBADD	= \
 				@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \

@@ -38,5 +38,9 @@ int main(int argc, char** argv)
     cerr << rFailure << endl;
     wasSucessful = false;
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
   return !wasSucessful;
 }

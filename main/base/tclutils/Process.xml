@@ -1,0 +1,105 @@
+<!-- manpage 3tcl -->
+<refentry id='tcl3.process' >
+    <refentryinfo>
+		<author>
+				<personname>
+						<firstname>Ron</firstname>
+						<surname>Fox</surname>
+				</personname>
+		</author>
+		<productname>NSCLDAQ</productname>
+		<productnumber></productnumber>
+	  </refentryinfo>
+	  <refmeta>
+		 <refentrytitle id='tcl3.process.title'>Process</refentrytitle>
+		 <manvolnum>3tcl</manvolnum>
+		 <refmiscinfo class='empty'></refmiscinfo>
+	  </refmeta>
+	  <refnamediv>
+		 <refname>Process</refname>
+		 <refpurpose>Simplified asynchronous pipeline handling</refpurpose>
+	  </refnamediv>
+        <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+package require Process            
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+Process <replaceable>name</replaceable> | %AUTO% -command <replaceable>cmd ?options...?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>name</replaceable>  configure <replaceable>optname value ?...?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>name</replaceable> cget <replaceable>?option?</replaceable>
+                </command>
+            </cmdsynopsis>
+			<cmdsynopsis>
+                <command>
+<replaceable>name</replaceable>  getPids
+                </command>
+            </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+            <title>DESCRIPTION</title>
+            <para>
+                This class makes the creation and monitoring of an
+                asynchronous command pipeline simple in the case when you want
+                the output and, potentially the stderr of the pipeline to go to
+                the scripts stdout.
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>OPTIONS</title>
+            <variablelist>
+                <varlistentry>
+                        <term>
+                            <option>-command</option>				
+                        </term>
+                        <listitem>
+                                <para>
+                                    Provides the pipeline command.
+                                    Note that this must be provided at
+                                    construction time and may not be modified
+                                    once supplied.
+                                </para>
+                                <para>
+                                    See the documentation of the tcl
+                                    <command>exec</command> command for some of
+                                    the special strings this command string may
+                                    have.
+                                </para>
+                        </listitem>
+                </varlistentry>
+                <varlistentry>
+                        <term>
+                			<option>-oneof</option>
+                        </term>
+                        <listitem>
+                                <para>
+                                    provides a script that is called when
+                                    an end file condition is detected on the
+                                    pipeline's stdout.  This often means the
+                                    pipeline has exited however, it is possible
+                                    that the pipeline simply closed stdout.
+                                </para>
+                        </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>METHODS </title>
+            <para>
+                The <methodname>getPIDS</methodname> method retrieves a list of
+                the process ids that make up the pipeline.
+            </para>
+        </refsect1>
+</refentry>
+<!-- /manpage -->
+

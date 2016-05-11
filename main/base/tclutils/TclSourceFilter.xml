@@ -1,0 +1,90 @@
+<!-- manpage 3tcl -->
+<refentry id='tcl3.tclsourcefilter' >
+    <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+    </refentryinfo>
+    <refmeta>
+       <refentrytitle id='tcl3.TclSourceFilter.title'>TclSourceFilter</refentrytitle>
+       <manvolnum>3tcl</manvolnum>
+       <refmiscinfo class='empty'></refmiscinfo>
+    </refmeta>
+    <refnamediv>
+       <refname>TclSourceFilter</refname>
+       <refpurpose>Extract blocs mathing a regexp from a script</refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+      <cmdsynopsis>
+          <command>
+TclSourceFilter <replaceable>name</replaceable> | %AUTO%
+          </command>
+      </cmdsynopsis>
+      <cmdsynopsis>
+          <command>
+<replaceable>name</replaceable> SetValidPatterns <replaceable>pattern-list</replaceable>
+          </command>
+      </cmdsynopsis>
+      <cmdsynopsis>
+          <command>
+<replaceable>name</replaceable> Filter <replaceable>tcl-script-fragment</replaceable>
+          </command>
+      </cmdsynopsis>
+    </refsynopsisdiv>
+    <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            Provides a mechanism to extract script blocks that match a list of
+            regular expressions.  
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <variablelist>
+            <varlistentry>
+                    <term>
+            			<methodname>SetValidPatterns</methodname> pattern-list
+                    </term>
+                    <listitem>
+                            <para>
+                                Sets the regular expressions that will be matched
+                                to <parameter>pattern-list</parameter>.
+                                <parameter>pattern-list</parameter> is a
+                                valid Tcl list whose members are regular
+                                expressions. 
+                            </para>
+                    </listitem>
+            </varlistentry>
+            <varlistentry>
+                    <term>
+                        <methodname>Filter</methodname> tcl-script-fragment
+                    </term>
+                    <listitem>
+                            <para>
+                                Returns a list of strings.  For each valid Tcl
+                                command block in the string
+                                <parameter>tcl-script-fragment</parameter>,
+                                if that block matches against at least one of
+                                the regular expressions established by
+                                <methodname>SetValidPatterns</methodname>,
+                                the content of that block (sans any outer
+                                braces) is added to the return value list.
+                            </para>
+                            <para>
+                                The result of this command is a list whose elements
+                                are the contents of the matching blocks.  An
+                                empty list is, of course, a possible return value.
+                            </para>
+                    </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+</refentry>
+
+<!-- /manpage -->
+

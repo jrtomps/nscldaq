@@ -162,6 +162,32 @@ tcltest::test rc-0 { Set rc mode should work
   set state
 } {1 0}
 
+
+tcltest::test setTriggerSource {Set the trigger source
+} {
+  set state [list]
+  ::dev SetTriggerSource 0 or 1
+  lappend state [::dev GetTriggerSource 0]
+  ::dev SetTriggerSource 1 pat_or_0 0
+  lappend state [::dev GetTriggerSource 1]
+  ::dev SetTriggerSource 2 gg 1
+  lappend state [::dev GetTriggerSource 2]
+
+  set state
+} {{or 1} {pat_or_0 0} {gg 1}}
+
+tcltest::test setTriggerOrPattern {Set the trigger or pattern
+} {
+  set state [list]
+  ::dev SetTriggerOrPattern 0 0xa0a0
+  lappend state [::dev GetTriggerOrPattern 0]
+  ::dev SetTriggerOrPattern 1 0x1234
+  lappend state [::dev GetTriggerOrPattern 1]
+
+  set state
+} {41120 4660}
+
+
 tcltest::cleanupTests
 
 

@@ -42,7 +42,10 @@
 
 class CTCLInterpreter;
 class CTCLObject;
+<<<<<<< HEAD
 class CPrePauseCommand;
+=======
+>>>>>>> master
 
 /*!
    This class provides the pause command.  The pause command is valid only during
@@ -52,12 +55,18 @@ class CPrePauseCommand;
 */
 class CPauseCommand : public CTCLPackagedObjectProcessor
 {
+<<<<<<< HEAD
 private:
   CPrePauseCommand*  m_prePause;
   
   // Canonicals. Copy etc. are not allowed:
 public:
   CPauseCommand(CTCLInterpreter& interp, CPrePauseCommand* prePause);
+=======
+  // Canonicals. Copy etc. are not allowed:
+public:
+  CPauseCommand(CTCLInterpreter& interp);
+>>>>>>> master
   virtual ~CPauseCommand();
 
 private:

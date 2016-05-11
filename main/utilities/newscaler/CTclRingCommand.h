@@ -42,6 +42,9 @@
 class CTCLInterpreter;
 class CRingBuffer;
 class CRingItem;
+class CRingSelectionPredicate;
+class CTimeout;
+
 
 /**
  * @class CTclRingCommand
@@ -94,6 +97,12 @@ private:
     void formatTriggerCount(CTCLInterpreter& interp, CRingItem* pSpecificItem);
     void formatGlomParams(CTCLInterpreter& interp, CRingItem* pSpecificItem);
     void formatAbnormalEnd(CTCLInterpreter& interp, CRingItem* pSpecificItem);
+
+    CRingItem* getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate,
+                           unsigned long timeout);
+    CRingItem* getFromRing(CRingBuffer& ring, CTimeout& timeout);
+    uint32_t swal(uint32_t value);
 };
 
 #endif
+

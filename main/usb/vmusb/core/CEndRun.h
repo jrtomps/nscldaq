@@ -40,6 +40,7 @@ class CTCLInterpreter;
 class CTCLInterpreterObject;
 class CPreEndCommand;
 
+
 /*!
    Class to implement the end command.  This command will
    end an active physics run.  For a blow by blow of what is
@@ -52,6 +53,7 @@ private:
   // Canonicals:
 public:
   CEndRun(CTCLInterpreter& interp, CPreEndCommand* preEnd);
+
   virtual ~CEndRun();
 private:
   CEndRun(const CEndRun& rhs);

@@ -1,0 +1,2478 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>TCPIP classes</title>
+    <para>
+        This library provides a simplified C++ encapsulation of the system interface
+        to TCP/IP socket stream sockets.
+        This chapter provides:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            An overview of the library, its main class (<classname>CSocket</classname>)
+            and the exceptions objects of this class can throw.
+        </para></listitem>
+        <listitem><para>
+            Instructions for including the library in your applications at both
+            the source level and at link time.
+        </para></listitem>
+    </itemizedlist>
+    <para>
+        This tutorial information is no substitute for the reference pages:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>
+                <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpbadsocketstate'
+                      endterm='daq3.ctcpbadsocketstate.title'
+                />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpconnectionfailed'
+                      endterm='daq3.ctcpconnectionfailed.title'
+                      />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpconnectionlost'
+                      endterm='daq3.ctcpconnectionlost.title'
+                      />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpnosuchhost'
+                      endterm='daq3.ctcpnosuchhost.title'
+                      />
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <link linkend='daq3.ctcpnosuchservice'
+                      endterm='daq3.ctcpnosuchservice.title'
+                      />
+            </para>
+        </listitem>
+    </itemizedlist>
+    <section>
+        <title>Library concepts</title>
+        <para>
+            The library supports three types of sockets.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    Client sockets
+                </term>
+                <listitem>
+                    <para>
+                        These sockets initiate connections with some service.
+                        Once connected typically they will make requests of the
+                        program that manages that service and that program will
+                        fulfil those requests as well as send response data back
+                        to the client
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    Server Sockets
+                </term>
+                <listitem>
+                    <para>
+                        These sockets define a service and passively await connections.
+                        When a connection is made, a new <classname>CSocket</classname>
+                        object is created and the client and server subsequently
+                        communicate over that new socket until their interaction
+                        is complete.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    Encapsulated sockets
+                </term>
+                <listitem>
+                    <para>
+                        An encapsulated socket is one that has been opened by
+                        directly invoking the socket(2) operation.  If you know
+                        the socket state (more about socket states later),
+                        you can wrap that socket in a <classname>CSocket</classname>
+                        class.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            It is important to know that sockets are a stateful entity.  The
+`            <type>CSocket::State</type> and an internal state member variable
+            that captures this.  Depending on the state of the object, some
+            operations may be illegal.  Invoking an operation that is forbidden
+            by the current state will cause the object to throw a
+            <classname>CTCPBadSocketState</classname> exception.
+        </para>
+        <para>
+            A socket can be in one of the following states:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+        			<literal>Disconnected</literal>
+                </term>
+                <listitem>
+                    <para>
+                        When a socket is initially created, or after it has been
+                        detected that the peer has closed its end of the socket,
+                        the socket is <literal>Disconnected</literal>.
+                    </para>
+                    <para>
+                        Disconnected sockets can be Bound, turning the
+                        socket into a server
+                        socket in the <literal>Bound</literal> state or
+                        Connected which, if successful turns the socket into
+                        a <literal>Connected</literal> client socket.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>Bound</literal>
+                </term>
+                <listitem>
+                    <para>
+                        A server socket is <literal>Bound</literal> when it has
+                        been configured to offer a specific service. Once
+                        Bound an application can listen on the socket for
+                        a connection.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>Listening</literal>
+                </term>
+                <listitem>
+                    <para>
+                        A server socket is listening if it it can accept
+                        connections.  This is normally the case once the
+                        <methodname>Listen</methodname> is invoked.  Typically
+                        <methodname>Listen</methodname> is followed at some point
+                        in time by a call to <methodname>Accept</methodname>
+                        which accepts the next connection received.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>Connected</literal>
+                </term>
+                <listitem>
+                    <para>
+                        Connected sockets come about in one of two ways.
+                        Either <methodname>Accept</methodname> called on a server
+                        returns a socket that is connected to a new peer, or
+                        a client socket successfully performss a
+                        <methodname>Connect</methodname> call connecting
+                        to a server.
+                    </para>
+                    <para>
+                        Connected sockets can be closed written to an read from.
+                    </para>
+                </listitem>
+            </varlistentry> 
+        </variablelist>
+        <para>
+            The <methodname>Read</methodname> and <methodname>Write</methodname>
+            methods can be invoked on any connected socket to transfer data to
+            the peer.
+        </para>
+    </section>
+    <section>
+        <title>Incorporating the socket library</title>
+        <para>
+            Using one of the TCP/IP library classes requires that you #include
+            the appropriate header.   Doing this requires that you allow the
+            C++ compiler to search the DAQ includes directory.  This is most
+            simply done by:
+        </para>
+        <orderedlist>
+            <listitem>
+                <para>
+                    Sourcing the <filename>daqsetup.bash</filename> script
+                    for the version of NSCLDAQ you are using into your shell
+                    (you can do this in your <filename>.bashrc</filename>).
+                    Suppose, for example, I'm using the version of NSCLDAQ
+                    installed in <filename>/usr/opt/daq/11.1-004</filename>:
+                    I can:
+                    <informalexample>
+                        <programlisting>
+.   /usr/opt/daq/11.1-004/daqsetup.bash
+                        </programlisting>
+                    </informalexample>
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Adding the appropriate <literal>-I</literal> option to your
+                    compilation command line.  If you have performed step 1 above
+                    this means adding <literal>-I$DAQROOT/include</literal> to your
+                    compilation command.
+                </para>
+            </listitem>
+        </orderedlist>
+        <para>
+            Assuming you sourced the <filename>daqsetup.bash</filename>
+            environment setup file, linking with the TCPIP library requires the following additions
+            to your link command line:
+            <informalexample>
+                <programlisting>
+-L$DAQLIB -lTcp -lException -ldaqshm                    
+                </programlisting>
+            </informalexample>
+            
+        </para>
+    </section>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+<refentry id='daq3.csocket' >
+    <refentryinfo>
+        <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+    </refentryinfo>
+    <refmeta>
+       <refentrytitle id='daq3.csocket.title'>CSocket</refentrytitle>
+       <manvolnum>3daq</manvolnum>
+       <refmiscinfo class='empty'></refmiscinfo>
+    </refmeta>
+    <refnamediv>
+       <refname>CSocket</refname>
+       <refpurpose>Encapsulation of a socket file descriptor.</refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <synopsis>
+class <ooclass><classname>CSocket</classname></ooclass>
+{
+    enum State {
+      Disconnected,
+      Bound,
+      Listening,
+      Connected
+    };
+    <constructorsynopsis>
+        <methodname>
+            CSocket      
+        </methodname>
+        <void />
+    </constructorsynopsis>
+    <constructorsynopsis>
+        <methodname>
+            CSocket
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>int</type>
+            <parameter>fd</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>CSocket::State </type>
+            <parameter>state </parameter>
+        </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>int </type>
+        <methodname>
+            getSocketFd
+        </methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>CSocket::State</type>
+        <methodname>
+             getState
+        </methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            Connect
+        </methodname>
+        <methodparam>
+            <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter>host</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>std::string&amp;  </type>
+            <parameter>service</parameter>
+        </methodparam>
+        
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>Connect</methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned long int </type>
+                <parameter>IpAddress</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>unsigned short </type>
+                <parameter>service</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            Bind
+        </methodname>
+        <methodparam>
+            <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter> service</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            Listen 
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned int </type>
+            <parameter>nBacklog</parameter><initializer></initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>  CSocket*  </type>
+        <methodname>
+            Accept
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>std::string&amp; </type>
+            <parameter>client</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            Shutdown
+        </methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>int </type>
+        <methodname>
+            Read 
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>void* </type>
+            <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>size_t</type>
+            <parameter> nBytes</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>int </type>
+        <methodname>
+            Write
+        </methodname>
+        <methodparam>
+            <modifier>const </modifier><type>void* </type>
+            <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>size_t </type>
+            <parameter>nBytes</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            getPeer
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned short&amp;</type>
+            <parameter>port</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>std::string&amp;</type>
+            <parameter> peer</parameter>
+        </methodparam>
+    </methodsynopsis> 
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            OOBInline
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>bool </type>
+            <parameter>State</parameter><initializer>TRUE</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>bool </type>
+        <methodname>
+            isOOBInline
+        </methodname>
+        <void />
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            setRcvLowWaterMark
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>size_t </type>
+            <parameter>nBytes</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            setSndLowWaterMark
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>size_t </type>
+            <parameter>nBytes</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>size_t </type>
+        <methodname>
+            getSndLowWaterMark
+        </methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier><type>void </type>
+        <methodname>
+            setRcvTimeout 
+        </methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned int </type>
+            <parameter>nMs</parameter>
+        </methodparam>
+    </methodsynopsis> 
+    <methodsynopsis>
+        <modifier></modifier><type>unsigned int </type>
+        <methodname>
+            getRcvTimeout
+        </methodname>
+        <void />
+    </methodsynopsis>  
+
+  <methodsynopsis>
+    <modifier></modifier><type>void </type>
+    <methodname>
+        setSndTimeout
+    </methodname>
+    <methodparam>
+        <modifier></modifier><type>unsigned int</type>
+        <parameter> nMs</parameter>
+    </methodparam>
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>unsigned int </type>
+    <methodname>
+        getSndTimeout 
+    </methodname>
+    <void />
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>void </type>
+    <methodname>
+        Debug
+    </methodname>
+    <methodparam>
+        <modifier></modifier><type>bool </type>
+        <parameter>fState</parameter><initializer>TRUE</initializer>
+    </methodparam>
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>bool </type>
+    <methodname>
+        isDebug
+    </methodname>
+    <void />
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>void </type>
+    <methodname>
+        SetNotRoutable
+    </methodname>
+    <methodparam>
+        <modifier></modifier><type>bool </type>
+        <parameter>fRoutable</parameter><initializer>TRUE</initializer>
+    </methodparam>
+  </methodsynopsis> 
+  <methodsynopsis>
+    <modifier></modifier><type>bool </type>
+    <methodname>
+        isNotRoutable
+    </methodname>
+    <void />
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>void </type>
+    <methodname>
+        setSndBufSize
+    </methodname>
+    <methodparam>
+        <modifier></modifier><type>size_t </type>
+        <parameter>nBufferSize</parameter>
+    </methodparam>
+  </methodsynopsis>
+  <methodsynopsis>
+    <modifier></modifier><type>size_t </type>
+    <methodname>
+        getSndBufSize 
+    </methodname>
+    <void />
+  </methodsynopsis> 
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>void </type>
+      <methodname>setRcvBufSize</methodname>
+      <methodparam>
+        <modifier></modifier><type>size_t </type>
+            <parameter>nBytes</parameter>
+      </methodparam>
+  </methodsynopsis>
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>size_t </type>
+      <methodname>getRcvBufSize</methodname>
+      <void />
+  </methodsynopsis>
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>void </type>
+      <methodname>setLinger</methodname>
+      <methodparam>
+        <modifier></modifier><type>bool </type>
+            <parameter>lOn</parameter>
+      </methodparam>
+      <methodparam>
+        <modifier></modifier><type>int </type>
+            <parameter>nLingerSeconds</parameter>
+      </methodparam>
+  </methodsynopsis>
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>void </type>
+      <methodname>getLinger</methodname>
+      <methodparam>
+        <modifier></modifier><type>bool&amp;</type>
+            <parameter>isLingering</parameter>
+      </methodparam>
+      <methodparam>
+        <modifier></modifier><type>int&amp;</type>
+            <parameter>nLingerSeconds</parameter>
+      </methodparam>
+  </methodsynopsis>  
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>static std::string </type>
+      <methodname>StateName</methodname>
+      <methodparam>
+        <modifier></modifier><type>CSocket::State </type>
+            <parameter>state</parameter>
+      </methodparam>
+  </methodsynopsis>  
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>void </type>
+      <methodname>Flush</methodname>
+      <void />
+  </methodsynopsis>    
+
+};
+        </synopsis>
+    </refsynopsisdiv>
+    <refsect1>
+        <title>
+            DESCRIPTION
+        </title>
+        <para>
+            This class encapsulates file descriptors that are open on
+            BSD sockets.  The package supports client sockets, servers sockets
+            and encapsulating sockets that were opened via the
+            <function>socket(2)</function> system call.
+        </para>
+        <para>
+            Client sockets normally construct, then connect and transfer data.
+            Server sockets construct, bind to a server port, listen for connections
+            and the accept connections creating a new data transfer socket.
+            File descriptors that are opened on sockets can be wrapped in a
+            <classname>CSocket</classname> object.  Once wrapped the object
+            can be treated as if it was constructed "normally".
+        </para>
+        <para>
+            <classname>CSocket</classname> objects are stateful.  The
+            state of an object is one of the values defined by the
+            <type>CSocket::State</type> enum (See DATA TYPES below).   The set of methods that
+            can be legally invoked depends on the socket state.  For each method
+            described in METHODS below, we will indicate the state
+            restrictions.  If a method is invoked in a forbidden state,
+            <link linkend='daq3.ctcpbadsocketstate' endterm='daq3.ctcpbadsocketstate.title' />
+            is thrown.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                        <methodname>
+                            CSocket      
+                        </methodname>
+                        <void />
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a new object.  The object starts out life in the
+                        <type>CSocket::Disconnected</type> state.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                        <methodname>
+                            CSocket
+                        </methodname>
+                        <methodparam>
+                            <modifier></modifier><type>int</type>
+                            <parameter>fd</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <modifier></modifier><type>CSocket::State </type>
+                            <parameter>state </parameter>
+                        </methodparam>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This constructor wraps the socket file descriptor;
+                        <parameter>fd</parameter> in a <classname>CSocket</classname>
+                        object.   The <parameter>state</parameter> parameter
+                        describes the state.
+                    </para>
+                    <para>
+                        It is important that you supply the correct
+                        <parameter>state</parameter> value to the constructor
+                        so that the object knows which methods are legal when.
+                        
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>int </type>
+                        <methodname>
+                            getSocketFd
+                        </methodname>
+                        <void />
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the value of the file descriptor for the underlying
+                        socket.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>CSocket::State</type>
+                        <methodname>
+                             getState
+                        </methodname>
+                        <void />
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the current state of the socket.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>void </type>
+                        <methodname>
+                            Connect
+                        </methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>std::string&amp;</type>
+                            <parameter>host</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <modifier>const </modifier><type>std::string&amp;  </type>
+                            <parameter>service</parameter>
+                        </methodparam>
+                        
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Connects the socket as a client to a service port.
+                        The <parameter>host</parameter> parameter can be either
+                        a DNS host name string (e.g. "spdaq20.nscl.msu.edu") or
+                        a dotted IP address (e.g. "35.9.56.50").   The
+                        <parameter>swervice</parameter> is either a named service
+                        (from e.g. /etc/services in the peer) or a service number
+                        (e.g. "30000").
+                    </para>
+                    <para>
+                        You can only call this method if the socket is in the
+                        <literal>CSocket::Disconnected</literal> state.  If successful
+                        the socket is then in the <literal>CSocket::Connected</literal>
+                        state.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>Connect</methodname>
+                        <methodparam>
+                            <modifier></modifier><type>unsigned long int </type>
+                                <parameter>IpAddress</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <modifier></modifier><type>unsigned short </type>
+                                <parameter>service</parameter>
+                        </methodparam>
+                    </methodsynopsis>  
+                    
+                </term>
+                <listitem>
+                    <para>
+                        Connects the socket to a server.  <parameter>IpAddress</parameter>
+                        is the IP address of the server system in <emphasis>host</emphasis>
+                        byte order.  <parameter>service</parameter> is the service
+                        port number in <emphasis>host</emphasis>
+                        byte order.
+                    </para>
+                    <para>
+                         You can only call this method if the socket is in the
+                        <literal>CSocket::Disconnected</literal> state.  If successful
+                        the socket is then in the <literal>CSocket::Connected</literal>
+                        state.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>void </type>
+                        <methodname>
+                            Bind
+                        </methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>std::string&amp;</type>
+                            <parameter> service</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Binds the socket to a service port.  This makes the
+                        object a server socket.   <parameter>service</parameter>
+                        is either the name of a service (e.g. in
+                        <filename>/etc/services</filename>) or a service number
+                        (e.g. <literal>"30000"</literal>).
+                    </para>
+                    <para>
+                        This method must be called with the socket in the
+                        <literal>CSocket::Disconnected</literal> state and,
+                        if successful, will put the socket in the
+                        <literal>CSocket::Bound</literal> state.
+                    </para>
+                </listitem>
+            </varlistentry>            
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>void </type>
+                        <methodname>
+                            Listen 
+                        </methodname>
+                        <methodparam>
+                            <modifier></modifier><type>unsigned int </type>
+                            <parameter>nBacklog</parameter><initializer></initializer>
+                        </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Establishes a queue to accept connections on a server
+                        socket.  <parameter>nBacklog</parameter> is the number
+                        of un-accepted connection requests that can be
+                        pending at any given time.
+                        If a
+                        a connection is requested when the listen queue is full, it
+                        is refused or allowed to retry depending on the protocol
+                        (according to linux man connect(2)).
+                    </para>
+                    <para>
+                        The socket must be in the
+                        <literal>CSocket::Bound</literal> state.   On successful
+                        completion, the socket is put in the
+                        <literal>CSocket::Listening</literal> state.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>  CSocket*  </type>
+                        <methodname>
+                            Accept
+                        </methodname>
+                        <methodparam>
+                            <modifier></modifier><type>std::string&amp; </type>
+                            <parameter>client</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Used by a server socket in the
+                        <literal>CSocket::Listening</literal> state to accept
+                        the next connection on the connection backlog  queue.
+                        If there is no pending connection, this method will
+                        block until one is available.
+                    </para>
+                    <para>
+                        The return value is a pointer to a <classname>CSocket</classname>
+                        in the <literal>CSocket::Connected</literal> state with
+                        which the server can exchange data with the client.
+                        Additionally the <parameter>client</parameter> parameter
+                        is filled in with information about the host.  If
+                        the hostname can be determined via reverse DNS lookup,
+                        the fully qualified host name is stored.  If not, the
+                        dotted IP address string is stored.
+                    </para>
+                    <para>
+                        This method does not change the state of the object.
+                    </para>
+                    <para>
+                        If you want to avoid blocking when there are no
+                        connections present in the backlog queue you can
+                        use <methodname>getSocketFd</methodname> to get the
+                        underlying socket's file descriptor and use it in either
+                        a <function>poll(2)</function> or <function>select(2)</function>
+                        system service testing for readability.  The file descriptor
+                        will be considered readable when a connection is present
+                        on the backlog.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>void </type>
+                        <methodname>
+                            Shutdown
+                        </methodname>
+                        <void />
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Shuts down a socket that is in the
+                        <literal>CSocket::Connected</literal> state.  The
+                        socket is still usable but:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            The socket is in the <literal>CSocket::Disconnected</literal>
+                            state
+                        </para></listitem>
+                        <listitem><para>
+                            Any attempts by the peer to transfer data to the socket
+                            will fail.
+                        </para></listitem>
+                        <listitem><para>
+                            Any attempts by the peer to transfer data from the
+                            socket will only work as long as there is unconsumed
+                            data in the internal TCP/IP buffers for the
+                            file descriptor.
+                        </para></listitem>
+                    </itemizedlist>
+                    <para>
+                        Note that this method invalidates any file descriptor
+                        the application may have cached via a call to
+                        <methodname>getSocketFd</methodname>.  Such file descriptors
+                        must be re-fetched. 
+                    </para>
+                </listitem>
+            </varlistentry>          
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>int </type>
+                        <methodname>
+                            Read 
+                        </methodname>
+                        <methodparam>
+                            <modifier></modifier><type>void* </type>
+                            <parameter>pBuffer</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <modifier></modifier><type>size_t</type>
+                            <parameter> nBytes</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Reads data from the socket.  The socket must be in the
+                        <literal>CSocket::Connected</literal> state.
+                        <parameter>pBuffer</parameter> points to a buffer into which
+                        the read data will be received.  <parameter>nBytes</parameter>
+                        is the desired number of bytes to read.  Normally if there
+                        are no bytes to read, this method will block until the
+                        read can be satisfied.
+                    </para>
+                    <para>
+                        The method returns the number of bytes actually read.
+                        Note that this may be less than the number of bytes
+                        requested with <parameter>nBytes</parameter>.
+                    </para>
+                    <para>
+                        Several exceptions can be thrown besides
+                        <classname>CTCPBadSocketState:</classname>:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            <classname>CErrnoException</classname> - if the
+                            underlying <function>read(2)</function> completed
+                            with an error.  The socket is placed in the
+                            <literal>CSocket::Disconnected</literal> state.
+                        </para></listitem>
+                        <listitem><para>
+                            <classname>CTCPConnectionLost</classname> - if
+                            the peer shutdown the socket or is no longer
+                            communicating for some other reason (program exit
+                            or system failure).  The socket is shutdown
+                            and placed in the <literal>CSocket::Disconnected</literal>
+                            state.
+                        </para></listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>int </type>
+                        <methodname>
+                            Write
+                        </methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>void* </type>
+                            <parameter>pBuffer</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <modifier></modifier><type>size_t </type>
+                            <parameter>nBytes</parameter>
+                        </methodparam>
+                    </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Writes data to the peer over the socket.
+                        <parameter>pBuffer</parameter> points to the data to write
+                        and <parameter>nBytes</parameter> is the number of bytes
+                        of data to write.  The return value is the number of
+                        bytes of data actually written which, on success, is
+                        always <parameter>nBytes</parameter>.  If there are non-fatal
+                        errors like <literal>EAGAIN</literal>, <literal>EINTR</literal>
+                        or <literal>EWOULDBLOCK</literal>, method will attempt
+                        to write the unwritten parts of the buffer.
+                    </para>
+                    <para>
+                        Exceptions can be thrown as follows:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            <classname>CTCPBadSocketState</classname> -
+                            The socket is not in the
+                            <literal>CSocket::Connected</literal> state.
+                        </para></listitem>
+                        <listitem><para>
+                            <classname>CTCPConnectionLost</classname> - the
+                            connection with the peer was lost and therefore
+                            future writes would also fail.  The socket
+                            is placed in the <literal>CSocket::Disconnected</literal>
+                            state.
+                        </para></listitem>
+                        <listitem><para>
+                            <classname>CErrnoException</classname> - some error
+                            was reported via <varname>errno</varname>. The socket
+                            is placed in the
+                            <literal>CSocket::Disconnected</literal> state.
+                        </para></listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>void </type>
+                        <methodname>
+                            getPeer
+                        </methodname>
+                        <methodparam>
+                            <modifier></modifier><type>unsigned short&amp;</type>
+                            <parameter>port</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <modifier></modifier><type>std::string&amp;</type>
+                            <parameter> peer</parameter>
+                        </methodparam>
+                    </methodsynopsis> 
+                </term>
+                <listitem>
+                    <para>
+                        Fetches information about the peer of a
+                        <literal>CSocket::Connected</literal> socket.
+                        <parameter>port</parameter> is filled in with the port to which
+                        this port is connected.  <parameter>peer</parameter>
+                        is filled in with either the fully qualfied domain
+                        name fo the hsot the peer runs on (if a reverse DNS
+                        lookup can be performed) or the dotted IP adress in
+                        string form if not.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>void </type>
+                        <methodname>
+                            OOBInline
+                        </methodname>
+                        <methodparam>
+                            <modifier></modifier><type>bool </type>
+                            <parameter>State</parameter><initializer>TRUE</initializer>
+                        </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Can be called when the socket is in any state except
+                        <literal>CState::Open</literal>  Sets the
+                        <literal>SO_OOBINLINE</literal> parameter of the socket.
+                        If <parameter>State</parameter> is <literal>true</literal>,
+                        out of band data is included inline with the socket data.
+                        
+                        If <literal>false</literal> out of band data is not inline.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>bool </type>
+                        <methodname>
+                            isOOBInline
+                        </methodname>
+                        <void />
+                    </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Returns <literal>true</literal> if out of band data
+                        are inline else <literal>false</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>void </type>
+                        <methodname>
+                            setRcvLowWaterMark
+                        </methodname>
+                        <methodparam>
+                            <modifier></modifier><type>size_t </type>
+                            <parameter>nBytes</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Sets the receive low water mark to <parameter>nBytes</parameter>.
+                        This value is the number of bytes that must have been
+                        buffered at the protocol level before data are returned
+                        to the caller. 
+                    </para>
+                    <para>
+                        Some operating systems don't actually allow this to be
+                        modified but silently do nothing.   To detect if this
+                        state you can use <methodname>getRcvLowWaterMark</methodname>
+                        can be invoked to see what the current low water mark
+                        is.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    
+                </term>
+                <listitem>
+                    <para>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>void </type>
+                        <methodname>
+                            setSndLowWaterMark
+                        </methodname>
+                        <methodparam>
+                            <modifier></modifier><type>size_t </type>
+                            <parameter>nBytes</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Sets the low watermark of the send buffer.
+                        <parameter>nBytes</parameter> is the minimum number
+                        of bytes that must be buffered before the protocol starts
+                        emitting data.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>size_t </type>
+                        <methodname>
+                            getSndLowWaterMark
+                        </methodname>
+                        <void />
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the receive low watermark value.  This is the
+                        actual value which may differ from the value set.
+                    </para>
+                </listitem>
+            </varlistentry>        
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                    <modifier></modifier><type>void </type>
+                    <methodname>
+                        setRcvTimeout 
+                    </methodname>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned int </type>
+                        <parameter>nMs</parameter>
+                    </methodparam>
+                </methodsynopsis>     
+                </term>
+                <listitem>
+                    <para>
+                        Sets the receive buffering timeout to
+                        <parameter>nMs</parameter> milliseconds.   With
+                        a large receive low water mark, there is a chance
+                        that for reads lower than the watermark, if data
+                        are only being slowly received, reads could block
+                        for a long time or even forever waiting for the
+                        watermark to be hit.  The receive timeout limits
+                        how long a read can be blocked when there is buffered
+                        data but fewer than the number of bytes in the receive
+                        low water mark.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>unsigned int </type>
+                        <methodname>
+                            getRcvTimeout
+                        </methodname>
+                        <void />
+                    </methodsynopsis>  
+                                        
+                </term>
+                <listitem>
+                    <para>
+                        Returns the value of the receive timeout.
+                    </para>
+                </listitem>
+            </varlistentry>    
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                    <modifier></modifier><type>void </type>
+                    <methodname>
+                        setSndTimeout
+                    </methodname>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned int</type>
+                        <parameter> nMs</parameter>
+                    </methodparam>
+                  </methodsynopsis>    
+                </term>
+                <listitem>
+                    <para>
+                        Sets the value of the send timeout to <parameter>nMs</parameter>
+                        milliseconds.  When the first bytes are written to the
+                        internal protocol buffers, a timer is started.  Data
+                        are only written on the wire to the peer when either
+                        the send low watermark is achieved or the timer expires.
+                    </para>
+                    <para>
+                        This timeout ensures that data are eventually 
+                        queued for write to the
+                        peer with a maximum host side latencey of <parameter>nMs</parameter>
+                        milliseconds even if the data are being buffered quite
+                        slowly or the send low watermark is never achieved.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier><type>unsigned int </type>
+                        <methodname>
+                            getSndTimeout 
+                        </methodname>
+                        <void />
+                  </methodsynopsis>   
+                </term>
+                <listitem>
+                    <para>
+                        Returns the number of milliseconds in the send timeout.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                    <modifier></modifier><type>void </type>
+                    <methodname>
+                        Debug
+                    </methodname>
+                    <methodparam>
+                        <modifier></modifier><type>bool </type>
+                        <parameter>fState</parameter><initializer>TRUE</initializer>
+                    </methodparam>
+                  </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Only programs with the effective user id of root can
+                        perform this operation (<classname>CErrnoException</classname>
+                        is thrown if otherwise).  Setting this causes the system
+                        to produce debugging <literal>KERN_LOG</literal> messages
+                        which syslog can be configured to put into some log file
+                        for later analysis.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                    <modifier></modifier><type>bool </type>
+                    <methodname>
+                        isDebug
+                    </methodname>
+                    <void />
+                  </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Returns <literal>true</literal> if socket debugging
+                        is enabled.  <literal>false</literal> if not.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                    <modifier></modifier><type>void </type>
+                    <methodname>
+                        SetNotRoutable
+                    </methodname>
+                    <methodparam>
+                        <modifier></modifier><type>bool </type>
+                        <parameter>fRoutable</parameter><initializer>TRUE</initializer>
+                    </methodparam>
+                  </methodsynopsis>   
+                </term>
+                <listitem>
+                    <para>
+                        If <parameter>fRoutable</parameter> is <literal>true</literal>
+                        routing is turned off for the packets from this protocol.
+                        If <parameter>fRoutable</parameter> is <literal>false</literal>,
+                        routing is enabled.
+                    </para>
+                    <para>
+                        Non routed messages will not be sent through gateways/routers.
+                        This confines them to the subnet local to the sender.
+                        To turn off routing on socket messages:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            You should probably turn off routing on both sides.
+                        </para></listitem>
+                        <listitem><para>
+                            You need to have a very good understanding of the
+                            network physical topology (what a subnet is and where
+                            your peer is relative to you).
+                        </para></listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                    <modifier></modifier><type>bool </type>
+                    <methodname>
+                        isNotRoutable
+                    </methodname>
+                    <void />
+                  </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Returns the state of the non-routing flag.
+                        <literal>true</literal> means routing is off for this
+                        socket while <literal>false</literal> means it is on.
+                    </para>
+                </listitem>
+            </varlistentry>                  
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                    <modifier></modifier><type>void </type>
+                    <methodname>
+                        setSndBufSize
+                    </methodname>
+                    <methodparam>
+                        <modifier></modifier><type>size_t </type>
+                        <parameter>nBufferSize</parameter>
+                    </methodparam>
+                  </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Sets the total size of the send buffer for the socket
+                        to <parameter>nBufferSize</parameter>.   This is different
+                        from the low watermark.  This determines the number of bytes
+                        of data that are buffered in the local machine while the
+                        peer has halted transmission via flow control.  This
+                        buffering allows the application to continue to queue
+                        data for transmission without blocking until the buffer
+                        is full.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                    <modifier></modifier><type>size_t </type>
+                    <methodname>
+                        getSndBufSize 
+                    </methodname>
+                    <void />
+                  </methodsynopsis>   
+                </term>
+                <listitem>
+                    <para>
+                        Returns the number of bytes in the socket's send buffer.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier></modifier>
+                      <type>void </type>
+                      <methodname>setRcvBufSize</methodname>
+                      <methodparam>
+                        <modifier></modifier><type>size_t </type>
+                            <parameter>nBytes</parameter>
+                      </methodparam>
+                  </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Sets the receive buffer size for the socket
+                        to <parameter>nBytes</parameter>.
+                        This is the number of received bytes the local host
+                        will buffer prior to exerting flow control on the
+                        peer to get it to slow down or stop transmitting.
+                        This buffer allows the local host to continue to receive
+                        data between reads of data at the application level.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier></modifier>
+                      <type>size_t </type>
+                      <methodname>getRcvBufSize</methodname>
+                      <void />
+                  </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Returns the number of bytes of data in the receive buffer.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier></modifier>
+                      <type>void </type>
+                      <methodname>setLinger</methodname>
+                      <methodparam>
+                        <modifier></modifier><type>bool </type>
+                            <parameter>lOn</parameter>
+                      </methodparam>
+                      <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>nLingerSeconds</parameter>
+                      </methodparam>
+                  </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        The termination of a TCP/IP connection is a dance that
+                        requires cooperation from both parties to proceed properly.
+                        Best practices require the client to close the connection
+                        and the server, on detecting this to be the case, to close
+                        its side of the connection.  When this is not done,
+                        connections can sit in the <literal>TIME_WAIT</literal>
+                        state for some time (the linger timeout)
+                    </para>
+                    <para>
+                        This call allows the application to enable or disable
+                        lingering (the <parameter>lOn</parameter> parameter) and
+                        to set the linger timeout
+                        (<parameter>nLingerSeconds</parameter>).
+                    </para>
+                    <para>
+                        Note that in general if you have to modify the default
+                        parameters your application protocol is probably not
+                        following TCP/IP best practices.
+                    </para>
+                    <para>
+                        One case that may warrant it is when the server detects
+                        a misbehaving client and may want to abortively close
+                        the connection.  In that case the linger timeout
+                        can be set to zero or lingering turned off in order to
+                        avoid hanging the connection in <literal>TIME_WAIT</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier></modifier>
+                      <type>void </type>
+                      <methodname>getLinger</methodname>
+                      <methodparam>
+                        <modifier></modifier><type>bool&amp;</type>
+                            <parameter>isLingering</parameter>
+                      </methodparam>
+                      <methodparam>
+                        <modifier></modifier><type>int&amp;</type>
+                            <parameter>nLingerSeconds</parameter>
+                      </methodparam>
+                  </methodsynopsis>    
+                </term>
+                <listitem>
+                    <para>
+                        Sets <parameter>isLingering</parameter> to the
+                        state of the socket's lingering flat and
+                        <parameter>nLingerSeconds</parameter> to the linger
+                        timeout.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier></modifier>
+                      <type>static std::string </type>
+                      <methodname>StateName</methodname>
+                      <methodparam>
+                        <modifier></modifier><type>CSocket::State </type>
+                            <parameter>state</parameter>
+                      </methodparam>
+                  </methodsynopsis>    
+                </term>
+                <listitem>
+                    <para>
+                        Given a socket state value returns a string that
+                        represents that state.  This is used in generating
+                        user readable messages that must include the
+                        state.
+                    </para>
+                </listitem>
+            </varlistentry>      
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier></modifier>
+                      <type>void </type>
+                      <methodname>Flush</methodname>
+                      <void />
+                  </methodsynopsis>      
+                </term>
+                <listitem>
+                    <para>
+                        Reads and discards all data buffered fro iput on the
+                        socket.
+                    </para>
+                </listitem>
+            </varlistentry>      
+                  
+
+        </variablelist>
+    </refsect1>
+    <refsect1>
+        <title>DATA TYPES</title>
+    
+        <para>
+            The <type>CSocket::State</type> data type is exported as public.
+            This type is an enum that represents a socket state.
+            It is defined as follows:
+        </para>
+        <informalexample>
+            <programlisting>
+enum State {
+    Disconnected,
+    Bound,
+    Listening,
+    Connected
+};
+            </programlisting>
+        </informalexample>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+            <link linkend='daq3.ctcpbadsocketstate' endterm='daq3.ctcpbadsocketstate.title' />,
+            <link linkend='daq3.ctcpconnectionfailed' endterm='daq3.ctcpconnectionfailed.title' />,
+            <link linkend='daq3.ctcpconnectionlost' endterm='daq3.ctcpconnectionlost.title' />,
+            <link linkend='daq3.ctcpnosuchhost' endterm='daq3.ctcpnosuchhost.title' />,
+            <link linkend='daq3.ctcpnosuchservice' endterm='daq3.ctcpnosuchservice.title' />
+        </para>
+    </refsect1>
+</refentry>
+<refentry id="daq3.ctcpbadsocketstate">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3.ctcpbadsocketstate.title'>CTCPBadSocketState</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CTCPBadSocketState</refname>
+     <refpurpose>class description</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CTCPBadSocketState.h&gt;
+       class <ooclass><classname>CTCPBadSocketState</classname></ooclass>
+{
+    <constructorsynopsis>
+       <methodname>CTCPBadSocketState</methodname>
+       <methodparam>
+        <modifier></modifier><type>CSocket::State </type>
+            <parameter>badState
+            </parameter>
+       </methodparam>
+       <methodparam>
+        <modifier></modifier><type>std::vector&lt;CSocket::State&gt;</type>
+            <parameter>okStates</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>pDoing</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>CSocket::State </type>
+        <methodname>getBadState</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;CSocket::State&gt;</type>
+        <methodname>getValidStates</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>const char* </type>
+        <methodname>ReasonText</methodname>
+        <void />
+        <modifier>const </modifier>
+    </methodsynopsis>  
+
+};   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class is an exception that will be thrown if
+        a method from a
+        <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+        object is called when the object is in a state that makes that
+        method illegal.  For example, attempting to transfer data on a
+        socket in the <literal>CSocket::Listening</literal> state will
+        trigger this exception.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CTCPBadSocketState</methodname>
+                   <methodparam>
+                    <modifier></modifier><type>CSocket::State </type>
+                        <parameter>badState
+                        </parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier></modifier><type>std::vector&lt;CSocket::State&gt;</type>
+                        <parameter>okStates</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>pDoing</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a new object.
+                    <parameter>badState</parameter> is the state
+                    the objexct is in when the operation that threw this
+                    exception was invoked.  <parameter>okStates</parameter>
+                    is a vector containing all states for which the requested
+                    operation would have been legal.
+                    Finally, <parameter>pDoing</parameter> is a pointer to a string
+                    that describes what the object was doing when it threw the
+                    exception.  Normally <classname>CSocket</classname> will
+                    provide the method name here.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>CSocket::State </type>
+                    <methodname>getBadState</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the value of the <parameter>badState</parameter>
+                    parameter passed in at construction time.  This represents
+                    the state of the <classname>CSocket</classname> at the
+                    time the exception was thrown.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;CSocket::State&gt;</type>
+                    <methodname>getValidStates</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the list of states for which this operation
+                    would have been legal.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>const char* </type>
+                    <methodname>ReasonText</methodname>
+                    <void />
+                    <modifier>const </modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a pointer to text that describes the
+                    reason the exception was thrown.
+                </para>
+            </listitem>
+        </varlistentry>        
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para>
+        <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+    </para>
+  </refsect1>
+</refentry>     
+<refentry id="daq3.ctcpconnectionfailed">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3.ctcpconnectionfailed.title'>CTCPConnectionFailed</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CTCPConnectionFailed</refname>
+     <refpurpose>Exception thrown for TCP/IP connection failures.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CTCPConnectionFailed&gt;
+       class <ooclass><classname>CTCPConnectionFailed</classname></ooclass>
+{
+    <constructorsynopsis>
+       <methodname>CTCPConnectionFailed</methodname>
+       <methodparam>
+        <modifier>const</modifier><type>std::string&amp;</type>
+            <parameter> host</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter> service</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>char*   </type>
+            <parameter>pDoing</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getHost</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getService</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual const </modifier>
+        <type>char* </type>
+        <methodname>ReasonText</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>                     
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class is an exception that is thrown when <classname>CSocket::Connect</classname>
+        fails to connect to a peer host/port pair.  
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CTCPConnectionFailed</methodname>
+                   <methodparam>
+                    <modifier>const</modifier><type>std::string&amp;</type>
+                        <parameter> host</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>std::string&amp;</type>
+                        <parameter> service</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>char*   </type>
+                        <parameter>pDoing</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs the exception object.
+                    <parameter>host</parameter> is either a DNS fully qualified
+                    host name or a string containing a dotted IP address.
+                    <parameter>host</parameter> is the host to which the connection
+                    request failed.
+                </para>
+                <para>
+                    <parameter>service</parameter> is either a service name
+                    string (in e.g. <filename>/etc/hosts</filename>) or the string
+                    representation of an integer service port number.
+                    <parameter>service</parameter> represents the service in
+                    <parameter>host</parameter> to which the connection operation
+                    failed.
+                </para>
+                <para>
+                    <parameter>pDoing</parameter> is a string that describes
+                    what the library was doing at the time of the failure e.g.
+                    <literal>CSocket::Connect client connect(2) failed</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getHost</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the name or dotted IP address of the host passed in
+                    to the constructor.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getService</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the service string used to construct the object.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual const </modifier>
+                    <type>char* </type>
+                    <methodname>ReasonText</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>                     
+            </term>
+            <listitem>
+                <para>
+                    Returns human readable text that describes why the
+                    exception was created/thrown.
+                </para>
+            </listitem>
+        </varlistentry>        
+
+     </variablelist>
+    
+  </refsect1>
+   <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+        <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+      </para>
+   </refsect1>
+</refentry>     
+<refentry id="daq3.ctcpconnectionlost">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3.ctcpconnectionlost.title'>CTCPConnectionLost</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CTCPConnectionLost</refname>
+     <refpurpose>Exception thrown when connection to peer is lost</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CTCPConnectionLost&gt;
+       class <ooclass><classname>CTCPConnectionLost</classname></ooclass>
+{
+    <constructorsynopsis>
+       <methodname>CTCPConnectionLost</methodname>
+       <methodparam>
+        <modifier></modifier><type>CSocket*</type>
+            <parameter> pSocket</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>pDoing</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getHost</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getPort</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>virtual const</modifier>
+        <type> char* </type>
+        <methodname>ReasonText</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+);
+  </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class is an exception that is thrown when a <classname>CSociet</classname>
+        object determines that it is no longer connected to its peer.  This is
+        normally detected during a data transfer operation (<methodname>CSocket::Read</methodname>
+        or <methodname>CSocket::Write</methodname>).
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CTCPConnectionLost</methodname>
+                   <methodparam>
+                    <modifier></modifier><type>CSocket*</type>
+                        <parameter> pSocket</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>pDoing</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+
+            </term>
+            <listitem>
+                <para>
+                    Constructor.
+                    <parameter>pSocket</parameter> is a pointer to the socket
+                    that lost connection while <parameter>pDoing</parameter>
+                    describes what the library was doing when it detected
+                    the connection failure/clousre.
+                </para>
+                <para>
+                    Unfortunately the TCP/IP libraries provide no support for differentiating
+                    between a properly executed connection loss due to shtudown
+                    by the peer and improperly executed connection loss due
+                    e.g. to program failure by the peer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getHost</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the host to which the connection was lost.
+                    Note that this can either be a fully qualified domain
+                    name from DNS or a dotted IP address string.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getPort</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the port string for to which the connection was lost.
+                    This can be either a service name from (e.g. from <filename>/etc/services</filename>)
+                    or a textualized service port number.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual const</modifier>
+                    <type> char* </type>
+                    <methodname>ReasonText</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Provides a human readable text that describes the reason
+                    the exception was created/thrown.
+                </para>
+            </listitem>
+        </varlistentry>        
+        
+        
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+        <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+      </para>
+   </refsect1>
+</refentry>     
+<refentry id="daq3.ctcpnosuchhost">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3.ctcpnosuchhost.title'>CTCPNoSuchHost</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CTCPNoSuchHost</refname>
+     <refpurpose>CTCPNoSuchHost</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CTCPNoSuchHost.h&gt;
+       class <ooclass><classname>CTCPNoSuchHost</classname></ooclass>
+{
+    
+    <constructorsynopsis>
+       <methodname>CTCPNoSuchHost</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter>hostname</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter>Doing</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int </type>
+        <methodname>gethErrno</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int </type>
+        <methodname>gethErrno</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getHost</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual const </modifier>
+        <type>char *  </type>
+        <methodname>ReasonText </methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>int</type>
+        <methodname>ReasonCode</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        An exception class that is thrown when a
+        <methodname>CSocket::Connect</methodname> is
+        done to a host that demonstrably does not exist.  This may be because the
+        host provided to <methodname>CSocket::Connect</methodname> is incorrect or
+        because the host is not currently alive.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CTCPNoSuchHost</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>std::string&amp;</type>
+                        <parameter>hostname</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>std::string&amp;</type>
+                        <parameter>Doing</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs the exception. <parameter>hostname</parameter>
+                    is the DNS name or dotted IP address of the host that
+                    does not exist.  <parameter>Doing</parameter> is a string
+                    that describes what the library was doing when this
+                    object was constructed/thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int </type>
+                    <methodname>gethErrno</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    TCP/IP networking reports some errors via the
+                    <varname>h_errno</varname> global variable.  The value of
+                    this variable is captured and stored by the exception's
+                    constructor.  This method returns the value of
+                    <varname>h_errno</varname> as it was at construction time.
+                </para>
+                <para>
+                    <ulink url="http://linux.die.net/man/3/h_errno">
+                        http://linux.die.net/man/3/h_errno
+                    </ulink>
+                    contains a description of the values of
+                    <varname>h_errno</varname>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getHost</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the host string passed in to the contructor.  Typically
+                    this will designate the host to which a connection could
+                    not be formed.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual const </modifier>
+                    <type>char *  </type>
+                    <methodname>ReasonText </methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a human readable error message that desribes
+                    the failure.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>int</type>
+                    <methodname>ReasonCode</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Overrides the base class's method and
+                    returns the saved <varname>h_errno</varname>
+                </para>
+            </listitem>
+        </varlistentry>        
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+        <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+      </para>
+   </refsect1>
+</refentry>     
+<refentry id="daq3.ctcpnosuchservice">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3.ctcpnosuchservice.title'>CTCPNoSuchService</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CTCPNoSuchService</refname>
+     <refpurpose>Exception thrown if a nonexistent service is referenced</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CTCPNoSuchService.h&gt;
+       class <ooclass><classname>CTCPNoSuchService</classname></ooclass>
+{
+    <constructorsynopsis>
+       <methodname>CTCPNoSuchService</methodname>
+       <methodparam>
+        <modifier></modifier><type>const std::string&amp; </type>
+            <parameter>service</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>std::string&amp;</type>
+            <parameter> Doing</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getService() </methodname>
+        
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual const </modifier>
+        <type>char* </type>
+        <methodname>ReasonText</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This exception class is thrown when the socket library detects an
+        attempt to connect to a nonexistent service.  This normally indicates
+        a failure to lookup a named service in the local hosts service
+        database (e.g. <filename>/etc/services</filename>).
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CTCPNoSuchService</methodname>
+                   <methodparam>
+                    <modifier></modifier><type>const std::string&amp; </type>
+                        <parameter>service</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>std::string&amp;</type>
+                        <parameter> Doing</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs the exception class.  <parameter>service</parameter>
+                    is the service string. and <parameter>Doing</parameter>
+                    is a string that describes what the library was doing when
+                    it threw the exception.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getService() </methodname>
+                    
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the service string used to construct the object.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual const </modifier>
+                    <type>char* </type>
+                    <methodname>ReasonText</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a human readable string that describes why the
+                    exception was created/thrown.
+                </para>
+            </listitem>
+        </varlistentry>        
+                
+
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+        <link linkend='daq3.csocket' endterm='daq3.csocket.title' />
+      </para>
+   </refsect1>
+</refentry>     
+
+
+
+<!-- /manpage -->

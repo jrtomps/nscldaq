@@ -22,6 +22,8 @@
 //  ::CConfiguration* pConfig;
 //}
 
+
+
 using namespace std;
 
 class cmqdc32test : public CppUnit::TestFixture {
@@ -60,10 +62,13 @@ void cmqdc32test::initialize_0()
   CMockVMUSB ctlr;
   ctlr.addReturnDatum(1);
   ctlr.addReturnDatum(1);
+  ctlr.addReturnDatum(1);
   m_pModule->Initialize(ctlr);
 
   std::vector<std::string> expected = {"executeList::begin",
     "addWrite16 8000603a 09 0",
+    "executeList::end",
+    "executeList::begin",
     "addWrite16 80006010 09 0",
     "addDelay 1",
     "addWrite16 80006004 09 0",
@@ -74,11 +79,11 @@ void cmqdc32test::initialize_0()
     "addDelay 1",
     "addWrite16 8000601c 09 1",
     "addDelay 1",
+    "addWrite16 80006036 09 0",
+    "addDelay 1",
     "addWrite16 80006018 09 1",
     "addDelay 1",
     "addWrite16 8000601a 09 1",
-    "addDelay 1",
-    "addWrite16 80006036 09 3",
     "addDelay 1",
     "addWrite16 8000604c 09 0",
     "addDelay 1",
@@ -190,14 +195,14 @@ void cmqdc32test::initialize_0()
     "addDelay 1",
     "addWrite16 800060b4 09 16",
     "addDelay 1",
-    "addWrite16 8000603c 09 1",
-    "addDelay 1",
-    "addWrite16 80006034 09 1",
     "addWrite16 80006070 09 0",
+    "addDelay 1",
+    "addWrite16 8000603c 09 1",
     "addDelay 1",
     "executeList::end",
     "executeList::begin",
     "addWrite16 8000603a 09 1",
+    "addWrite16 80006034 09 1",
     "executeList::end"};
 
 

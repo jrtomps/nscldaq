@@ -361,6 +361,7 @@ CAcquisitionThread::startDaq()
   size_t moreJunk;
 
   m_pController->flushBuffers();
+
   m_pCamac->writeActionRegister(CCCUSB::ActionRegister::clear);
 
 
@@ -375,7 +376,6 @@ CAcquisitionThread::startDaq()
     exit(status);
   }
   cerr << "CCUSB located firmware revision: " << hex << fware << dec << endl;
-
 
   CCusbToAutonomous();
 
@@ -394,13 +394,14 @@ CAcquisitionThread::stopDaq()
   drainUsb();
 
   m_pController->performStopOperations();
+
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 
   requests until resume or stop was sent.
 
+
   TODO:  Get the system to emit a pause/resume item.
-  
 */
 void
 CAcquisitionThread::pauseDaq()
@@ -428,6 +429,7 @@ CAcquisitionThread::pauseDaq()
       queues->Acknowledge();
       pState->setState(CRunState::Idle);
       throw 1;                 // Integer exception is exit.
+
     }
     else if (req == CControlQueues::RESUME) {
       startDaq();

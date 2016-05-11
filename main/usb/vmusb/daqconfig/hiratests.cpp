@@ -20,6 +20,7 @@
 //     nowadays --- and that's where the configuration is actually stored/located
 //     by the static validators in that class.
 
+
 namespace Globals {
   extern CConfiguration* pConfig;
   extern unsigned        scalerPeriod;

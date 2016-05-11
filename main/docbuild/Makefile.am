@@ -49,8 +49,12 @@ daq.mans: daq.xml
 #	touch daq.mans
 
 BOOKDIRS = 	@top_srcdir@ \
+<<<<<<< HEAD
 						@top_srcdir@/base/dataflow \
 						@top_srcdir@/base/factories \
+=======
+            @top_srcdir@/base/dataflow\
+>>>>>>> master
 						@top_srcdir@/daq/format \
 						@top_srcdir@/usb \
 						@top_srcdir@/usb/vmusb \
@@ -63,10 +67,14 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/simplesetups/v785 \
 						@top_srcdir@/utilities/bufdump \
 						@top_srcdir@/utilities/eventlog \
+<<<<<<< HEAD
 						@top_srcdir@/utilities/dumpend \
 						@top_srcdir@/utilities/runcontrol 	\
 						@top_srcdir@/utilities/bootmanager	\
 						@top_srcdir@/utilities/varmanager/scripts \
+=======
+						@top_srcdir@/utilities/scalersum \
+>>>>>>> master
 						@top_srcdir@/servers/portmanager \
 						@top_srcdir@/servers/tclserver \
 						@top_srcdir@/usb/mesytec/MCFD16 \
@@ -103,6 +111,7 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/base/uri \
 						@top_srcdir@/base/CopyrightTools \
 						@top_srcdir@/base/os \
+<<<<<<< HEAD
 						@top_srcdir@/base/tclwidgets  \
 						@top_srcdir@/libtcl/tclplus  \
 						@top_srcdir@/libtcl/exception 	\
@@ -113,6 +122,19 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/utilities/vardbEventbuilder	\
 						@top_srcdir@/utilities/vardbringbuffer
 
+=======
+						@top_srcdir@/base/plotchart	\
+						@top_srcdir@/base/tclutils \
+						@top_srcdir@/base/tclwidgets  \
+						@top_srcdir@/base/tcpip		\
+						@top_srcdir@/libtcl/tclplus  \
+						@top_srcdir@/libtcl/exception 
+
+#						@top_srcdir@/utilities/boot 
+#						@top_srcdir@/utilities/statemanager 
+#						@top_srcdir@/utilities/experimentConfiguration
+#						@top_srcdir@/utilities/cpanel 
+>>>>>>> master
 
 
 

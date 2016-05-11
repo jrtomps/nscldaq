@@ -1,50 +1,51 @@
 lib_LTLIBRARIES		= libCCUSBCore.la
 libCCUSBCore_la_SOURCES	= Globals.cpp CAcquisitionThread.cpp 	\
-													CControlQueues.cpp \
-													COutputThread.cpp \
-													CRunState.cpp \
-													DataBuffer.cpp  \
-													CSystemControl.cpp \
-													CBeginRun.cpp \
-													CEndRun.cpp \
-													CPauseRun.cpp \
-													CResumeRun.cpp \
-													CInit.cpp \
-													CExit.cpp  \
-													TclServer.cpp \
-													Server.cpp \
-													serverinstance.cpp \
-													CGetCommand.cpp  \
-													CSetCommand.cpp  \
-													CUpdateCommand.cpp  \
-													tclUtil.cpp	\
-													CCCUSBHighLevelController.cpp \
-													CPreBeginCommand.cpp CPreEndCommand.cpp \
-													CPrePauseCommand.cpp CPreResumeCommand.cpp
+				CControlQueues.cpp \
+				COutputThread.cpp \
+				CRunState.cpp \
+				DataBuffer.cpp  \
+				CSystemControl.cpp \
+				CBeginRun.cpp \
+				CEndRun.cpp \
+				CPauseRun.cpp \
+				CResumeRun.cpp \
+				CInit.cpp \
+				CExit.cpp  \
+				TclServer.cpp \
+				Server.cpp \
+			serverinstance.cpp \
+				CGetCommand.cpp  \
+				CSetCommand.cpp  \
+				CUpdateCommand.cpp  \
+					tclUtil.cpp	\
+					CCCUSBHighLevelController.cpp \
+					CPreBeginCommand.cpp CPreEndCommand.cpp \
+					CPrePauseCommand.cpp CPreResumeCommand.cpp
 
-noinst_HEADERS		= Globals.h CAcquisitionThread.h		\
-										CControlQueues.h \
-										COutputThread.h \
-										CRunState.h \
-										DataBuffer.h \
-										CSystemControl.h \
-										CBeginRun.h \
-										CEndRun.h \
-										CPauseRun.h \
-										CResumeRun.h \
-										CInit.h \
-										CExit.h  \
-										TclServer.h \
-										server.h \
-										serverinstance.h \
-										CGetCommand.h  \
-										CSetCommand.h  \
-										CUpdateCommand.h  \
-										tclUtil.h \
-										Events.h	\
-										CCCUSBHighLevelController.h  \
-										CPreBeginCommand.h CPreEndCommand.h \
-										CPrePauseCommand.h CPreResumeCommand.h
+noinst_HEADERS		= CAcquisitionThread.h		\
+				CControlQueues.h \
+				COutputThread.h \
+				CRunState.h \
+				DataBuffer.h \
+			CSystemControl.h \
+				CBeginRun.h \
+				CEndRun.h \
+				CPauseRun.h \
+				CResumeRun.h \
+				CInit.h \
+				CExit.h  \
+				TclServer.h \
+				server.h \
+			serverinstance.h \
+				CGetCommand.h  \
+				CSetCommand.h  \
+				CUpdateCommand.h  \
+				tclUtil.h \
+				Events.h	\
+				CCCUSBHighLevelController.h  \
+				CPreBeginCommand.h CPreEndCommand.h \
+				CPrePauseCommand.h CPreResumeCommand.h
+				Events.h
 
 libCCUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \

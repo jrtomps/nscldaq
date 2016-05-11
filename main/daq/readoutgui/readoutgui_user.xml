@@ -1213,10 +1213,18 @@ stagearea +
             </para>
             <para>
                 The ReadoutShell looks for the <filename>ReadoutCallouts.tcl</filename>
+<<<<<<< HEAD
                 file in the following directories.  Only the first one is
                 sourced in.  Sourcing is done at the global level.
             </para>
             <itemizedlist>
+=======
+                file in the following three locations.  Any ReadoutCallouts.tcl script
+                found is sourced in at the global level. The search order (and
+                thereby execution order) is:
+            </para>
+            <orderedlist>
+>>>>>>> master
                 <listitem>
                     <para>
                         <filename>~</filename> your home directory.
@@ -1235,7 +1243,11 @@ stagearea +
                         at the time ReadoutShell was first started.
                     </para>
                 </listitem>
+<<<<<<< HEAD
             </itemizedlist>
+=======
+            </orderedlist>
+>>>>>>> master
             <para>
                 If ReadoutCallouts or any other script sourced into
                 ReadoutShell provides them the following <command>proc</command>s
@@ -1244,7 +1256,11 @@ stagearea +
             <note>
                 <title>NOTE</title>
                 <para>
+<<<<<<< HEAD
                     Two additional callouts not avaialble in <filename>ReadoutCallouts.tcl</filename>
+=======
+                    Two additional callouts not available in <filename>ReadoutCallouts.tcl</filename>
+>>>>>>> master
                     scripts for NSCLDAQ-10.x and earlier have been added.
                 </para>
             </note>

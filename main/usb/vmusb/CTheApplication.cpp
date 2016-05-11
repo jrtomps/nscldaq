@@ -40,6 +40,7 @@
 #include <CPortManager.h>
 #include <CVMUSBHighLevelController.h>
 
+
 #include <vector>
 #include <cstdlib>
 #include <stdexcept>
@@ -183,6 +184,7 @@ int CTheApplication::operator()(int argc, char** argv)
     Globals::pHLController   = new CVMUSBHighLevelController(*Globals::pUSBController);
     Globals::pHLController->stopAcquisition();
     Globals::pHLController->flushBuffers(); 
+
     std::cerr << "Attached VMUSB controller with firmware: " << std::hex << 
       Globals::pUSBController->readFirmwareID() << std::dec << std::endl;
 
@@ -294,6 +296,7 @@ CTheApplication::startOutputThread(std::string ring)
   COutputThread* router = new COutputThread(ring, m_systemControl);
   router->start();
   Globals::pOutputThread = router;
+
   Os::usleep(500);
 
 }

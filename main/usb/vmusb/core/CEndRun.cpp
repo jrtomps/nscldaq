@@ -24,7 +24,9 @@
 
 #include <CControlQueues.h>
 #include <CRunState.h>
+
 #include "CPreEndCommand.h"
+
 
 using std::vector;
 using std::string;

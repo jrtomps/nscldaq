@@ -263,11 +263,15 @@ proc EVBC::start args {
     
     # Push the startup script into the pipe:
     
+<<<<<<< HEAD
     set infd [open $orderer r]
     while {![eof $infd]} {
         set line [gets $infd]
         puts $EVBC::pipefd $line
     }
+=======
+    puts $EVBC::pipefd "source $orderer"
+>>>>>>> master
     ::flush $EVBC::pipefd
     puts $EVBC::pipefd "set ::OutputRing [$options cget -destring]"
     ::flush $EVBC::pipefd
@@ -283,7 +287,10 @@ proc EVBC::start args {
         }
     }
     
+<<<<<<< HEAD
     close $infd
+=======
+>>>>>>> master
         
 
     #
@@ -429,12 +436,26 @@ proc EVBC::getOrdererPort {} {
 #                                 with an input queue.
 # @param info                   - Long description used to identify the source
 #                                 in the event orderer GUI.
+<<<<<<< HEAD
+=======
+# @param expectHdrs             - All data must have body headers. Timestamp lib
+#                                 and id can be left as empty strings
+# @param oneshot                - If provided number of ends that result in exit.
+# @param timeout                - If provided, timeout in seconds after first end to 
+#                                 wait for all ends in --oneshot mode.
+# @param offset                 - Optinoal time offset.
+>>>>>>> master
 # @note Event sources are subprocesses of us but not subprocesses of the
 #       the event building pipeline.
 #
 #
+<<<<<<< HEAD
 proc ::EVBC::registerRingSource {source lib id info {expectHdrs 0}} {
    ::RingSourceMgr::addSource $source $lib $id $info $expectHdrs
+=======
+proc ::EVBC::registerRingSource {source lib id info {expectHdrs 0} {oneshot {}} {timeout {}} {timeoffset 0}} {
+   ::RingSourceMgr::addSource $source $lib $id $info $expectHdrs $oneshot $timeout $timeoffset
+>>>>>>> master
 }
 
 #------------------------------------------------------------------------------
@@ -594,6 +615,19 @@ proc EVBC::onBegin {} {
         if {[info commands startEVBSources] ne ""} {
           ::EVBC::_waitForEventBuilder
           startEVBSources
+<<<<<<< HEAD
+=======
+          
+            # Before allowing the reaout(s) to start we want to wait a bit to be
+            # sure the sources are connected to the ring master and all that rot.
+            # this is needed in case the begin run action is quick.  We'll wait
+            # two seconds for now.  In testing with systems that essentially don't
+            # have initialization, I observed that sometimes the begin run events
+            # would get missed and this is why I think it happens.
+        
+            after 2000
+          
+>>>>>>> master
         }
     } else {
 	EVBC::reset
@@ -1139,10 +1173,16 @@ proc ::EVBC::enter {from to} {
     if {($from eq "Active") && ($to eq "Halted")} {
         ::EVBC::onEnd
     }
+<<<<<<< HEAD
     if {($from in [list Active Paused]) && ($to eq "NotReady")} {
         ::EVBC::stop
     }
 
+=======
+    if {$to eq "NotReady"} {
+        catch {::EVBC::stop}
+    }
+>>>>>>> master
 }
 ##
 # EVBC::leave

@@ -93,7 +93,7 @@ CExperiment::CExperiment(string ringName,
   m_nDefaultSourceId(0)
 {
   setRing(ringName);
-  
+
   m_pRunState = RunState::getInstance();
 
 }
@@ -188,6 +188,22 @@ CExperiment::PreStart()
 void
 CExperiment::Start(bool resume)
 {
+
+  // The run must be in the correct state:
+
+  if (resume && (m_pRunState->m_state != RunState::paused)) {
+    throw CStateException(m_pRunState->stateName().c_str(),
+			  RunState::stateName(RunState::paused).c_str(),
+			  "Starting data taking");
+  }
+  if (!resume && (m_pRunState->m_state != RunState::inactive)) {
+    throw CStateException(m_pRunState->stateName().c_str(),
+			  RunState::stateName(RunState::inactive).c_str(),
+			  "Starting data taking");
+  }
+
+
+
 
   // Can only start it if the triggers have been established:
   
@@ -291,7 +307,7 @@ CExperiment::Stop(bool pause)
   if (pause && (state != RunState::pausing)) {
     throw CStateException(m_pRunState->stateName().c_str(),
 			  RunState::stateName(RunState::pausing).c_str(),
-			  "Stopping data taking");
+
   }
   if (!pause && (m_pRunState->m_state == RunState::inactive)) {
     string validStates;

@@ -3927,28 +3927,58 @@ mqdc cget <replaceable>name</replaceable>
               </listitem>
             </varlistentry>
             <varlistentry>
-              <term><option>-multievent</option> <replaceable>boolean</replaceable></term>
+              <term><option>-multievent</option> <replaceable>off | on | limited</replaceable></term>
               <listitem>
                 <para>
-                  Allows the module to be used in multi-event mode.
-                  This is normally done in conjunction with the
-                  <command>madcchain</command> configuration command.
-                  It also usually requires a custom SpecTcl version
-                  to handle the data from this device.
-                </para>
-                <para>
-                  The default value for this parameter is
-                  <literal>false</literal>, which runs the module in
-                  single event mode. In single event mode, any user value provided to the 
-                  <option>-irqthreshold</option> option is ignored and the value 
-                  is forced to 1.
-                  If the parameter is <literal>true</literal> then
-                  the <option>-irqthreshold</option> option can be used to determine 
-                  how many words must be present in the buffer to trigger an interrupt 
-                  readout.
+		  Configures the device for multievent mode. The valid values are <literal>off</literal>,
+		  <literal>on</literal>, and <literal>limited</literal>. When the value is <literal>off</literal>,
+                  then the device is a purely single event mode. There is no buffering that occurs within the
+                  device and no new gates are accepted until the device is read out (we reset the device when we read).
+                  When the value is <literal>on</literal>, the device will transfer an unlimited amount of data with
+                  each read. This driver is written so that each read will attempt to transfer 1024 words. 
+                  Finally, if the value is <literal>limited</literal>, then the device will buffer events and then
+                  read out an amount determined by the <option>-maxtransfers</option> option.
+                  The default value for this parameter is <literal>off</literal>.                
                 </para>
               </listitem>
             </varlistentry>
+            <varlistentry>
+              <term><option>-countevents</option> <parameter>on | off</parameter></term>
+              <listitem>
+                <para>
+                  If the value passed to this parameter is <literal>on</literal>, then the <option>-maxtransfers</option>
+                  value is taken to be the number of events rather
+                  than the number of words. If you inspect the manual, this controls the 
+                  "count events" bit in the multievent mode register. Note that this
+                  only affects the output when the <option>-multievent</option> parameter
+                  is set to <literal>limited</literal>. The default value is <literal>no</literal>.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-skipberr</option> <parameter>yes | no</parameter></term>
+              <listitem>
+                <para>
+                  If true, then an "end of buffer" is sent instead of a BERR (0xffffffff) when the 
+                  reached and <option>-multievent</option>
+                  is set to <literal>limited</literal>. This controls the "Emit EOE" bit in the
+                  multievent register (see MQDC-32 manual). The default value is <literal>no</literal>.
+                </para>
+              </listitem>
+            </varlistentry> 
+            <varlistentry>
+              <term><option>-maxtransfers</option> <parameter>integer</parameter></term>
+	      <listitem>
+                <para>
+                  This is a soft threshold for the number of words that can be transferred in a single
+                  read when the <option>-multievent</option> parameter is set to <literal>limited</literal>. The number of words 
+	          transferred is the least number of words beyond the value set to complete an event. This is
+                  only a meaningful parameter if the <option>-multievent</option> parameter is set to <literal>limited</literal>.
+                  The default value is <literal>1</literal>.
+                </para>
+              </listitem>
+	    </varlistentry>
+	    
             <varlistentry>
               <term><option>-bankoffsets</option> <replaceable>intlist</replaceable></term>
               <listitem>

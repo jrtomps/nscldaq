@@ -85,7 +85,11 @@ tcltest::test registerRingSource-0 {
   set dict $::RingSourceMgr::sourceDict
   ::RingSourceMgr::clearSources
   set dict
+<<<<<<< HEAD
 } {a {tstamplib b id c info d expecthdrs e oneshot {} timeout {} fd {}}}
+=======
+} {a {tstamplib b id c info d expecthdrs e oneshot {} timeout {} offset 0 fd {}}}
+>>>>>>> master
 
 tcltest::test registerS800Source-0 {
 } {
@@ -94,7 +98,11 @@ tcltest::test registerS800Source-0 {
   ::RingSourceMgr::clearSources
   set dict
 } [dict create a [dict create tstamplib [file join $::EVBC::daqtop lib libS800TimeExtractor.so]\
+<<<<<<< HEAD
                               id b info c expecthdrs 0 oneshot {} timeout {} fd ""]]
+=======
+                              id b info c expecthdrs 0 oneshot {} timeout {} offset 0 fd ""]]
+>>>>>>> master
 
 
 tcltest::cleanupTests

@@ -89,6 +89,7 @@ CEndRun::operator()(CTCLInterpreter& interp,
     m_preEnd->perform();              // Now in ending.
   }
 
+
   // Now stop the run... if the thread has not already exited:
 
   if(CAcquisitionThread::getInstance()->isRunning()) {

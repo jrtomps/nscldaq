@@ -51,6 +51,7 @@ private:
   // Cannonicals:
 public:
   CResumeRun(CTCLInterpreter& interp, CPreResumeCommand* pre);
+
   virtual ~CResumeRun();
 
 private:

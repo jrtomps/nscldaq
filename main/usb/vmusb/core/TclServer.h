@@ -137,6 +137,7 @@ private:
   static void updateVariables(ClientData pData);
 
   static int Exit(Tcl_Event* pEvent, int flags);
+  void stackTrace();
 
 };
  

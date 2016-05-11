@@ -137,6 +137,7 @@ CHiRA::Initialize(CVMUSB& controller)
   // If we can't get a module that's an error:
 
   CConfiguration* pConfig = Globals::pHLController->getConfig();
+
   CReadoutModule* pXLM = pConfig->findAdc(xlm);
   if (!pXLM) {
     throw std::string("-xlm must define a module and does not");
@@ -175,6 +176,7 @@ CHiRA::addReadoutList(CVMUSBReadoutList& list)
   int         id   = m_pConfiguration->getIntegerParameter("-id");
 
   // Locate the fadc.
+
 
   CConfiguration* pConfig = Globals::pHLController->getConfig();
   
@@ -228,7 +230,9 @@ CHiRA::clone() const
 bool
 CHiRA::isModule(std::string name, std::string value, void* pArg)
 {
+
   CConfiguration* pConfiguration = Globals::pHLController->getConfig();
+
 
   return (pConfiguration->findAdc(value) != NULL);
 

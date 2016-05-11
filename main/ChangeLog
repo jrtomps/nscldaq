@@ -853,6 +853,7 @@ Work on 11.0-rc11 begins
         *  Feature #868 - Remove NSCLDAQ's dependency on BLT as that is not being
         sufficiently supported for me to have confidence that it won't break (again)
         when we go to Tcl 8.6
+<<<<<<< HEAD
         Bug #2915 - Don't emit body headers if there's no scaler timestamp extractor.
 11.0-variablemanager
 	Feature #3047 - Support for directory hierarchies in the variable
@@ -889,6 +890,8 @@ Work on 11.0-rc11 begins
 	Feature #4738  - Create properties and property editor.
 	Feature #4741  - Create editor objects
 	Feature #4744 - Get basic toolbar working.
+=======
+>>>>>>> master
         *  Bug #2915 - Don't emit body headers if there's no scaler timestamp extractor.
         - Add try/catch block around the action register write that
 	triggers the vmusbreadout monitor list as this intermittently
@@ -1073,6 +1076,7 @@ Work on 11.0-rc11 begins
 
 11.1-000
 	Good compilation of mergeer of 11.1 and 11.0head.
+<<<<<<< HEAD
 	
 11.1-varmgr
 	merge 11.1 trunk with work done so far.
@@ -1088,3 +1092,27 @@ Work on 11.0-rc11 begins
 	the nodes.
 
 	
+=======
+	* Fixes Bug #4999 by allowing -multhi0 and -multhi1 to span from 0
+	  to 255 in mtdc driver. It also sets the default value to be 255
+		for each of these.
+	
+11.1-001 
+	*  Feature #4849 - add offline scaler sum program.
+	*  Feature #4885 - Strip chart axis controls for scaler display program.
+	*  Fixes bug #5627 to properly support single event mode.
+	*  Fixes bug #5624 by working around a newly found VMUSB issue concerning
+	   stacks that end in delay operations.
+11.1-003
+	*  Feature #5612 - add --offset switch to ring fragment source for
+	when source synchornize but with a constant skew.
+11.1-004
+	* Feature #5663 Filter out rings in ringbuffer status - by default
+	show only those created by the current user.
+	* Feature #5792 Provide tracebacsk on control config file errors
+	  in XXUSBReadout program.s
+	* Feature #4870 Documentation:
+	   *   Task #5834 - Document missing stuff in os/thread
+	   *   Task #5822 - Document where to find Plotchart and how to
+   	       load NSCL's special version.
+>>>>>>> master

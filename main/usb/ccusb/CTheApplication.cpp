@@ -308,6 +308,7 @@ CTheApplication::createUsbController(const char* pSerialNo)
   Globals::pUSBController = new CCCUSBusb(pMyController);
   Globals::pController    = new CCCUSBHighLevelController(*::Globals::pUSBController);
 
+
 }
 
 /**

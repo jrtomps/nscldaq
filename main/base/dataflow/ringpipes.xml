@@ -59,6 +59,7 @@
 
 <!-- manpage 1daq -->
 <refentry id="manpage.ringtostdout">
+<<<<<<< HEAD
     <refentryinfo>
     <author>
         <personname>
@@ -73,6 +74,11 @@
      <refentrytitle>ringtostdout</refentrytitle>
      <manvolnum>1daq</manvolnum>
       <refmiscinfo class='empty'></refmiscinfo>
+=======
+  <refmeta>
+     <refentrytitle>ringtostdout</refentrytitle>
+     <manvolnum>1daq</manvolnum>
+>>>>>>> master
   </refmeta>
   <refnamediv>
      <refname>ringtostdout</refname>
@@ -158,6 +164,7 @@ ringtostdout somering | od -xa
 </refentry>
 
 <refentry id="manpage.stdintoring">
+<<<<<<< HEAD
   <refentryinfo>
     <author>
         <personname>
@@ -172,6 +179,11 @@ ringtostdout somering | od -xa
      <refentrytitle>stdintoring</refentrytitle>
      <manvolnum>1daq</manvolnum>
       <refmiscinfo class='empty'></refmiscinfo>
+=======
+  <refmeta>
+     <refentrytitle>stdintoring</refentrytitle>
+     <manvolnum>1daq</manvolnum>
+>>>>>>> master
   </refmeta>
   <refnamediv>
      <refname>stdintoring</refname>

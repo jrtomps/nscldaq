@@ -91,17 +91,29 @@ itcl::body AGD16XLM72::ReadFirmware {} {
 }
 
 itcl::body AGD16XLM72::Init {filename aname} {
+  if {![file exists $filename]} {
+    set msg "AGD16XLM72::Init initialization error. "
+    append msg "File ($filename) does not exist."
+    return -code error $msg
+  } 
+
+  # if we made it here, then the file exists
 	source $filename
 
-	AccessBus 0x10000
-	for {set i 1} {$i <= 16} {incr i} {
-    set delay [lindex [array get $aname delay$i] 1] 
-    set width [lindex [array get $aname width$i] 1]
-		WriteDelayWidth $i $delay $width
-	}
-	WriteBypass [lindex [array get $aname bypass] 1]
-	WriteInspect [lindex [array get $aname inspect] 1]
-	ReleaseBus
+  if {![array exists $aname]} {
+    set msg "AGD16XLM72::Init initialization error. "
+    append msg "Array named \"$aname\" does not exist."
+    return -code error $msg
+  }
+    AccessBus 0x10000
+    for {set i 1} {$i <= 16} {incr i} {
+	set delay [lindex [array get $aname delay$i] 1] 
+	set width [lindex [array get $aname width$i] 1]
+	WriteDelayWidth $i $delay $width
+    }
+    WriteBypass [lindex [array get $aname bypass] 1]
+    WriteInspect [lindex [array get $aname inspect] 1]
+    ReleaseBus
 }
 
 

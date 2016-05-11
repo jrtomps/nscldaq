@@ -13,7 +13,9 @@ Ron Fox
 NSCL
 Michigan State University
 East Lansing, MI 48824-1321
- */
+
+*/
+
 
 #ifndef CSYSTEMCONTROL_H
 #define CSYSTEMCONTROL_H
@@ -37,6 +39,7 @@ class CPreBeginCommand;
 class CPreEndCommand;
 class CPrePauseCommand;
 class CPreResumeCommand;
+
 
 /*! \brief Encapsulation of UI control 
  *
@@ -67,6 +70,7 @@ class CSystemControl
     static std::unique_ptr<CPreEndCommand> m_pPreEnd;
     static std::unique_ptr<CPrePauseCommand> m_pPrePause;
     static std::unique_ptr<CPreResumeCommand> m_pPreResume;
+
   public:
 
     /*! \brief Wrapper around Tcl_Main 

@@ -66,6 +66,19 @@ CEndCommand::operator()(CTCLInterpreter&    interp,
     return TCL_ERROR;
   }
 
+<<<<<<< HEAD
+=======
+  int status =0;
+  string result;
+  tie(status, result) = end();
+
+  interp.setResult(result);
+  return status;
+}
+
+tuple<int, string> CEndCommand::end() 
+{
+>>>>>>> master
   // Get the package and cast it to a CRunControlPackage:
 
   CTCLObjectPackage*   pPack       = getPackage();
@@ -99,11 +112,17 @@ CEndCommand::operator()(CTCLInterpreter&    interp,
     result = "Some unanticipated exception was caught while attempting to end the run";
   }
 
+<<<<<<< HEAD
   interp.setResult(result);
 
   return error ? TCL_ERROR : TCL_OK;
 
 }
+=======
+  return make_tuple((error ? TCL_ERROR : TCL_OK), result);
+}
+
+>>>>>>> master
 /*!
    Provides the usage string for the command
 */

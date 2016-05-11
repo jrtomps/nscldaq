@@ -32,7 +32,11 @@ snit::type OfflineEVBHoistPipeParams {
 
   option -sourcering  -default "OfflineEVBIn"   ;#< ring to attach to 
   option -tstamplib   -default ""               ;#< tstamp lib
+<<<<<<< HEAD
   option -id          -default 0                ;#< source id 
+=======
+  option -id          -default [list 0]                ;#< source id 
+>>>>>>> master
   option -info        -default "Data from OfflineEVBIn" ;#< Info message to display 
   option -expectbheaders -default 1             ;#< Whether to use 
                                                 ;#  --expectbodyheaders flag
@@ -104,14 +108,30 @@ snit::type OfflineEVBHoistPipeParams {
 
   ## @brief Validate the source id provided
   # 
+<<<<<<< HEAD
   # We onlyrequire that this is a non-negative integer. 
+=======
+  # We onlyrequire that all elements in id list are non-negative integers
+>>>>>>> master
   #
   # @param errors_  the variable name of the list
   #
   method validateId {errors_} {
     upvar $errors_ errors
+<<<<<<< HEAD
     if {$options(-id) < 0} {
       lappend errors "Source id for ringFragmentSource must be greater than or equal to 0. User specified $options(-id)."
+=======
+    
+    puts $options(-id)
+    foreach id $options(-id) {
+      if {![string is integer $id]} {
+        lappend errors "Source ids for ringFragmentSource must be integers. User specified $id."
+      }
+      if {$id < 0} {
+        lappend errors "Source ids for ringFragmentSource must be greater than or equal to 0. User specified $id."
+      }
+>>>>>>> master
     }
   }
 

@@ -27,6 +27,7 @@ class CTCLInterpreter;
 class CTCLInterpreterObject;
 class CPreBeginCommand;
 
+
 /*!
     This class provides the begin command for the readout main
     command interpreter.  This command starts a data taking run.
@@ -45,6 +46,7 @@ private:
   // Canonicals:
 public:
   CBeginRun(CTCLInterpreter& interp, CPreBeginCommand* pre);
+
   virtual ~CBeginRun();
 private:
   CBeginRun(const CBeginRun& rhs);

@@ -22,7 +22,10 @@ package require RunstateMachine
 package require StateManager
 package require DataSourceUI
 package require img::png
+<<<<<<< HEAD
 package require dialogWrapper
+=======
+>>>>>>> master
 
 package provide ui   1.0
 package provide ReadoutGUIPanel 1.0
@@ -738,7 +741,15 @@ snit::widgetadaptor RunControl {
     #
     method _start {} {
       set stateMachine [RunstateMachineSingleton %AUTO%]
+<<<<<<< HEAD
       $stateMachine transition Starting
+=======
+
+      RunControlSingleton::updateStateBundleOrder
+
+      $stateMachine transition Starting
+
+>>>>>>> master
       $stateMachine destroy 
     }
     ##
@@ -757,13 +768,24 @@ snit::widgetadaptor RunControl {
         set state [$stateMachine getState]
         $stateMachine destroy
 
+<<<<<<< HEAD
+=======
+        RunControlSingleton::updateStateBundleOrder
+
+>>>>>>> master
         if {$state eq "Halted"} {
           begin
         } elseif {$state in [list Paused Active]} {
           end
         } else {
+<<<<<<< HEAD
             error "ERROR: begin/end button clicked when state is $state which should not happen"
         }
+=======
+          error "ERROR: begin/end button clicked when state is $state which should not happen"
+        }
+
+>>>>>>> master
     }
     ##
     # _pauseresume
@@ -777,12 +799,22 @@ snit::widgetadaptor RunControl {
         set stateMachine [RunstateMachineSingleton %AUTO%]
         set state [$stateMachine getState]
         $stateMachine destroy
+<<<<<<< HEAD
+=======
+
+        RunControlSingleton::updateStateBundleOrder
+
+>>>>>>> master
         if {$state eq "Paused"} {
           resume
         } elseif {$state eq "Active"} {
           pause
         } else {
+<<<<<<< HEAD
             error "ERROR: pause/resume button clicked when state is $state which should not happen"
+=======
+          error "ERROR: pause/resume button clicked when state is $state which should not happen"
+>>>>>>> master
         }
     }
     
@@ -838,6 +870,146 @@ snit::widgetadaptor RunControl {
         }
     }
 }
+<<<<<<< HEAD
+=======
+
+## A callout bundles to disable the control widget state
+#
+#  This unconditionally disables the control widgets at the start
+#  of any transition.
+namespace eval RunControlDisable {
+
+  variable prevState normal
+
+  ##
+  #  attach
+  #   Called when the bundle is attached to the run control state machine.
+  #   Caches the state of the run control buttons.
+  #
+  # @param to - the current machine state.
+  proc attach {to} {
+    variable prevState
+    set rc [RunControlSingleton::getInstance]
+    set prevState [$rc cget -state]
+  }
+
+##
+#  leave
+#   Called when the state machine leaves a state. 
+#   Sets the state of the widgets to disabled every
+#   time.
+#
+  proc leave {from to} {
+    set rc [RunControlSingleton::getInstance]
+    $rc configure -state disabled
+  }
+
+  proc enter {from to} {}
+
+  ## 
+  # register bundle
+  #
+  # Inserts the callout bundle at the very start of the callout bundle
+  # list.
+  proc register {} {
+    set sm [RunstateMachineSingleton %AUTO%]
+    set bundles [$sm listCalloutBundles]
+    $sm addCalloutBundle RunControlDisable [lindex $bundles 0]
+    $sm destroy
+  }
+
+  ##
+  # Unregisters bundle from state machine
+  #
+  # Besides unregistering, this also sets the state of the 
+  # widgets to the state they were at registration. This is just
+  # a cleanup step.
+  proc unregister {} {
+    variable prevState 
+    set rc [RunControlSingleton::getInstance]
+    $rc configure -state $prevState
+
+    set sm [RunstateMachineSingleton %AUTO%]
+    $sm removeCalloutBundle RunControlDisable
+    $sm destroy
+  }
+
+  namespace export attach leave enter
+}
+
+## A callout bundle to enable the control widget state
+#
+# This unconditionally enables the control widget the the
+# end of any transition
+#
+namespace eval RunControlEnable {
+
+  variable prevState normal
+
+  #  attach
+  #   Called when the bundle is attached to the run control state machine.
+  # @param to - the current machine state.
+  # 
+  proc attach {to} {
+    variable prevState 
+    set rc [RunControlSingleton::getInstance]
+    set prevState [$rc cget -state]
+    $rc _updateAppearance
+  }
+
+  ##
+  #  leave
+  #   Called whenn the state machine leaves a state (unused)
+  #
+  proc leave {from to} {
+  }
+
+  ##
+  # enter
+  #    Called when the state machine enters a new state. 
+  #    This only adjusts the appearance if the transition is to
+  #    Starting or Halted.
+  #
+  # @param from - old state.
+  # @param to   - Current state
+  #
+  proc enter {from to} {
+    set rc [RunControlSingleton::getInstance]
+    $rc _updateAppearance
+  }
+
+  ## 
+  # register bundle
+  #
+  # Inserts the callout bundle at the very start of the callout bundle
+  # list.
+  proc register {} {
+    set sm [RunstateMachineSingleton %AUTO%]
+    $sm addCalloutBundle RunControlEnable 
+    $sm destroy
+  }
+
+  ##
+  # Unregisters bundle from state machine
+  #
+  # Besides unregistering, this also sets the state of the 
+  # widgets to the state they were at registration. This is just
+  # a cleanup step.
+  proc unregister {} {
+    variable prevState 
+    set rc [RunControlSingleton::getInstance]
+    $rc configure -state $prevState
+
+    set sm [RunstateMachineSingleton %AUTO%]
+    $sm removeCalloutBundle RunControlEnable
+    $sm destroy
+  }
+
+  namespace export attach leave enter
+}
+
+
+>>>>>>> master
 ##
 #   The functions/namespace below implement the run control singleton pattern.
 #
@@ -845,6 +1017,25 @@ namespace eval ::RunControlSingleton {
     variable theInstance ""
     namespace export attach enter leave
 }
+<<<<<<< HEAD
+=======
+
+##
+# Register (or reregister) the RunControlEnable/Disable bundles 
+#
+# This unregisters and then registers the RunControlEnable and 
+# RunControlDisable bundles to ensure that the Disable budnle
+# is first and the Enable bundle is last.
+#
+proc ::RunControlSingleton::updateStateBundleOrder {} {
+  catch {RunControlEnable::unregister}
+  catch {RunControlDisable::unregister}
+
+  RunControlEnable::register
+  RunControlDisable::register
+
+}
+>>>>>>> master
 ##
 #  ::RunControlSingleton::getInstance
 #
@@ -857,9 +1048,13 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
     if {$::RunControlSingleton::theInstance eq ""} {
         set ::RunControlSingleton::theInstance [RunControl $path {*}$args]
 
+<<<<<<< HEAD
         set stateMachine [RunstateMachineSingleton %AUTO%]
         $stateMachine addCalloutBundle RunControlSingleton
         $stateMachine destroy
+=======
+       RunControlSingleton::updateStateBundleOrder
+>>>>>>> master
 
     } elseif {[llength $args] > 0} {
         $::RunControlSingleton::theInstance configure {*}$args
@@ -873,6 +1068,7 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
 # @param state - the current machine state.
 # 
 proc ::RunControlSingleton::attach {state} {
+<<<<<<< HEAD
     set rctl [::RunControlSingleton::getInstance]
     $rctl _updateAppearance
 
@@ -880,20 +1076,36 @@ proc ::RunControlSingleton::attach {state} {
 ##
 # enter
 #    Called when the state machine enters a new state.
+=======
+}
+##
+# enter
+#    Called when the state machine enters a new state. 
+#    This only adjusts the appearance if the transition is to
+#    Starting or Halted.
+>>>>>>> master
 #
 # @param from - old state.
 # @param to   - Current state
 #
 proc ::RunControlSingleton::enter {from to} {
+<<<<<<< HEAD
     set rctl [::RunControlSingleton::getInstance]
     $rctl _updateAppearance
 
+=======
+>>>>>>> master
 }
 ##
 #  leave
 #   Called whenn the state machine leaves a state (unused)
 #
+<<<<<<< HEAD
 proc ::RunControlSingleton::leave {from to} {}
+=======
+proc ::RunControlSingleton::leave {from to} {
+}
+>>>>>>> master
 
 ##
 #  API elements for all this fun:
@@ -3003,9 +3215,13 @@ snit::widgetadaptor ReadoutGUI {
             set sm [RunstateMachineSingleton %AUTO%]
             if {[$sm getState] ne "NotReady"} {
                 $sm transition NotReady
+<<<<<<< HEAD
 
             }
             $sm exit;                  # Call the bundle onExit callbacks.
+=======
+            }
+>>>>>>> master
             $sm destroy;                # though there's not much point to this:
             #
             #  Save the state

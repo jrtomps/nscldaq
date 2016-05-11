@@ -1,6 +1,7 @@
 <!-- manpage 3daq -->
 
     <refentry id="manpage.copyrightnotice">
+<<<<<<< HEAD
     <refentryinfo>
       <author>
           <personname>
@@ -15,6 +16,11 @@
          <refentrytitle>CopyrightNotice</refentrytitle>
          <manvolnum>3daq</manvolnum>
          <refmiscinfo class='empty'></refmiscinfo>
+=======
+      <refmeta>
+         <refentrytitle>CopyrightNotice</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+>>>>>>> master
       </refmeta>
       <refnamediv>
          <refname>CopyrightNotice</refname>

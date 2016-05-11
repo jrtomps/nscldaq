@@ -67,9 +67,16 @@ namespace eval ::RingSourceMgr {
 # @param oneshot    If provided number of ends that result in exit.
 # @param timeout    If provided, timeout in seconds after first end to wait for all ends
 #                   in --oneshot mode.
+<<<<<<< HEAD
 #
 proc ::RingSourceMgr::addSource [list source tstamplib {id ""} \
   {info ""} {expectHeaders 0} {oneshot ""} {timeout ""} ] {
+=======
+# @param offset     Time offset added to the timestamp from this source.
+#
+proc ::RingSourceMgr::addSource [list source tstamplib {id ""} \
+  {info ""} {expectHeaders 0} {oneshot ""} {timeout ""} {offset 0} ] {
+>>>>>>> master
     variable sourceDict
 
     # there will only ever be 1 ringFragmentSource launched per ring at a given a time
@@ -80,6 +87,10 @@ proc ::RingSourceMgr::addSource [list source tstamplib {id ""} \
       expecthdrs $expectHeaders \
       oneshot    $oneshot       \
       timeout    $timeout       \
+<<<<<<< HEAD
+=======
+      offset     $offset        \
+>>>>>>> master
       fd ""]
     
     
@@ -166,7 +177,11 @@ proc ::RingSourceMgr::resetSources {} {
 #
 # @returns file handle
 proc ::RingSourceMgr::startSource {sourceRingUrl timestampExtractorLib id info
+<<<<<<< HEAD
   {expectHeaders 0} {oneshot ""} {timeout ""} } {
+=======
+  {expectHeaders 0} {oneshot ""} {timeout ""} {offset 0} } {
+>>>>>>> master
 
   set port [::RingSourceMgr::getOrdererPort]
   #  Construct the command we're going to run
@@ -177,7 +192,11 @@ proc ::RingSourceMgr::startSource {sourceRingUrl timestampExtractorLib id info
     $timestampExtractorLib \
     $id \
     $info \
+<<<<<<< HEAD
     $expectHeaders $oneshot $timeout]
+=======
+    $expectHeaders $oneshot $timeout $offset]
+>>>>>>> master
 
   append ringSource $switches
 
@@ -222,7 +241,14 @@ proc ::RingSourceMgr::onBegin {} {
       set id [dict get $paramDict id]
       set info [dict get $paramDict info]
       set expectHeaders [dict get $paramDict expecthdrs]
+<<<<<<< HEAD
       set fd [::RingSourceMgr::startSource $source $lib $id $info $expectHeaders]
+=======
+      set oneshot [dict get $paramDict oneshot]
+      set timeout [dict get $paramDict timeout]
+      set fd [::RingSourceMgr::startSource $source $lib $id $info \
+                                           $expectHeaders $oneshot $timeout]
+>>>>>>> master
       dict set sourceDict $source fd $fd
     }
   }
@@ -304,11 +330,16 @@ namespace eval ::RingSourceMgr {
 # @param port             the port of the orderer server
 # @param url              url of the ring 
 # @param tstampExtractor  path to tstamp extractor lib
+<<<<<<< HEAD
 # @param id               source id associated with source
+=======
+# @param ids              list of source ids associated with source
+>>>>>>> master
 # @param info             description of the source
 # @param expectHeaders    boolean to specify --expectbodyheaders flag
 # @param oneshot          --oneshot count "" if not using.
 # @param timeout          --timeout seconds or "" if default.
+<<<<<<< HEAD
 # @returns string containing command line arguments to use
 #
 proc ::RingSourceMgr::_computeRingSourceSwitches {port url tstampExtractor id
@@ -317,6 +348,20 @@ proc ::RingSourceMgr::_computeRingSourceSwitches {port url tstampExtractor id
   set switches ""
   append switches " --evbhost=localhost --evbport=$port"
   append switches " --info=$info --ids=$id --ring=$url"
+=======
+# @param offset           --offset dt in timestamp ticks.
+# @returns string containing command line arguments to use
+#
+proc ::RingSourceMgr::_computeRingSourceSwitches {port url tstampExtractor ids
+  info expectHeaders oneshot timeout offset} {
+
+  set switches ""
+  append switches " --evbhost=localhost --evbport=$port"
+  append switches " --info=$info --ring=$url"
+  foreach id $ids {
+    append switches " --ids=$id"
+  }
+>>>>>>> master
 
   if {$tstampExtractor ne ""} {
     append switches " --timestampextractor=[file normalize $tstampExtractor]"
@@ -332,6 +377,12 @@ proc ::RingSourceMgr::_computeRingSourceSwitches {port url tstampExtractor id
   if {$timeout ne ""} {
     append switches " --timeout=$timeout"
   }
+<<<<<<< HEAD
+=======
+  if {$offset != 0} {
+    append switches " --offset=$offset"
+  }
+>>>>>>> master
 
   return $switches
 }

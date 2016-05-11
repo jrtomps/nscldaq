@@ -23,6 +23,7 @@
 #include <tclUtil.h>
 #include <CPrePauseCommand.h>
 
+
 using std::string;
 using std::vector;
 
@@ -86,6 +87,7 @@ CPauseRun::operator()(CTCLInterpreter& interp,
   if (state == CRunState::Active) {
     m_pPre->perform();                     // Perform the pre-pause action.
   }
+
   CControlQueues* pRequest = CControlQueues::getInstance();
 
   pRequest->PauseRun();

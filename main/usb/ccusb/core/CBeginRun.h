@@ -18,6 +18,7 @@
 #ifndef CBEGINRUN_H
 #define CBEGINRUN_H
 
+
 #ifndef __TCLOBJECTPROCESSOR_H
 #include <TCLObjectProcessor.h>
 #endif
@@ -54,12 +55,14 @@ class CPreBeginCommand;
 */
 class CBeginRun : public CTCLObjectProcessor
 {
+
 private:
   CPreBeginCommand* m_pPreBegin;
   
   // Canonicals:
 public:
   CBeginRun(CTCLInterpreter& interp, CPreBeginCommand* preBegin);
+
   virtual ~CBeginRun();
 private:
   CBeginRun(const CBeginRun& rhs);

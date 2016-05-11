@@ -41,8 +41,11 @@ package require DataSourceUI
 package require versionUtils
 package require StateManager
 
+<<<<<<< HEAD
 package require dialogWrapper
 
+=======
+>>>>>>> master
 
 
 ##
@@ -61,8 +64,11 @@ package require dialogWrapper
 #  * {Paused, Active} -> NotReady(enter):
 #                                       If the eventlogPID is set force the
 #                                       eventlog to exit and finalize the run.
+<<<<<<< HEAD
 #  * OnExit - If the event log is running kill it off and try to finalize
 #             the run.
+=======
+>>>>>>> master
 #
 #            
 #
@@ -125,7 +131,11 @@ namespace eval ::EventLog {
     
     # Export the bundle interface methods
     
+<<<<<<< HEAD
     namespace export attach enter leave onExit
+=======
+    namespace export attach enter leave
+>>>>>>> master
 
 }
 
@@ -692,7 +702,10 @@ proc ::EventLog::runEnding {} {
     
     set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
     set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
+<<<<<<< HEAD
     set ui [::RunControlSingleton::getInstance]
+=======
+>>>>>>> master
 
     # ne is used below because the logger could be a pipeline in which case
     # ::EventLog::loggerPid will be a list of pids which freaks out ==.
@@ -706,7 +719,10 @@ proc ::EventLog::runEnding {} {
         #  A timeout is used in case there's a problem and the event log
         #  never exists.
         
+<<<<<<< HEAD
         $ui configure -state disabled
+=======
+>>>>>>> master
         
         set timeoutId [after \
             [expr {$::EventLog::shutdownTimeout*1000}]    \
@@ -750,7 +766,10 @@ proc ::EventLog::runEnding {} {
                 {Run ended}
         }
     }
+<<<<<<< HEAD
     $ui configure -state normal
+=======
+>>>>>>> master
     ReadoutGUIPanel::normalColors
 }
 
@@ -827,6 +846,7 @@ proc ::EventLog::leave {from to} {
   }
 }
 
+<<<<<<< HEAD
 ##
 # ::EventLog::onExit
 #    Called when the program exits.
@@ -842,6 +862,8 @@ proc ::EventLog::onExit {} {
     }
 }
 
+=======
+>>>>>>> master
 #-------------------------------------------------------------------------------
 #
 # Bundle registration

@@ -1,0 +1,111 @@
+<!-- manpage 3tcl -->
+<refentry id='tcl3.utils'>
+
+    <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+    </refentryinfo>
+    <refmeta>
+       <refentrytitle id='tcl3.utils.title'>Utils</refentrytitle>
+       <manvolnum>3tcl</manvolnum>
+       <refmiscinfo class='empty'></refmiscinfo>
+    </refmeta>
+    <refnamediv>
+       <refname>Utils</refname>
+       <refpurpose>Tcl namespace with useful utility procs.</refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>
+package require Utils
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+Utils::isInRange <replaceable>low high val</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+Utils::listElementsInRange <replaceable>low high list</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+Utils::sequence <replaceable>start n ?inc?</replaceable>
+            </command>
+        </cmdsynopsis>
+        
+    </refsynopsisdiv>
+    <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            A package that contains a random set of utility functions.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>PROCS</title>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                        <command>
+Utils::isInRange <replaceable>low high val</replaceable>
+                        </command>
+                    </cmdsynopsis>    
+                </term>
+                <listitem>
+                        <para>
+                            Returns a boolean that is true if
+                            <parameter>val</parameter> is in the range
+                            [<parameter>low</parameter>, <parameter>high</parameter>]
+                        </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                        <command>
+Utils::listElementsInRange <replaceable>low high list</replaceable>
+                        </command>
+                    </cmdsynopsis>    
+                </term>
+                <listitem>
+                        <para>
+                            Returns a possibly empty list of values from
+                            the list of values <parameter>list</parameter> that
+                            are in the range
+                            [<parameter>low</parameter>, <parameter>high</parameter>].
+                        </para>
+                </listitem>
+            </varlistentry>				
+            <varlistentry>
+                    <term>
+            			<cmdsynopsis>
+                        <command>
+Utils::sequence <replaceable>start n ?inc?</replaceable>
+                        </command>
+                    </cmdsynopsis>	
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns a list (sequence) of
+                            <parameter>n</parameter>integers that
+                            begin with <parameter>start</parameter>.  Each
+                            value in the sequence is derived from the prior value
+                            by adding <parameter>inc</parameter>.  If
+                            the optional <parameter>inc</parameter> is not
+                            present, it defaults to 1.
+                        </para>
+                    </listitem>
+            </varlistentry>          
+        </variablelist>
+    </refsect1>
+</refentry>
+<!-- /manpage -->

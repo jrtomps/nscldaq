@@ -20,6 +20,7 @@ class CPauseRun;
 class CResumeRun;
 class CInit;
 class CExit;
+
 class CPreResumeCommand;
 
 /*! \brief Encapsulation of UI control 
@@ -43,6 +44,7 @@ class CSystemControl
     // program completion.
     
     static std::unique_ptr<CPreBeginCommand> m_pPreBegin;
+
     static std::unique_ptr<CBeginRun>  m_pBeginRun;
     static std::unique_ptr<CEndRun>    m_pEndRun;
     static std::unique_ptr<CPauseRun>  m_pPauseRun;
@@ -52,6 +54,7 @@ class CSystemControl
     static std::unique_ptr<CPreEndCommand>    m_pPreEnd;
     static std::unique_ptr<CPrePauseCommand>  m_pPrePause;
     static std::unique_ptr<CPreResumeCommand> m_pPreResume;
+
   public:
 
     /*! \brief Wrapper around Tcl_Main 

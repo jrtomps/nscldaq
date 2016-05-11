@@ -150,7 +150,9 @@ CRunControlPackage::preResume()
 void
 CRunControlPackage::begin()
 {
+
   if (m_pTheState->m_state == RunState::starting) {
+
     m_pTheExperiment->Start(false);	// not a resume.
     m_pTimer = new RunTimer(m_pInterp);
   }
@@ -164,6 +166,7 @@ CRunControlPackage::begin()
 			 
   }
 }
+
 /**
  * preEnd
  *    Perform any operations requried prior to the end of the run.  Note that
@@ -188,6 +191,7 @@ CRunControlPackage::preEnd()
    m_pTheState->m_state = RunState::halting;
   
 }
+
 
 /*!
    Halt a run.  The state must be activfe or paused for this to be legal.
@@ -267,7 +271,9 @@ CRunControlPackage::pause()
 void
 CRunControlPackage::resume()
 {
+
   if (m_pTheState->m_state == RunState::resuming) {
+
     m_pTheExperiment->Start(true);
     m_pTimer = new RunTimer(m_pInterp);
   }
@@ -308,4 +314,8 @@ void CRunControlPackage::createCommands(CTCLInterpreter& interp)
   addCommand(new CInitCommand(interp));
   addCommand(new CPreEndCommand(interp));
   addCommand(new CPreResumeCommand(interp));
+  addCommand(new CPauseCommand(interp));
+  addCommand(new CResumeCommand(interp));
+  addCommand(new CEndCommand(interp));
+  addCommand(new CInitCommand(interp));
 }

@@ -14,7 +14,6 @@ libdaqio_la_SOURCES = CDataSource.cpp \
 											 CLoggingDataSink.cpp \
 											 CDataSinkFactory.cpp \
 											 CDataSinkException.cpp
-                       
 include_HEADERS	=  CDataSource.h \
 									 CFileDataSource.h \
 									 CRingDataSource.h \
@@ -66,9 +65,10 @@ unittests_SOURCES	= TestRunner.cpp  \
 
 unittests_LDADD		= \
 			@builddir@/libdaqio.la \
-			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/base/uri/liburl.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
+			@top_builddir@/base/dataflow/libDataFlow.la 	\
+			@top_builddir@/base/os/libdaqshm.la	\
 			$(CPPUNIT_LDFLAGS) 		\
 			@LIBEXCEPTION_LDFLAGS@
 

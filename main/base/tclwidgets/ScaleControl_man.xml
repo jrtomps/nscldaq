@@ -1,0 +1,234 @@
+<!-- manpage 3tcl -->
+
+      <refentry id="tcl3_ScaleControl">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id = 'tcl3_ScaleControl_title'>ScaleControl</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>ScaleControl</refname>
+           <refpurpose>Megawidget intended for axis scale control</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+ScaleControl <replaceable>widget-path</replaceable>
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>widget-path</replaceable> configure <replaceable>option...</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>widget-path</replaceable> cget <replaceable>option</replaceable>   
+            </command>
+          </cmdsynopsis>
+          
+          
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Megawidget that provides support for a set of options, some of which
+            can be incremented and decremented through, all of which can be
+            accessed via a drop down menu, as well as an optional numeric value.
+            The intent is to use the widget to provide a zoom control for axis
+            scaling in plots.  The drop down menu might be stocked with a set of
+            pre-defined zoom settings and additional settings (e.g. <literal>Custom...</literal>
+            or <literal>Auto</literal>).
+           </para>
+           <para>
+            The <guibutton>+</guibutton> and <guibutton>-</guibutton> buttons
+            can step through a subset of the items in the drop down menu.
+            An optional <literal>Min</literal> control allows users to
+            specify a minimum value for the axis.  This can be used if a signal
+            is weakly varying along a high offset; Zoom and set the min value
+            to something near that offset to allow you to view the varying
+            part of the signal in more detail.
+           </para>
+           <para>
+            This widget is patterned after the zoom controls that appear in many
+            program such as <trademark>Adobe Acrobat</trademark>.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>-menulist</option> <replaceable>list of items</replaceable></term>
+                <listitem>
+                    <para>
+                        The set of items in the drop down menu is set to the list
+                        items in the <option>-menulist</option> parameter.
+                        The items have an index numbered from zero that reflects
+                        their position in this list.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-zoomrange</option> <replaceable>low high</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies the subset of menu items the <guibutton>+</guibutton>
+                        and <guibutton>-</guibutton> buttons will step amongst.
+                        The argument is a two element Tcl list that specifies,
+                        in order, the first and last element indices of the set of
+                        <option>-menulist</option> items eligible for this sort
+                        of selection.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-current</option></term>
+                <listitem>
+                    <para>
+                        Contains/sets the text of the currently selected item.
+                        The value is not restricted to the set of values in the
+                        menu.  If this is a zoom control, that fact can be used
+                        to implement custom zoom values that are not in the menu.
+                    </para>
+                    <para>
+                        Changes to this option value, whether via configuration
+                        by the application or user interface interactions will
+                        dispatch the <option>-command</option> script.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-min</option></term>
+                <listitem>
+                    <para>
+                        Contains/sets the minimum value.  Changes to the value,
+                        either from the application via a configure or from
+                        the user interface, dispatch the <option>-mincommand</option>
+                        script.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-enablemin</option> <replaceable>on|off</replaceable></term>
+                <listitem>
+                    <para>
+                        Boolean value.  When <literal>true</literal> displays
+                        the min value setting.  When <literal>false</literal>
+                        does not.  This is useful for e,g, strip charts for which
+                        an x axis minimum value has very little meaning.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-command</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies a script that is
+                        called when one of the following happens:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            The <guibutton>+</guibutton> button is clicked to
+                            advance the current menu selection
+                        </para></listitem>
+                        <listitem><para>
+                            The <guibutton>-</guibutton> button is clicked to
+                            go backwards in the zoom list from the current menu
+                            selection.
+                        </para></listitem>
+                        <listitem><para>
+                            A selection is made from the drop down menu.
+                        </para></listitem>
+                        <listitem><para>
+                            The <option>-current</option> is configured by
+                            the application.
+                        </para></listitem>
+                    </itemizedlist>
+                    <para>
+                        See the section <literal>SUBSTUTIONS</literal> below for
+                        the script substitutions that are supported.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-mincommand</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies a script that is invoked when any of the
+                        following occurs:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            The min control loses input focus.
+                        </para></listitem>
+                        <listitem><para>
+                            The user uses the <literal>Return</literal> or
+                            <literal>Keypad Enter</literal> keys when focus
+                            is in the min control.
+                        </para></listitem>
+                        <listitem><para>
+                            The <option>-min</option> option is configured.
+                        </para></listitem>
+                    </itemizedlist>
+                    <para>
+                        See the section <literal>SUBSTITUTIONS</literal>
+                        below.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>SUBSTUTIONS</title>
+            <para>
+                All event handling scripts for this widget support the following
+                substitutions:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>%W</literal></term>
+
+
+                    <listitem>
+                        <para>
+                            Widget path.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>%S</literal></term>
+                    <listitem>
+                        <para>
+                            Value of the <option>-current</option> option.
+                            This is a string not a menu index.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>%M</literal></term>
+                    <listitem>
+                        <para>
+                            Value of the min control.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+      </refentry>
+
+
+
+<!-- /manpage -->

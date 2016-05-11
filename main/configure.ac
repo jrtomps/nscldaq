@@ -3,7 +3,11 @@
 
 AC_PREREQ(2.61)
 
+<<<<<<< HEAD
 AC_INIT(nscldaq, 11.1-exp-varmgr, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
+=======
+AC_INIT(nscldaq,11.1-004, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
+>>>>>>> master
 
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
@@ -71,10 +75,13 @@ AM_PATH_CPPUNIT
 
 AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([OpenSSL is required but cannot be found])])
 
+<<<<<<< HEAD
 # Using glib bits:
 
 PKG_CHECK_MODULES([GLIB], glib-2.0 > 2.16)
 
+=======
+>>>>>>> master
 
 #
 #   For compatibility with existing AC_Substs:
@@ -102,15 +109,27 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
+<<<<<<< HEAD
+=======
+
+AX_CHECK_COMPILE_FLAG([-Wno-error=date-time], [NODATEWARN="-Wno-error=date-time"])
+AC_SUBST(NODATEWARN)
+
+
+>>>>>>> master
 # check to find the size of address
 AC_CHECK_SIZEOF([void*])
 AS_IF([test "$ac_cv_sizeof_voidp" -eq 8],
     AC_DEFINE([ADDR64],1,[Specifies that memory addresses are 64-bits ]),
      [])
+<<<<<<< HEAD
 
 
 AX_CHECK_COMPILE_FLAG([-Wno-error=date-time], [NODATEWARN="-Wno-error=date-time"])
 AC_SUBST(NODATEWARN)
+=======
+   
+>>>>>>> master
 
 # Checks for library functions.
 
@@ -126,7 +145,11 @@ AC_FUNC_STAT
 
 # Automake:
 
+<<<<<<< HEAD
 AM_INIT_AUTOMAKE([foreign parallel-tests])
+=======
+AM_INIT_AUTOMAKE([foreign])
+>>>>>>> master
 
 # Makefile exports:
 
@@ -141,6 +164,7 @@ SOVERSION="11:0:0"
 #  Local tests:
 #
 
+<<<<<<< HEAD
 #  Check for sqlit3 - used by variable manager.
 
 AX_LIB_SQLITE3
@@ -157,6 +181,13 @@ AX_PYQT
 
 AX_PYTHON_DEVEL([>= '2.7'])
 
+=======
+# Ensure Python is 2.7 or greater, and the packages/dependencies we need
+
+AM_PATH_PYTHON([2.7], [], [AC_MSG_ERROR([Python 2.7 or higher is needed for NSCLDAQ])])
+AX_PYQT
+
+>>>>>>> master
 # Ensure swig is installed: -- this is used to generate wrappers for the
 #  VMUSB and CCUSB libraries for use within Tcl drivers.
 #
@@ -397,6 +428,7 @@ AC_CONFIG_LINKS([utilities/filter/run-0000-00.evt:utilities/filter/run-0000-00.e
 AC_CONFIG_FILES([Makefile
 		nscldaq
 		daqsetup.bash
+<<<<<<< HEAD
 		base/Makefile
 		base/os/Makefile
                  base/CopyrightTools/Makefile
@@ -543,6 +575,129 @@ AC_CONFIG_FILES([Makefile
     		 usb/ccusb/tclpackage/Makefile
     		 usb/ccusb/tcldrivers/Makefile
     		 usb/ccusb/driverkit/Makefile
+=======
+    base/Makefile
+    base/os/Makefile
+    base/CopyrightTools/Makefile
+    base/bltsubst/Makefile
+    base/cvt/Makefile
+    base/thread/Makefile
+    base/headers/Makefile
+    base/security/Makefile
+    base/tclwidgets/Makefile
+    base/uri/Makefile
+    base/dataflow/Makefile
+    base/plotchart/Makefile
+    base/plotcontainer/Makefile
+    base/tcpip/Makefile
+    base/tclutils/Makefile
+    base/testutils/Makefile
+    caenfw-common/Makefile
+    servers/Makefile
+    servers/tclserver/Makefile
+    servers/portmanager/Makefile
+    utilities/Makefile
+    utilities/Buffer/Makefile
+    utilities/daqstart/Makefile
+    utilities/dvdburn/Makefile
+    utilities/scalerdisplay/ScalerDisplay
+    utilities/sequencer/Makefile
+    utilities/ringselector/Makefile
+    utilities/bufdump/Makefile
+    utilities/eventlog/Makefile
+    utilities/sclclient/Makefile
+    utilities/tkbufdump/Makefile
+    utilities/filter/Makefile
+    utilities/filter/Makefile-template
+    utilities/filter/FilterIncludes
+    utilities/compatibility/Makefile
+    utilities/compatibility/eventlog-compat
+    utilities/compatibility/spectcldaq
+    utilities/compatibility/s800toring
+    utilities/compatibility/bufdump
+    utilities/conversion/Makefile
+    utilities/fileanalyzer/Makefile
+    utilities/format/Makefile
+    utilities/format/V8/Makefile
+    utilities/format/V10/Makefile
+    utilities/format/V11/Makefile
+    utilities/IO/Makefile
+    utilities/FormattedIO/Makefile
+    utilities/newscaler/Makefile
+    utilities/newscaler/ScalerDisplay.tcl
+    utilities/scalersum/Makefile
+    epics/chanlog/Makefile
+    epics/controlpush/Makefile
+    epics/epicsdisplay/Makefile
+    epics/epicsdisplay/epicsdisplay
+    epics/Makefile
+    daq/Makefile
+    daq/format/Makefile
+    daq/readoutgui/Makefile
+    daq/readoutgui/InstallRoot.tcl
+    daq/readoutgui/ReadoutShell.tcl
+    daq/s800callouts/Makefile
+    daq/eventbuilder/Makefile daq/eventbuilder/Makefile_Skeleton
+    daq/eventbuilder/ringsource/Makefile
+    daq/eventbuilder/teering/Makefile
+    daq/eventbuilder/glom/Makefile
+    daq/eventbuilder/unglom/Makefile
+    daq/eventbuilder/startOrderer
+    daq/actions/Makefile
+    daq/eventbuilder/offlineorderer/Makefile
+    daq/eventbuilder/offlineorderer/figures/Makefile
+    simplesetups/Makefile
+    simplesetups/v775/Makefile
+    simplesetups/v785/Makefile
+    simplesetups/vmusb/Makefile
+    sbs/Makefile
+    sbs/driver/Makefile
+    sbs/driver/src/Makefile
+    sbs/driver/include/Makefile
+    sbs/driver/dd/GNUmakefile
+    sbs/nsclapi/Makefile
+    sbs/tclpackage/Makefile
+    sbs/puretcl/Makefile
+    sbs/vmemodules/Makefile
+    sbs/readout/Makefile
+    sbs/readout/UserMakefile
+    sbs/readout/SBSRdoMakeIncludes
+    sbs/slowcontrols/Makefile
+    sbs/slowcontrols/vhq/Makefile
+    sbs/slowcontrols/caenv812/Makefile
+    sbs/slowcontrols/n568b/Makefile
+    sbs/slowcontrols/bcnaf/Makefile
+    sbs/slowcontrols/vhs/Makefile
+    sbs/scripted/Makefile
+    sbs/VmeDevice/Makefile
+    sbs/caenfwloader/Makefile
+    usb/Makefile
+    usb/loaders/Makefile
+    usb/vmusb/Makefile
+    usb/vmusb/vmusb/Makefile 
+    usb/vmusb/core/Makefile 
+    usb/vmusb/ctlconfig/Makefile 
+    usb/vmusb/daqconfig/Makefile  
+    usb/vmusb/driverkit/Makefile 
+    usb/vmusb/driverkit/Makefile-template
+    usb/vmusb/tcldrivers/Makefile
+    usb/vmusb/driverkit/VMUSBDriverIncludes
+    usb/vmusb/controlpanels/Makefile 
+    usb/vmusb/controlpanels/cv6533/Makefile
+    usb/vmusb/controlpanels/figures/Makefile
+    usb/vmusb/devtests/Makefile
+    usb/vmusb/vmusbPackage/Makefile
+    usb/vmusb/tclservertests/Makefile
+    usb/ccusb/Makefile
+    usb/ccusb/ccusb/Makefile 
+    usb/ccusb/core/Makefile
+    usb/ccusb/daqconfig/Makefile 
+    usb/ccusb/ctlconfig/Makefile 
+    usb/ccusb/ctlconfig/driver_Makefile
+    usb/ccusb/tclpackage/Makefile
+    usb/ccusb/tcldrivers/Makefile
+    usb/ccusb/driverkit/Makefile
+>>>>>>> master
 		 usb/ccusb/driverkit/Makefile-template
 		 usb/ccusb/driverkit/CCUSBDriverIncludes
 		 usb/ccusb/controlpanels/Makefile

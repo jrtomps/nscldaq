@@ -32,6 +32,7 @@
 #include <CPreBeginCommand.h>
 #include <stdexcept>
 
+
 static const size_t MAX_STACK_STORAGE(1024);
 
 using std::vector;
@@ -145,11 +146,11 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   pState->setTitle(string(titleString));
   
 
-
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
   pReadout->start(Globals::pUSBController, Globals::pController);
 
   interp.setResult("Begin - Run started");
+
   return TCL_OK;
 }
 

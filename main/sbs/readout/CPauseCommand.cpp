@@ -17,10 +17,12 @@
 #include "CPauseCommand.h"
 #include "CRunControlPackage.h"
 #include "RunState.h"
+
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <StateException.h>
 #include <tcl.h>
+
 #include "CPrePauseCommand.h"
 
 using namespace std;
@@ -39,6 +41,7 @@ CPauseCommand::CPauseCommand(CTCLInterpreter& interp, CPrePauseCommand* prePause
   CTCLPackagedObjectProcessor(interp, string("pause")),
   m_prePause(prePause)
 {
+
 
 }
 /*!

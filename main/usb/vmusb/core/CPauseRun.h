@@ -37,7 +37,10 @@
 
 class CTCLInterpreter;
 class CTCLObject;
+<<<<<<< HEAD
 class CPrePauseCommand;
+=======
+>>>>>>> master
 
 /*!
    Command object that processa a pause command that puts a temporary
@@ -45,11 +48,17 @@ class CPrePauseCommand;
 */
 class CPauseRun : public CTCLObjectProcessor
 {
+<<<<<<< HEAD
 private:
   CPrePauseCommand* m_pPre;
   // Cannonicals
 public:
   CPauseRun(CTCLInterpreter& interp, CPrePauseCommand* pre);
+=======
+  // Cannonicals
+public:
+  CPauseRun(CTCLInterpreter& interp);
+>>>>>>> master
   virtual ~CPauseRun();
 
 private:

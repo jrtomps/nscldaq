@@ -28,6 +28,8 @@ SUBDIRS = 				daqstart \
 					expEditor	\
 					fileanalyzer	\
 					vardbringbuffer
+					fileanalyzer	\
+					scalersum
 
 
 # scalerdisplay - removed in favor of newscaler

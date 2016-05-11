@@ -34,6 +34,7 @@ public:
   //       to modify this to use a CVMUSBHighLevelController with its own
   //       configuration since that's how things are done now.
   
+
   void setUp() {
     ::Globals::pConfig = new CConfiguration;
   }

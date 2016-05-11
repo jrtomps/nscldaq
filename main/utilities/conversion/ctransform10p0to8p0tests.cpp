@@ -926,9 +926,6 @@ CPPUNIT_TEST_SUITE_REGISTRATION(CTransform10p0to8p0Tests_NonIncrScaler);
 
           CPPUNIT_ASSERT_EQUAL_MESSAGE("year will map according to std::localtime + 1900",
                                  std::uint16_t(m_calTime.tm_year+1900), ctlBuf.getTimeStruct().year);
-          
-          CPPUNIT_ASSERT_EQUAL_MESSAGE("year will map according to std::localtime + 1900",
-                                 std::uint16_t(1900+m_calTime.tm_year), ctlBuf.getTimeStruct().year);
 
         }
 

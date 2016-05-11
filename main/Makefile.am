@@ -23,7 +23,11 @@ SUBDIRS =	 base caenfw-common servers base/dataflow  \
 		$(SBSDIRS) $(EPICSDIRS) $(USBDIR)
 
 DIST_SUBDIRS = base caenfw-common servers base/dataflow daq utilities \
+<<<<<<< HEAD
 		 docbuild docconfig simplesetups sbs epics usb
+=======
+							 docbuild docconfig simplesetups sbs epics usb
+>>>>>>> master
 
 INTROFIGURES = @srcdir@/figures/intro-data-flow-diagram.png \
 								@srcdir@/figures/intro-data-flow-diagram-diagnostics.png 

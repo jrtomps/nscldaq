@@ -14,6 +14,7 @@ COMPILATION_FLAGS	=	-I@top_srcdir@/sbs/vmemodules	\
 			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
 TCLPACKAGES = readoutStateHook.tcl stateManagerControl.tcl
+
 TCLPKGDIR   = @prefix@/TclLibs/readoutStateHook
 
 BUILT_SOURCES=options.c options.h
@@ -43,6 +44,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CPauseCommand.cpp		\
 						CResumeCommand.cpp		\
 						CPreEndCommand.cpp		\
+						CPauseCommand.cpp		\
+						CResumeCommand.cpp		\
 						CEndCommand.cpp			\
 						CInitCommand.cpp			\
 						CDocumentedPacket.cpp		\
@@ -58,6 +61,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CV977Busy.cpp			\
 						CRingCommand.cpp	\
 						CPreResumeCommand.cpp
+						CV977Busy.cpp
+
 
 
 libSBSProductionReadout_la_CPPFLAGS=$(COMPILATION_FLAGS)
@@ -126,6 +131,7 @@ install-exec-local:
 	for f in $(TCLPACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(TCLPKGDIR); done
 	echo "package ifneeded ReadoutStateHook 1.0 [list source [file join \$$dir readoutStateHook.tcl]]" > $(TCLPKGDIR)/pkgIndex.tcl
 	echo "package ifneeded StateManagerControl 1.0 [list source [file join \$$dir stateManagerControl.tcl]]" >> $(TCLPKGDIR)/pkgIndex.tcl
+
 
 
 

@@ -22,10 +22,12 @@
 #include <CRunState.h>
 #include <CControlQueues.h>
 #include <tclUtil.h>
+
 #include <stdexcept>
 #include <Exception.h>
 
 #include "CPrePauseCommand.h"
+
 
 using std::string;
 using std::vector;
@@ -38,9 +40,11 @@ static const string usage(
 /////////////////////////////// cannonicals //////////////////////
 //////////////////////////////////////////////////////////////////
 
+
 CPauseRun::CPauseRun(CTCLInterpreter& interp, CPrePauseCommand* pre) :
   CTCLObjectProcessor(interp, "pause") ,
   m_prePause(pre)
+
 {}
 CPauseRun::~CPauseRun()
 {}
@@ -75,6 +79,7 @@ CPauseRun::operator()(CTCLInterpreter& interp,
 		   usage);
     return TCL_ERROR;
   }
+
   try {
     // check the state:
   

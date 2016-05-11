@@ -1,8 +1,25 @@
 <!-- manpage 1daq -->
 <refentry id="manpage.ringbuffer">
+<<<<<<< HEAD
   <refmeta>
      <refentrytitle>ringbuffer</refentrytitle>
      <manvolnum>1daq</manvolnum>
+=======
+  <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+  <refmeta>
+     <refentrytitle id="manpage.ringbuffer.title">ringbuffer</refentrytitle>
+     <manvolnum>1daq</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
+>>>>>>> master
   </refmeta>
   <refnamediv>
      <refname>ringbuffer</refname>
@@ -27,7 +44,11 @@ ringbuffer delete <replaceable>name</replaceable>
     </cmdsynopsis>
     <cmdsynopsis>
         <command>
+<<<<<<< HEAD
 ringbuffer status <replaceable>?--host=hostname? ?pattern?</replaceable>
+=======
+ringbuffer status <replaceable>?--host=hostname?  ?--all? ?--user=user1?,...?? ?pattern?</replaceable>
+>>>>>>> master
         </command>
     </cmdsynopsis>
     <cmdsynopsis>
@@ -92,7 +113,11 @@ ringbuffer list   <replaceable>?--host=hostname?</replaceable>
             </listitem>
         </varlistentry>
         <varlistentry>
+<<<<<<< HEAD
             <term><command>ringbuffer status <replaceable>?--host=hostname? ?pattern?</replaceable></command></term>
+=======
+            <term><command>ringbuffer status <replaceable>?--host=hostname? ?--all? ?--user=user1?,...??  ?pattern?</replaceable></command></term>
+>>>>>>> master
             <listitem>
                 <para>
                     Outputs the status of all active ring buffers that match
@@ -109,6 +134,47 @@ ringbuffer list   <replaceable>?--host=hostname?</replaceable>
                     is the name of the system whose ring buffers are inquired.
                     This defaults to <literal>localhost</literal>.
                 </para>
+<<<<<<< HEAD
+=======
+		<para>
+		  When either <option>--host</option> is not supplied or its
+		  value is
+		  <literal>localhost</literal>, the <option>--all</option>
+		  and <option>--user</option> options can filter the set of
+		  rings that will be present in the output table.
+		  By defafult, only rings the user 'owns' will be shown.  Note
+		  that proxy rings are normally owned by root and therefore
+		  won't be shown by default.
+		</para>
+		<para>
+		  If the <option>--all</option> switch is supplied, or
+		  <option>--host</option> is not localhost, all rings will
+		  be listed.   Remote ring lists cannot be filtered at this time
+		  because filtering is performed by observing the owner of the
+		  shared memory special file and that cannot be done simply
+		  for remote rings.  In the future, extensions to the ring
+		  master protocol may support this filtering.
+		</para>
+		<para>
+		  If supplied, the value of <option>--user</option> must be
+		  a comma separated list of usernames.  Only rings whose owners
+		  are in that list will be displayed.  If both <option>--user</option>
+		  and <option>--all</option> are explicitly specified, an
+		  error is signalled.
+		</para>
+		<para>
+		  Note that since proxy rings are owned by root, it is not possible
+		  to restrict the listing to the set of proxy rings that are
+		  associated with specific users.  The command below, therefore
+		  lists all rings owned by the current user and <emphasis>all</emphasis>
+		  proxy rings:
+		</para>
+		<informalexample>
+		  <programlisting>
+ringbuffer status --user=`whoami`,root
+		  </programlisting>
+		</informalexample>
+>>>>>>> master
                 <para>
                     The ring buffer status is listed in tabular form.
                     Here is some sample output:

@@ -29,6 +29,9 @@
 #include <CRingScalerItem.h>
 
 
+#include <iostream>
+
+
 class RingTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(RingTests);
   CPPUNIT_TEST(construct);
@@ -69,7 +72,9 @@ class RingTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(getPhysicsEventCountBodyHeader);
   CPPUNIT_TEST(getGlomInfo);
   CPPUNIT_TEST(getWithPredicate);
-  
+  CPPUNIT_TEST(getTimeout_0);
+  CPPUNIT_TEST(getTimeout_1);
+
   // Test for Abnormal End.
   
   CPPUNIT_TEST(getAbnormalEnd);
@@ -127,6 +132,9 @@ protected:
   void getWithPredicate();
   
   void getAbnormalEnd();
+  void getTimeout_0();
+  void getTimeout_1();
+
 
 private:
     int tryCommand(const char* command);
@@ -425,6 +433,9 @@ void RingTests::getNoBodyHeaderBegin() {
     
     EQ(TCL_OK, status);
     
+    auto cmdResult = getResult();
+    std::cout << cmdResult << std::endl;
+
     /* We expect the result to be a dict with:
        type       - ring item type (textual)
        run        - run number
@@ -1064,6 +1075,8 @@ void RingTests::getGlomInfo(){
 }
 void RingTests::getWithPredicate()
 {
+    std::cout << "getWithPredicate" << std::endl;
+
     // We're going to request an item using a predicate that only allows
     // BEGIN_RUN and END_RUN items.  Then we'll emit a begin run and a bunch
     // of events and an end run.  We should only see the begin and
@@ -1108,3 +1121,33 @@ void RingTests::getAbnormalEnd()
     getDictItem(received, "type", itemValue);
     EQ(std::string("Abnormal End"), itemValue);
 }
+
+
+void RingTests::getTimeout_0()
+{
+    int stat = tryCommand("ring attach tcp://localhost/tcltestring");
+    CRingBuffer ring("tcltestring", CRingBuffer::producer);
+
+    stat = tryCommand("ring get -timeout 0 tcp://localhost/tcltestring ");
+
+    EQ(TCL_OK, stat);
+    EQ(std::string(""), getResult());
+}
+
+void RingTests::getTimeout_1()
+{
+    int stat = tryCommand("ring attach tcp://localhost/tcltestring");
+
+    insertStateChange(BEGIN_RUN, false);
+
+    stat = tryCommand("ring get -timeout 0 tcp://localhost/tcltestring 1");
+
+    EQ(TCL_OK, stat);
+
+    Tcl_Obj* event2 = Tcl_GetObjResult(m_pInterp->getInterpreter());
+
+    std::string itemValue;
+    getDictItem(event2, "type", itemValue);
+    EQ(std::string("Begin Run"), itemValue);
+}
+

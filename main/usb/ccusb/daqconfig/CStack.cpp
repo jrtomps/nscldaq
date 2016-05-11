@@ -32,6 +32,7 @@
 #include <CConfiguration.h>
 
 
+
 #include <iostream>
 using namespace std;
 
@@ -75,10 +76,10 @@ CStack::CStack(const CStack& rhs) :
 {
   if (rhs.m_pConfiguration) {
     m_pConfiguration = new CReadoutModule(*(rhs.m_pConfiguration));
-   
  
   }
-   m_pDaqConfig     = rhs.m_pDaqConfig;
+  m_pDaqConfig     = rhs.m_pDaqConfig;
+
 }
 
 
@@ -138,6 +139,7 @@ CStack::onAttach(CReadoutModule& configuration)
 
   m_pConfiguration->addParameter("-modules",
 				CStack::moduleChecker, this, "");
+
 
 
   // options valid for event stacks:
@@ -367,6 +369,7 @@ CStack::StackElements
 CStack::getStackElements()
 {
   CConfiguration* pConfiguration   = m_pDaqConfig;
+
   int             argc;
   const char**    argv;
   StackElements   result;
@@ -440,6 +443,7 @@ CStack::moduleChecker(string name, string proposedValue, void* arg)
   const char**    argv;
   int             status;
   CConfiguration* pConfiguration = pObj->m_pDaqConfig;
+
   string          Name;
   CReadoutModule* pModule;
 

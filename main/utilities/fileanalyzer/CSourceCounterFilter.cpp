@@ -9,7 +9,8 @@
 using namespace std;
 
   CSourceCounterFilter::CSourceCounterFilter(uint32_t defaultId, std::string outputFile)
-: m_counters(), m_defaultId(defaultId), m_outputFile(outputFile)
+: m_counters(), m_defaultId(defaultId), m_outputFile(outputFile), m_builtData(true)
+
 {
   setupCounters(m_defaultId);
 }
@@ -45,14 +46,19 @@ CRingItem* CSourceCounterFilter::handleTextItem(CRingTextItem* pItem)
 
 CRingItem* CSourceCounterFilter::handlePhysicsEventItem(CPhysicsEventItem* pItem) 
 {
-  uint16_t* pBody = reinterpret_cast<uint16_t*>(pItem->getBodyPointer());
-  FragmentIndex index(pBody);
-  auto iter = index.begin();
-  auto iter_end = index.end();
-  while (iter != iter_end) {
-    std::unique_ptr<CRingItem> pSubItem(CRingItemFactory::createRingItem(iter->s_itemhdr));
-    incrementCounter(iter->s_sourceId, pSubItem->type());
-    ++iter;
+  if (m_builtData) {
+    uint16_t* pBody = reinterpret_cast<uint16_t*>(pItem->getBodyPointer());
+    FragmentIndex index(pBody);
+    auto iter = index.begin();
+    auto iter_end = index.end();
+    while (iter != iter_end) {
+      std::unique_ptr<CRingItem> pSubItem(CRingItemFactory::createRingItem(iter->s_itemhdr));
+      incrementCounter(iter->s_sourceId, pSubItem->type());
+      ++iter;
+    }
+  } else {
+    incrementCounter(pItem);
+
   }
   return static_cast<CRingItem*>(pItem);
 }

@@ -40,9 +40,15 @@ TCLPACKAGES=Configuration.tcl \
 	DataSourceMonitor.tcl \
 	remoteControl.tcl \
 	ReadoutGuiClient.tcl readoutGuiProvider.tcl \
+<<<<<<< HEAD
 	versionUtils.tcl error.png \
 	delayProvider.tcl \
 	offlineProvider.tcl \
+=======
+  versionUtils.tcl error.png \
+  delayProvider.tcl \
+  offlineProvider.tcl \
+>>>>>>> master
 	multilogger.tcl \
 	stageareaValidation.tcl
 

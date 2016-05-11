@@ -24,8 +24,11 @@ class CSourceCounterFilter : public CFilter
 {
   private:
     std::map<uint32_t, std::map<uint32_t, uint32_t> > m_counters;
-    uint32_t m_defaultId;
+
+    uint32_t     m_defaultId;
     std::string  m_outputFile;
+    bool         m_builtData;
+
 
   public:
 
@@ -33,6 +36,8 @@ class CSourceCounterFilter : public CFilter
     virtual ~CSourceCounterFilter();
 
     CSourceCounterFilter* clone() const { return new CSourceCounterFilter(*this);}
+
+    void setBuiltData(bool val) { m_builtData = val;}
 
     // The default handlers
     virtual CRingItem* handleRingItem(CRingItem* pItem);

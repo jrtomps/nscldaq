@@ -134,7 +134,11 @@ $DAQROOT/bin/ringFragmentSource <replaceable>options...</replaceable>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
+<<<<<<< HEAD
                     <term><option>timeout</option>=<replaceable>seconds</replaceable></term>
+=======
+                    <term><option>--timeout</option>=<replaceable>seconds</replaceable></term>
+>>>>>>> master
                     <listitem>
                         <para>
                           If <option>--oneshot</option> is present, this is the
@@ -145,6 +149,20 @@ $DAQROOT/bin/ringFragmentSource <replaceable>options...</replaceable>
                         </para>
                     </listitem>
                 </varlistentry>
+<<<<<<< HEAD
+=======
+                <varlistentry>
+                    <term>
+                      <option>--offset</option>=<replaceable>dt</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                          Number of clock ticks to add to the timestamp for each
+                          event.  This is a signed integer value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+>>>>>>> master
            </variablelist>
         </refsect1>
 

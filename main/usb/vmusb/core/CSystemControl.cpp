@@ -28,6 +28,7 @@ East Lansing, MI 48824-1321
 #include <CPreEndCommand.h>
 #include <CPrePauseCommand.h>
 #include <CPreResumeCommand.h>
+
 #include <Globals.h>
 #include <event.h>
 

@@ -75,18 +75,37 @@ private:
   tsExtractor           m_timestamp;
   bool                  m_stall;
   uint32_t              m_stallCount;
+<<<<<<< HEAD
+=======
+  bool                  m_expectBodyHeaders;
+>>>>>>> master
   bool             m_fOneshot;
   unsigned         m_nEndRuns;
   unsigned         m_nEndsSeen;
   unsigned         m_nTimeout;
   unsigned         m_nTimeWaited;
+<<<<<<< HEAD
 
   CRingItemToFragmentTransform  m_wrapper;
+=======
+  int              m_nTimeOffset;
+  CEVBFragmentList  m_frags;
+
+  CRingItemToFragmentTransform  m_wrapper;
+  bool             m_myRing;
+>>>>>>> master
  
   
   // Canonicals:
 
 public:
+<<<<<<< HEAD
+=======
+  CRingSource(CRingBuffer* pBuffer, 
+              const std::vector<uint32_t>& allowedIds, 
+              uint32_t defaultId, 
+              tsExtractor extractor);
+>>>>>>> master
   CRingSource(int argc, char** argv);
   virtual ~CRingSource();
 
@@ -102,6 +121,16 @@ public:
   virtual void getEvents();
   virtual void shutdown();
 
+<<<<<<< HEAD
+=======
+  void transformAvailableData(uint8_t*& pBuffer);
+  const CEVBFragmentList& getFragmentList() const { return m_frags; }
+
+  void setOneshot(bool val) { m_fOneshot = val; }
+  void setNumberOfSources(unsigned nsources) { m_nEndRuns = nsources; }
+  bool oneshotComplete();
+
+>>>>>>> master
 public:
   std::string copyLib(std::string original);
   uint64_t timedifMs(struct timespec& later, struct timespec& earlier);

@@ -57,6 +57,7 @@ public:
     Paused,
     Resuming,
     Ending
+
   } RunState;
 
   // Class level data:

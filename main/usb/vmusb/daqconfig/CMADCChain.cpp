@@ -27,7 +27,9 @@
 #include <errno.h>
 #include <string.h>
 #include "MADC32Registers.h"
+
 #include <CVMUSBHighLevelController.h>
+
 
 #include <iostream>
 #include <unistd.h>
@@ -153,6 +155,7 @@ CMADCChain::Initialize(CVMUSB& controller)
       cerr << "First and last means only";
       pos = CMADC32::only;
     }
+
     (*i)->Initialize(controller);
     (*i)->setChainAddresses(controller, pos, cbltAddress, mcastAddress);
 
@@ -224,7 +227,9 @@ CMADCChain::getModules()
   string sValue  = m_pConfig->cget("-modules"); // String valued parameter...
   Tcl_SplitList(NULL, sValue.c_str(), &argc, &argv);   // List has already been validated.
 
+
   assert(argc >= 1);		                       // Validator should have ensured this.
+
 
   // Store the names in our result list
 
@@ -244,7 +249,9 @@ CMADCChain::getModules()
 void
 CMADCChain::namesToList(list<string> moduleNames)
 {
+
   CConfiguration*   pModules = Globals::pHLController->getConfig();
+
   m_Chain.clear();
 
 
@@ -281,6 +288,7 @@ CMADCChain::moduleChecker(string name, string value, void* arg)
   // Check that we have enough elements to make a chain:
 
   if (argc < 1) {		// Note that zero length lists can be legal!
+
     Tcl_Free((char*)argv);
     return false;
   }
@@ -288,7 +296,9 @@ CMADCChain::moduleChecker(string name, string value, void* arg)
   // dynamic_cast is used to ensure the C785-edness of CReadoutModule
   // pointers as it uses RTTI to ensure the cast is truly compatible.
   
+
   CConfiguration* pConfiguration = Globals::pHLController->getConfig();
+
   
   
   for (int i = 0; i < argc; i++) {

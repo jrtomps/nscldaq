@@ -81,6 +81,7 @@ private:
   void create(pthread_mutexattr_t* pAttributes);
 };
 
+<<<<<<< HEAD
 // Lock on construction, unlock on destruction:
 
 class CriticalSection {
@@ -95,6 +96,27 @@ public:
   virtual ~CriticalSection() {
     m_mutex.unlock();
   }
+=======
+
+/**
+ *  Safe lock/unlock of mutexes
+ *  Declaring a CriticalSection object in a block will lock the mutex and
+ *  gaurantee the mutex is unlocked when the block is exited.
+ *  The scope of the block is the period the mutex is held.
+ *  
+ */
+class CriticalSection {
+private:
+    CMutex& m_mutex;
+public:
+    CriticalSection(CMutex& mutex) : m_mutex(mutex)
+    {
+        m_mutex.lock();
+    }
+    ~CriticalSection() {
+        m_mutex.unlock();
+    }
+>>>>>>> master
 };
 
 #endif

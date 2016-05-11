@@ -385,7 +385,8 @@ display_single id2 scint_cfd0
       <programlisting>
 stripparam labr_cfd
 stripratio live_10hz_clock raw_10hz_clock
-stripconfig timeaxis 1200
+stripconfig -timeaxis 1200
+
       </programlisting>
 
       <para>
@@ -442,6 +443,15 @@ stripconfig timeaxis 1200
       </para>
 
       <graphic contentwidth="8cm" scalefit="1" fileref="figures/ScalerDisplayUserGuide_stripchart_600.png" format="PNG"/> 
+
+    <para>
+       The stripchart also adds axis zoom controls.  These are located next to
+       the alarm enable/disable checkbutton.  These controls allow you to
+       zoom to the X or Y axis to one of several pre-defined zoom factors,
+       or a custom zoom factor, return to the auto scale and to set an offset for
+       the Y axis.  The X axis cannot be offset because the strip chart plot
+       subsystem will scroll the plot as it sees fit.
+    </para>
 
     </section> <!-- END OF EXAMPLE 1 -->
 

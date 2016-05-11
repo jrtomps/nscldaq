@@ -1,7 +1,12 @@
 lib_LTLIBRARIES = libdaqshm.la
 
+<<<<<<< HEAD
 libdaqshm_la_SOURCES = daqshm.cpp os.cpp io.cpp
 include_HEADERS      = daqshm.h os.h io.h
+=======
+libdaqshm_la_SOURCES = daqshm.cpp os.cpp io.cpp CTimeout.cpp
+include_HEADERS      = daqshm.h os.h io.h CTimeout.h
+>>>>>>> master
 
 noinst_HEADERS	     = Asserts.h
 
@@ -18,7 +23,11 @@ EXTRA_DIST=shm.xml
 
 noinst_PROGRAMS    = unittests
 unittests_SOURCES = TestRunner.cpp createTests.cpp removeTests.cpp attachTests.cpp \
+<<<<<<< HEAD
 	detachTests.cpp
+=======
+        detachTests.cpp timeoutTests.cpp
+>>>>>>> master
 
 unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 

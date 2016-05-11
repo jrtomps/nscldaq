@@ -47,11 +47,13 @@ class CPreEndCommand;
 */
 class CEndRun : public CTCLObjectProcessor
 {
+
 private:
   CPreEndCommand* m_preEnd;
   // Canonicals:
 public:
   CEndRun(CTCLInterpreter& interp, CPreEndCommand* pPreEnd);
+
   virtual ~CEndRun();
 private:
   CEndRun(const CEndRun& rhs);

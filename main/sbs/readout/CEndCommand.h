@@ -37,6 +37,10 @@
 #endif
 #endif
 
+<<<<<<< HEAD
+=======
+#include <tuple>
+>>>>>>> master
 
 // Forward class defs:
 
@@ -69,6 +73,12 @@ public:
   virtual int operator()(CTCLInterpreter& interp,
 			 std::vector<CTCLObject>& objv);
 
+<<<<<<< HEAD
+=======
+protected:
+  std::tuple<int, std::string> end();
+
+>>>>>>> master
 private:
   std::string usage();
 };

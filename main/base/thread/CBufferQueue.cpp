@@ -186,6 +186,15 @@ while (m_queue.empty()) {
 \endverbatim
 @param timeout - number of milli-seconds to wait for the signal.  -1 means no timeout.
 
+<<<<<<< HEAD
+=======
+  @note - a timed wait is used because there's a small timing hole in get:
+          if, between the check for data and the wait acquiring the mutex
+          the entire queue is filled, the condition variable will never be
+          signalled.  By timing out the wait (.5sec) when this rare case
+          occurs, the wait will time out and then there will be a new check
+          for data in the queue in get.
+>>>>>>> master
 */
 template<class T> void
 CBufferQueue<T>::wait(int timeout)

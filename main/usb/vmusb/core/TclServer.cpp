@@ -34,6 +34,8 @@ using namespace std;
 #include <make_unique.h>
 #include <CControlQueues.h>
 #include <CSystemControl.h>
+#include <TCLVariable.h>
+
 
 #include <tcl.h>
 #include <TCLInterpreter.h>
@@ -273,19 +275,24 @@ TclServer::readConfigFile()
   }
   catch (string msg) {
     cerr << "TclServer::readConfigFile - string exception: " << msg << endl;
+    stackTrace();
     throw;
   }
   catch (char* msg) {
     cerr << "TclServer::readConfigFile - char* exception: " << msg << endl;
+    stackTrace();
     throw;
   }
   catch (CException& error) {
     cerr << "TclServer::readConfigFile - CException: " 
 	 << error.ReasonText() << " while " << error.WasDoing() << endl;
+    stackTrace();
+
     throw;
   }
   catch (...) {
     cerr << "TclServer::readConfigFile - unanticipated exception type\n";
+    stackTrace();
     throw;
   }
   /** Now build the monitor list from the modules that have been configured */
@@ -330,6 +337,9 @@ TclServer::EventLoop()
   while(!m_exitNow) {
     Tcl_DoOneEvent(TCL_ALL_EVENTS);
   }
+
+ std::cerr << "The Tcl Server event loop has exited.\n"; 
+
 }
 
 
@@ -438,6 +448,7 @@ TclServer::MonitorDevices(void* pData)
 {
   TclServer* pObject = reinterpret_cast<TclServer*>(pData);
 
+
   // If the run is active  we just trigger list 7.
   // otherwise we execute the list immediate and ship the data around
   // to the various devices... however if the run isin transition
@@ -471,6 +482,7 @@ TclServer::MonitorDevices(void* pData)
 	
     }						 
   }
+
   Tcl_Interp* pInterp = pObject->m_pInterpreter->getInterpreter();
   Tcl_CreateTimerHandler(MonitorInterval*1000, TclServer::MonitorDevices, pData);
 }
@@ -534,7 +546,7 @@ TclServer::receiveMonitorData(Tcl_Event* pEvent, int flags)
     memcpy(&(pServer->m_pMonitorData)[pServer->m_nMonitorDataSize], &pData[1], nWords*sizeof(uint16_t));
     pServer->m_nMonitorDataSize += nWords;
     
-    
+
     // If the continuation bit is not set we can process the data:
     
     if ((*pData & VMUSBContinuation) != 0) {
@@ -680,4 +692,17 @@ TclServer::Exit(Tcl_Event* pEvent, int flags)
 {
     ::Globals::pTclServer->m_exitNow = true;
     return 1;
+}
+
+/**
+ * stackTrace
+ *    Output a Tcl callback trace to stderr.
+ */
+void
+TclServer::stackTrace()
+{
+  CTCLVariable errorInfo(m_pInterpreter, "errorInfo", kfFALSE);
+  const char* msg = errorInfo.Get(TCL_GLOBAL_ONLY);
+  
+  std::cerr << msg << std::endl;
 }

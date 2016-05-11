@@ -31,8 +31,12 @@ package require ExpFileSystem
 package require ExpFileSystemConfig
 package require Diagnostics
 package require StateManager
+<<<<<<< HEAD
 package require multilogger
 package require dialogWrapper
+=======
+
+>>>>>>> master
 ##
 # @class ProviderList
 #

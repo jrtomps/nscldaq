@@ -1,0 +1,36 @@
+<!-- chapter libraries -->
+
+<chapter>
+    <title>Plotchart</title>
+    <para>
+        Plotchart is a pure Tcl data plotting package.  It is used by several
+        Tcl components of NSCLDAQ (e.g. the scaler display program) to produce
+        graphs.  The author of Plotchart is Arjen Markus of Deltares in the
+        Netherlands.  The NSCL Scientific software development team have worked
+        with Arjen to incorporate changes and suggested changes to make plotchart
+        somewhat more suitable for use at the NSCL.
+    </para>
+    <para>
+        Documentation on Plotchart is available 
+        <ulink url='http://docs.activestate.com/activetcl/8.5/tklib/plotchart/plotchart.html'>
+            here at the ActiveState Website
+        </ulink>.
+    </para>
+    <para>
+        As our version of plotchart has experimental features that have not
+        yet made it back inot the normal Plotchart releases, the version at
+        NSCL has been labeled 3.0.0 to ensure that it is selected preferentially
+        over any system installed version (assuming
+        <filename>$DAQROOT/TclLibs</filename> is in the package search path)
+        unless you explictly select another version.
+        For example, to select the version on Debian wheezy:
+    </para>
+    <informalexample>
+        <programlisting>
+package require Plotchart 1.6
+        </programlisting>
+    </informalexample>
+</chapter>
+
+<!-- /chapter -->
+

@@ -7,16 +7,19 @@ tcltest::test pkgrequire-0 {Require the package
 
 proc setup {} {
   # use default localhost:27000
-  MXDCRCProxy ::proxy -module rcbus -devno 0
+
+  MXDCRCProxy ::proxy -module myproxy -devno 1
+
   MCFD16RC ::dev ::proxy
 }
 
 proc tearDown {} {
   ::dev destroy
-  ::proxy destroy
+
+#  ::proxy destroy
 }
 
-if {0} {
+
 tcltest::test threshold-0 { Control over thresholds
 } -setup {
   setup
@@ -74,17 +77,20 @@ tcltest::test width-0 { Control over width
 
   ::dev SetMode individual
   for {set ch 0} {$ch < 8} {incr ch} {
-    ::dev SetWidth $ch [expr 222+$ch*2]
+
+    ::dev SetWidth $ch [expr 16+$ch*20]
+
     set val [::dev GetWidth $ch]
     lappend actual $val
   }  
 
   ::dev SetMode common
-  ::dev SetWidth 8 255 
+  ::dev SetWidth 8 222 
   lappend actual [::dev GetWidth 8]
 
   set actual
-} -result {222 224 226 228 230 232 234 236 255}
+} -result {16 36 56 76 96 116 136 156 222}
+
 
 tcltest::test deadtime-0 { Control over deadtime
 } -setup {
@@ -97,17 +103,18 @@ tcltest::test deadtime-0 { Control over deadtime
 
   ::dev SetMode individual
   for {set ch 0} {$ch < 8} {incr ch} {
-    ::dev SetDeadtime $ch [expr 222+$ch*2]
+    ::dev SetDeadtime $ch [expr 27+$ch*20]
+
     set val [::dev GetDeadtime $ch]
     lappend actual $val
   }  
 
   ::dev SetMode common
-  ::dev SetDeadtime 8 255
+  ::dev SetDeadtime 8 222
   lappend actual [::dev GetDeadtime 8]
 
   set actual
-} -result {222 224 226 228 230 232 234 236 255}
+} -result {27 47 67 87 107 127 147 167 222}
 
 tcltest::test delay-0 { Control over delay
 } -setup {
@@ -179,11 +186,45 @@ tcltest::test polarity-0 { Control over polarity
   set actual
 } -result {pos neg pos neg pos neg pos neg neg}
 
+tcltest::test setTriggerSource {Set the trigger source
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set state [list]
+  ::dev SetTriggerSource 0 or 1
+  lappend state [::dev GetTriggerSource 0]
+  ::dev SetTriggerSource 1 pat_or_0 0
+  lappend state [::dev GetTriggerSource 1]
+  ::dev SetTriggerSource 2 gg 1
+  lappend state [::dev GetTriggerSource 2]
+
+  set state
+} -result {{or 1} {pat_or_0 0} {gg 1}}
+
+tcltest::test setTriggerOrPattern {Set the trigger or pattern
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set state [list]
+  ::dev SetTriggerOrPattern 0 0xa0a0
+  lappend state [::dev GetTriggerOrPattern 0]
+  ::dev SetTriggerOrPattern 1 0x1234
+  lappend state [::dev GetTriggerOrPattern 1]
+
+  set state
+} -result {41120 4660}
+
+
 
 
 tcltest::cleanupTests
 
-}
+
+if {0} {
 
 
 setup
@@ -200,5 +241,8 @@ for {set val 23} {$val < 212} {incr val} {
     puts "Wrote $val, Read $rdbk"
   }
   if {$val == 212} { puts "Completed all 255"}
+}
+
+
 }
 

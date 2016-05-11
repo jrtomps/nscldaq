@@ -3,7 +3,11 @@ BTDRIVER=$(shell (cd @srcdir@; pwd))
 
 
 all-local:
+<<<<<<< HEAD
 	make -C @KERNEL_SOURCE_DIR@ SUBDIRS=$(BTDRIVER) modules BTDRIVER=$(BTDRIVER)/.. NODATEWARN=@NODATEWARN@
+=======
+	make -C @KERNEL_SOURCE_DIR@ SUBDIRS=$(BTDRIVER) modules BTDRIVER=$(BTDRIVER)/.. NODATEWARN=@NODATEWARN@ 
+>>>>>>> master
 
 clean-local:
 	rm -f *.o *.ko

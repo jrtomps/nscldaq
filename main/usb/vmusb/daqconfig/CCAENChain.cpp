@@ -19,6 +19,7 @@
 #include <CReadoutModule.h>
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
+
 #include <CVMUSBHighLevelController.h>
 #include <C785.h>
 #include <CConfiguration.h>
@@ -128,6 +129,7 @@ CCAENChain::Initialize(CVMUSB& controller)
   m_baseAddress                = getCBLTAddress();
   m_moduleCount                = 0;
   CConfiguration*  pModules    = Globals::pHLController->getConfig();	// This has the full set of modules.
+
   list<string>     moduleNames = getModules();  // From my configuration.
 
   // Now iterate through all the modules, finding them, initializing them and
@@ -303,6 +305,7 @@ CCAENChain::moduleChecker(string name, string value, void* arg)
   // Now iterate through the list elements and that each is a known C785.
   // dynamic_cast is used to ensure the C785-edness of CReadoutModule
   // pointers as it uses RTTI to ensure the cast is truly compatible.
+
 
   CConfiguration* pConfiguration = Globals::pHLController->getConfig();
 

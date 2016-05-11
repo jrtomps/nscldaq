@@ -2,7 +2,8 @@
 
 PACKAGE_FILES=nameMap.tcl channel.tcl scalerconfig.tcl page.tcl \
 	singleModel.tcl ratioModel.tcl scalermain.tcl header.tcl reports.tcl\
-	scalerUtil.tcl stripparam.tcl stripratio.tcl emptyModel.tcl
+	scalerUtil.tcl stripparam.tcl stripratio.tcl emptyModel.tcl zoomPrompt.tcl
+
 TEST_FILES=nameMap.test channel.test channelcmd.test singleModel.test \
 	ratioModel.test stripparam.test stripratio.test emptyModel.test
 APP_FILES=ScalerDisplay.tcl.in
@@ -65,7 +66,9 @@ libTclRingBuffer_la_LIBADD=	@top_builddir@/daq/format/libdataformat.la     \
 
 
 libTclRingBuffer_la_CPPFLAGS=@LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@ @THREADCXX_FLAGS@ \
-				-I@top_srcdir@/base/dataflow -I@top_srcdir@/daq/format
+				-I@top_srcdir@/base/dataflow \
+				-I@top_srcdir@/daq/format \
+				-I@top_srcdir@/base/os 
 
 noinst_HEADERS=CTclRingCommand.h
 

@@ -24,6 +24,7 @@ libVMUSBCore_la_SOURCES	= CAcquisitionThread.cpp 	\
 													CPrePauseCommand.cpp	\
 													CPreResumeCommand.cpp
 
+
 noinst_HEADERS		= CAcquisitionThread.h		\
 										CControlQueues.h \
 										COutputThread.h \
@@ -48,6 +49,7 @@ noinst_HEADERS		= CAcquisitionThread.h		\
 										CPreBeginCommand.h CPreEndCommand.h \
 										CPrePauseCommand.h	\
 										CPreResumeCommand.h
+
 
 libVMUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \

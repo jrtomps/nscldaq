@@ -46,7 +46,8 @@ snit::method MCFD16USB _Read {} {
 }
 
 snit::method MCFD16USB Update {} {
-  set m_moduleState $::parsedDSDict
+
+  set m_moduleState $::fullDict
 }
 
 proc setNeedsUpdate {objname state} {
@@ -59,7 +60,8 @@ proc setNeedsUpdate {objname state} {
 # the stored state of the driver
 proc setupForRead {} {
   setup
-  ::dev _CacheModuleState $::parsedDSDict
+
+  ::dev _CacheModuleState $::fullDict
   setNeedsUpdate ::dev 0
 }
 
@@ -91,6 +93,48 @@ Switch settings: BWL: Off, Discr.: Constant fraction
 mcfd-16>
 }
 
+set dtResponse {DT
+
+MCFD-16 trigger settings:
+
+Fast Veto: disabled
+Multiplicity:             from 2 to 16
+Trigger monitor channels: 0: 0, 1: 2
+Ored patterns:            0: 00FF, 1: 0004
+
+Trigger / gate sources:
+        GG  VE  P1  P0  M0  PC  MU  OR
+Trig0:  0   0   0   1   0   0   0   0
+Trig1:  0   0   1   0   0   0   0   0
+GG:     0   0   0   0   0   1   0   0
+
+        GG  VE  P1  P0  M1  PC  MU  OR
+Trig2:  1   0   0   0   0   0   0   0
+mcfd-16>
+}
+
+set dtResponse1 {DT
+
+MCFD-16 trigger settings:
+
+Fast Veto: disabled
+Multiplicity:             from 2 to 16
+Trigger monitor channels: 0: 0, 1: 2
+Ored patterns:            0: 0000, 1: 0000
+
+Trigger / gate sources:
+        GG  VE  P1  P0  M0  PC  MU  OR
+Trig0:  0   0   0   0   0   0   0   0
+Trig1:  0   0   0   0   0   0   0   0
+GG:     0   0   0   0   0   1   0   0
+
+        GG  VE  P1  P0  M1  PC  MU  OR
+Trig2:  0   0   0   0   0   0   0   0
+mcfd-16>
+}
+
+
+
 set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 20 20 20 20} \
                        Gain {1 1 1 1 3 1 1 1 1} \
                        Width {100 50 40 50 50 50 50 50 50} \
@@ -105,8 +149,18 @@ set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 2
                        {Remote Control} Off \
                        {Test pulser} On \
                        WidthRaw {72 45 39 45 45 45 45 45 45} \
-                       DeadtimeRaw {45 45 45 45 117 45 45 45 27} ]
+                       DeadtimeRaw {45 45 45 45 117 45 45 45 27}]
+
+set fullDict [dict create {*}$parsedDSDict \
+                       fast_veto 0 \
+                       or0_pattern 255 \
+                       or1_pattern 4 \
+                       Trig0_src 16 \
+                       Trig1_src 32 \
+                       Trig2_src 128]
           
+
+
 
 ###############################################################################
 # BEGIN TESTS
@@ -1023,6 +1077,147 @@ tcltest::test modified-1 {For any writes that should merely retrieve the MCFD16'
   set [lindex [dev info vars m_needsUpdate] 0]
 } -result 0
 
+
+
+tcltest::test setTriggerSource-0 {Writes to the TR do what we expect
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev SetTriggerSource 0 pat_or_0 0
+    dev SetTriggerSource 1 pat_or_1 1
+
+    tcltest::viewFile $::serialFile
+} -result {TR 0 16
+TR 1 96}
+
+tcltest::test setTriggerSource-1 {Invalid trigId causes exception
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev SetTriggerSource 54 pat_or_0 0
+
+} -returnCodes 1 -result "Invalid trigger id argument provided. Must be 0, 1, or 2."
+
+tcltest::test setTriggerSource-2 {Invalid source causes exception
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev SetTriggerSource 0 not_an_option 0
+
+} -returnCodes 1 -result "Invalid source provided. Must be or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1, or gg."
+
+
+tcltest::test getTriggerSource-0 {Ensre we can get the right cached
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+  dev GetTriggerSource 0
+} -result {pat_or_0 0}
+
+
+tcltest::test getTriggerSource-1 {Ensre we can get the right cached
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+  dev GetTriggerSource 1
+} -result {pat_or_1 0}
+
+
+
+
+tcltest::test setTriggerOrPattern-0 {Ensure that setting the trigger pattern works
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev SetTriggerOrPattern 0 0xff
+    dev SetTriggerOrPattern 1 0xffff
+
+    tcltest::viewFile $::serialFile
+} -result {TP 0 255
+TP 1 0
+TP 2 255
+TP 3 255}
+
+tcltest::test setTriggerOrPattern-1 {Invalid pattern Id causes exception
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev SetTriggerOrPattern 2 0xff
+} -returnCodes 1 -result "Invalid pattern id argument provided. Must be 0 or 1."
+
+tcltest::test setTriggerOrPattern-2 {Invalid bit pattern causes exception
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev SetTriggerOrPattern 0 0x1ffff
+} -returnCodes 1 -result {Invalid bit pattern provided. Must be in range [0,65535].}
+
+
+tcltest::test getTriggerOrPattern-0 {Ensure we can get the cached value
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev GetTriggerOrPattern 0
+} -result {255}
+
+
+tcltest::test setFastVeto-0 {Ensure we can set the fast veto
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev SetFastVeto 0
+    dev SetFastVeto 1
+
+    tcltest::viewFile $::serialFile
+} -result {SV 0
+SV 1}
+
+tcltest::test getFastVeto-0 {Ensure we can retrieve the fast veto cached value
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev GetFastVeto
+} -result 0
+
+tcltest::test parseDTResponse {Check that we can parse the DT response 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _ParseDTResponse $dtResponse
+} -result [dict create  fast_veto 0 or0_pattern 255 or1_pattern 4 Trig0_src 16 Trig1_src 32 Trig2_src 128]
+
+tcltest::test parseDTResponse-1 {Check that or patterns of 0 are properly handled
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _ParseDTResponse $dtResponse1
+} -result [dict create  fast_veto 0 or0_pattern 0 or1_pattern 0 Trig0_src 0 Trig1_src 0 Trig2_src 0]
 
 #-----------------------------------------------------------------------------#
 # Retrieve state

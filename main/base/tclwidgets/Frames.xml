@@ -1,0 +1,290 @@
+<!-- manpage 3tcl -->
+      <refentry id="tcl3.framemanager">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3.framemanager.title'>FrameManager</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>FrameManager</refname>
+           <refpurpose>Make one of a set of widgets visible.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+         <command>
+package require FrameManager
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+FrameManager <replaceable>path ?option value...?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> configure <replaceable>option value ?...?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> cget <replaceable>?option?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> add <replaceable>name widget ?onviewscript?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> select <replaceable>name</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> getCurrent
+            </command>
+          </cmdsynopsis>
+          
+          
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This megawidget manages a set of subwidgets displaying only one
+            at a time. Note that the subwidgets can be anything, though as the name
+            of this megawidget implies they are intened to be frames with subwidgets.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>-width</option></term>
+                <listitem>
+                    <para>
+                        Specifies the minimum width with which the displayed
+                        widget will be shown.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-height</option></term>
+                <listitem>
+                    <para>
+                        Specifies the minimum height with which the displayed
+                        widget will be shown.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>METHODS</title>
+            <variablelist>
+                <varlistentry>
+                    <term><methodname>add</methodname> name widget ?onviewscript?</term>
+                    <listitem>
+                        <para>
+                            Adds a new widget to the set of managed frames.
+                            <parameter>name</parameter> is a name to be used when
+                            referring to the widget.  While no effort is made to
+                            enforce this, the <parameter>name</parameter> should
+                            be unique amongst the wigets managed by this object.
+                        </para>
+                        <para>
+                            <parameter>widget</parameter> is the widget to manage.
+                            This should be any griddable object (e.g. cannot be
+                            a toplevel).
+                        </para>
+                        <para>
+                            <parameter>onviewscript</parameter> if supplied
+                            is a script tht will be executed at the global level
+                            when the widget has been selected to be viewed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>select</methodname> name</term>
+                    <listitem>
+                        <para>
+                            Selects the widget associated with
+                            <parameter>name</parameter> be displayed.
+                            The name must have been associated with a widget.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>getCurrent</methodname></term>
+                    <listitem>
+                        <para>
+                            Returns the name of the currently displayed widget.
+                            If no widget has been selected for display since
+                            construction, the return will be an empty string.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+      </refentry>
+      <refentry id="tcl3.FrameSequencer">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3.FrameSequencer.title'>FrameSequencer</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>FrameSequencer</refname>
+           <refpurpose>Manages a sequence of widgets (like a wizard e.g.).</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+FrameSequencer <replaceable>path</replaceable>
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> staticAdd <replaceable>name fr parent ?onviewscript?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> dynamicAdd <replaceable>name fr ?onviewscript?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> select <replaceable>name</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> getTree
+            </command>
+          </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This megawidget builds on the <classname>FrameManager</classname>
+            megawidget to build a chain of widgets through which the user can
+            step either forwards or backwards.  
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              METHODS
+           </title>
+           <variablelist>
+            <varlistentry>
+              <term>
+         <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> staticAdd <replaceable>name fr parent ?onviewscript?</replaceable>
+            </command>
+          </cmdsynopsis>
+                
+              </term>
+              <listitem>
+                <para>
+                  Adds a new widget to the sequence after a named existing widget.
+                  <parameter>name</parameter> is the name of the new widget,
+                  <parameter>fr</parameter> is the widget to be added.
+                </para>
+                <para>
+                  <parameter>parent</parameter> is the name of the widget
+                  that will be prior to this new widget in the sequence.
+                  <parameter>onviewscript</parameter>, if provided is a script
+                  that is invoked when this new widget becomes visible.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> dynamicAdd <replaceable>name fr ?onviewscript?</replaceable>
+            </command>
+          </cmdsynopsis>                
+              </term>
+              <listitem>
+                <para>
+                  Adds a new widget <parameter>fr</parameter> named
+                  <parameter>name</parameter>.  The widget is added after the
+                  currently displayed frame (hence dynamic).  When the frame is
+                  becoming visible, the <parameter>onviewscript</parameter>,
+                  if provided, is invoked.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> select <replaceable>name</replaceable>
+            </command>
+          </cmdsynopsis>
+              </term>
+              <listitem>
+                <para>
+                  Makes the widget associated with the <parameter>name</parameter>
+                  visible.
+                </para>
+              </listitem>
+
+            </varlistentry>
+            <varlistentry>
+              <term>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> getTree
+            </command>
+          </cmdsynopsis>
+              </term>
+              <listitem>
+                <para>
+                  Returns the data structure that describes the widgets managed
+                  by this object.  The result is a dict.  Keys in the dict
+                  are the names of managed widgets.  Contents of each key are
+                  themselves dicts with the keys;
+                  <literal>back</literal> - containing the name of the prior
+                  widget and <literal>next</literal> containing the name of the
+                  next widget in the sequence.
+                </para>
+              </listitem>
+            </varlistentry>
+ 
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
+<!-- /manpage -->
+

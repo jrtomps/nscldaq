@@ -30,6 +30,7 @@ using namespace std;
 // static data member initialization
 //
 string CSystemControl::m_initScript;
+
 unique_ptr<CPreBeginCommand> CSystemControl::m_pPreBegin;
 unique_ptr<CBeginRun>  CSystemControl::m_pBeginRun;
 unique_ptr<CPreEndCommand> CSystemControl::m_pPreEnd;
@@ -40,6 +41,7 @@ unique_ptr<CInit>      CSystemControl::m_pInit;
 unique_ptr<CExit>      CSystemControl::m_pExit;
 unique_ptr<CPrePauseCommand> CSystemControl::m_pPrePause;
 unique_ptr<CPreResumeCommand> CSystemControl::m_pPreResume;
+
 
 // The entry point
 void CSystemControl::run(int argc, char** argv) 
@@ -74,6 +76,7 @@ int CSystemControl::AppInit( Tcl_Interp* interp)
   m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter, m_pPrePause.get()));
   m_pPreResume.reset(new CPreResumeCommand(*Globals::pMainInterpreter));
   m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter, m_pPreResume.get()));
+
   m_pInit.reset(new CInit(*Globals::pMainInterpreter));
   m_pExit.reset(new CExit(*Globals::pMainInterpreter));
   

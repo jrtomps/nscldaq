@@ -439,7 +439,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION(CTransform8p0to10p0Tests_Scaler);
 
           m_offset = 0x12345678;
 
-          m_tstruct = {1, 2, 2000, 3, 4, 5, 6};
+
+          m_tstruct = {1, 2, 1971, 3, 4, 5, 6};
 
           V8::CControlBuffer ctlBuf(m_header, m_title, m_offset, m_tstruct);
 
@@ -485,7 +486,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(CTransform8p0to10p0Tests_Scaler);
           calTime.tm_hour = m_tstruct.hours;
           calTime.tm_min  = m_tstruct.min;
           calTime.tm_sec  = m_tstruct.sec;
-	  calTime.tm_isdst= -1;              // System determines DST
+	  calTime.tm_isdst= -1;
 
           std::time_t time = std::mktime(&calTime);
           std::time_t time2 = std::mktime(&calTime);

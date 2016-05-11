@@ -189,7 +189,11 @@ URL::operator string() const
 }
 
 /*==============================================================*/
+<<<<<<< HEAD
 /** @fn URL URL::bString(string& rStr)
+=======
+/** @fn URL URL::parseString(string& rStr)
+>>>>>>> master
 * @brief Parse a String into a URL.
 *
 * Parse a String into a URL.
@@ -247,7 +251,10 @@ void URL::parseString(string rStr) {
   off_t  nhostStart;
   size_t hostLength;
   size_t numSlashes;
+<<<<<<< HEAD
   bool   havePath(true);
+=======
+>>>>>>> master
 
   hostStart = protocolEnd + 1;	// Skip the colon.
   numSlashes= strspn(hostStart, slash);	// count the slashes...
@@ -257,11 +264,18 @@ void URL::parseString(string rStr) {
   hostStart += 2;		       // The real start of the host.
   hostEnd    = strchr(hostStart, ':');                  // We require a port, and thus a ':'.
   if (!hostEnd) {
+<<<<<<< HEAD
     hostEnd = strchr(hostStart, '/'); // Might not be a port... but might be a trailing /
   }
   if (!hostEnd) {                     // no path or port:
     hostEnd = &(hostStart[strlen(hostStart)]);
     havePath = false;
+=======
+    hostEnd = strchr(hostStart, '/'); // Might not be a port... but must be a trailing slash.
+  }
+  if (!hostEnd) {
+    throw CURIFormatException(rStr, __FILE__, __LINE__);
+>>>>>>> master
   }
   nhostStart = hostStart - rStr.c_str();
   hostLength = hostEnd - hostStart;
@@ -278,7 +292,11 @@ void URL::parseString(string rStr) {
   off_t  nPortStart;
   size_t nPortSize;
   int    port(-1);
+<<<<<<< HEAD
   
+=======
+  bool   havePath(true);
+>>>>>>> master
 
   if (*hostEnd == ':') {
     portStart = hostEnd+1;	// Past colon...
@@ -304,7 +322,11 @@ void URL::parseString(string rStr) {
   else {
     portEnd = hostEnd;
     portEnd++;
+<<<<<<< HEAD
     havePath = havePath && (*portEnd != '\0');
+=======
+    havePath = (*portEnd != '\0');
+>>>>>>> master
   }
 
 
@@ -322,7 +344,10 @@ void URL::parseString(string rStr) {
   else {
     path = "/";
   }
+<<<<<<< HEAD
   if (path == "") path = "/";    // Consitent for empty paths.
+=======
+>>>>>>> master
 
   // If the protocol is file.. then the 
   // path is the host + path and host does not exist nor does it

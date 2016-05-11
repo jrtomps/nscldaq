@@ -32,8 +32,11 @@ package require snit
 #      *  leave  - Called when leaving a state, passed the old state, new state.
 #      *  attach - Called when added to the callouts list.  Passed the
 #                  current state.
+<<<<<<< HEAD
 #      *  onExit - optional - if this exists it is called as the system
 #                  is exiting...assuming that's being done naturally.
+=======
+>>>>>>> master
 #
 #    It is up gto the client to ensure the namespaces registered exist.
 #    Note that a side effect of registration is to create a namespace
@@ -58,7 +61,10 @@ package require snit
 #   listStates
 #   listTransitions
 #   getState
+<<<<<<< HEAD
 #   exit
+=======
+>>>>>>> master
 #
 #  Any methods that start with _ are considered private.  Note that
 #
@@ -242,6 +248,7 @@ snit::type RunstateMachine {
         }
     }
     
+<<<<<<< HEAD
     ##
     # exit
     #   Called when the program is about to exit.  Invoke the onExit
@@ -251,6 +258,8 @@ snit::type RunstateMachine {
         $self _callback onExit 
     }
     
+=======
+>>>>>>> master
     #--------------------------------------------------------------------------
     #
     # Private methods
@@ -275,9 +284,13 @@ snit::type RunstateMachine {
     #
     method _callback {method args} {
         foreach cb $callouts {
+<<<<<<< HEAD
             if {[info command ::${cb}::${method}] ne ""} {
                 $cb $method {*}$args
             }
+=======
+            $cb $method {*}$args
+>>>>>>> master
         }
     }
     
@@ -533,6 +546,10 @@ snit::type RunstateMachineSingleton {
 proc start {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Starting } msg] } {
+<<<<<<< HEAD
+=======
+    forceFailure
+>>>>>>> master
     error "start failed with message : $msg"
   }
   $machine destroy
@@ -541,6 +558,10 @@ proc start {} {
 proc begin {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Active } msg] } {
+<<<<<<< HEAD
+=======
+    forceFailure
+>>>>>>> master
     error "begin failed with message : $msg"
   }
   $machine destroy
@@ -549,6 +570,10 @@ proc begin {} {
 proc end {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Halted } msg] } {
+<<<<<<< HEAD
+=======
+    forceFailure
+>>>>>>> master
     error "end failed with message : $msg"
   }
   $machine destroy
@@ -557,6 +582,10 @@ proc end {} {
 proc pause {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Paused } msg] } {
+<<<<<<< HEAD
+=======
+    forceFailure
+>>>>>>> master
     error "pause failed with message : $msg"
   }
   $machine destroy
@@ -565,6 +594,10 @@ proc pause {} {
 proc resume {} {
   set machine [RunstateMachineSingleton %AUTO%]
   if { [catch { $machine transition Active } msg] } {
+<<<<<<< HEAD
+=======
+    forceFailure
+>>>>>>> master
     error "resume failed with message : $msg"
   }
   $machine destroy

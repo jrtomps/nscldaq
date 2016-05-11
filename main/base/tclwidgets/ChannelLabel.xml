@@ -1,0 +1,77 @@
+<!-- manpage 3tcl -->
+
+<!-- /manpage -->
+<refentry id="tcl3.channellabel">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3.channellabel.title'>ChannelLabel</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>ChannelLabel</refname>
+           <refpurpose>Entry widget that cannot be empty.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+package require ChannelLabel
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+                <command>
+ChannelLabel <replaceable>path ?options...?</replaceable>
+                </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> configure  <replaceable>option value ?...?</replaceable>
+                </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> cget <replaceable>?option....?</replaceable>
+                </command>
+          </cmdsynopsis>
+          
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+               Provides an entry widget with some built in validation.  If focus
+               is lost from the entry, and there is no text in the entry, the
+               text is reverted to some default string.  The widget supports
+               all of the configuration options of the ttk::entry onwhich it's
+               based.  
+           </para>
+           <para>
+                The widget supports an additional option;
+                <option>-defaultstring</option> which contains the string
+                that will be set if the validation fails.
+           </para>
+           <note>
+                <title>NOTE</title>
+                <para>
+                        Unfortunately the <option>-validatecommand</option>,
+                        <option>-validate</option> and <option>-invalidcommand</option>
+                        options all remain exposed in the widget's API.  The
+                        widget will not behave as expected if these options
+                        are tampered with.
+                </para>
+           </note>
+        </refsect1>
+
+      </refentry>
+
+

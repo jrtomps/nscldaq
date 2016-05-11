@@ -38,6 +38,7 @@ East Lansing, MI 48824-1321
 #include <tcl.h>
 #include <CVMUSBHighLevelController.h>
 
+
 #include <iostream>
 
 #include <string.h>
@@ -209,6 +210,7 @@ void CAcquisitionThread::operator()()
   }
   catch (...) {
     std::cerr << "Acquisition thread exiting\n";
+
     //  This is a normal exit...
   }
   Globals::running = false;
@@ -228,6 +230,7 @@ void CAcquisitionThread::operator()()
   Globals::running = false;
   pState->setState(CRunState::Idle);
   m_Running = false;
+
 }
 
 /*!
@@ -365,9 +368,11 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   // The output thread get all other stack data and will ensure that
   // stack 1 completions are scalers and all others are events.
 
+
   if ((pBuffer->s_bufferType == TYPE_EVENTS) &&((pBuffer->s_rawData[0] >> 13) & 0x7) == 7) {
     ::Globals::pTclServer->QueueBuffer(pBuffer);
     gFreeBuffers.queue(pBuffer);
+
 
   } 
   else {
@@ -378,6 +383,7 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   startDaq start data acquisition from a standing stop. To do this we need to:
   All the preparation except turning on the DAQ has been done in the main thread
   by the prebegin command object.
+
 
  */
   void
@@ -403,6 +409,7 @@ CAcquisitionThread::stopDaq()
 
   Globals::pHLController->stopAcquisition();
   Globals::pHLController->performStopOperations();
+
 
 
 }
@@ -462,6 +469,7 @@ CAcquisitionThread::pauseDaq()
   void
 CAcquisitionThread::VMusbToAutonomous()
 {
+
     ::Globals::pHLController->startAcquisition();
     CRunState* pState = CRunState::getInstance();
     pState->setState(CRunState::Active);
@@ -548,6 +556,7 @@ CAcquisitionThread::bootToTheHead()
 {
   ::Globals::pHLController->stopAcquisition();
   ::Globals::pHLController->flushBuffers();
+
 
 }
 /**
