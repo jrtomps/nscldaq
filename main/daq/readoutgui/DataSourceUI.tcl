@@ -421,7 +421,7 @@ snit::widgetadaptor DialogWrapper {
         set action $value
     }
 }
->>>>>>> master
+
 namespace eval DataSourceUI {}
 ##
 #  DataSourceUI::getProvider

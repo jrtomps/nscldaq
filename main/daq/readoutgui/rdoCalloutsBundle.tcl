@@ -57,10 +57,8 @@ package require ReadoutGUIPanel
 namespace eval ::rdoCallouts {
     variable stateMachine ""
     namespace export attach enter leave
-<<<<<<< HEAD
     namespace export onExit
-=======
->>>>>>> master
+
     namespace ensemble create
 }
 #-------------------------------------------------------------------------------
@@ -146,7 +144,7 @@ proc ::rdoCallouts::leave {from to} {
         }
     }
 }
-<<<<<<< HEAD
+
 ##
 #  ::rdoCallouts::onExit
 #    Call OnExit if defined.
@@ -156,9 +154,7 @@ proc ::rdoCallouts::onExit {} {
         uplevel #0 OnExit
     }
 }
-=======
 
->>>>>>> master
 #------------------------------------------------------------------------------
 #  Other methods in the namespace:
 
