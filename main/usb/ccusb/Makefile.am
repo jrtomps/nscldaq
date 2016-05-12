@@ -59,5 +59,5 @@ EXTRA_DIST= commandline.ggo ccusbReadout_user.xml ccusbReadout_man.xml
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/include
-	$(INSTALL_DATA)  @srcdir@/*.h @builddir@/*.h @prefix@/ccusbdriver/include
+	$(INSTALL_DATA) -C  @srcdir@/*.h @builddir@/*.h @prefix@/ccusbdriver/include
 
