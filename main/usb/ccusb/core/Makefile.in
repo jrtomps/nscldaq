@@ -59,7 +59,9 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_openssl.m4 \
 	$(top_srcdir)/m4/ax_compilerflagcheck.m4 \
 	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
+	$(top_srcdir)/m4/ax_lib_sqlite3.m4 \
 	$(top_srcdir)/m4/ax_pkg_swig.m4 \
+	$(top_srcdir)/m4/ax_python_devel.m4 \
 	$(top_srcdir)/m4/ax_python_pkgcheck.m4 \
 	$(top_srcdir)/m4/cppunit.m4 $(top_srcdir)/m4/epics.m4 \
 	$(top_srcdir)/m4/gengetopt.m4 $(top_srcdir)/m4/libtool.m4 \
@@ -109,7 +111,8 @@ libCCUSBCore_la_DEPENDENCIES =  \
 	@top_builddir@/base/thread/libdaqthreads.la \
 	@top_builddir@/base/os/libdaqshm.la \
 	@top_builddir@/daq/format/libdataformat.la
-am_libCCUSBCore_la_OBJECTS = libCCUSBCore_la-CAcquisitionThread.lo \
+am_libCCUSBCore_la_OBJECTS = libCCUSBCore_la-Globals.lo \
+	libCCUSBCore_la-CAcquisitionThread.lo \
 	libCCUSBCore_la-CControlQueues.lo \
 	libCCUSBCore_la-COutputThread.lo libCCUSBCore_la-CRunState.lo \
 	libCCUSBCore_la-DataBuffer.lo \
@@ -119,7 +122,12 @@ am_libCCUSBCore_la_OBJECTS = libCCUSBCore_la-CAcquisitionThread.lo \
 	libCCUSBCore_la-CExit.lo libCCUSBCore_la-TclServer.lo \
 	libCCUSBCore_la-Server.lo libCCUSBCore_la-serverinstance.lo \
 	libCCUSBCore_la-CGetCommand.lo libCCUSBCore_la-CSetCommand.lo \
-	libCCUSBCore_la-CUpdateCommand.lo libCCUSBCore_la-tclUtil.lo
+	libCCUSBCore_la-CUpdateCommand.lo libCCUSBCore_la-tclUtil.lo \
+	libCCUSBCore_la-CCCUSBHighLevelController.lo \
+	libCCUSBCore_la-CPreBeginCommand.lo \
+	libCCUSBCore_la-CPreEndCommand.lo \
+	libCCUSBCore_la-CPrePauseCommand.lo \
+	libCCUSBCore_la-CPreResumeCommand.lo
 libCCUSBCore_la_OBJECTS = $(am_libCCUSBCore_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -185,6 +193,8 @@ EPICS_LDFLAGS = @EPICS_LDFLAGS@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GENGETOPT = @GENGETOPT@
+GLIB_CFLAGS = @GLIB_CFLAGS@
+GLIB_LIBS = @GLIB_LIBS@
 GREP = @GREP@
 HAVE_CXX11 = @HAVE_CXX11@
 HAVE_DOCBOOK2HTML = @HAVE_DOCBOOK2HTML@
@@ -232,16 +242,26 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PYTHON = @PYTHON@
+PYTHON_CPPFLAGS = @PYTHON_CPPFLAGS@
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
+PYTHON_EXTRA_LDFLAGS = @PYTHON_EXTRA_LDFLAGS@
+PYTHON_EXTRA_LIBS = @PYTHON_EXTRA_LIBS@
+PYTHON_LDFLAGS = @PYTHON_LDFLAGS@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
 PYTHON_PREFIX = @PYTHON_PREFIX@
+PYTHON_SITE_PKG = @PYTHON_SITE_PKG@
 PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOVERSION = @SOVERSION@
+SQLITE3_CFLAGS = @SQLITE3_CFLAGS@
+SQLITE3_LDFLAGS = @SQLITE3_LDFLAGS@
+SQLITE3_VERSION = @SQLITE3_VERSION@
 STRIP = @STRIP@
 SWIG = @SWIG@
 SWIG_LIB = @SWIG_LIB@
@@ -321,46 +341,52 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libCCUSBCore.la
-libCCUSBCore_la_SOURCES = CAcquisitionThread.cpp 	\
-													CControlQueues.cpp \
-													COutputThread.cpp \
-													CRunState.cpp \
-													DataBuffer.cpp  \
-													CSystemControl.cpp \
-													CBeginRun.cpp \
-													CEndRun.cpp \
-													CPauseRun.cpp \
-													CResumeRun.cpp \
-													CInit.cpp \
-													CExit.cpp  \
-													TclServer.cpp \
-													Server.cpp \
-													serverinstance.cpp \
-													CGetCommand.cpp  \
-													CSetCommand.cpp  \
-													CUpdateCommand.cpp  \
-													tclUtil.cpp
+libCCUSBCore_la_SOURCES = Globals.cpp CAcquisitionThread.cpp 	\
+				CControlQueues.cpp \
+				COutputThread.cpp \
+				CRunState.cpp \
+				DataBuffer.cpp  \
+				CSystemControl.cpp \
+				CBeginRun.cpp \
+				CEndRun.cpp \
+				CPauseRun.cpp \
+				CResumeRun.cpp \
+				CInit.cpp \
+				CExit.cpp  \
+				TclServer.cpp \
+				Server.cpp \
+			serverinstance.cpp \
+				CGetCommand.cpp  \
+				CSetCommand.cpp  \
+				CUpdateCommand.cpp  \
+					tclUtil.cpp	\
+					CCCUSBHighLevelController.cpp \
+					CPreBeginCommand.cpp CPreEndCommand.cpp \
+					CPrePauseCommand.cpp CPreResumeCommand.cpp
 
 noinst_HEADERS = CAcquisitionThread.h		\
-										CControlQueues.h \
-										COutputThread.h \
-										CRunState.h \
-										DataBuffer.h \
-										CSystemControl.h \
-										CBeginRun.h \
-										CEndRun.h \
-										CPauseRun.h \
-										CResumeRun.h \
-										CInit.h \
-										CExit.h  \
-										TclServer.h \
-										server.h \
-										serverinstance.h \
-										CGetCommand.h  \
-										CSetCommand.h  \
-										CUpdateCommand.h  \
-										tclUtil.h \
-										Events.h
+				CControlQueues.h \
+				COutputThread.h \
+				CRunState.h \
+				DataBuffer.h \
+			CSystemControl.h \
+				CBeginRun.h \
+				CEndRun.h \
+				CPauseRun.h \
+				CResumeRun.h \
+				CInit.h \
+				CExit.h  \
+				TclServer.h \
+				server.h \
+			serverinstance.h \
+				CGetCommand.h  \
+				CSetCommand.h  \
+				CUpdateCommand.h  \
+				tclUtil.h \
+				Events.h	\
+				CCCUSBHighLevelController.h  \
+				CPreBeginCommand.h CPreEndCommand.h \
+				CPrePauseCommand.h CPreResumeCommand.h
 
 libCCUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \
@@ -469,6 +495,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CAcquisitionThread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CBeginRun.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CCCUSBHighLevelController.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CControlQueues.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CEndRun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CExit.Plo@am__quote@
@@ -476,12 +503,17 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CInit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-COutputThread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CPauseRun.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CPreBeginCommand.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CPreEndCommand.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CPrePauseCommand.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CPreResumeCommand.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CResumeRun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CRunState.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CSetCommand.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CSystemControl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-CUpdateCommand.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-DataBuffer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-Globals.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-Server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-TclServer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCCUSBCore_la-serverinstance.Plo@am__quote@
@@ -507,6 +539,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+libCCUSBCore_la-Globals.lo: Globals.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCCUSBCore_la-Globals.lo -MD -MP -MF $(DEPDIR)/libCCUSBCore_la-Globals.Tpo -c -o libCCUSBCore_la-Globals.lo `test -f 'Globals.cpp' || echo '$(srcdir)/'`Globals.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCCUSBCore_la-Globals.Tpo $(DEPDIR)/libCCUSBCore_la-Globals.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Globals.cpp' object='libCCUSBCore_la-Globals.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCCUSBCore_la-Globals.lo `test -f 'Globals.cpp' || echo '$(srcdir)/'`Globals.cpp
 
 libCCUSBCore_la-CAcquisitionThread.lo: CAcquisitionThread.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCCUSBCore_la-CAcquisitionThread.lo -MD -MP -MF $(DEPDIR)/libCCUSBCore_la-CAcquisitionThread.Tpo -c -o libCCUSBCore_la-CAcquisitionThread.lo `test -f 'CAcquisitionThread.cpp' || echo '$(srcdir)/'`CAcquisitionThread.cpp
@@ -640,6 +679,41 @@ libCCUSBCore_la-tclUtil.lo: tclUtil.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tclUtil.cpp' object='libCCUSBCore_la-tclUtil.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCCUSBCore_la-tclUtil.lo `test -f 'tclUtil.cpp' || echo '$(srcdir)/'`tclUtil.cpp
+
+libCCUSBCore_la-CCCUSBHighLevelController.lo: CCCUSBHighLevelController.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCCUSBCore_la-CCCUSBHighLevelController.lo -MD -MP -MF $(DEPDIR)/libCCUSBCore_la-CCCUSBHighLevelController.Tpo -c -o libCCUSBCore_la-CCCUSBHighLevelController.lo `test -f 'CCCUSBHighLevelController.cpp' || echo '$(srcdir)/'`CCCUSBHighLevelController.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCCUSBCore_la-CCCUSBHighLevelController.Tpo $(DEPDIR)/libCCUSBCore_la-CCCUSBHighLevelController.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CCCUSBHighLevelController.cpp' object='libCCUSBCore_la-CCCUSBHighLevelController.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCCUSBCore_la-CCCUSBHighLevelController.lo `test -f 'CCCUSBHighLevelController.cpp' || echo '$(srcdir)/'`CCCUSBHighLevelController.cpp
+
+libCCUSBCore_la-CPreBeginCommand.lo: CPreBeginCommand.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCCUSBCore_la-CPreBeginCommand.lo -MD -MP -MF $(DEPDIR)/libCCUSBCore_la-CPreBeginCommand.Tpo -c -o libCCUSBCore_la-CPreBeginCommand.lo `test -f 'CPreBeginCommand.cpp' || echo '$(srcdir)/'`CPreBeginCommand.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCCUSBCore_la-CPreBeginCommand.Tpo $(DEPDIR)/libCCUSBCore_la-CPreBeginCommand.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CPreBeginCommand.cpp' object='libCCUSBCore_la-CPreBeginCommand.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCCUSBCore_la-CPreBeginCommand.lo `test -f 'CPreBeginCommand.cpp' || echo '$(srcdir)/'`CPreBeginCommand.cpp
+
+libCCUSBCore_la-CPreEndCommand.lo: CPreEndCommand.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCCUSBCore_la-CPreEndCommand.lo -MD -MP -MF $(DEPDIR)/libCCUSBCore_la-CPreEndCommand.Tpo -c -o libCCUSBCore_la-CPreEndCommand.lo `test -f 'CPreEndCommand.cpp' || echo '$(srcdir)/'`CPreEndCommand.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCCUSBCore_la-CPreEndCommand.Tpo $(DEPDIR)/libCCUSBCore_la-CPreEndCommand.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CPreEndCommand.cpp' object='libCCUSBCore_la-CPreEndCommand.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCCUSBCore_la-CPreEndCommand.lo `test -f 'CPreEndCommand.cpp' || echo '$(srcdir)/'`CPreEndCommand.cpp
+
+libCCUSBCore_la-CPrePauseCommand.lo: CPrePauseCommand.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCCUSBCore_la-CPrePauseCommand.lo -MD -MP -MF $(DEPDIR)/libCCUSBCore_la-CPrePauseCommand.Tpo -c -o libCCUSBCore_la-CPrePauseCommand.lo `test -f 'CPrePauseCommand.cpp' || echo '$(srcdir)/'`CPrePauseCommand.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCCUSBCore_la-CPrePauseCommand.Tpo $(DEPDIR)/libCCUSBCore_la-CPrePauseCommand.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CPrePauseCommand.cpp' object='libCCUSBCore_la-CPrePauseCommand.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCCUSBCore_la-CPrePauseCommand.lo `test -f 'CPrePauseCommand.cpp' || echo '$(srcdir)/'`CPrePauseCommand.cpp
+
+libCCUSBCore_la-CPreResumeCommand.lo: CPreResumeCommand.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCCUSBCore_la-CPreResumeCommand.lo -MD -MP -MF $(DEPDIR)/libCCUSBCore_la-CPreResumeCommand.Tpo -c -o libCCUSBCore_la-CPreResumeCommand.lo `test -f 'CPreResumeCommand.cpp' || echo '$(srcdir)/'`CPreResumeCommand.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCCUSBCore_la-CPreResumeCommand.Tpo $(DEPDIR)/libCCUSBCore_la-CPreResumeCommand.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CPreResumeCommand.cpp' object='libCCUSBCore_la-CPreResumeCommand.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCCUSBCore_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCCUSBCore_la-CPreResumeCommand.lo `test -f 'CPreResumeCommand.cpp' || echo '$(srcdir)/'`CPreResumeCommand.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -853,6 +927,7 @@ uninstall-am: uninstall-libLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-libLTLIBRARIES
 
+				Events.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

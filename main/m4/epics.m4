@@ -66,12 +66,10 @@ fi
 
 if test $haveepics == "yes"
 then
-<<<<<<< HEAD
-	# Have epics  -- assume linux/gcc:
-=======
+
 	# Have epics:
         # Note for now assume gcc is the compiler
->>>>>>> master
+
 
    EPICS_INCLUDES="-I$epicsroot/include -I$epicsroot/include/os/Linux -I$epicsroot/include/compiler/gcc"
    EPICS_LDFLAGS="-L$epicsroot/lib/$epicsarch -lca -Wl,\"-rpath=$epicsroot/lib/$epicsarch\""

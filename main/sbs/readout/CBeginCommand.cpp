@@ -85,10 +85,6 @@ CBeginCommand::operator()(CTCLInterpreter&    interp,
     // Set values for the title and run number if these Tcl variables are set:
 
     RunState* pState =  RunState::getInstance();
-<<<<<<< HEAD
-    
-=======
->>>>>>> master
 
     CTCLVariable run(&interp, string("run"), kfFALSE);
     CTCLVariable title(&interp, string("title"), kfFALSE);
@@ -96,7 +92,6 @@ CBeginCommand::operator()(CTCLInterpreter&    interp,
     const char* runValue = run.Get();
     const char* titleValue = title.Get();
 
-<<<<<<< HEAD
     RunState::State state = pState->m_state;
     if ((state == RunState::inactive) || (state == RunState::starting) ) {
         if (runValue) {
@@ -123,24 +118,6 @@ CBeginCommand::operator()(CTCLInterpreter&    interp,
     if (state == RunState::inactive) {
         pRunControl.preBegin();                                    
     }
-=======
-    if (runValue && (pState->m_state == RunState::inactive)) {
-      uint32_t newValue;
-      char*    endptr;
-      newValue = strtoul(runValue, &endptr, 0);
-      if (runValue != endptr) {
-	pState->m_runNumber = newValue;
-      }
-
-    }
-    if (titleValue && (pState->m_state == RunState::inactive)) {
-      delete []pState->m_pTitle;
-      pState->m_pTitle = new char[strlen(titleValue)+1];
-      strcpy(pState->m_pTitle, titleValue);
-      
-    }
-    
->>>>>>> master
     pRunControl.begin();
   }
   catch (CStateException& e) {

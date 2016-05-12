@@ -20,8 +20,7 @@ compatibilitybuffer_LDADD = \
 compatibilitybuffer_CPPFLAGS = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
 	-I@top_srcdir@/base/os
 
-compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp \
-	@srcdir@/loggeroptions.c
+
 compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp 
 nodist_compatibilitylogger_SOURCES = loggeroptions.c loggeroptions.h
 compatibilitylogger_CPPFLAGS=-I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
@@ -29,7 +28,6 @@ compatibilitylogger_CPPFLAGS=-I@top_srcdir@/daq/format -I@top_srcdir@/base/heade
 
 
 
-BufferToRing_SOURCES = BufferToRing.cpp btoroptions.c
 BufferToRing_SOURCES = BufferToRing.cpp 
 nodist_BufferToRing_SOURCES = btoroptions.c btoroptions.h
 

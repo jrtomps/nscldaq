@@ -344,7 +344,6 @@ int main(int argc, char** argv)
 
 <!-- manpage 3daq -->
     <refentry id="manpage.cringbuffer">
-<<<<<<< HEAD
         <refentryinfo>
     <author>
         <personname>
@@ -359,11 +358,6 @@ int main(int argc, char** argv)
          <refentrytitle>CRingBuffer</refentrytitle>
          <manvolnum>3daq</manvolnum>
          <refmiscinfo class='empty'></refmiscinfo>
-=======
-      <refmeta>
-         <refentrytitle>CRingBuffer</refentrytitle>
-         <manvolnum>3daq</manvolnum>
->>>>>>> master
       </refmeta>
       <refnamediv>
          <refname>CRingBuffer</refname>

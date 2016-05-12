@@ -47,10 +47,7 @@
 class CReadoutModule;
 class CVMUSB;
 class CVMUSBReadoutList;
-<<<<<<< HEAD
 class CConfiguration;
-=======
->>>>>>> master
 
 /*!
   The CStack class represents a CC-USB triggered readout list.   

@@ -22,10 +22,7 @@ package require RunstateMachine
 package require StateManager
 package require DataSourceUI
 package require img::png
-<<<<<<< HEAD
 package require dialogWrapper
-=======
->>>>>>> master
 
 package provide ui   1.0
 package provide ReadoutGUIPanel 1.0
@@ -741,15 +738,12 @@ snit::widgetadaptor RunControl {
     #
     method _start {} {
       set stateMachine [RunstateMachineSingleton %AUTO%]
-<<<<<<< HEAD
-      $stateMachine transition Starting
-=======
 
       RunControlSingleton::updateStateBundleOrder
 
       $stateMachine transition Starting
 
->>>>>>> master
+
       $stateMachine destroy 
     }
     ##
@@ -768,24 +762,16 @@ snit::widgetadaptor RunControl {
         set state [$stateMachine getState]
         $stateMachine destroy
 
-<<<<<<< HEAD
-=======
         RunControlSingleton::updateStateBundleOrder
 
->>>>>>> master
         if {$state eq "Halted"} {
           begin
         } elseif {$state in [list Paused Active]} {
           end
         } else {
-<<<<<<< HEAD
             error "ERROR: begin/end button clicked when state is $state which should not happen"
         }
-=======
-          error "ERROR: begin/end button clicked when state is $state which should not happen"
-        }
 
->>>>>>> master
     }
     ##
     # _pauseresume
@@ -799,23 +785,15 @@ snit::widgetadaptor RunControl {
         set stateMachine [RunstateMachineSingleton %AUTO%]
         set state [$stateMachine getState]
         $stateMachine destroy
-<<<<<<< HEAD
-=======
 
         RunControlSingleton::updateStateBundleOrder
-
->>>>>>> master
         if {$state eq "Paused"} {
           resume
         } elseif {$state eq "Active"} {
           pause
         } else {
-<<<<<<< HEAD
             error "ERROR: pause/resume button clicked when state is $state which should not happen"
-=======
-          error "ERROR: pause/resume button clicked when state is $state which should not happen"
->>>>>>> master
-        }
+	}
     }
     
     #---------------------------------------------------------------------------
@@ -870,8 +848,7 @@ snit::widgetadaptor RunControl {
         }
     }
 }
-<<<<<<< HEAD
-=======
+
 
 ## A callout bundles to disable the control widget state
 #
@@ -1009,7 +986,7 @@ namespace eval RunControlEnable {
 }
 
 
->>>>>>> master
+
 ##
 #   The functions/namespace below implement the run control singleton pattern.
 #
@@ -1017,8 +994,7 @@ namespace eval ::RunControlSingleton {
     variable theInstance ""
     namespace export attach enter leave
 }
-<<<<<<< HEAD
-=======
+
 
 ##
 # Register (or reregister) the RunControlEnable/Disable bundles 
@@ -1035,7 +1011,7 @@ proc ::RunControlSingleton::updateStateBundleOrder {} {
   RunControlDisable::register
 
 }
->>>>>>> master
+
 ##
 #  ::RunControlSingleton::getInstance
 #
@@ -1048,13 +1024,8 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
     if {$::RunControlSingleton::theInstance eq ""} {
         set ::RunControlSingleton::theInstance [RunControl $path {*}$args]
 
-<<<<<<< HEAD
-        set stateMachine [RunstateMachineSingleton %AUTO%]
-        $stateMachine addCalloutBundle RunControlSingleton
-        $stateMachine destroy
-=======
        RunControlSingleton::updateStateBundleOrder
->>>>>>> master
+
 
     } elseif {[llength $args] > 0} {
         $::RunControlSingleton::theInstance configure {*}$args
@@ -1068,44 +1039,28 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
 # @param state - the current machine state.
 # 
 proc ::RunControlSingleton::attach {state} {
-<<<<<<< HEAD
-    set rctl [::RunControlSingleton::getInstance]
-    $rctl _updateAppearance
 
-}
-##
-# enter
-#    Called when the state machine enters a new state.
-=======
 }
 ##
 # enter
 #    Called when the state machine enters a new state. 
 #    This only adjusts the appearance if the transition is to
 #    Starting or Halted.
->>>>>>> master
 #
 # @param from - old state.
 # @param to   - Current state
 #
 proc ::RunControlSingleton::enter {from to} {
-<<<<<<< HEAD
-    set rctl [::RunControlSingleton::getInstance]
-    $rctl _updateAppearance
 
-=======
->>>>>>> master
 }
 ##
 #  leave
 #   Called whenn the state machine leaves a state (unused)
 #
-<<<<<<< HEAD
-proc ::RunControlSingleton::leave {from to} {}
-=======
+
 proc ::RunControlSingleton::leave {from to} {
 }
->>>>>>> master
+
 
 ##
 #  API elements for all this fun:
@@ -3215,13 +3170,8 @@ snit::widgetadaptor ReadoutGUI {
             set sm [RunstateMachineSingleton %AUTO%]
             if {[$sm getState] ne "NotReady"} {
                 $sm transition NotReady
-<<<<<<< HEAD
 
             }
-            $sm exit;                  # Call the bundle onExit callbacks.
-=======
-            }
->>>>>>> master
             $sm destroy;                # though there's not much point to this:
             #
             #  Save the state

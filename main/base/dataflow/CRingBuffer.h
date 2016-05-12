@@ -1,10 +1,7 @@
-<<<<<<< HEAD
-#ifndef __CRINGBUFFER_H
-#define __CRINGBUFFER_H
-=======
+
 #ifndef CRINGBUFFER_H
 #define CRINGBUFFER_H
->>>>>>> master
+
 
 /*
     This software is Copyright by the Board of Trustees of Michigan
@@ -136,32 +133,21 @@ private:
 
   // Manipulations on the ring buffer:
 public:
-<<<<<<< HEAD
-  size_t put(const void* pBuffer, size_t nBytes, unsigned long timeout=ULONG_MAX);
-  size_t get(void* pBuffer, size_t maxBytes, size_t minBytes = 1, 
-	     unsigned long timeout=ULONG_MAX);
-  size_t peek(void* pBuffer, size_t maxbytes);
-  void   skip(size_t nBytes);
-=======
+
   virtual size_t put(const void* pBuffer, size_t nBytes, unsigned long timeout=ULONG_MAX);
   virtual size_t get(void* pBuffer, size_t maxBytes, size_t minBytes = 1, 
 	     unsigned long timeout=ULONG_MAX);
   virtual size_t peek(void* pBuffer, size_t maxbytes);
   virtual void   skip(size_t nBytes);
->>>>>>> master
+
 
   unsigned long setPollInterval(unsigned long newValue);
   unsigned long getPollInterval();
 
   // Inquiry functions.
 
-<<<<<<< HEAD
-  size_t availablePutSpace();
-  size_t availableData();
-=======
   virtual size_t availablePutSpace();
   virtual size_t availableData();
->>>>>>> master
 
   Usage getUsage();
 
@@ -170,11 +156,9 @@ public:
   // blocking.
 
   int blockWhile(CRingBufferPredicate& pred, unsigned long timeout=ULONG_MAX);
-<<<<<<< HEAD
-  void pollblock();		// Block for the current poll interval.
-=======
+
   virtual void pollblock();		// Block for the current poll interval.
->>>>>>> master
+
 
   // Iteration (e.g. searching).
 

@@ -95,8 +95,6 @@ CFilterMain::CFilterMain(int argc, char** argv)
   }
   catch (...) {
     std::cerr << "Unanticipated exception caught. \n";
-    std::cout << exc.ReasonText() << std::endl;
-    std::cout << exc.WasDoing() << std::endl;
     throw CFatalException();
   }
 }

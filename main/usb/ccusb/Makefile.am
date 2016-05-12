@@ -13,10 +13,10 @@ SUBDIRS = 	ccusb 		\
 bin_PROGRAMS = CCUSBReadout
 
 
-CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp
+CCUSBReadout_SOURCES = CTheApplication.cpp 
 nodist_CCUSBReadout_SOURCES=  cmdline.c cmdline.h
 
-noinst_HEADERS = CTheApplication.h Globals.h
+noinst_HEADERS = CTheApplication.h 
 
 CCUSBReadout_CPPFLAGS = -I@top_srcdir@/usb/ccusb/ccusb \
 	 -I@top_srcdir@/usb/ccusb/daqconfig \
@@ -58,6 +58,6 @@ EXTRA_DIST= commandline.ggo ccusbReadout_user.xml ccusbReadout_man.xml
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
-	$(mkinstalldirs) @prefix@/ccusbdriver/includes
+	$(mkinstalldirs) @prefix@/ccusbdriver/include
 	$(INSTALL_DATA)  @srcdir@/*.h @builddir@/*.h @prefix@/ccusbdriver/include
 

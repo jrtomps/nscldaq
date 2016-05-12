@@ -51,11 +51,7 @@ include_HEADERS = CEventOrderClient.h fragment.h CEVBClientApp.h EVBFramework.h 
 	CEVBFrameworkApp.h  GetOpt.h fragio.h
 
 
-<<<<<<< HEAD
-noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
-=======
 noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h  \
->>>>>>> master
 	CInputStatsCommand.h COrdererOutput.h COutputStatsObserver.h COutputStatsCommand.h \
 	CDataLateStatistics.h CDLateStatsCommand.h CLateScriptObserver.h COnLateDataCommand.h \
 	CBarrierStatsCommand.h CBarrierStats.h CIncompleteBarrierStats.h CCompleteBarrierCallback.h \
@@ -67,10 +63,6 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h  \
 
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> master
 libEventBuilderClient_la_LIBADD = @top_builddir@/base/tcpip/libTcp.la \
 	@top_builddir@/servers/portmanager/libPortManager.la   \
 	@top_builddir@/base/tcpip/libTcp.la	\
@@ -128,12 +120,9 @@ install-exec-hook:
 noinst_PROGRAMS = unittests ordertests
 
 unittests_SOURCES = TestRunner.cpp lookupTest.cpp  \
-<<<<<<< HEAD
-	connectTest.cpp  cmdline.c
-=======
 	connectTest.cpp  
 nodist_unittests_SOURCES = cmdline.c cmdline.h
->>>>>>> master
+
 
 
 unittests_LDADD = libEventBuilderClient.la \
@@ -152,10 +141,7 @@ ordertests_SOURCES = TestRunner.cpp orderTests.cpp duptscmdtest.cpp \
 	CFragmentHandler.cpp fragment.c CDuplicateTimeStatCommand.cpp \
 	CConfigure.cpp CXonXOffCallbackCommand.cpp
 
-<<<<<<< HEAD
-=======
 
->>>>>>> master
 ordertests_LDADD = 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
 ordertests_CXXFLAGS=$(COMPILATION_FLAGS) @TCL_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@
@@ -168,21 +154,12 @@ check-TESTS:
 
 BUILT_SOURCES=cmdline.h cmdline.c
 
-<<<<<<< HEAD
-cmdline.h: options.ggo
-	$(GENGETOPT) --input=@top_srcdir@/daq/eventbuilder/options.ggo \
-		--output-dir=@top_srcdir@/daq/eventbuilder
 
-cmdline.c: options.ggo
-	$(GENGETOPT) --input=@top_srcdir@/daq/eventbuilder/options.ggo \
-		--output-dir=@top_srcdir@/daq/eventbuilder
-=======
 cmdline.c: cmdline.h
 
 cmdline.h: options.ggo
 	$(GENGETOPT) --input=@srcdir@/options.ggo \
 		--output-dir=@builddir@
 
->>>>>>> master
 
 

@@ -46,7 +46,8 @@ install-exec-hook:
 
 
 
-check-TESTS: check_PROGRAMS
+check-TESTS: check_PROGRAMS ringTests
+	@builddir@/ringTests
 	for f in  @srcdir@/*.test; do echo Testing $$f  ; @TCLSH_CMD@ $$f; done
 
 
@@ -82,6 +83,5 @@ ringTests_LDADD    =  @CPPUNIT_LDFLAGS@ libTclRingBuffer.la \
 				@LIBTCLPLUS_LDFLAGS@  @TCL_LDFLAGS@ @THREADLD_FLAGS@
 
 
-TESTS=ringTests
 check_PROGRAMS:  
 	@builddir@/ringTests

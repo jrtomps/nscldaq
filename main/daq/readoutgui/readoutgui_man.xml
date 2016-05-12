@@ -2928,11 +2928,9 @@ $mymenu add command -label "a command" -command handleACommand
         <refsynopsisdiv>
           <cmdsynopsis>
             <command>
-<<<<<<< HEAD
-package require RunStateMachine
-=======
+
 package require RunstateMachine
->>>>>>> master
+
           </command>
           </cmdsynopsis>
             <cmdsynopsis>
@@ -6435,3 +6433,4 @@ $outputMonitor configure -host spdaq123.nscl.msu.edu
         </refentry>
       
 <!-- /manpage -->
+

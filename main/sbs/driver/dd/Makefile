@@ -1,6 +1,4 @@
 
-
-
 obj-m := btp.o
 
 btp-objs :=	bt_bit.o bt_delay.o bt_diag.o bt_event.o bt_icbr_thread.o \
@@ -9,8 +7,5 @@ btp-objs :=	bt_bit.o bt_delay.o bt_diag.o bt_event.o bt_icbr_thread.o \
 	 btp_lowio.o btp_mmap.o btp_open.o btp_rdwr.o btp_version.o
 
 EXTRA_CFLAGS += -g  -DBT1003 -I$(BTDRIVER)/dd -I$(BTDRIVER)/include \
-<<<<<<< HEAD
 	-fno-strength-reduce -Wall -Wstrict-prototypes -fno-common
-=======
-	-fno-strength-reduce -Wall -Wstrict-prototypes -fno-common 
->>>>>>> master
+

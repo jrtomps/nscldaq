@@ -27,11 +27,13 @@ extern Tcl_PackageInitProc	Tcltest_Init;
 
 #endif /* TCL_TEST */
 
+
 #ifdef TCL_XT_TEST
 extern void		XtToolkitInitialize _ANSI_ARGS_((void));
 extern int		Tclxttest_Init _ANSI_ARGS_((Tcl_Interp *interp));
 #endif
 
+#include <stdlib.h>
 
 // We're actually going to process argc/argv in the application initialization.
 

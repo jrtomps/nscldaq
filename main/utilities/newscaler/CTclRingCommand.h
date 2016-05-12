@@ -45,7 +45,6 @@ class CRingItem;
 class CRingSelectionPredicate;
 class CTimeout;
 
-
 /**
  * @class CTclRingCommand
  *
@@ -105,4 +104,3 @@ private:
 };
 
 #endif
-

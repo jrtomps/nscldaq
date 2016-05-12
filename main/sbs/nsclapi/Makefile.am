@@ -22,10 +22,6 @@ libSBSVmeAPI_la_CPPFLAGS = -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@	\
 AM_LDFLAGS = -lpthread
 
 
-<<<<<<< HEAD
-
-EXTRA_DIST = sbsVmeApi.xml 
-=======
 noinst_PROGRAMS = unittests
 
 unittests_SOURCES = TestRunner.cpp LockingTest.cpp
@@ -38,4 +34,4 @@ check-TESTS:
 	./unittests
 
 EXTRA_DIST = sbsVmeApi.xml  Asserts.h
->>>>>>> master
+

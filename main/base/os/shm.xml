@@ -182,12 +182,7 @@ g++ -o myprogram obj1.o obj2.o obj3.o -L$DAQHOME/lib -ldaqshm \
         </example>
     </section>
 </chapter>
-<<<<<<< HEAD
 
-<!-- /chapter -->
-
-<!-- manpage 3daq -->
-=======
 <chapter>
     <title>The <classname>Os</classname> class</title>
     <para>
@@ -676,8 +671,6 @@ g++ -o myprogram obj1.o obj2.o obj3.o -L$DAQHOME/lib -ldaqshm \
   </refsect1>
 
 </refentry>     
-
->>>>>>> master
 	 <refentry id="daqshm-manpage">
        <refmeta>
           <refentrytitle>CDAQShm</refentrytitle>
@@ -1088,4 +1081,5 @@ class <classname>CDAQShm</classname>
             
         </refsect1>
      </refentry>     
+
 <!-- /manpage -->

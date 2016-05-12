@@ -3,13 +3,10 @@
 lib_LTLIBRARIES = libDataFlow.la \
 		libRingBuffer.la
 
-<<<<<<< HEAD
-libDataFlow_la_SOURCES = CRingBuffer.cpp  CRemoteAccess.cpp CRingMaster.cpp
-include_HEADERS        = CRingBuffer.h CRingMaster.h CRemoteAccess.h
-=======
+
 libDataFlow_la_SOURCES = CRingBuffer.cpp CTestRingBuffer.cpp CRemoteAccess.cpp CRingMaster.cpp
 include_HEADERS        = CRingBuffer.h CTestRingBuffer.h CRingMaster.h CRemoteAccess.h
->>>>>>> master
+
 
 noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h
 
@@ -53,27 +50,7 @@ libRingBuffer_la_CXXFLAGS	=	$(THREADCXX_FLAGS) \
 
 bin_PROGRAMS 	= ringtostdout stdintoring
 
-<<<<<<< HEAD
-ringtostdout_SOURCES = ringtostdout.cpp  @srcdir@/ringtostdoutsw.c
 
-ringtostdout_CPPFLAGS=$(COMPILATION_FLAGS)
-
-ringtostdout_DEPENDENCIES =  libDataFlow.la @srcdir@/ringtostdoutsw.h
-
-BUILT_SOURCES=@srcdir@/ringtostdoutsw.c @srcdir@/stdintoringsw.c
-
-@srcdir@/ringtostdoutsw.c: ringtostdoutsw.h
-
-ringtostdoutsw.h: ringtostdoutsw.ggo
-	@GENGETOPT@ <@srcdir@/ringtostdoutsw.ggo \
-		--output-dir=@srcdir@ --file ringtostdoutsw --unamed-opts
-
-@srcdir@/stdintoringsw.c: stdintoringsw.h
-
-stdintoringsw.h: stdintoringsw.ggo
-	@GENGETOPT@ <@srcdir@/stdintoringsw.ggo \
-		--output-dir=@srcdir@ --file=stdintoringsw --unamed-opts
-=======
 ringtostdout_SOURCES = ringtostdout.cpp  
 nodist_ringtostdout_SOURCES = ringtostdoutsw.c ringtostdoutsw.h
 
@@ -94,7 +71,6 @@ stdintoringsw.c: stdintoringsw.h
 stdintoringsw.h: stdintoringsw.ggo
 	@GENGETOPT@ <@srcdir@/stdintoringsw.ggo \
 		--output-dir=@builddir@ --file=stdintoringsw --unamed-opts
->>>>>>> master
 
 ringtostdout_LDADD	=  libDataFlow.la \
 			@LIBEXCEPTION_LDFLAGS@	\
@@ -103,16 +79,12 @@ ringtostdout_LDADD	=  libDataFlow.la \
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
 
-<<<<<<< HEAD
-stdintoring_SOURCES = stdintoring.cpp @srcdir@/stdintoringsw.c
-
-stdintoring_DEPENDENCIES = libDataFlow.la @srcdir@/stdintoringsw.h
-=======
 stdintoring_SOURCES = stdintoring.cpp 
 nodist_stdintoring_SOURCES=stdintoringsw.c stdinringtosw.h
 
 stdintoring_DEPENDENCIES = libDataFlow.la 
->>>>>>> master
+
+
 
 
 
@@ -123,11 +95,6 @@ stdintoring_LDADD	=  libDataFlow.la	\
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
-<<<<<<< HEAD
-CLEANFILES=stdintoringsw.c stdintoringsw.h ringtostdoutsw.c ringtostdoutsw.h
-=======
-#   CLEANFILES=stdintoringsw.c stdintoringsw.h ringtostdoutsw.c ringtostdoutsw.h
->>>>>>> master
 
 #---------------- Tests
 
@@ -150,11 +117,7 @@ unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
 producer_SOURCES	=	producer.cpp
 
-<<<<<<< HEAD
-producer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@ -lrt
-=======
 producer_LDADD    = -L@prefix@/lib libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
->>>>>>> master
 
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
@@ -162,11 +125,8 @@ producer_CPPFLAGS=$(COMPILATION_FLAGS)
 
 consumer_SOURCES	=	consumer.cpp
 
-<<<<<<< HEAD
-consumer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@ -lrt
-=======
 consumer_LDADD    = -L@prefix@/lib libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
->>>>>>> master
+
 
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 

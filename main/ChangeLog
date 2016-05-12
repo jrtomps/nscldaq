@@ -853,7 +853,6 @@ Work on 11.0-rc11 begins
         *  Feature #868 - Remove NSCLDAQ's dependency on BLT as that is not being
         sufficiently supported for me to have confidence that it won't break (again)
         when we go to Tcl 8.6
-<<<<<<< HEAD
         Bug #2915 - Don't emit body headers if there's no scaler timestamp extractor.
 11.0-variablemanager
 	Feature #3047 - Support for directory hierarchies in the variable
@@ -890,8 +889,6 @@ Work on 11.0-rc11 begins
 	Feature #4738  - Create properties and property editor.
 	Feature #4741  - Create editor objects
 	Feature #4744 - Get basic toolbar working.
-=======
->>>>>>> master
         *  Bug #2915 - Don't emit body headers if there's no scaler timestamp extractor.
         - Add try/catch block around the action register write that
 	triggers the vmusbreadout monitor list as this intermittently
@@ -1076,7 +1073,6 @@ Work on 11.0-rc11 begins
 
 11.1-000
 	Good compilation of mergeer of 11.1 and 11.0head.
-<<<<<<< HEAD
 	
 11.1-varmgr
 	merge 11.1 trunk with work done so far.
@@ -1090,9 +1086,6 @@ Work on 11.0-rc11 begins
 	followed by actual begin.  This can help synchronize the start
 	of data taking when initialization has disparate timing amongst
 	the nodes.
-
-	
-=======
 	* Fixes Bug #4999 by allowing -multhi0 and -multhi1 to span from 0
 	  to 255 in mtdc driver. It also sets the default value to be 255
 		for each of these.
@@ -1115,4 +1108,3 @@ Work on 11.0-rc11 begins
 	   *   Task #5834 - Document missing stuff in os/thread
 	   *   Task #5822 - Document where to find Plotchart and how to
    	       load NSCL's special version.
->>>>>>> master

@@ -18,20 +18,18 @@
 static const char* Copyright = "(C) Copyright Michigan State University 2014, All rights reserved";
 
 
-<<<<<<< HEAD
 #include <vector>
-=======
 #include <Asserts.h>
->>>>>>> master
+
 
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <CRingItem.h>
-<<<<<<< HEAD
+
 #define private public
 #define protected public
 #include "CRingItemToFragmentTransform.h"
-=======
+
 #include <CPhysicsEventItem.h>
 #include <CRingStateChangeItem.h>
 #include <DataFormat.h>
@@ -39,14 +37,13 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #define private public
 #define protected public
 #include "CRingSource.h"
->>>>>>> master
+
 #undef private
 #undef protected
 
 #include <array>
 #include <vector>
 #include <limits>
-<<<<<<< HEAD
 
 // A test suite 
 class CRingItemToFragmentTransformTest : public CppUnit::TestFixture
@@ -353,7 +350,6 @@ void CRingItemToFragmentTransformTest::fillBody(CRingItem& item)
   item.updateSize();
 
 }
-=======
 #include <vector>
 #include <memory>
 #include <iostream>
@@ -448,16 +444,13 @@ void CRingSourceTest::getEvent_1() {
 
 
 void CRingSourceTest::fillBody(CRingItem& item) {
-      vector<uint8_t> data = {0, 1, 2, 3, 4, 5, 6, 7};
-      uint8_t* pData = reinterpret_cast<uint8_t*>(item.getBodyPointer()); 
-      pData = copy(data.begin(), data.end(), pData);
-      item.setBodyCursor(pData);
-      item.updateSize();
-
-    }
-
-
+  std::vector<uint8_t> data = {0, 1, 2, 3, 4, 5, 6, 7};
+  uint8_t* pData = reinterpret_cast<uint8_t*>(item.getBodyPointer()); 
+  pData = copy(data.begin(), data.end(), pData);
+  item.setBodyCursor(pData);
+  item.updateSize();
+  
+}
 
 
->>>>>>> master
 

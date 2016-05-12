@@ -52,14 +52,9 @@ tcltest::test addSource-0 {Ability to add a ring fragment source
 
   set ::RingSourceMgr::sourceDict [dict create]
 
-<<<<<<< HEAD
-  puts $resList
-  set resList
-} {{} {tcp://thesrc/ring {tstamplib lib id 43 info asdf expecthdrs 1 oneshot {} timeout {} fd {}}}}
-=======
   set resList
 } {{} {tcp://thesrc/ring {tstamplib lib id 43 info asdf expecthdrs 1 oneshot {} timeout {} offset 0 fd {}}}}
->>>>>>> master
+
 
 #
 #
@@ -78,13 +73,10 @@ tcltest::test transition-0 {Transition from halted to active starts sources
 } {
   set body0 [info body ::RingSourceMgr::startSource]
   set ::opList [list]
-<<<<<<< HEAD
-  proc ::RingSourceMgr::startSource {src lib id info hdr} {
-    lappend ::opList [list $src $lib $id $info $hdr]
-=======
+
   proc ::RingSourceMgr::startSource {src lib id info hdr one time} {
     lappend ::opList [list $src $lib $id $info $hdr $one $time]
->>>>>>> master
+
   }
 
 
@@ -99,20 +91,16 @@ tcltest::test transition-0 {Transition from halted to active starts sources
   sm transition Active
 
   sm destroy
-<<<<<<< HEAD
-  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
-=======
+
   proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""} {one ""} {time ""}} $body0
->>>>>>> master
+
 
   ::RingSourceMgr::clearSources
 
   set ::opList
-<<<<<<< HEAD
-} {{a b c d e} {f g h i j} {k l m n o}}
-=======
+
 } {{a b c d e {} {}} {f g h i j {} {}} {k l m n o {} {}}}
->>>>>>> master
+
 
 
 #
@@ -121,13 +109,9 @@ tcltest::test multipleTransitions-0 {Only first transition should start a source
 } {
   set body0 [info body ::RingSourceMgr::startSource]
   set ::opList [list]
-<<<<<<< HEAD
-  proc ::RingSourceMgr::startSource {src lib id info hdr} {
-    lappend ::opList [list $src $lib $id $info $hdr]
-=======
+
   proc ::RingSourceMgr::startSource {src lib id info hdr one time} {
     lappend ::opList [list $src $lib $id $info $hdr $one $time]
->>>>>>> master
     return "chan1"
   }
 
@@ -151,20 +135,15 @@ tcltest::test multipleTransitions-0 {Only first transition should start a source
   sm transition Active
 
   sm destroy
-<<<<<<< HEAD
-  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
-=======
+
   proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""} {one ""} {time ""}} $body0
->>>>>>> master
 
   ::RingSourceMgr::clearSources
 
   set ::opList
-<<<<<<< HEAD
-} {{a b c d e}}
-=======
+
 } {{a b c d e {} {}}}
->>>>>>> master
+
 
 
 #
@@ -173,13 +152,8 @@ tcltest::test multipleTransitions-1 {Transition to NotReady resets for next tran
 } {
   set body0 [info body ::RingSourceMgr::startSource]
   set ::opList [list]
-<<<<<<< HEAD
-  proc ::RingSourceMgr::startSource {src lib id info hdr} {
-    lappend ::opList [list $src $lib $id $info $hdr]
-=======
   proc ::RingSourceMgr::startSource {src lib id info hdr one time} {
     lappend ::opList [list $src $lib $id $info $hdr $one $time]
->>>>>>> master
     return "chan1"
   }
 
@@ -206,31 +180,22 @@ tcltest::test multipleTransitions-1 {Transition to NotReady resets for next tran
   sm transition Active
 
   sm destroy
-<<<<<<< HEAD
-  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
-=======
   proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""} {one ""} {time ""}} $body0
->>>>>>> master
 
   ::RingSourceMgr::clearSources
 
   set ::opList
-<<<<<<< HEAD
-} {{a b c d e} {a b c d e}}
-=======
+
 } {{a b c d e {} {}} {a b c d e {} {}}}
->>>>>>> master
+
 
 #
 #
 tcltest::test ringsource-0 {Test that expect body headers 0 does not add anything to switches
 } -body {
    # this calls the switches
-<<<<<<< HEAD
-   set switches [::RingSourceMgr::_computeRingSourceSwitches a b c d e 0  0  0]
-=======
    set switches [::RingSourceMgr::_computeRingSourceSwitches a b c d e 0  0  0 0]
->>>>>>> master
+
 
    string match "*--expectbodyheaders*" $switches 
 } -result 0 
@@ -240,11 +205,8 @@ tcltest::test ringsource-0 {Test that expect body headers 0 does not add anythin
 tcltest::test ringsource-1 {Test that expect body headers 1 does not add anything to switches
 } -body {
    # this calls the switches
-<<<<<<< HEAD
-   set switches [::RingSourceMgr::_computeRingSourceSwitches a b c d e 1 0 0]
-=======
    set switches [::RingSourceMgr::_computeRingSourceSwitches a b c d e 1 0 0 0]
->>>>>>> master
+
 
    string match "*--expectbodyheaders*" $switches 
 } -result 1 

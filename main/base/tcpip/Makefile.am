@@ -20,8 +20,5 @@ libTcp_la_CPPFLAGS = @LIBTCLPLUS_CFLAGS@	\
 
 libTcp_la_LIBADD = @LIBEXCEPTION_LDFLAGS@	\
 	@top_builddir@/base/os/libdaqshm.la
-<<<<<<< HEAD
-=======
 
 EXTRA_DIST=Tcp.xml
->>>>>>> master

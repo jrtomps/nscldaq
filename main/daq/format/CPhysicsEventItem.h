@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-#ifndef __CPHYSICSEVENTITEM_H
-#define __CPHYSICSEVENTITEM_H
-=======
 #ifndef CPHYSICSEVENTITEM_H
 #define CPHYSICSEVENTITEM_H
->>>>>>> master
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
@@ -21,13 +16,9 @@
 	     East Lansing, MI 48824-1321
 */
 
-<<<<<<< HEAD
-#ifndef __CRINGITEM_H
+
 #include <CRingItem.h>		/* Base class */
-#endif
-=======
-#include <CRingItem.h>		/* Base class */
->>>>>>> master
+
 
 #ifndef __CRT_UNISTD_H
 #include <unistd.h>

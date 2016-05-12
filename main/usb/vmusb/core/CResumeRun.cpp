@@ -21,7 +21,6 @@
 #include <CRunState.h>
 #include <CControlQueues.h>
 #include <tclUtil.h>
-<<<<<<< HEAD
 #include "CPreResumeCommand.h"
 #include <stdexcept>
 #include <Exception.h>
@@ -33,22 +32,6 @@
 CResumeRun::CResumeRun(CTCLInterpreter& interp, CPreResumeCommand* pre) :
   CTCLObjectProcessor(interp, "resume"),
   m_pre(pre)
-=======
-
-using std::string;
-using std::vector;
-
-static const string usage(
-"Usage:\n\
-   resume");
-//////////////////////////////////////////////////////////////////
-/////////////////////////////// cannonicals //////////////////////
-//////////////////////////////////////////////////////////////////
-
-
-CResumeRun::CResumeRun(CTCLInterpreter& interp) :
-  CTCLObjectProcessor(interp, "resume")
->>>>>>> master
 {}
 
 CResumeRun::~CResumeRun()
@@ -72,7 +55,6 @@ CResumeRun::operator()(CTCLInterpreter& interp,
 {
   // Check the prereqs:
 
-<<<<<<< HEAD
   bindAll(interp, objv);
   try {
     requireExactly(objv, 1, "resume command requires no parameters");
@@ -116,27 +98,6 @@ CResumeRun::operator()(CTCLInterpreter& interp,
       interp.setResult("prebegin - unexpected exception type");
       return TCL_ERROR;
   }
-=======
-  if (objv.size() != 1) {
-    tclUtil::Usage(interp,
-		   "Invalid parameter count",
-		   objv,
-		   usage);
-    return TCL_ERROR;
-  }
-  CRunState* pState = CRunState::getInstance();
-  if (pState->getState() != CRunState::Paused) {
-    tclUtil::Usage(interp,
-		   "Invalid run state, to resume must be paused",
-		   objv, usage);
-    return TCL_ERROR;
-  }
-  // resume the run:
-
-  CControlQueues* pRequest = CControlQueues::getInstance();
-  pRequest->ResumeRun();
-  
->>>>>>> master
 
   return TCL_OK;
 }

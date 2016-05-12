@@ -94,11 +94,8 @@ proc usage {} {
     puts stderr " ringbuffer create ?--datasize=n? ?--maxconsumers=n?   name"
     puts stderr " ringbuffer format ?--maxconsumers=n?                  name"
     puts stderr " ringbuffer delete                                     name"
-<<<<<<< HEAD
-    puts stderr " ringbuffer status ?--host=hostname?                  ?name?"
-=======
     puts stderr " ringbuffer status ?--host=hostname? ?--all? ?--user=user1,..?  ?name?"
->>>>>>> master
+
     puts stderr " ringbuffer list   ?--host=hostname?"
 
 }
@@ -299,8 +296,7 @@ proc displayUsageData info {
     
     reportData destroy
 }
-<<<<<<< HEAD
-=======
+
 ##
 # filterRingStats
 #
@@ -356,7 +352,7 @@ proc filterRingStats {ringList opts}  {
     }
     return $result
 }
->>>>>>> master
+
 #--------------------------------------------------------------------------
 #
 # create a ring buffer.
@@ -418,10 +414,7 @@ proc deleteRing tail {
     exit -1
   }
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> master
 #--------------------------------------------------------------------------
 #
 #  Show the usage of the known rings.
@@ -429,11 +422,8 @@ proc deleteRing tail {
 proc displayStatus tail {
     set tail [lrange $tail 1 end]
     set pattern "*"
-<<<<<<< HEAD
-    set options  [list  --host=$::defaultHostname]
-=======
     set options  [list  --host=$::defaultHostname --all --user=$::tcl_platform(user)]
->>>>>>> master
+
     array set parse [decodeArgs $tail $options]
 
     if {[llength $parse(Parameters)] == 1} {
@@ -458,11 +448,10 @@ proc displayStatus tail {
 
     set resultList [lsort -index 0 $resultList]
 
-<<<<<<< HEAD
-=======
+0
     set resultList [filterRingStats $resultList [array get parse]]
 
->>>>>>> master
+
     # Now format the info so humans can read it.
 
 

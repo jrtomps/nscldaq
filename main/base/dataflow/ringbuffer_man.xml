@@ -1,10 +1,5 @@
 <!-- manpage 1daq -->
 <refentry id="manpage.ringbuffer">
-<<<<<<< HEAD
-  <refmeta>
-     <refentrytitle>ringbuffer</refentrytitle>
-     <manvolnum>1daq</manvolnum>
-=======
   <refentryinfo>
           <author>
                   <personname>
@@ -19,7 +14,6 @@
      <refentrytitle id="manpage.ringbuffer.title">ringbuffer</refentrytitle>
      <manvolnum>1daq</manvolnum>
      <refmiscinfo class='empty'></refmiscinfo>
->>>>>>> master
   </refmeta>
   <refnamediv>
      <refname>ringbuffer</refname>
@@ -44,11 +38,9 @@ ringbuffer delete <replaceable>name</replaceable>
     </cmdsynopsis>
     <cmdsynopsis>
         <command>
-<<<<<<< HEAD
-ringbuffer status <replaceable>?--host=hostname? ?pattern?</replaceable>
-=======
+
 ringbuffer status <replaceable>?--host=hostname?  ?--all? ?--user=user1?,...?? ?pattern?</replaceable>
->>>>>>> master
+
         </command>
     </cmdsynopsis>
     <cmdsynopsis>
@@ -113,11 +105,8 @@ ringbuffer list   <replaceable>?--host=hostname?</replaceable>
             </listitem>
         </varlistentry>
         <varlistentry>
-<<<<<<< HEAD
-            <term><command>ringbuffer status <replaceable>?--host=hostname? ?pattern?</replaceable></command></term>
-=======
             <term><command>ringbuffer status <replaceable>?--host=hostname? ?--all? ?--user=user1?,...??  ?pattern?</replaceable></command></term>
->>>>>>> master
+
             <listitem>
                 <para>
                     Outputs the status of all active ring buffers that match
@@ -134,8 +123,7 @@ ringbuffer list   <replaceable>?--host=hostname?</replaceable>
                     is the name of the system whose ring buffers are inquired.
                     This defaults to <literal>localhost</literal>.
                 </para>
-<<<<<<< HEAD
-=======
+
 		<para>
 		  When either <option>--host</option> is not supplied or its
 		  value is
@@ -174,7 +162,7 @@ ringbuffer list   <replaceable>?--host=hostname?</replaceable>
 ringbuffer status --user=`whoami`,root
 		  </programlisting>
 		</informalexample>
->>>>>>> master
+
                 <para>
                     The ring buffer status is listed in tabular form.
                     Here is some sample output:

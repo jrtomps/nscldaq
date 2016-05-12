@@ -159,13 +159,8 @@ g++ -o urltest -I$DAQROOT/include urltest.cpp -L$DAQROOT/lib -lurl \
      <programlisting>
 #include &lt;URL.h&gt;
      </programlisting>
-<<<<<<< HEAD
      <synopsis>
         <ooclass><classname>URL</classname></ooclass> {
-=======
-     <classsynopsis>
-        <ooclass><classname>URL</classname></ooclass>
->>>>>>> master
         <constructorsynopsis>
             <methodname>URL</methodname>
             <methodparam>
@@ -221,12 +216,10 @@ g++ -o urltest -I$DAQROOT/include urltest.cpp -L$DAQROOT/lib -lurl \
             <type>std::string</type> <methodname>operator std::string</methodname>
                                      <void /> <modifier>const</modifier>
         </methodsynopsis>
-<<<<<<< HEAD
+
     };
     </synopsis>
-=======
-     </classsynopsis>
->>>>>>> master
+
   </refsynopsisdiv>
   <refsect1>
      <title>Description</title>

@@ -307,6 +307,7 @@ CExperiment::Stop(bool pause)
   if (pause && (state != RunState::pausing)) {
     throw CStateException(m_pRunState->stateName().c_str(),
 			  RunState::stateName(RunState::pausing).c_str(),
+			  "Pausing data taking");
 
   }
   if (!pause && (m_pRunState->m_state == RunState::inactive)) {

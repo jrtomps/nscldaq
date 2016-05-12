@@ -38,7 +38,6 @@
 #include <CDesiredTypesPredicate.h>
 #include <CRingItemFactory.h>
 #include <CAbnormalEndItem.h>
-
 #include <CTimeout.h>
 
 #include <tcl.h>
@@ -49,7 +48,6 @@
 #include <iostream>
 
 using namespace std;
-
 
 /**
  * construction
@@ -201,13 +199,6 @@ void
 CTclRingCommand::get(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
 {
     requireAtLeast(objv, 3, "ring get needs a URI");
-    std::string uri  = std::string(objv[2]);
-    std::map<std::string, CRingBuffer*>::iterator p =  m_attachedRings.find(uri);
-    if (p == m_attachedRings.end()) {
-        throw std::string("ring is not attached");               
-    }
-    
-    
     requireAtMost(objv, 6, "Too many command parameters");
 
     CAllButPredicate all;
@@ -217,9 +208,6 @@ CTclRingCommand::get(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     
     // If there's a 4th parameter it must be a list of item types to select
     // from
-    
-    if (objv.size() == 4) {
-        CTCLObject types = objv[3];
 
     unsigned long timeout = std::numeric_limits<unsigned long>::max();
 
@@ -253,7 +241,6 @@ CTclRingCommand::get(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     
     
     CRingBuffer* pRing = p->second;
-
     auto pSpecificItem = getFromRing(*pRing, *pred, timeout);
 
     if (pSpecificItem == nullptr) {
@@ -263,7 +250,6 @@ CTclRingCommand::get(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
         interp.setResult(result);
         return;
     }
-
     
     // Actual upcast depends on the type...and that describes how to format:
     
@@ -863,4 +849,3 @@ int Tclringbuffer_Init(Tcl_Interp* pInterp)
 
 
 int gpTCLApplication = 0;
-

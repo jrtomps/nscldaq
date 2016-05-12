@@ -30,10 +30,9 @@ package require OfflineEVBHoistPipeline
 package require evbcallouts
 package require OfflineEVBOutputPipeline
 package require Process
-<<<<<<< HEAD
-=======
+
 package require Utils
->>>>>>> master
+
 
 
 package require snit
@@ -391,8 +390,7 @@ snit::type JobConfigUIPresenter {
 
     # pass the number of sources directly to the output data
     [dict get $m_model -outputparams] configure -nsources [$m_view cget -nsources]
-<<<<<<< HEAD
-=======
+
 
     # form the range of accepted ids
     set ids [$m_view cget -expectedids]
@@ -403,7 +401,7 @@ snit::type JobConfigUIPresenter {
     }
     
     [dict get $m_model -hoistparams] configure -id $cleanIds
->>>>>>> master
+
   }  
 
   ## @brief Validate the data that the user provided
@@ -617,10 +615,6 @@ snit::type JobConfigUIPresenter {
     # bring the results into the tcl world as a dict
     source $resultFile
 
-<<<<<<< HEAD
-=======
-
->>>>>>> master
     # clean up.
     file delete $resultFile
 
@@ -631,11 +625,8 @@ snit::type JobConfigUIPresenter {
     set endCount 0
     dict for {id itemCounts} $sourceMap {
       incr beginCount [dict get $itemCounts BEGIN_RUN]
-<<<<<<< HEAD
-      incr endCount [dict get $itemCounts END_RUN]
-=======
       incr endCount   [dict get $itemCounts END_RUN]
->>>>>>> master
+
     }
 
     if {$beginCount != $endCount} {
@@ -653,8 +644,7 @@ snit::type JobConfigUIPresenter {
       $missingWidget setSourceID $suggestedId
     }
 
-<<<<<<< HEAD
-=======
+
     dict for {id value} $sourceMap {
       puts "$id:"
       puts "\t$value"
@@ -668,7 +658,7 @@ snit::type JobConfigUIPresenter {
     set idString [join $ids ", "]
     $m_view configure -expectedids $idString
 
->>>>>>> master
+
   }
 
   ## @brief Break the vwait
@@ -730,9 +720,6 @@ snit::type JobConfigUIPresenter {
         update
 
         if {$answer == "yes"} {
-<<<<<<< HEAD
-          return $id
-=======
           return [lindex $ids 0]
         }
       } elseif {($id == 4294967295) && ([dict get $statistics $id BEGIN_RUN] == 0)} {
@@ -750,7 +737,7 @@ snit::type JobConfigUIPresenter {
 
         if {$answer == "yes"} {
           return [lindex $ids 0]
->>>>>>> master
+
         }
       }
     }
@@ -1049,10 +1036,9 @@ snit::widget ConfigurationFrame {
   option -jobname         -default "Job"    ;#< name of job (not used)
   option -missingwidget   -default ""       ;#< name of missing source widget
   option -buildwidget     -default ""       ;#< name of buildevents widget
-<<<<<<< HEAD
-=======
+
   option -expectedids   -default "0"        ;#< min id 
->>>>>>> master
+
 
   option -showbuttons     -default 1        ;#< show buttons or not? 
   option -buttontext      -default "Create" ;#< Label to put on button
@@ -1076,11 +1062,8 @@ snit::widget ConfigurationFrame {
     ttk::frame $top
     ttk::label $top.addFilesLbl -text "Add run files"
     FileList $m_fileTree -sort 1
-<<<<<<< HEAD
-    grid $top.addFilesLbl -sticky new
-=======
+
     grid $top.addFilesLbl -sticky nsew
->>>>>>> master
     grid $top.files -sticky nsew
     grid rowconfigure    $top 0 -weight 1
     grid columnconfigure $top 0 -weight 1
@@ -1090,9 +1073,6 @@ snit::widget ConfigurationFrame {
     ttk::frame $top 
 
     ttk::label $top.nsrcsLbl -text "Number of end runs to expect"
-<<<<<<< HEAD
-    ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 3
-=======
     ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 12 
 
     ttk::label $top.idsLabel -text "Allowed source ids (e.g. 1, 2, 3)"
@@ -1100,7 +1080,6 @@ snit::widget ConfigurationFrame {
       -validate focusout -validatecommand [mymethod validateIdList] \
       -invalidcommand [mymethod invalidIdList %s]
 
->>>>>>> master
 
     set analyze $top.analyze
     ttk::frame $analyze
@@ -1117,55 +1096,36 @@ snit::widget ConfigurationFrame {
     ttk::button $buttons.create -textvariable [myvar options(-buttontext)]\
                                 -command [mymethod onCreate]
     grid $buttons.cancel $buttons.create -sticky e -padx {9 0}
-
-<<<<<<< HEAD
-    grid $top.nsrcsLbl $top.nsrcsEntry  -sticky nw 
-=======
     grid $top.nsrcsLbl $top.nsrcsEntry -sticky nw 
     grid $top.idsLabel $top.idsEntry -sticky nw 
->>>>>>> master
+
     if {$options(-missingwidget) ne ""} {
       $self gridMissingWidget $options(-missingwidget)
     }
     if {$options(-buildwidget) ne ""} {
       $self gridBuildWidget $options(-buildwidget)
     }
-<<<<<<< HEAD
-    grid $analyze -row 3 -sticky nsew
-=======
     grid $analyze -row 4 -sticky nsew
->>>>>>> master
     grid configure $top.nsrcsEntry -sticky ne
 
     grid $win.fileFrame  -row 0 -column 0 -padx {0 9} -sticky nsew
     grid $top        -row 0 -column 1 -padx {9 0} -sticky nsew
-<<<<<<< HEAD
-    grid x $buttons  -row 2 -padx 9 -sticky sew -pady 9
-=======
     grid x $buttons  -row 1 -padx 9 -sticky sew -pady 9
->>>>>>> master
     grid columnconfigure $win {0 1} -weight 1 -minsize 300
   }
 
   ## @brief Grid the missing sources widget
   # @param name name of the widget
   method gridMissingWidget {name} {
-<<<<<<< HEAD
-    grid $name - -row 1 -sticky new -pady 9 -in $m_paramFrame
-=======
     grid $name - -row 2 -sticky new -pady 9 -in $m_paramFrame
->>>>>>> master
     $self configure -missingwidget $name
   }
 
   ## @brief Grid the build event widget
   # @param name of the widget
   method gridBuildWidget {name} {
-<<<<<<< HEAD
-    grid $name -  -row 2 -sticky new -in $m_paramFrame
-=======
     grid $name - -row 3 -sticky new -in $m_paramFrame
->>>>>>> master
+
   }
 
   ## @brief Forward button press event to presenter
@@ -1192,8 +1152,6 @@ snit::widget ConfigurationFrame {
     $m_presenter onAnalyze
   }
 
-<<<<<<< HEAD
-=======
   method validateIdList {} {
     puts "validating : [$self cget -expectedids]"
     set result [regexp {^\s*(\d)+(,\s*\d+)*$} [$self cget -expectedids]]
@@ -1206,7 +1164,7 @@ snit::widget ConfigurationFrame {
       -message "User must specify a comma separated list of integers for the id list"
     $self configure -expectedids $previous
   }
->>>>>>> master
+
 }
 
 ##

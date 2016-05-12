@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 =======
 Installation Instructions
 *************************
@@ -28,8 +27,7 @@ fox@charlie:/scratch/fox/daq/daq.git$ cit cat INSTALL
 fox@charlie:/scratch/fox/daq/daq.git$ gat INSTALL
 -bash: gat: command not found
 fox@charlie:/scratch/fox/daq/daq.git$ cat INSTALL
-=======
->>>>>>> master
+
 Installation Instructions
 *************************
 

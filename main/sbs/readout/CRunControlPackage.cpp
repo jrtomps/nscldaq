@@ -313,8 +313,6 @@ void CRunControlPackage::createCommands(CTCLInterpreter& interp)
   addCommand(new CEndCommand(interp));
   addCommand(new CInitCommand(interp));
   addCommand(new CPreEndCommand(interp));
-  addCommand(new CPreResumeCommand(interp));
-  addCommand(new CPauseCommand(interp));
   addCommand(new CResumeCommand(interp));
   addCommand(new CEndCommand(interp));
   addCommand(new CInitCommand(interp));

@@ -40,8 +40,7 @@ noinst_HEADERS = CTheApplication.h event.h
 
 
 
-VMUSBReadout_LDADD	= cmdline.o \
-		@top_builddir@/usb/vmusb/daqconfig/libVMUSBDaqConfig.la	\
+VMUSBReadout_LDADD	= @top_builddir@/usb/vmusb/daqconfig/libVMUSBDaqConfig.la	\
 		@top_builddir@/usb/vmusb/ctlconfig/libVMUSBCtlConfig.la	\
 		@top_builddir@/usb/vmusb/core/libVMUSBCore.la	\
 		@top_builddir@/servers/portmanager/libPortManager.la \

@@ -49,43 +49,36 @@ daq.mans: daq.xml
 #	touch daq.mans
 
 BOOKDIRS = 	@top_srcdir@ \
-<<<<<<< HEAD
-						@top_srcdir@/base/dataflow \
-						@top_srcdir@/base/factories \
-=======
-            @top_srcdir@/base/dataflow\
->>>>>>> master
-						@top_srcdir@/daq/format \
-						@top_srcdir@/usb \
-						@top_srcdir@/usb/vmusb \
-						@top_srcdir@/usb/ccusb \
-						@top_srcdir@/daq/readoutgui \
-						@top_srcdir@/daq/eventbuilder \
-						@top_srcdir@/utilities/newscaler \
-						@top_srcdir@/simplesetups/vmusb \
-						@top_srcdir@/simplesetups/v775 \
-						@top_srcdir@/simplesetups/v785 \
-						@top_srcdir@/utilities/bufdump \
-						@top_srcdir@/utilities/eventlog \
-<<<<<<< HEAD
-						@top_srcdir@/utilities/dumpend \
-						@top_srcdir@/utilities/runcontrol 	\
-						@top_srcdir@/utilities/bootmanager	\
-						@top_srcdir@/utilities/varmanager/scripts \
-=======
-						@top_srcdir@/utilities/scalersum \
->>>>>>> master
-						@top_srcdir@/servers/portmanager \
-						@top_srcdir@/servers/tclserver \
-						@top_srcdir@/usb/mesytec/MCFD16 \
-						@top_srcdir@/usb/mesytec/MSCF16 \
-						@top_srcdir@/usb/vmusb/controlpanels \
-						@top_srcdir@/usb/ccusb/controlpanels \
-						@top_srcdir@/usb/ccusb/tclpackage \
-						@top_srcdir@/sbs \
-						@top_srcdir@/sbs/readout \
-						@top_srcdir@/sbs/vmemodules  \
-						@top_srcdir@/sbs/slowcontrols \
+		@top_srcdir@/base/dataflow \
+		@top_srcdir@/base/factories \
+		@top_srcdir@/daq/format \
+		@top_srcdir@/usb \
+		@top_srcdir@/usb/vmusb \
+		@top_srcdir@/usb/ccusb \
+		@top_srcdir@/daq/readoutgui \
+		@top_srcdir@/daq/eventbuilder \
+		@top_srcdir@/utilities/newscaler \
+		@top_srcdir@/simplesetups/vmusb \
+		@top_srcdir@/simplesetups/v775 \
+		@top_srcdir@/simplesetups/v785 \
+		@top_srcdir@/utilities/bufdump \
+		@top_srcdir@/utilities/eventlog \
+		@top_srcdir@/utilities/dumpend \
+		@top_srcdir@/utilities/runcontrol 	\
+		@top_srcdir@/utilities/bootmanager	\
+		@top_srcdir@/utilities/varmanager/scripts \
+		@top_srcdir@/utilities/scalersum \
+		@top_srcdir@/servers/portmanager \
+		@top_srcdir@/servers/tclserver \
+		@top_srcdir@/usb/mesytec/MCFD16 \
+		@top_srcdir@/usb/mesytec/MSCF16 \
+		@top_srcdir@/usb/vmusb/controlpanels \
+		@top_srcdir@/usb/ccusb/controlpanels \
+		@top_srcdir@/usb/ccusb/tclpackage \
+		@top_srcdir@/sbs \
+		@top_srcdir@/sbs/readout \
+		@top_srcdir@/sbs/vmemodules  \
+		@top_srcdir@/sbs/slowcontrols \
 						@top_srcdir@/sbs/slowcontrols/caenv812 \
 						@top_srcdir@/sbs/slowcontrols/bcnaf \
 						@top_srcdir@/sbs/slowcontrols/n568b \
@@ -111,22 +104,17 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/base/uri \
 						@top_srcdir@/base/CopyrightTools \
 						@top_srcdir@/base/os \
-<<<<<<< HEAD
 						@top_srcdir@/base/tclwidgets  \
-						@top_srcdir@/libtcl/tclplus  \
-						@top_srcdir@/libtcl/exception 	\
+						@top_srcdir@/base/plotchart	\
+						@top_srcdir@/base/tclutils \
+						@top_srcdir@/base/tcpip		\
 						@top_srcdir@/utilities/varmanager \
 						@top_srcdir@/utilities/varmanager/server \
 						@top_srcdir@/utilities/statemanager	\
 						@top_srcdir@/utilities/services		\
 						@top_srcdir@/utilities/vardbEventbuilder	\
-						@top_srcdir@/utilities/vardbringbuffer
-
-=======
-						@top_srcdir@/base/plotchart	\
-						@top_srcdir@/base/tclutils \
-						@top_srcdir@/base/tclwidgets  \
-						@top_srcdir@/base/tcpip		\
+						@top_srcdir@/utilities/vardbringbuffer	\
+						@top_srcdir@/utilities/boot		\
 						@top_srcdir@/libtcl/tclplus  \
 						@top_srcdir@/libtcl/exception 
 
@@ -134,7 +122,7 @@ BOOKDIRS = 	@top_srcdir@ \
 #						@top_srcdir@/utilities/statemanager 
 #						@top_srcdir@/utilities/experimentConfiguration
 #						@top_srcdir@/utilities/cpanel 
->>>>>>> master
+
 
 
 

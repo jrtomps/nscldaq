@@ -198,7 +198,6 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
 
     <refentry id="manpage.cringmaster">
       <refentryinfo>
-<<<<<<< HEAD
         <author>
             <personname>
                 <firstname>Ron</firstname>
@@ -214,16 +213,7 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
          </refentrytitle>
          <manvolnum>3daq</manvolnum>
          <refmiscinfo class='empty'></refmiscinfo>
-=======
-        <author><firstname>Ron</firstname> <surname>Fox</surname></author>
-        <productname>NSCLDAQ</productname>
-        <productnumber></productnumber>
-      </refentryinfo>
-      <refmeta>
-        <refentrytitle>CRingMaster</refentrytitle>
-        <manvolnum>3daq</manvolnum>
-        <refmiscinfo class='empty'></refmiscinfo>
->>>>>>> master
+
       </refmeta>
       <refnamediv>
         <refname>CRingMaster</refname>

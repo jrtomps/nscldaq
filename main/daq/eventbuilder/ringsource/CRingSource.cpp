@@ -58,8 +58,7 @@ static size_t max_event(1024*1024*10); // initial Max bytes of events in a getDa
  * Canonicals
  */
 
-<<<<<<< HEAD
-=======
+
 CRingSource::CRingSource(CRingBuffer* pBuffer, 
     const std::vector<uint32_t>& allowedIds, 
     uint32_t defaultId, 
@@ -85,7 +84,7 @@ CRingSource::CRingSource(CRingBuffer* pBuffer,
   m_wrapper.setDefaultSourceId(m_defaultSourceId);
   m_wrapper.setExpectBodyHeaders(m_expectBodyHeaders);
 }
->>>>>>> master
+
 
 /**
  * constructor:
@@ -99,13 +98,10 @@ CRingSource::CRingSource(int argc, char** argv) :
   m_pArgs(0),
   m_pBuffer(0),
   m_timestamp(0),
-<<<<<<< HEAD
-=======
   m_nEndRuns(1),
   m_nEndsSeen(0),
   m_nTimeout(0),
   m_nTimeWaited(0),
->>>>>>> master
   m_wrapper(0)
 {
   GetOpt parsed(argc, argv);
@@ -119,11 +115,9 @@ CRingSource::CRingSource(int argc, char** argv) :
     m_fOneshot = false;
   }
   m_nTimeout = m_pArgs->timeout_arg * 1000;        // End run timeouts in ms.
-<<<<<<< HEAD
-=======
   m_nTimeOffset = m_pArgs->offset_arg;             // tick time offset.
   
->>>>>>> master
+
 }
 /**
  * destructor
@@ -133,11 +127,8 @@ CRingSource::CRingSource(int argc, char** argv) :
 CRingSource::~CRingSource() 
 {
   delete m_pArgs;
-<<<<<<< HEAD
-  delete m_pBuffer;		// Just in case we're destructed w/o shutdown.
-=======
   if (m_myRing)delete m_pBuffer;		// Just in case we're destructed w/o shutdown.
->>>>>>> master
+
 }
 
 /*---------------------------------------------------------------------
@@ -243,16 +234,12 @@ CRingSource::initialize()
 
   // Attach the ring.
 
-<<<<<<< HEAD
-  m_pBuffer = CRingAccess::daqConsumeFrom(url);
-
-=======
   if (m_pBuffer && m_myRing) {
     delete m_pBuffer;                // Don't leak rings
   }
   m_pBuffer = CRingAccess::daqConsumeFrom(url);
   m_myRing = true;
->>>>>>> master
+
   
 }
 /**
@@ -305,14 +292,7 @@ CRingSource::dataReady(int ms)
 void
 CRingSource::getEvents()
 {
-<<<<<<< HEAD
-  size_t bytesPackaged(0);
-  CAllButPredicate all;		// Predicate to selecdt all ring items.
-  CEVBFragmentList frags;
-  uint8_t*         pFragments = reinterpret_cast<uint8_t*>(malloc(max_event*2));
-  uint8_t*         pDest = pFragments;
-  bool             doExit(false);
-=======
+
   m_frags.clear(); // start fresh
 
   uint8_t* pBuffer = reinterpret_cast<uint8_t*>(malloc(max_event*2));
@@ -337,7 +317,7 @@ void CRingSource::transformAvailableData(uint8_t*& pFragments)
   size_t bytesPackaged(0);
   CAllButPredicate all;		// Predicate to selecdt all ring items.
   uint8_t*         pDest = pFragments;
->>>>>>> master
+
   if (pFragments == 0) {
     throw std::string("CRingSource::getEvents - memory allocation failed");
   }
@@ -346,14 +326,12 @@ void CRingSource::transformAvailableData(uint8_t*& pFragments)
     std::unique_ptr<CRingItem> p(CRingItem::getFromRing(*m_pBuffer, all)); // should not block.
     RingItem*  pRingItem = p->getItemPointer();
 
-<<<<<<< HEAD
-=======
     // check for end runs for oneshot logic
     if (pRingItem->s_header.s_type == END_RUN) {
       m_nEndsSeen++;
     }
 
->>>>>>> master
+
     // If we got here but the data is bigger than our safety margin
     //we need to resize pFragments:
 
@@ -366,26 +344,7 @@ void CRingSource::transformAvailableData(uint8_t*& pFragments)
     }
 
     ClientEventFragment frag = m_wrapper(p.get(), pDest);
-<<<<<<< HEAD
-    pDest += frag.s_size;
-    bytesPackaged += frag.s_size;
 
-  
-    
-  }
-  // Send those fragments to the event builder:
-
-  if (frags.size()) {
-
-    CEVBClientFramework::submitFragmentList(frags);
-  }
-
-
-  delete []pFragments;		// free storage.
-  
-}
-
-=======
     frag.s_timestamp += m_nTimeOffset;
     pDest += frag.s_size;
     bytesPackaged += frag.s_size;
@@ -401,7 +360,6 @@ bool CRingSource::oneshotComplete()
 }
 
 
->>>>>>> master
 /**
  * shutdown 
  *

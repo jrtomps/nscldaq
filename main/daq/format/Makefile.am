@@ -41,13 +41,9 @@ include_HEADERS	= CRingSelectionPredicate.h	\
                         CDataFormatItem.h        \
                         CGlomParameters.h       \
                         CUnknownFragment.h      \
-<<<<<<< HEAD
-			DataFormat.h DataFormat10.h	\
-=======
 			DataFormat.h	\
->>>>>>> master
-      RingItemComparisons.h \
-      CAbnormalEndItem.h 
+		      RingItemComparisons.h \
+			CAbnormalEndItem.h 
 
 
 
@@ -81,10 +77,7 @@ unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/base/uri/liburl.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
-<<<<<<< HEAD
-=======
 			@top_builddir@/base/os/libdaqshm.la		\
->>>>>>> master
 			@LIBEXCEPTION_LDFLAGS@
 
 unittests_CPPFLAGS=$(COMPILATION_FLAGS)

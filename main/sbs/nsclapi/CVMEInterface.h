@@ -158,10 +158,9 @@ class CVMEInterface
 		   unsigned long nBytes); //!< Block write to vme.
   static void Lock();
   static void Unlock();
-<<<<<<< HEAD
-=======
+
   static bool TryLock(int timeoutSeconds);
->>>>>>> master
+
 
   // These are used so that private locks can be supported.
   // Lock 0 is always the DMA/PIO lock.
@@ -169,8 +168,6 @@ class CVMEInterface
   // 
   static void Lock(int semnum);
   static void Unlock(int semnum);
-<<<<<<< HEAD
-=======
 
   /*! Try to lock the semaphore until a timeout
    *
@@ -180,7 +177,7 @@ class CVMEInterface
    *  
    */
   static bool TryLock(int semnum, int timeoutSeconds);
->>>>>>> master
+
  private:
   static void AttachSemaphore();
 

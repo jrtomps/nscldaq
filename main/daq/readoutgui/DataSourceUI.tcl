@@ -17,16 +17,12 @@
 # @brief GUI for selecting data sources for the experiment.
 # @author Ron Fox <fox@nscl.msu.edu>
 
-<<<<<<< HEAD
+
 package provide DataSourceUI 1.0
 package require snit
 package require Tk
 package require dialogWrapper
-=======
-package require snit
-package require Tk
-package provide DataSourceUI 1.0
->>>>>>> master
+
 
 ##
 # @class ChooseProvider
@@ -253,9 +249,7 @@ snit::widgetadaptor PromptDataSource {
 #            and a convenience routine that returns the output of the dialog.
 #
 
-<<<<<<< HEAD
 
-=======
 ##
 # DialogWrapper
 #   Wraps a widget in a dialog container this includes:
@@ -505,3 +499,4 @@ proc DataSourceUI::getParameters {provider parameters} {
         return $result
     }
 }
+

@@ -24,15 +24,11 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <assert.h>
-<<<<<<< HEAD
-#include <string>
 
-
-=======
 #include <time.h>
 #include <string>
 
->>>>>>> master
+
 using namespace std;
 
 
@@ -141,13 +137,12 @@ void CVMEInterface::Unlock()
   Unlock(0);
 }
 
-<<<<<<< HEAD
-=======
+
 bool CVMEInterface::TryLock(int timeoutSeconds) 
 {
   return TryLock(0, timeoutSeconds);
 }
->>>>>>> master
+
 /*!
     Lock the semaphore.  If the semid is -1, the
     semaphore is created first.  
@@ -212,8 +207,7 @@ CVMEInterface::Unlock(int semnum)
   }
   return;
 }
-<<<<<<< HEAD
-=======
+
 
 
 bool
@@ -257,4 +251,4 @@ CVMEInterface::TryLock(int semnum, int nTimeoutSeconds) {
 //  }
   return success;
 }
->>>>>>> master
+

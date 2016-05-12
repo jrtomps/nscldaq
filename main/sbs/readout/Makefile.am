@@ -44,8 +44,6 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CPauseCommand.cpp		\
 						CResumeCommand.cpp		\
 						CPreEndCommand.cpp		\
-						CPauseCommand.cpp		\
-						CResumeCommand.cpp		\
 						CEndCommand.cpp			\
 						CInitCommand.cpp			\
 						CDocumentedPacket.cpp		\

@@ -7,11 +7,8 @@ for f in `find $1 -name Makefile -exec grep -l check-TESTS {}  \;`
   do 
     if test $f != ./Makefile
     then
-<<<<<<< HEAD
       (cd `dirname $f`; make check-TESTS VERBOSE=1)
-=======
-      (cd `dirname $f`; make check-TESTS)
->>>>>>> master
+
     fi
   done	
 

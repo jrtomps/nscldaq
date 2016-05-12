@@ -1,9 +1,9 @@
 noinst_PROGRAMS = unittests
 
 
-TESTS = cccusbtest.cpp
+TEST_FILES = cccusbtest.cpp
 
-unittests_SOURCES = TestRunner.cpp $(TESTS) 
+unittests_SOURCES = TestRunner.cpp $(TEST_FILES) 
 
 unittests_LDADD =  \
 		@top_builddir@/usb/ccusb/ccusb/libCCUSB.la            \
@@ -29,7 +29,6 @@ unittests_CPPFLAGS = \
 
 unittests_LDFLAGS =  -Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" 
 
-check-TESTS:
-	./unittests 
+TESTS = @builddir@/unittests 
 
 EXTRA_DIST=TestRunner.cpp $(TESTS) Asserts.h

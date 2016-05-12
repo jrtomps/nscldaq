@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-#ifndef __CRINGITEM_H
-#define __CRINGITEM_H
-=======
 #ifndef CRINGITEM_H
 #define CRINGITEM_H
->>>>>>> master
 
 /*
     This software is Copyright by the Board of Trustees of Michigan

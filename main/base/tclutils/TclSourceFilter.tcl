@@ -51,13 +51,8 @@ snit::type TclSourceFilter {
 
   ## @brief Entry point for processing
   #
-<<<<<<< HEAD
   # @param  path    the path to a file containing state 
-=======
-  # @param  path    the path to a file containing state
-  # @return list - of strings that make up the matching patterns.
   #
->>>>>>> master
   method Filter {script} {
     # split the file into complete chunks that can be passed to eval
     set rawLines [$self Tokenize $script]

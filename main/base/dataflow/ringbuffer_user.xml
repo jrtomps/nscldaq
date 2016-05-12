@@ -62,15 +62,14 @@
       ring buffer also does not have any consuming processes.
     </para>
     <para>
-<<<<<<< HEAD
-=======
+
       By default, when listing rings on the same system you will only see the
       rings your account owns.  See the manpage
       <link linkend="manpage.ringbuffer" endterm="manpage.ringbuffer.title" />
       for information about how to filter rings listed in the table.
     </para>
     <para>
->>>>>>> master
+
       You can create a new ring buffer whose name is "myring" by typing:
     </para>
     <screen>

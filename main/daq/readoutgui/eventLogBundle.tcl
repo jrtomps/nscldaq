@@ -41,11 +41,8 @@ package require DataSourceUI
 package require versionUtils
 package require StateManager
 
-<<<<<<< HEAD
 package require dialogWrapper
 
-=======
->>>>>>> master
 
 
 ##
@@ -64,11 +61,8 @@ package require dialogWrapper
 #  * {Paused, Active} -> NotReady(enter):
 #                                       If the eventlogPID is set force the
 #                                       eventlog to exit and finalize the run.
-<<<<<<< HEAD
 #  * OnExit - If the event log is running kill it off and try to finalize
 #             the run.
-=======
->>>>>>> master
 #
 #            
 #
@@ -131,11 +125,9 @@ namespace eval ::EventLog {
     
     # Export the bundle interface methods
     
-<<<<<<< HEAD
+
     namespace export attach enter leave onExit
-=======
-    namespace export attach enter leave
->>>>>>> master
+
 
 }
 
@@ -846,7 +838,7 @@ proc ::EventLog::leave {from to} {
   }
 }
 
-<<<<<<< HEAD
+
 ##
 # ::EventLog::onExit
 #    Called when the program exits.
@@ -862,8 +854,6 @@ proc ::EventLog::onExit {} {
     }
 }
 
-=======
->>>>>>> master
 #-------------------------------------------------------------------------------
 #
 # Bundle registration
@@ -1394,3 +1384,4 @@ proc EventLog::promptParameters {} {
     }
     destroy .eventlogsettings
 }
+

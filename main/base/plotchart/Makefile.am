@@ -18,9 +18,7 @@ install-exec-local:
 	for f in $(files); do @INSTALL_SCRIPT@ @srcdir@/$$f $(destdir); done
 
 
-<<<<<<< HEAD
-EXTRA_DIST=$(files)
-=======
+
 EXTRA_DIST=$(files) plotchart.xml
->>>>>>> master
+
 
