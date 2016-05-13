@@ -94,7 +94,7 @@ BUILT_SOURCES = format_converter_options.c format_converter_options.h
 
 format_converter_options.c : format_converter_options.h
 format_converter_options.h: format_converter_options.ggo
-	gengetopt -i $< -F @srcdir@/format_converter_options -a cmdLineOpts \
+	$(GENGETOPT) -i $< -F @srcdir@/format_converter_options -a cmdLineOpts \
 		--output-dir=@builddir@
 
 format_converter_SOURCES = Main.h Main.cpp 
@@ -118,8 +118,7 @@ format_converter_CPPFLAGS = -I@srcdir@ \
 		    -I@top_srcdir@/base/headers
 
 EXTRA_DIST = format_converter_options.ggo \
-						 format_converter_options.h \
-						 convert_format.py
+		 convert_format.py
 
 
 install-exec-local:
