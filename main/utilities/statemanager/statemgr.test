@@ -103,7 +103,7 @@ proc createRunDir h {
     
     
     varmgr::var create $h /RunState/State RunStateMachine
-    varmgr::var create $h /RunState/SystemStatus string
+    varmgr::var create $h /RunState/SystemStatus string Consistent
     varmgr::var create $h /RunState/RunNumber integer
     varmgr::var create $h /RunState/Title     string
     varmgr::var create $h /RunState/Recording bool false
@@ -2351,6 +2351,42 @@ tcltest::test editorPosition-gety {Get editor y position for an object} \
    mgr getEditorYPosition test
    
 } -result  200
+
+
+tcltest::test getSystemStatusConsistent {System status is consistent initially} \
+-setup {
+   setup
+   ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+
+} \
+-cleanup {
+   ::nscldaq::statemanager -delete mgr
+    cleanup
+
+} \
+-body {
+   mgr getSystemStatus
+} -result Consistent
+
+tcltest::test getSystemStatusInconsistent {System status is inconsistent} \
+-setup {
+   setup
+   ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+
+   set h [varmgr::open  tcp://localhost]
+} \
+-cleanup {
+   ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+    varmgr::close $h
+
+} \
+-body {
+   varmgr::var set $h /RunState/SystemStatus Inconsistent
+   mgr getSystemStatus
+} -result Inconsistent
+
 #
 #------------------------------------------------------------------
 #

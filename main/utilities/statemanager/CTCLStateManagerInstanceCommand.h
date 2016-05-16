@@ -97,6 +97,7 @@ protected:
     void deleteProgram(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void setGlobalState(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void getGlobalState(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void getSystemStatus(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void getParticipantStates(
         CTCLInterpreter& interp, std::vector<CTCLObject>& objv
     );

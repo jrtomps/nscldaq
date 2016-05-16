@@ -463,6 +463,16 @@ CStateManager::getGlobalState()
     CVarMgrApi* pApi = m_pMonitor->getApi();
     return pApi->get("/RunState/State");
 }
+/**
+ * getSystemStatus
+ *  @return std::string - the system status value.
+ */
+std::string
+CStateManager::getSystemStatus()
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    return pApi->get("/RunState/SystemStatus");
+}
 /*----------------------------------------------------------------
  * State transition monitoring - ensuring all programs maintain
  * state relations:

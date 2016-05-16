@@ -116,6 +116,7 @@ public:
     
     void setGlobalState(const char* newState);
     std::string getGlobalState();
+    std::string getSystemStatus();
     std::vector<std::pair<std::string, std::string> > getParticipantStates();
     
     std::string title();

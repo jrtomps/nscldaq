@@ -1754,7 +1754,12 @@ public:
         <methodname>getGlobalState</methodname>
         <void />
         <modifier></modifier>
-    </methodsynopsis>  
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>std::string</type>
+        <methodname>getSystemStatus</methodname>
+        <void />
+    </methodsynopsis>
     <methodsynopsis>
         <modifier></modifier>
         <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt; </type>
@@ -2400,6 +2405,29 @@ public:
         <varlistentry>
             <term>
                 <methodsynopsis>
+                    <type>std::string</type>
+                    <methodname>getSystemStatus</methodname>
+                    <void />
+                </methodsynopsis>
+
+            </term>
+            <listitem>
+                <para>
+                    Returns the system status variable.  This variable indicates
+                    whether or not a state transition is in progress.
+                    If a state transition is in progress, this variable
+                    will have the value <literal>Inconsistent</literal>
+                    which indicates that some of the system components may not
+                    have reached the final state.
+                    Once all components of the system have settled to the final
+                    state, this variable will have the value
+                    <literal>Consistent</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
                     <modifier></modifier>
                     <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt; </type>
                     <methodname>getParticipantStates</methodname>
@@ -2969,6 +2997,8 @@ mgr deleteProgram name
 mgr setGlobalState newState
 set state [mgr getGlobalState]
 
+set status [mgr getSystemStatus]
+
 set partDict [mgr getParticipantStates]
 
 mgr title ?newTitle?
@@ -3388,6 +3418,21 @@ set state [mgr getProgramState name]
             </varlistentry>
             <varlistentry>
                 <term>
+                    <command>mgr getSystemStatus</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the system status.  This value tells you if the
+                        system is in transition.  If the vaue is
+                        <literal>Inconsistent</literal> the system is making a
+                        state transition.  If <literal>Consistent</literal>, the
+                        system is in a stable state with respect to the state
+                        manager.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
                     <command>mgr getParticipantStates</command>
                 </term>
                 <listitem>
@@ -3632,6 +3677,7 @@ mgr.listActivePrograms()
 mgr.deleteProgram(name)
 mgr.setGlobalState(newState)
 mgr.getGlobalState()
+mgr.getSystemStatus()
 mgr.getParticipantStates()
 mgr.getTitle()
 mgr.setTitle(title)
@@ -4030,6 +4076,20 @@ mgr.getProgramState(name)
                 </para>
             </listitem>
         </varlistentry>
+	<varlistentry>
+	  <term>
+	    mgr.getSystemStatus()
+	  </term>
+	  <listitem>
+	    <para>
+	      Returns the current system status.  This is <literal>Inconsistent</literal>
+	      if the system is in the middle of a state transition or
+	      <literal>Consistent</literal> if the states of all the programs have
+	      settled into their final states.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
         <varlistentry>
             <term>
                 mgr.getParticipantStates()

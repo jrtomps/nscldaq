@@ -135,6 +135,9 @@ CTCLStateManagerInstanceCommand::operator()(
             setGlobalState(interp, objv);
         } else if (m_pApi && (subCommand == "getGlobalState")) {
             getGlobalState(interp, objv);
+            
+        } else if (m_pApi && (subCommand == "getSystemStatus")) {
+            getSystemStatus(interp, objv);
         } else if (m_pApi && (subCommand == "getParticipantStates")) {
             getParticipantStates(interp, objv);
         } else if (m_pApi && (subCommand == "title")) {
@@ -673,6 +676,22 @@ CTCLStateManagerInstanceCommand::getGlobalState(
     requireExactly(objv, 2, "getGlobal state requires no parameters");
     
     interp.setResult(m_pApi->getGlobalState());
+}
+/**
+ * getSystemStatus
+ *    Wrapper for the api'S getSystemStatus method - return the value of
+ *    /RunState/SystemStatus:
+ *
+ * @param interp - the interpreter running the command.
+ * @param objv   - The words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::getSystemStatus(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "getSystemStatus requires no parameters");
+    interp.setResult(m_pApi->getSystemStatus());
 }
 /**
  * getParticipantStates

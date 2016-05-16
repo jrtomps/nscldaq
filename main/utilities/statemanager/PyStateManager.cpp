@@ -1126,6 +1126,34 @@ getGlobalState(PyObject* self, PyObject* args)
     
     return PyString_FromString(result.c_str());
 }
+/**
+ * getSystemStatus
+ *     returns the system status variable value.  This tells the user if a state
+ *     transition is in progress.
+ *
+ *  @param self - pointer to the object on which this is called.
+ *  @param args - pointer to the positional args which must be empty.
+ *  @return PyObject*  - Newly created string object containing the result.
+ */
+static PyObject*
+getSystemStatus(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("getSystemStatus does not require parameters");
+    }
+    CStateManager* pApi = getApi(self);
+    if (!pApi) {
+        return raise("This method is only allowed when a subscription URI was passed at construction time");
+    }
+    std::string result;
+    try {
+        result = pApi->getSystemStatus();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    return PyString_FromString(result.c_str());
+}
 
 /**
 * getParticipantStates
@@ -1699,6 +1727,7 @@ static PyMethodDef ApiObjectMethods[] = {
     {"getEditorYPosition", getEditorYPosition, METH_VARARGS, "Get y position of an object"},
     {"setGlobalState", setGlobalState, METH_VARARGS, "Start a global state transition"},
     {"getGlobalState", getGlobalState, METH_VARARGS, "Get The global state"},
+    {"getSystemStatus", getSystemStatus, METH_VARARGS, "Get the state manager system status"},
     {"getParticipantStates", getParticipantStates, METH_VARARGS,
         "Get the states of participants"},
     {"getTitle", getTitle, METH_VARARGS, "Get the current title"},

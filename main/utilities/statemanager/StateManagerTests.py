@@ -62,7 +62,7 @@ class StateManagerTests(testBase.TestBase):
         api.declare('/RunState/Timeout', 'integer', '60')
         api.declare('/RunState/ReadoutParentDir', 'string')
         api.declare('/RunState/State', 'RunStateMachine')
-        api.declare('/RunState/SystemStatus', 'string')
+        api.declare('/RunState/SystemStatus', 'string', 'Consistent')
         
         # Make the test program:
         
@@ -804,6 +804,18 @@ class StateS(StateManagerTests):
         with self.assertRaises(nscldaq.vardb.statemanager.error) :
             api.getParticipantStates(0)
             
+    def test_getSystemStatusConsistent(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        self.assertEqual('Consistent', api.getSystemStatus())
+    def test_getSystemStatusInconsistent(self):
+        self._api.set('/RunState/SystemStatus', 'Inconsistent')
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        self.assertEqual('Iconsistent', api.getSystemStatus())
+    
 class RunParameters(StateManagerTests):   
     def test_gettitle_initial(self):
         api = nscldaq.vardb.statemanager.Api(

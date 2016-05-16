@@ -209,6 +209,10 @@ class TestStateManager : public CppUnit::TestFixture {
   CPPUNIT_TEST(getXpos);
   CPPUNIT_TEST(getYpos);
 
+  // System status:
+  
+  CPPUNIT_TEST(getStatusConsistent);
+  CPPUNIT_TEST(getStatusInconsistent);
   
   CPPUNIT_TEST_SUITE_END();
 
@@ -291,6 +295,9 @@ protected:
   void setPosition();
   void getXpos();
   void getYpos();
+  
+  void getStatusConsistent();
+  void getStatusInconsistent();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -393,7 +400,7 @@ TestStateManager::populateDb()
     m_pApi->declare("/RunState/Recording", "bool", "false");
     m_pApi->declare("/RunState/Timeout", "integer", "60");
     m_pApi->declare("/RunState/ReadoutParentDir", "string");
-    m_pApi->declare("/RunState/SystemStatus", "string");
+    m_pApi->declare("/RunState/SystemStatus", "string", "Consistent");
     // /RunState/test  - program named test.
     
     m_pApi->mkdir("/RunState/test");
@@ -1744,4 +1751,17 @@ void TestStateManager::getYpos()
     CStateManager sm("tcp://localhost", "tcp://localhost");
     sm.setEditorPosition("test", 100, 200);
     EQ(200, sm.getEditorYPosition("test"));
+}
+void TestStateManager::getStatusConsistent()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    EQ(std::string("Consistent"), sm.getSystemStatus());
+}
+
+void TestStateManager::getStatusInconsistent()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    m_pApi->set("/RunState/SystemStatus", "Inconsistent");
+    EQ(std::string("Inconsistent"), sm.getSystemStatus());
+    
 }
