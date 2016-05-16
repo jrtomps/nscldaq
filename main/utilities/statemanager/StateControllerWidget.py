@@ -122,6 +122,7 @@ class QNSCLRunControl(QtGui.QFrame):
         super(QNSCLRunControl, self).__init__(parent)
         
         self._state = QtGui.QLabel(state, self)
+        self._status= QtGui.QLabel('(???)', self)
         self._prebegin = QtGui.QPushButton("Pre Begin", self)
         self._begin = QtGui.QPushButton("Begin", self)
         self._preend = QtGui.QPushButton("Pre End", self)
@@ -135,6 +136,7 @@ class QNSCLRunControl(QtGui.QFrame):
         
         layout =  QtGui.QGridLayout(self)
         layout.addWidget(self._state, 0, 1)
+        layout.addWidget(self._status, 0, 2)
         
         layout.addWidget(self._prebegin, 1, 0)
         
@@ -182,7 +184,14 @@ class QNSCLRunControl(QtGui.QFrame):
         self.setState(state)
         
     # Public methods:
-    
+    ##
+    #  setSystemStatus - set the value of the system status element.
+    #
+    # @param value - the new system state
+    #
+    def setSystemStatus(self, value):
+        s = '(' + value + ')'
+        self._status.setText(s)
     ##
     #  Set the button visibilty based on the requesed state and the
     #  visibility dict.
@@ -594,7 +603,8 @@ class QNSCLStateControllerWidget(QtGui.QFrame):
     #--------------------------------------------------------------------------
     #   Widget attribute management:
     #
-    
+    def setSystemStatus(self, value):
+        self._runcontrol.setSystemStatus(value)
     ##
     #  setState
     #    Communicate a state change to the UI

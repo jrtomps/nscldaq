@@ -118,7 +118,7 @@ class RunControl(StateControllerWidget.QNSCLStateControllerWidget):
         
         self._guiVars = set([
             '/RunState/Recording', '/RunState/RunNumber', '/RunState/State',
-            '/RunState/Timeout', '/RunState/Title'
+            '/RunState/Timeout', '/RunState/Title', '/RunState/SystemStatus'
         ])
         
         
@@ -135,7 +135,6 @@ class RunControl(StateControllerWidget.QNSCLStateControllerWidget):
         
         while self._subscriptions.readable() :
             msg = self._subscriptions.read()
-            
             #  We only care about assignments -- and only to the vars that
             #  affect the UI
             #
@@ -145,7 +144,6 @@ class RunControl(StateControllerWidget.QNSCLStateControllerWidget):
                 value = msg['data']
                 split = path.split(thepath)
                 varname = path.split(thepath)[1]
-    
                 # Don't really have a good way to do this other than this:
                 
                 if varname == 'Recording':
@@ -156,6 +154,8 @@ class RunControl(StateControllerWidget.QNSCLStateControllerWidget):
                     self.setState(value)
                 elif varname == 'Title':
                     self.setTitle(value)
+                elif varname == 'SystemStatus':
+                    self.setSystemStatus(value)
                     
                 # TODO:  need to add the timeout to the GUI and here.
     
