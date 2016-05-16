@@ -386,7 +386,9 @@ noinst_HEADERS = CAcquisitionThread.h		\
 				Events.h	\
 				CCCUSBHighLevelController.h  \
 				CPreBeginCommand.h CPreEndCommand.h \
-				CPrePauseCommand.h CPreResumeCommand.h
+				CPrePauseCommand.h CPreResumeCommand.h	\
+				Events.h				\
+				Globals.h
 
 libCCUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \
@@ -927,7 +929,6 @@ uninstall-am: uninstall-libLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-libLTLIBRARIES
 
-				Events.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
