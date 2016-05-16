@@ -46,6 +46,7 @@ noinst_HEADERS		= CAcquisitionThread.h		\
 				CPreBeginCommand.h CPreEndCommand.h \
 				CPrePauseCommand.h CPreResumeCommand.h
 				Events.h
+				Globals.h
 
 libCCUSBCore_la_CPPFLAGS = \
 		  @THREADCXX_FLAGS@ \
