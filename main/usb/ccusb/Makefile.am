@@ -60,6 +60,8 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/include
 	for f in @srcdir@/*.h; do $(INSTALL_DATA) -C $$f @prefix@/ccusbdriver/include; done
+	touch @builddir@/dummy.h               # Need to have at least one of them.
 	for f in @builddir@/*.h; do $(INSTALL_DATA) -C $$f @prefix@/ccusbdriver/include; done
+	rm -f @prefix@/ccusbdriver/include/dummy.h
 
 
