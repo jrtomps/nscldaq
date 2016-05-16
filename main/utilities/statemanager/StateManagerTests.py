@@ -814,7 +814,7 @@ class StateS(StateManagerTests):
         api = nscldaq.vardb.statemanager.Api(
                 'tcp://localhost', 'tcp://localhost'
         )
-        self.assertEqual('Iconsistent', api.getSystemStatus())
+        self.assertEqual('Inconsistent', api.getSystemStatus())
     
 class RunParameters(StateManagerTests):   
     def test_gettitle_initial(self):
