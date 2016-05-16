@@ -65,6 +65,7 @@ class StateClientTests(testBase.TestBase):
         api.declare('/RunState/Timeout', 'integer')
         api.declare('/RunState/ReadoutParentDir', 'string')
         api.declare('/RunState/State', 'RunStateMachine')
+        api.declare('/RunState/SystemStatus', 'string')
         
         # Make the test program:
         

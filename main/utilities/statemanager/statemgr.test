@@ -103,6 +103,7 @@ proc createRunDir h {
     
     
     varmgr::var create $h /RunState/State RunStateMachine
+    varmgr::var create $h /RunState/SystemStatus string
     varmgr::var create $h /RunState/RunNumber integer
     varmgr::var create $h /RunState/Title     string
     varmgr::var create $h /RunState/Recording bool false
