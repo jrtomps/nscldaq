@@ -450,7 +450,7 @@ CStateManager::setGlobalState(const char* newState)
 {
     CVarMgrApi* pApi = m_pMonitor->getApi();
     pApi->set("/RunState/State", newState);
-    pApi->set("/RunState/SystemSstatus", "Inconsistent");
+    pApi->set("/RunState/SystemStatus", "Inconsistent");
 }
 /**
  * getGlobalState
