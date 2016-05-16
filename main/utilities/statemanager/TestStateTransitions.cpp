@@ -333,7 +333,7 @@ TestStateTransitions::populateDb()
     m_pApi->declare("/RunState/Recording", "bool", "false");
     m_pApi->declare("/RunState/Timeout", "integer", "60");
     m_pApi->declare("/RunState/ReadoutParentDir", "string");
-    
+    m_pApi->declare("/RunState/SystemStatus", "string");
     // /RunState/test  - program named test.
     
     m_pApi->mkdir("/RunState/test");
