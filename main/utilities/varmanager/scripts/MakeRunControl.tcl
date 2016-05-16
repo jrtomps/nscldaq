@@ -58,6 +58,7 @@ ignoreError statemachine RunStateMachine [dict create                       \
 ]
 
 
+enum StateStatus [list Consistent Inconsistent]
 
 # Now create the variables in /RunState:
 
@@ -75,6 +76,7 @@ ignoreError declare ReadoutParentDir    string
 # the initial state.
 
 ignoreError declare State               RunStateMachine
+ignoreError declare SystemStatus        StateStatus Consistent
 let State NotReady
 let State 0Initial
 
