@@ -94,6 +94,7 @@ class RunControl(StateControllerWidget.QNSCLStateControllerWidget):
         self.setRun(self._stateManager.getRunNumber())
         self.setTitle(self._stateManager.getTitle())
         self.setRecording(self._stateManager.isRecording())
+        self.setSystemStatus(self._stateManager.getSystemStatus())
         
         
         
