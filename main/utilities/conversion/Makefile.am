@@ -94,7 +94,7 @@ BUILT_SOURCES = format_converter_options.c format_converter_options.h
 
 format_converter_options.c : format_converter_options.h
 format_converter_options.h: format_converter_options.ggo
-	$(GENGETOPT) -i $< -F @srcdir@/format_converter_options -a cmdLineOpts \
+	$(GENGETOPT) -i @srcdir@/format_converter_options.ggo -F format_converter_options -a cmdLineOpts \
 		--output-dir=@builddir@
 
 format_converter_SOURCES = Main.h Main.cpp 

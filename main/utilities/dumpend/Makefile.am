@@ -7,9 +7,10 @@ COMMON_LOADFLAGS= @top_builddir@/daq/format/libdataformat.la @top_builddir@/base
 
 dumpend_SOURCES = CFileIterator.cpp CFileIterator.h main.cpp CEndRunInfo.cpp CEndRunInfo.h \
 	CEndRunInfo11.cpp CEndRunInfo11.h CEndRunInfo10.cpp CEndRunInfo10.h \
-	CEndRunInfoFactory.cpp CEndRunInfoFactory.h options.c options.h \
+	CEndRunInfoFactory.cpp CEndRunInfoFactory.h  \
 	Application.cpp Application.h
 
+nodist_dumpend_SOURCES=options.c options.h
 
 dumpend_CXXFLAGS=$(COMMON_CFLAGS)
 dumpend_LDFLAGS=$(COMMON_LOADFLAGS)
@@ -21,12 +22,12 @@ BUILT_SOURCES=options.c options.h
 
 CLEAN_FILES=options.c options.h
 
-@srcdir@/options.c: @srcdir@/options.h
-	touch options.c
+options.c: options.h
 
-@srcdir@/options.h: @srcdir@/options.ggo
+
+options.h: options.ggo
 	$(GENGETOPT) < @srcdir@/options.ggo \
-	--output-dir=@srcdir@ --file options --unamed-opts=FILE 
+	--output-dir=@builddir@ --file options --unamed-opts=FILE 
 
 
 noinst_PROGRAMS=unittests
