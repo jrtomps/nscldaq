@@ -60,6 +60,9 @@ public:
     virtual std::vector<std::string> ls(const char* path=0);
     virtual std::vector<VarInfo> lsvar(const char* path = 0);
     virtual void rmvar(const char* path);
+    virtual Transaction* transaction() {
+        throw Unimplemented("Transactions are not implemented");
+    }
 
 private:
     bool existingDirectory(std::string dirname);

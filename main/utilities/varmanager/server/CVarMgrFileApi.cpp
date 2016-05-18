@@ -26,6 +26,60 @@
 #include <CVariable.h>
 #include <CEnumeration.h>
 #include <CStateMachine.h>
+#include <CSqliteTransaction.h>
+/*-----------------------------------------------------------------------------
+ *  Implement our transaction as a wrapper around a CSqliteTransaction.
+ */
+
+/**
+ *  constructor
+ *    Wrap an SqliteTransaction.  Our destructor will destroy it:
+ *  @param api - references a raw api object:
+ */
+CVarMgrFileApi::FileTransaction::FileTransaction(CVariableDb& api) :
+    m_pTransaction(0)
+{
+    m_pTransaction = new CSqliteTransaction(api);    
+}
+/**
+ * destructor - destroys the wrapped transaction.
+ */
+CVarMgrFileApi::FileTransaction::~FileTransaction()
+{
+    delete m_pTransaction;
+}
+
+/**
+ * rollback
+ *   delegates to the wrapped transaction
+ */
+void
+CVarMgrFileApi::FileTransaction::rollback()
+{
+    m_pTransaction->rollback();
+}
+/**
+ * scheduleRollback
+ *    Delegated to the wrapped transaction.
+ */
+void
+CVarMgrFileApi::FileTransaction::scheduleRollback()
+{
+    m_pTransaction->scheduleRollback();
+}
+
+/**
+ * commit
+ *    Commit now - delegated to the wrapped transaction
+ */
+void
+CVarMgrFileApi::FileTransaction::commit()
+{
+    m_pTransaction->commit();
+}
+
+
+/*-----------------------------------------------------------------------------*/
 
 /**
  * constructor
@@ -257,4 +311,30 @@ void
 CVarMgrFileApi::rmvar(const char* path)
 {
     CVariable::destroy(*m_pDb, *m_pWd, path);
+}
+/**
+ *  transaction
+ *     Factory method to produce a transaction suitable for use with our
+ *     interface.  Here's a segment of code that shows typical use of this
+ *     method.   Note the variable pApi is a pointer to a CVarMgrFileApi:
+ * 
+ *  \verbatim
+ *     try {
+ *        std::unique_ptr<CVarMgrApi::Transaction> t(apApi->transaction());  // begin
+ *        try {
+ *                // Do stuff in the database.   Can t->rollback(), t->scheduleRollback()
+ *                // or explicit commit with t->commit().
+ *        } catch (...) {
+ *            t->rollback();                // Rollback on error.
+ *              ...
+ *        }                                // commits if no rollback/scheduleRollback.
+ *     }
+ *     catch (CVarMgrApi::Unimplemented e) { (API doesn't implement transactions) }
+ *
+ *  @return CVarMgrFileApi::FileTransaction*
+ */
+CVarMgrFileApi::Transaction*
+CVarMgrFileApi::transaction()
+{
+    return new FileTransaction(*m_pDb);
 }

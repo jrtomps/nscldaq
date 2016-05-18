@@ -3,6 +3,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Asserter.h>
 #include "Asserts.h"
+#include <memory>
 
 /* Test the direct api (uses the database file). */
 
@@ -62,6 +63,15 @@ class TestDirect : public CppUnit::TestFixture {
   
   CPPUNIT_TEST(rmvarOk);
   CPPUNIT_TEST(rmvarNoSuch);
+  
+  // Transactions
+  
+  CPPUNIT_TEST(committed);
+  CPPUNIT_TEST(explicitcommit);
+  CPPUNIT_TEST(rolledback);
+  CPPUNIT_TEST(scheduledRollback);
+  
+  
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -118,6 +128,11 @@ protected:
   
   void rmvarOk();
   void rmvarNoSuch();
+  
+  void committed();
+  void explicitcommit();
+  void rolledback();
+  void scheduledRollback();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestDirect);
@@ -480,4 +495,115 @@ void TestDirect::rmvarNoSuch()
         api.rmvar("/avar"),
         std::runtime_error
     );
+}
+
+// Test transaction commits if nothing goes wrong.
+
+void TestDirect::committed()
+{
+  CVarMgrFileApi api(m_tempFile);
+  
+  try {
+    std::unique_ptr<CVarMgrApi::Transaction> t(api.transaction());
+    
+    // do some stuff in the db.
+    
+    api.declare("/avar", "integer", "12234");
+  }                              // Commited here.
+  catch(...) {}
+  // be sure it all showed up.
+  
+  std::string value;
+  CPPUNIT_ASSERT_NO_THROW(
+    value = api.get("/avar")
+  );
+  
+  EQ(std::string("12234"), value);
+  
+}
+
+// Explicit commits also work:
+
+void TestDirect::explicitcommit()
+{
+  CVarMgrFileApi api(m_tempFile);
+  
+  try {
+    std::unique_ptr<CVarMgrApi::Transaction> t(api.transaction());
+    
+    // do some stuff in the db.
+    
+    api.declare("/avar", "integer", "12234");
+    t->commit();                             // Explicit commit here.
+    
+  }
+  catch(...) {}                    // Hard to actualy tell the diff.
+  
+  std::string value;
+  CPPUNIT_ASSERT_NO_THROW(
+    value = api.get("/avar")
+  );
+  
+  EQ(std::string("12234"), value);
+ 
+}
+
+// rollback using typical throw method:
+
+void TestDirect::rolledback()
+{
+  CVarMgrFileApi api(m_tempFile);
+  
+  {
+    std::unique_ptr<CVarMgrApi::Transaction> t(api.transaction());
+    try {
+      
+      
+      // do some stuff in the db.
+      
+      api.declare("/avar", "integer", "12234");
+      throw(1);
+    }
+    catch (...) {
+      t->rollback();
+    }
+  }  
+  CPPUNIT_ASSERT_THROW(
+    api.get("/avar"),
+    std::exception
+  );
+}
+
+// Rollback scheduled for transaction object destruction:
+
+void TestDirect::scheduledRollback()
+{
+CVarMgrFileApi api(m_tempFile);
+  
+  try {
+    std::unique_ptr<CVarMgrApi::Transaction> t(api.transaction());
+    
+    // do some stuff in the db.
+    
+    api.declare("/avar", "integer", "12234");
+    t->scheduleRollback();          // Rollback on destruction.
+    
+    // Since the rollback has not yet occured we should be able to see the var:
+
+    std::string value;
+    CPPUNIT_ASSERT_NO_THROW(
+      value = api.get("/avar")
+    );
+    
+    EQ(std::string("12234"), value);
+      
+  }
+  catch (...) {                  // Actual rollback.
+    
+  }
+  
+  CPPUNIT_ASSERT_THROW(
+    api.get("/avar"),
+    std::exception
+  );  
 }

@@ -26,6 +26,7 @@
 
 class CVariableDb;
 class CVarDirTree;
+class CSqliteTransaction;
 
 class CVarMgrFileApi : public CVarMgrApi
 {
@@ -52,6 +53,23 @@ public:
     virtual std::vector<std::string> ls(const char* path=0);
     virtual std::vector<VarInfo> lsvar(const char* path =0);
     virtual void rmvar(const char* path);
+    virtual Transaction* transaction();
+    // Nested classes:
+public:
+    // Support for a transaction:
+    
+    class FileTransaction : public Transaction {
+    private:
+        CSqliteTransaction* m_pTransaction;
+    public:
+        FileTransaction(CVariableDb& db);
+        virtual ~FileTransaction();
+        
+        virtual void rollback();
+        virtual void scheduleRollback();
+        virtual void commit();
+    };
+
 };
 
 #endif

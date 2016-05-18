@@ -427,10 +427,18 @@ proc dumpRefsec sect {
     if {[array name :::sections $sect] eq ""} {
 	return
     }
-    puts $::outputChannel "<reference id='man-$sect'>"
+
+    # Note there are legal section names that are not legal id's  this line
+    # makes the sect into a legal id -- the map may need expansion with time
+
+    set sectid [string map [list + p - m] $sect]
+
+
+    puts $::outputChannel "<reference id='man-$sectid'>"
     puts $::outputChannel "<title>$sect</title>"
 
     # If there's an intro file, output it:
+
 
     set introFile [lsearch -glob -inline $::metafiles */refsec_$sect.xml]
     if {$introFile ne ""} {

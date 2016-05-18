@@ -90,6 +90,7 @@ class ServerApiTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(rmvarOk);
   CPPUNIT_TEST(rmvarNoSuch);
   
+  CPPUNIT_TEST(transactionsUnimplemented);
   
   CPPUNIT_TEST_SUITE_END();
 
@@ -137,6 +138,7 @@ protected:
   void lsvarEmptyString();
   void rmvarOk();
   void rmvarNoSuch();
+  void transactionsUnimplemented();
   
 private:
     pid_t m_serverPid;
@@ -860,3 +862,11 @@ void ServerApiTests::rmvarNoSuch()
 }
 
 
+void ServerApiTests::transactionsUnimplemented()
+{
+  CVarMgrApi& api(*m_pApi);
+  CPPUNIT_ASSERT_THROW(
+    api.transaction(),
+    CVarMgrApi::Unimplemented
+  );
+}

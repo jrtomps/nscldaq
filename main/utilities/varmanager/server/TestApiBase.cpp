@@ -25,6 +25,7 @@ public:
                                                                 return result;}
     virtual std::vector<VarInfo> lsvar(const char* path = 0) {std::vector<VarInfo> result; return result;}
     virtual void rmvar(const char* path) {}
+    Transaction* transaction() {return 0;}
 
     std::pair<std::string, std::string> ivt(CVarMgrApi::StateMap map) {
         return findInvalidTransition(map);

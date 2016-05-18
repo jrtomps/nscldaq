@@ -12,7 +12,7 @@ UPDATEMAN = @MANDB@
 
 MANSECTS = 1compatibility.xml 1daq.xml 1epics.xml 1evb.xml 1tcl.xml 1utilities.xml \
 	3ccusb.xml 3daq.xml 3evb.xml 3provider.xml 3python.xml 3rdogui.xml 3sbsReadout.xml 3tcl.xml 3vmusb.xml \
-	5daq.xml 5tcl.xml 5vmusb.xml
+	5daq.xml 5tcl.xml 5vmusb.xml 3sqlite++.xml
 
 install-exec-local: daq.html daq.mans tutorial.pdf tutorial.html
 	$(mkinstalldirs) @prefix@/share
@@ -108,6 +108,7 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/base/plotchart	\
 						@top_srcdir@/base/tclutils \
 						@top_srcdir@/base/tcpip		\
+						@top_srcdir@/base/sqlite++	\
 						@top_srcdir@/utilities/varmanager \
 						@top_srcdir@/utilities/varmanager/server \
 						@top_srcdir@/utilities/statemanager	\
@@ -115,6 +116,7 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/utilities/vardbEventbuilder	\
 						@top_srcdir@/utilities/vardbringbuffer	\
 						@top_srcdir@/utilities/boot		\
+						@top_srcdir@/utilities/expEditor		\
 						@top_srcdir@/libtcl/tclplus  \
 						@top_srcdir@/libtcl/exception 
 
