@@ -609,7 +609,27 @@ tcltest::test filter8 {filter - too many parameters} \
     varmgr::subscribe tcp://localhost sub
     catch {sub filter reject /test/t* junk}
 } -result 1
+
+tcltest::test transaction-fails {Transactions are not supported on server connections} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
     
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    set result [catch {::varmgr::transaction $handle {}} msg]
+    list $result $msg
+} -result [list 1 "Underlying database transport does not support transactions"]
     
 #--------------------------------------------------------------------------
 # Post test stuff

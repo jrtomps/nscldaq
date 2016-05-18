@@ -34,6 +34,7 @@
 #include "CVarMgrEnumCommand.h"
 #include "CVarMgrStateMachine.h"
 #include "CVarMgrSubscribe.h"
+#include "CVarMgrTransactionCommand.h"
 
 
 static const char* version="1.0";
@@ -75,6 +76,7 @@ extern "C" {
         new CVarMgrEnumCommand(*pWrappedInterp, "::varmgr::enum");
         new CVarMgrStateMachine(*pWrappedInterp, "::varmgr::statemachine");
         new CVarMgrSubscribe(*pWrappedInterp, "::varmgr::subscribe");
+        new CVarMgrTransactionCommand(*pWrappedInterp, "::varmgr::transaction");
         
         // Success.
         

@@ -37,7 +37,8 @@ libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
 	CVarMgrEnumCommand.h   CVarMgrEnumCommand.cpp	\
 	CVarMgrStateMachine.h  CVarMgrStateMachine.cpp  \
 	CVarMgrSubscribe.h     CVarMgrSubscribe.cpp     \
-	CVarMgrSubCommand.h    CVarMgrSubCommand.cpp  
+	CVarMgrSubCommand.h    CVarMgrSubCommand.cpp  	\
+	CVarMgrTransactionCommand.h CVarMgrTransactionCommand.cpp
 
 
 libvarmgrpy_la_CPPFLAGS=$(COMMON_CPPFLAGS) @PYTHON_CPPFLAGS@
