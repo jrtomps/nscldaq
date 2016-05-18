@@ -56,10 +56,12 @@ options.ggo: @top_srcdir@/daq/eventbuilder/options.ggo
 
 rfcmdline.c: rfcmdline.h
 
+#  builddir is correct - see options.ggo above:  The final options.ggo is 
+#  dynamically created from the options.ggo file in the eventbuilder dir and our additions.
 
-rfcmdline.h: options.ggo
+rfcmdline.h: @builddir@/options.ggo
 	$(GENGETOPT) --output-dir=@builddir@ \
-		--input=@srcdir@/options.ggo -F rfcmdline
+		--input=@builddir@/options.ggo -F rfcmdline
 
 ringtestoptions.c: ringtestoptions.h
 
