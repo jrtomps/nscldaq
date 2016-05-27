@@ -23,6 +23,8 @@
 #include <CVarMgrApi.h>
 #include <CVarMgrApiFactory.h>
 #include <sstream>
+#include <memory>
+
 #include <stdlib.h>
 
 /**
@@ -32,9 +34,16 @@
  *  @param pDbUri - uri that designates the database we are connecting to.
  */
 CVardbRingBuffer::CVardbRingBuffer(const char* pDbUri) :
-    m_pApi(0)
+    m_pApi(0), m_canTransact(false)
 {
     m_pApi = CVarMgrApiFactory::create(pDbUri);
+    try {
+        std::unique_ptr<CVarMgrApi::Transaction> t(m_pApi->transaction());
+        m_canTransact = true;
+    }
+    catch (...) {
+        m_canTransact = false;
+    }
 }
 
 /**
@@ -97,11 +106,20 @@ CVardbRingBuffer::create(
     m_pApi->mkdir(dirName.c_str());      // Throws if exists.
     m_pApi->cd(dirName.c_str());
     
-    m_pApi->declare("datasize", "integer", usToString(maxData).c_str());
-    m_pApi->declare("maxconsumers", "integer", usToString(maxConsumers).c_str());
-    m_pApi->declare("editorx", "integer", "0");
-    m_pApi->declare("editory", "integer", "0");
-    
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+        t.reset(m_pApi->transaction());
+    }
+    try {
+        m_pApi->declare("datasize", "integer", usToString(maxData).c_str());
+        m_pApi->declare("maxconsumers", "integer", usToString(maxConsumers).c_str());
+        m_pApi->declare("editorx", "integer", "0");
+        m_pApi->declare("editory", "integer", "0");
+    }
+    catch (...) {
+        t->rollback();
+        throw;
+    }
     m_pApi->cd("/");
 }
 
@@ -117,7 +135,17 @@ void
 CVardbRingBuffer::destroy(const char* name, const char* host)
 {
     std::string dirName = ringDir(name, host);
-    rmTree(dirName);
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+        t.reset(m_pApi->transaction());
+    }
+    try {
+        rmTree(dirName);
+    }
+    catch (...) {
+        t->rollback();
+        throw;
+    }
 }
 
 /**
@@ -218,10 +246,18 @@ CVardbRingBuffer::setEditorPosition(const char* name, const char* host, int x, i
 {
     std::string dir =ringDir(name, host);
     m_pApi->cd(dir.c_str());
-    
-    m_pApi->set("editorx", usToString(x).c_str());
-    m_pApi->set("editory", usToString(y).c_str());
-    
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+        t.reset(m_pApi->transaction());
+    }
+    try {
+        m_pApi->set("editorx", usToString(x).c_str());
+        m_pApi->set("editory", usToString(y).c_str());
+    }
+    catch (...) {
+        t->rollback();
+        throw;
+    }
     m_pApi->cd("/");
 }
 

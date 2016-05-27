@@ -51,6 +51,7 @@ public:
     
 private:
     CVarMgrApi*   m_pApi;
+    bool          m_canTransact;
     
     // Canonicals:
     
