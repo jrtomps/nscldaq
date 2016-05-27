@@ -80,6 +80,7 @@ public:
     // Internal attributes
 private:
    CVarMgrApi*   m_pApi;                  // underlying database api.
+   bool          m_canTransact;           // Transaction capable;
 
    // canonicals:
 

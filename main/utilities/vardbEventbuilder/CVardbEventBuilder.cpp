@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <sstream>
 #include <map>
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -42,10 +43,18 @@ static std::map<CVardbEventBuilder::TimestampPolicy, std::string> policyToText;
  *    @param uri - Uri that identifies the connection method to the database.
  */
 CVardbEventBuilder::CVardbEventBuilder(const char* uri) :
-    m_pApi(0)
+    m_pApi(0), m_canTransact(false)
 {
     if (policyToText.empty()) definePolicies();
     m_pApi = CVarMgrApiFactory::create(uri);   // Let exceptions propagate up.
+    try {
+        std::unique_ptr<CVarMgrApi::Transaction> t(m_pApi->transaction());                 // Try to create a transaction
+        m_canTransact = true;
+    }
+    catch (CVarMgrApi::Unimplemented& u)  {
+        m_canTransact = false;
+    }
+    
 }
 /**
  * destructor
@@ -132,12 +141,19 @@ CVardbEventBuilder::createEventBuilder(
 {
     // Errors will get thrown from deeper layers of the code so:
     
+    std::unique_ptr<CVarMgrApi::Transaction> t;
     try {
         // Make the event builder directory and cd to it:
         
         std::string dir = evbDirname(name);
-        m_pApi->mkdir(dir.c_str());
+        m_pApi->mkdir(dir.c_str());    // does a transaction.
         m_pApi->cd(dir.c_str());
+        
+        if  (m_canTransact) {
+            t.reset(m_pApi->transaction());
+        }
+        
+
         
         // Create the variables with the right stuff.
         
@@ -166,6 +182,7 @@ CVardbEventBuilder::createEventBuilder(
         // reset the wd to "/" and rethrow
         
         m_pApi->cd("/");
+        if (t.get()) t->rollback();
         throw;
     }
     m_pApi->cd("/");
@@ -316,10 +333,21 @@ CVardbEventBuilder::evbSetTimestampPolicy(
 void
 CVardbEventBuilder::evbSetEditorPosition(const char* name, int x, int y)
 {
-    std::string dir = evbDirname(name);
-    m_pApi->cd(dir.c_str());
-    m_pApi->set("editorx", uIntToString(x).c_str());
-    m_pApi->set("editory", uIntToString(y).c_str());
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    try {
+        if (m_canTransact) {
+            t.reset(m_pApi->transaction());
+        }
+        std::string dir = evbDirname(name);
+        m_pApi->cd(dir.c_str());
+        m_pApi->set("editorx", uIntToString(x).c_str());
+        m_pApi->set("editory", uIntToString(y).c_str());
+    }
+    catch(...) {
+        if(t.get()) t->rollback();
+        m_pApi->cd("/");
+        throw;
+    }
     m_pApi->cd("/");
 }
 /**
@@ -364,8 +392,18 @@ CVardbEventBuilder::evbGetEditorYPosition(const char* name)
 void
 CVardbEventBuilder::rmEventBuilder(const char* name)
 {
-    std::string dir = evbDirname(name);
-    rmTree(dir.c_str());
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    try {
+        if (m_canTransact) {
+            t.reset(m_pApi->transaction());
+        }
+        std::string dir = evbDirname(name);
+        rmTree(dir.c_str());
+    }
+    catch (...) {
+        if (t.get()) t->rollback();
+        throw;
+    }
 
 }
 
@@ -467,50 +505,60 @@ CVardbEventBuilder::listEventBuilders()
     bool expectBodyHeaders, unsigned defaultId, const char* timestampExtractor
  )
  {
-    // If t evbName is null -- create the "/EventBuilder/ " directory and
-    // substitute that for evbName:
-    
-    if (!evbName) {
-        evbName = " ";
-        try {
-            m_pApi->mkdir(evbDirname(evbName).c_str());
-        }
-        catch(...) {
-            // This catch block is here in case the directory already exists.
-        }
-    }
-    
-    // What we do might throw so we're going to do everything in a try/catch
-    // block to ensure we get the wd back to "/"
-    
-    m_pApi->cd(evbDirname(evbName).c_str());
+    std::unique_ptr<CVarMgrApi::Transaction> t;
     try {
-        m_pApi->mkdir(srcName);
-        m_pApi->cd(srcName);
+        // If t evbName is null -- create the "/EventBuilder/ " directory and
+        // substitute that for evbName:
         
-        // Set the variables:
-        
-        m_pApi->declare("host", "string", host);
-        m_pApi->declare("path", "string", path);
-        m_pApi->declare("info", "string", info);
-        m_pApi->declare("ring", "string", ringUri);
-        m_pApi->declare("default-id", "integer", uIntToString(defaultId).c_str());
-        m_pApi->declare("timestamp-extractor", "string", timestampExtractor);
-        m_pApi->declare("expect-bodyheaders", "bool", boolToString(expectBodyHeaders).c_str());
-        m_pApi->declare("editorx", "integer", "0");
-        m_pApi->declare("editory", "integer", "0");
-        
-        // Marshall the ids array into idn variables.
-        
-        for (int i = 0; i < ids.size(); i++) {
-            char name[100];
-            sprintf(name, "id%d", i);
-            m_pApi->declare(name, "integer", uIntToString(ids[i]).c_str());
+        if (!evbName) {
+            evbName = " ";
+            try {
+                m_pApi->mkdir(evbDirname(evbName).c_str());
+            }
+            catch(...) {
+                // This catch block is here in case the directory already exists.
+            }
         }
         
-    }
-    catch (...) {
-        m_pApi->cd ("/");
+        // What we do might throw so we're going to do everything in a try/catch
+        // block to ensure we get the wd back to "/"
+        
+        m_pApi->cd(evbDirname(evbName).c_str());
+        try {
+            m_pApi->mkdir(srcName);
+            m_pApi->cd(srcName);
+            
+            if (m_canTransact) {
+                t.reset(m_pApi->transaction());
+            }
+            
+            // Set the variables:
+            
+            m_pApi->declare("host", "string", host);
+            m_pApi->declare("path", "string", path);
+            m_pApi->declare("info", "string", info);
+            m_pApi->declare("ring", "string", ringUri);
+            m_pApi->declare("default-id", "integer", uIntToString(defaultId).c_str());
+            m_pApi->declare("timestamp-extractor", "string", timestampExtractor);
+            m_pApi->declare("expect-bodyheaders", "bool", boolToString(expectBodyHeaders).c_str());
+            m_pApi->declare("editorx", "integer", "0");
+            m_pApi->declare("editory", "integer", "0");
+            
+            // Marshall the ids array into idn variables.
+            
+            for (int i = 0; i < ids.size(); i++) {
+                char name[100];
+                sprintf(name, "id%d", i);
+                m_pApi->declare(name, "integer", uIntToString(ids[i]).c_str());
+            }
+            
+        }
+        catch (...) {
+            m_pApi->cd ("/");
+            throw;
+        }
+    } catch (...) {
+        if (t.get()) t->rollback();
         throw;
     }
     m_pApi->cd("/");
@@ -580,28 +628,37 @@ CVardbEventBuilder::listEventBuilders()
  void
  CVardbEventBuilder::dsSetIds(const char* evb, const char* ds, std::vector<unsigned> ids)
  {
-    m_pApi->cd(dsDirName(evb, ds).c_str());
-    
-    // First we need to destroy the existing variables whose names start with
-    // id.  While we create variables like id1, id2... the specification
-    // says that any variable whose name is id* is a source id.  This code
-    // ensures that any manually created source ids are also destroed (e.g
-    // id-special).
-    
-    std::vector<CVarMgrApi::VarInfo> vars = m_pApi->lsvar();
-    for (int i = 0; i < vars.size(); i++) {
-        if (vars[i].s_name.substr(0, 2) == std::string("id")) {
-            m_pApi->rmvar(vars[i].s_name.c_str());
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+        t.reset(m_pApi->transaction());
+    }
+    try {
+        m_pApi->cd(dsDirName(evb, ds).c_str());
+        
+        // First we need to destroy the existing variables whose names start with
+        // id.  While we create variables like id1, id2... the specification
+        // says that any variable whose name is id* is a source id.  This code
+        // ensures that any manually created source ids are also destroed (e.g
+        // id-special).
+        
+        std::vector<CVarMgrApi::VarInfo> vars = m_pApi->lsvar();
+        for (int i = 0; i < vars.size(); i++) {
+            if (vars[i].s_name.substr(0, 2) == std::string("id")) {
+                m_pApi->rmvar(vars[i].s_name.c_str());
+            }
+        }
+        // Now we can create new variables.
+        
+        for (int i = 0; i < ids.size(); i++) {
+            char varname[100];
+            sprintf(varname, "id%d", i);
+            m_pApi->declare(varname, "integer", uIntToString(ids[i]).c_str());
         }
     }
-    // Now we can create new variables.
-    
-    for (int i = 0; i < ids.size(); i++) {
-        char varname[100];
-        sprintf(varname, "id%d", i);
-        m_pApi->declare(varname, "integer", uIntToString(ids[i]).c_str());
+    catch(...) {
+        if(t.get()) t->rollback();
+        throw;
     }
-    
     m_pApi->cd("/");
  }
  /**
@@ -703,10 +760,20 @@ CVardbEventBuilder::dsSetEditorPosition(
     const char* evbName, const char* dsName, int x, int y
 )
 {
-    m_pApi->cd(dsDirName(evbName, dsName).c_str());
-    m_pApi->set("editorx", uIntToString(x).c_str());
-    m_pApi->set("editory", uIntToString(y).c_str());
-    m_pApi->cd("/");
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+        t.reset(m_pApi->transaction());
+    }
+    try {
+        m_pApi->cd(dsDirName(evbName, dsName).c_str());
+        m_pApi->set("editorx", uIntToString(x).c_str());
+        m_pApi->set("editory", uIntToString(y).c_str());
+        m_pApi->cd("/");
+    }
+    catch (...) {
+        if(t.get()) t->rollback();
+        throw;
+    }
 }
 
 /**
@@ -826,8 +893,18 @@ CVardbEventBuilder::dsGetEditorYPosition(
  void
  CVardbEventBuilder::rmDataSource(const char* evb, const char* ds)
  {
-    std::string dir = dsDirName(evb, ds);
-    rmTree(dir.c_str());
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+        t.reset(m_pApi->transaction());
+    }
+    try {
+        std::string dir = dsDirName(evb, ds);
+        rmTree(dir.c_str());
+     }
+     catch(...) {
+        if (t.get()) t->rollback();
+        throw;
+     }
  }
 /*-----------------------------------------------------------------------------
  *  Utility functions
