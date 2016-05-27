@@ -25,6 +25,8 @@
 #include <CVarMgrApiFactory.h>
 #include <CVariableDb.h>
 #include <exception>
+#include <memory>
+#include <iostream>
 
 // Module specific exception:
 
@@ -686,6 +688,63 @@ Api_rmvar(PyObject* self, PyObject* args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+/**
+ * Api_transaction
+ *    Perform a callable within a database transaction.
+ *    -  If the connection does not support transactions, an exception is raised.
+ *    -  If the callable raises the transaction is rolled back... the exception
+ *       propagates up the call chain
+ *    -  If the callable returns without an exception, the transaction is committed.
+ *  @note It may well be the callable is a lambda.
+ *  
+ *  @param self - pointer to the object whose method is being called.
+ *  @param args - tuple containing the call parameters.   In this case we should
+ *                get two parameters, the callable and a tuple containing its
+ *                parameters.
+ *  @return PyObject*   Py_None.
+ */
+PyObject*
+Api_transaction(PyObject* self, PyObject* args)
+{
+    PyObject* callable;
+    PyObject* callArgs;
+    if (!PyArg_ParseTuple(args, "OO", &callable, &callArgs)) {
+        return 0;
+    }
+    // The callable must be one:
+    
+    if (!PyCallable_Check(callable)) {
+        PyErr_SetString(exception, "transaction - first parameter must be a callable");
+        return 0;
+    }
+    if(!PyTuple_Check(callArgs)) {
+        PyErr_SetString(exception, "transaction - second parameter must be a tuple");
+        return 0;
+    }
+    CVarMgrApi* pApi = getApi(self);
+    
+    try {
+        std::unique_ptr<CVarMgrApi::Transaction> t(pApi->transaction());
+        PyObject* obj = PyObject_Call(callable, callArgs , NULL);
+        
+        
+        // figure out whether we rollback (if we do nothing commit happens when)
+        // t goes out of scope
+        
+        if (PyErr_Occurred())  {
+            std::cerr << "Rolling back on transaction failure\n";
+            PyErr_Print();
+            t->rollback();               // Callable raised.
+        }
+    }
+    catch(std::exception& e) {        // means transactions are not supported.
+        std::cerr << e.what() << std::endl;
+        PyErr_SetString(exception, e.what());
+        return 0;
+    }
+    
+    Py_RETURN_NONE;
+}
 // Module level dispatch table:
 
 static PyMethodDef VarMgrClassMethods[] = {
@@ -711,6 +770,7 @@ static PyMethodDef ApiMethods[] {
     {"ls",      Api_ls,      METH_VARARGS,  "List subdirectories"},
     {"lsvar",   Api_lsvar,   METH_VARARGS,  "List variables in directory"},
     {"rmvar",   Api_rmvar,   METH_VARARGS,  "Remove a variable"},
+    {"transaction", Api_transaction, METH_VARARGS, "Peform callable in a transaction"},
     {NULL, NULL, 0, NULL}
 };
 

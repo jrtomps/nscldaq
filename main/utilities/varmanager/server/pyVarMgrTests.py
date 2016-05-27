@@ -544,6 +544,30 @@ class VarmgrApiTests(unittest.TestCase):
         with self.assertRaises(nscldaq.vardb.varmgr.error):
             self._api.rmvar('/anint')
     
+    #  These transaction tests assume self._api supports transactions:
+    def test_transaction_commit(self):
+        def transaction(self):
+            self._api.declare('/anint', 'integer', '1234')
+            self._api.declare('/astring', 'string', 'some string')
+        try:
+            self._api.transaction(transaction, (self, ))
+        except:
+            self.fail()
+        
+        #  All the changes should have happened:
+        
+        self.assertEquals("1234", self._api.get('/anint'))
+        self.assertEquals('some string', self._api.get('/astring'))
+        
+    def test_transaction_rollback(self):
+        def failedTransaction(Self):
+            self._api.declare('/anint', 'integer', '1234')
+            raise ValueError            # Force rollback
+        try:
+            self._api.failedTransaction(transaction, (self,))
+            self.fail()
+        except:
+            self.assertEquals(0, len(self._api.lsvar()))
     
 if __name__ == '__main__':
     unittest.main()
