@@ -56,6 +56,7 @@ public:
 private:
     CVarMgrApi*   m_pApi;
     bool          m_ownedApi;
+    bool          m_canTransact;
 
     // canonicals
 public:

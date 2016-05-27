@@ -25,6 +25,7 @@
 #include <CVarMgrApiFactory.h>
 #include <string>
 #include <sstream>
+#include <memory>
 #include <stdlib.h>
 
 /**
@@ -35,9 +36,16 @@
  *   destroy it destruction time.
  */
 CStateProgram::CStateProgram(const char* uri) :
-    m_pApi(0), m_ownedApi(true)
+    m_pApi(0), m_ownedApi(true), m_canTransact(false)
 {
     m_pApi =  CVarMgrApiFactory::create(std::string(uri));
+    try {
+        std::unique_ptr<CVarMgrApi::Transaction> t(m_pApi->transaction());
+        m_canTransact = true;
+    }
+    catch (...) {
+        m_canTransact = false;
+    }
 }
 
 /**
@@ -50,8 +58,19 @@ CStateProgram::CStateProgram(const char* uri) :
  *   the API its CStateTransitionMonitor held.
  */
 CStateProgram::CStateProgram(CVarMgrApi* pApi) :
-    m_pApi(pApi), m_ownedApi(false)
-{}
+    m_pApi(pApi), m_ownedApi(false),
+    m_canTransact(false)
+{
+    // see if m_pApi supports transactions:
+    
+    try {
+        std::unique_ptr<CVarMgrApi::Transaction> t(m_pApi->transaction());
+        m_canTransact = true;
+    }
+    catch (...) {
+        m_canTransact = false;
+    }
+}
 
 /**
  * destructor
@@ -113,11 +132,17 @@ CStateProgram::addProgram(const char* name, const pProgramDefinition def)
 
     CVarMgrApi* pApi = m_pApi;
     std::string wd = pApi->getwd();
+    
+    std::unique_ptr<CVarMgrApi::Transaction> t;
     try {
         // Make the program directory and cd to it:
         
         pApi->mkdir(directory.c_str());
         pApi->cd(directory.c_str());
+        
+        if (m_canTransact) {
+            t.reset(m_pApi->transaction());
+        }
         
         // Stock with the contents according to def:
         
@@ -138,6 +163,7 @@ CStateProgram::addProgram(const char* name, const pProgramDefinition def)
     }
     catch(...) {
         pApi->cd(wd.c_str());    // Be sure we are back to normal.
+        if (t.get()) t->rollback();
         throw;
     }
     pApi->cd(wd.c_str());
@@ -193,7 +219,11 @@ CStateProgram::modifyProgram(const char* name, const pProgramDefinition def)
     std::string directory = getProgramDirectoryPath(name);
     
     std::string wd = pApi->getwd();
+    std::unique_ptr<CVarMgrApi::Transaction> t;
     try {
+        if (m_canTransact) {
+            t.reset(m_pApi->transaction());
+        }
         pApi->cd(directory.c_str());
         
         pApi->set("path",  def->s_path.c_str());
@@ -205,6 +235,7 @@ CStateProgram::modifyProgram(const char* name, const pProgramDefinition def)
     }
     catch(...) {
         pApi->cd(wd.c_str());
+        if (t.get()) t->rollback();
         throw;
     }
     pApi->cd(wd.c_str());
@@ -397,34 +428,44 @@ CStateProgram::listActivePrograms()
 void
 CStateProgram::deleteProgram(const char* name)
 {
-    // Get the name of the directory to delete:
-    
-    std::string progDir = getProgramDirectoryPath(name);
-    
-    // Delete all the variables in that directory:
-    
-    CVarMgrApi* pApi                      = m_pApi;
-    std::vector<CVarMgrApi::VarInfo> vars =
-        pApi->lsvar(progDir.c_str());
-    
-    // Step into that directory and delete them:
-    
-    std::string wd = pApi->getwd();
-    try {
-        pApi->cd(progDir.c_str());
-        for (int i = 0; i < vars.size(); i++) {
-            pApi->rmvar(vars[i].s_name.c_str());
-        }
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+        t.reset(m_pApi->transaction());
     }
-    catch(...) {
+    try {
+        // Get the name of the directory to delete:
+        
+        std::string progDir = getProgramDirectoryPath(name);
+        
+        // Delete all the variables in that directory:
+        
+        CVarMgrApi* pApi                      = m_pApi;
+        std::vector<CVarMgrApi::VarInfo> vars =
+            pApi->lsvar(progDir.c_str());
+        
+        // Step into that directory and delete them:
+        
+        std::string wd = pApi->getwd();
+        try {
+            pApi->cd(progDir.c_str());
+            for (int i = 0; i < vars.size(); i++) {
+                pApi->rmvar(vars[i].s_name.c_str());
+            }
+        }
+        catch(...) {
+            pApi->cd(wd.c_str());
+            throw;
+        }
         pApi->cd(wd.c_str());
+        
+        // Delete the directory too:
+        
+        pApi->rmdir(progDir.c_str());
+    }
+    catch (...) {
+        if(t.get()) t->rollback();
         throw;
     }
-    pApi->cd(wd.c_str());
-    
-    // Delete the directory too:
-    
-    pApi->rmdir(progDir.c_str());
 }
 
 /**
@@ -438,8 +479,18 @@ CStateProgram::deleteProgram(const char* name)
 void
 CStateProgram::setEditorPosition(const char* name, int x, int y)
 {
-    setProgramVar(name, "editorx", intToString(x).c_str());
-    setProgramVar(name, "editory", intToString(y).c_str());
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+        t.reset(m_pApi->transaction());
+    }
+    try {
+        setProgramVar(name, "editorx", intToString(x).c_str());
+        setProgramVar(name, "editory", intToString(y).c_str());
+    }
+    catch (...) {
+        if (t.get()) t->rollback();
+        throw;
+    }
 }
 /**
  * getEditorXPosition

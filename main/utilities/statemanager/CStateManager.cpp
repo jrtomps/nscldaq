@@ -67,6 +67,8 @@ CStateManager::CStateManager(const char* requestURI, const char* subscriptionURI
     m_finalStates["Ending"]   = "Ending";
     m_finalStates["Ready"]    = "Ready";
     
+    
+    
 }
 
 /**
