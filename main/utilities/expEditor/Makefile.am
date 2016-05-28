@@ -19,7 +19,7 @@ install-exec-hook:
 	for f in $(TCLPACKAGES) ; do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/TclLibs/expeditor; done
 	for f in $(IMAGES) ; do $(INSTALL_DATA) @srcdir@/$$f @prefix@/TclLibs/expeditor; done
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/expeditor "*.tcl" | @TCLSH_CMD@
-	$(INSTALL_PROGRAM) expEditor.tcl @bindir@/expEditor
+	$(INSTALL_PROGRAM) @srcrdir@/expEditor.tcl @bindir@/expEditor
 
 
 
