@@ -75,6 +75,7 @@ class changeMonitorTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(programMultiLeaves);
   CPPUNIT_TEST(programJoinLeaves);
   
+  CPPUNIT_TEST(varChanges);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -128,6 +129,9 @@ protected:
     void programLeaves();
     void programMultiLeaves();
     void programJoinLeaves();
+    
+    void varChanges();
+    
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -976,4 +980,19 @@ void changeMonitorTests::programJoinLeaves()
     EQ(std::string("newer"), nots[1].s_program);
 
 }
-     
+// Variable changes:
+
+
+void changeMonitorTests::varChanges()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    m_pApi->set("/RunState/RunNumber", "1234");
+    usleep(500*100);
+      
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+    EQ(size_t(1), nots.size());
+    EQ(CStateTransitionMonitor::VarChanged, nots[0].s_type);
+    EQ(std::string("/RunState/RunNumber"), nots[0].s_state);
+    EQ(std::string("1234"), nots[0].s_program);
+}

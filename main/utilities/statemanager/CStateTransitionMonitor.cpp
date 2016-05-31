@@ -510,6 +510,7 @@ CStateTransitionMonitor::MonitorThread::operator()()
                      notmsg.s_type    = VarChanged;
                      notmsg.s_state   = msg.s_path;
                      notmsg.s_program = msg.s_data;
+                     post = true;
                 }
             }
             // Only post if the operation resulted in  postable op.
