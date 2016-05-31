@@ -136,7 +136,8 @@ public:
     // State transition monitoring
     
     void waitTransition(TransitionCallback cb = 0, void* clientData = 0);
-    void processMessages(BacklogCallback cb = 0, void* clientData = 0);
+    void processMessages(BacklogCallback cb = 0, void* clientData = 0,
+			 int timeout = 0);
     
     // Managing stand alone program state:
     

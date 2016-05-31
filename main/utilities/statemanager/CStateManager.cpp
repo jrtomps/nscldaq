@@ -572,16 +572,18 @@ CStateManager::waitTransition(TransitionCallback cb, void* clientData)
  *
  * @param cb - Callback to invoke.
  * @param cd - Client data passed without interpretation to the callback.
+ * @param timeout - maximum amount of time to wait for new messages to
+ *                  show up.
  *
  * @note if cb is null then the message queue is just drained and
  *       any internal processing needed is performd without notifying
  *       the caller.
  */
 void
-CStateManager::processMessages(BacklogCallback cb, void* cd)
+CStateManager::processMessages(BacklogCallback cb, void* cd, int timeout)
 {
     std::vector<CStateTransitionMonitor::Notification> nots =
-        m_pMonitor->getNotifications(-1, 0);  // Get all backlogged messages.
+      m_pMonitor->getNotifications(-1, timeout);
         
     for (int i = 0; i < nots.size(); i++) {
         if (cb) {
