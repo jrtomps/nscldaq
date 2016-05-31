@@ -363,6 +363,11 @@ runnumopts.o: @builddir@/runnumopts.ggo
 @builddir@/runnumopts.ggo: runnumopts.ggi standardopts.ggo transitionopts.ggi
 	$(PREPROCESSOR) -P @srcdir@/runnumopts.ggi  |tr -d "\\\\" >@builddir@/runnumopts.ggo
 
+
+# TCL Packages:
+#
+TCL_PACKAGES = rdoCalloutPkg.tcl
+
 ##
 # Python module and sources
 #
@@ -379,7 +384,8 @@ install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs/stateclient
 	rm -f           @prefix@/TclLibs/stateclient/libTclstateclient.so
 	$(LN_S)         @libdir@/libTclstateclient.so @prefix@/TclLibs/stateclient/libTclstateclient.so
-	echo pkg_mkIndex @prefix@/TclLibs/stateclient "*.so" | @TCLSH_CMD@
+	$(INSTALL_SCRIPT) $(TCL_PACAKGES) @prefix@/TclLibs/stateclient
+	echo pkg_mkIndex @prefix@/TclLibs/stateclient "*.so" "*.tcl" | @TCLSH_CMD@
 
 install-exec-hook:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
@@ -413,7 +419,7 @@ stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 
 
 EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py StateManagerTests.py
-
+EXTRA_DIST+=$(TCL_PACKAGES)
 EXTRA_DIST+= stateclient.xml statemanager.xml
 
 # Test setup and specification.
