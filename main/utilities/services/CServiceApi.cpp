@@ -24,6 +24,7 @@
 #include "CServiceApi.h"
 #include <CVarMgrApi.h>
 #include <CVarMgrApiFactory.h>
+#include <memory>
 
 #include <sstream>
 
@@ -38,10 +39,17 @@ const char* CServiceApi::m_ServiceDir("/Services");
  * @param const char* reqUri - the request URI.
  */
 CServiceApi::CServiceApi(const char* reqUri) :
-    m_pApi(0)
+  m_pApi(0), m_canTransact(false)
 {
     
     m_pApi = CVarMgrApiFactory::create(reqUri);        
+    try {
+      std::unique_ptr<CVarMgrApi::Transaction> t(m_pApi->transaction());
+      m_canTransact = true;                      // Since no exception was thrown.
+    }
+    catch (CVarMgrApi::Unimplemented& e) {
+      m_canTransact = false;
+    }
 }
 
 /**
@@ -96,14 +104,24 @@ CServiceApi::create(const char* name, const char* command, const char* host)
 {
     m_pApi->cd(m_ServiceDir);
     m_pApi->mkdir(name);
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+
+    if (m_canTransact) {
+      t.reset(m_pApi->transaction());
+    }
     
-    m_pApi->cd(name);
-    m_pApi->declare("path", "string", command);
-    m_pApi->declare("host", "string", host);
-    m_pApi->declare("editorx", "integer", "0");
-    m_pApi->declare("editory", "integer", "0");
-    
-    m_pApi->cd("/");
+    try {
+      m_pApi->cd(name);
+      m_pApi->declare("path", "string", command);
+      m_pApi->declare("host", "string", host);
+      m_pApi->declare("editorx", "integer", "0");
+      m_pApi->declare("editory", "integer", "0");
+    }
+    catch (...) {
+      if(m_canTransact) t->rollback();
+      throw;
+    }
+      m_pApi->cd("/");
 }
 
 /**
@@ -148,9 +166,21 @@ void
 CServiceApi::setEditorPosition(const char* name, int x, int y)
 {
     setDir(name);
-    m_pApi->set("editorx", intToString(x).c_str());
-    m_pApi->set("editory", intToString(y).c_str());
-    
+
+    std::unique_ptr<CVarMgrApi::Transaction> t;
+    if (m_canTransact) {
+      t.reset(m_pApi->transaction());
+    }
+
+    try {
+      m_pApi->set("editorx", intToString(x).c_str());
+      m_pApi->set("editory", intToString(y).c_str());
+    }
+    catch (...) {
+      t->rollback();
+      throw;
+    }
+ 
     m_pApi->cd("/");
 }
 /**

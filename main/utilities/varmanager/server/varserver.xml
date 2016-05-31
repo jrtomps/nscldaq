@@ -1403,6 +1403,7 @@ class <ooclass><classname>CVarMgrApi</classname></ooclass>
 public:
     typedef <type>std::vector&lt;std::string&gt; EnumValues;</type>
     typedef <type>std::map&lt;std::string, std::set&lt;std::string&gt; &gt; StateMap;</type>
+    typedef <type>Transaction</type>;
 public:
     <methodsynopsis>
         <modifier>virtual </modifier>
@@ -1538,7 +1539,15 @@ public:
             <modifier></modifier><type>StateMap</type>
                 <parameter>map</parameter>
         </methodparam>
-    </methodsynopsis>      
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>CVarMgrApi::Transaction*</type>
+        <methodname>transaction</methodname>
+        <void />
+        <exceptionname>CVarMgrApi::Unimplemented</exceptionname>
+        <modifier>=0</modifier>
+    </methodsynopsis>  
     
 };
    </synopsis>
@@ -1880,6 +1889,29 @@ public:
                 </para>
             </listitem>
         </varlistentry>
+        <varlistentry>
+            <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>CVarMgrApi::Transaction*</type>
+                        <methodname>transaction</methodname>
+                        <void />
+                        <exceptionname>CVarMgrApi::Unimplemented</exceptionname>
+                        <modifier>=0</modifier>
+                    </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Pure virtual method.  When implemented by subclasses, this
+                    method will start a transaction in the underlying database
+                    and returna pointer to the transaction object.  If
+                    the subclass cannot support transactions, it shall throw
+                    a <classname>CVarMgrApi::Unimpimented</classname> exception.
+                    This exception type is derived from
+                    <classname>std::logic_error</classname>.
+                </para>
+            </listitem>
+        </varlistentry>
      </variablelist>
   </refsect1>
    <refsect1>
@@ -1891,6 +1923,24 @@ public:
         not just <classname>CException</classname>).
       </para>
       <variablelist>
+        <varlistentry>
+            <term><classname>Transaction</classname></term>
+            <listitem>
+                <para>
+                    This subclass, when instantiated via the
+                    <methodname>transaction</methodname> method initiates
+                    a transaction in the underlying database.  By default,
+                    the transaction is committed when the object is destroyed.
+                    If <methodname>commit</methodname> is invoked, the
+                    transaction is immediately committed and the transaction
+                    terminated.  If <methodname>rollback</methodname> is
+                    invoked, the transaction is immediately rolledback and the
+                    transaction is terminated.  If <methodname>scheduleRollback</methodname>
+                    is invoked, the transaction continues, however it is rolled
+                    back when the object is destroyed, rather than committed.
+                </para>
+            </listitem>
+        </varlistentry>
         <varlistentry>
             <term><type>std::vector&lt;std::string&gt; EnumValues;</type></term>
             <listitem>
@@ -1920,7 +1970,18 @@ public:
                 </para>
             </listitem>
         </varlistentry>
-
+        <varlistentry>
+            <term>Unimplemented</term>
+            <listitem>
+                <para>
+                    This exception is thrown if an unimplemented operation is
+                    invoked on a concrete subclass of <classname>CVarMgrApi</classname>.
+                    An example is when one attempts to invoke
+                    <methodname>transaction</methodname> on an api object that
+                    communicates with the variable database server.
+                </para>
+            </listitem>
+        </varlistentry>
       </variablelist>
    </refsect1>
 </refentry>

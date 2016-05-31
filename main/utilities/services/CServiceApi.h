@@ -36,6 +36,7 @@ class CServiceApi
 {
 private:
     CVarMgrApi*  m_pApi;
+    bool         m_canTransact;
 public:
     static const char* m_ServiceDir;             // So non API can find it.
 public:
