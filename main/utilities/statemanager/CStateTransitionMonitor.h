@@ -61,12 +61,20 @@ public:
         ProgramStateChange,                            // Change to an individual program's state.
         ProgramJoins,                                  // Program joins the system.
         ProgramLeaves,                                 // Program Leaves the system.
+        VarChanged,                                    // A variable changed.
     } NotificationType;
     
     // Here's the message that's queued up to the main thread:
     
     typedef struct _Notification {
         NotificationType    s_type;
+        
+        // The fields below mostly mean what they say the mean but for some
+        // Values of s_type these are repurposed:
+        // s_state is unused for {ProgramJoins, ProgramLeaves}.
+        // s_state is a variable path for VarChanged
+        // s_program is the variable new value for VarChanged.
+        
         std::string         s_state;
         std::string         s_program;                // Used for all but GlobalState changes.
     } Notification, *pNotification;

@@ -462,15 +462,17 @@ CStateTransitionMonitor::MonitorThread::operator()()
     while (!m_exiting) {
         if (m_pApi->waitmsg(0)) {
             CVarMgrSubscriptions::Message msg = m_pApi->read();
+            bool post = false;
+            CStateTransitionMonitor::Notification notmsg; // s_type, s_state, s_program.
             if (m_pApi->checkFilters(msg.s_path.c_str())) {
-                // Something worth doing:
                 
-                CStateTransitionMonitor::Notification notmsg; // s_type, s_state, s_program.
-                bool post = false;
+                // Something involving states or programs:
+                
+                
+                
                 if (msg.s_operation == "ASSIGN") {
                     // State change:
-                    
-                    
+                                      
                     notmsg.s_state = msg.s_data;              // State value.
                     
                     // Global or program?
@@ -500,12 +502,20 @@ CStateTransitionMonitor::MonitorThread::operator()()
                         notmsg.s_program = msg.s_data;
                         post = true;
                     }
-                }
-                // Only post if the operation resulted in  postable op.
+                }   
+            } else {
+                // Could be a varchanged if here:
                 
-                if (post) {
-                    m_pParent->postNotification(notmsg);
+                if (msg.s_operation  == "ASSIGN" ) {
+                     notmsg.s_type    = VarChanged;
+                     notmsg.s_state   = msg.s_path;
+                     notmsg.s_program = msg.s_data;
                 }
+            }
+            // Only post if the operation resulted in  postable op.
+                
+            if (post) {
+                m_pParent->postNotification(notmsg);
             }
         } else {
 	  usleep(100*1000);
