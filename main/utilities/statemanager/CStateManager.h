@@ -87,6 +87,11 @@ public:
     CStateManager(const char* requestUri, const char* subscriptionUri);
     virtual ~CStateManager();
     
+    // Getters
+    
+public:
+    CVarMgrApi* getApi() { return m_pMonitor->getApi(); }
+    
     // Managing programs:
 public:
     std::string       getProgramParentDir();
