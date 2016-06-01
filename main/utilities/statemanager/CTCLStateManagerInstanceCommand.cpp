@@ -1117,6 +1117,11 @@ CTCLStateManagerInstanceCommand::dispatchMessageScript(
         DictPutString(pInt, pDict, "type", "ProgramLeaves");
         DictPutString(pInt, pDict, "program", msg.s_program);
         break;
+    case CStateTransitionMonitor::VarChanged:
+        DictPutString(pInt, pDict, "type", "VarChanged");
+        DictPutString(pInt, pDict, "path", msg.s_state);
+        DictPutString(pInt, pDict, "value", msg.s_program);
+        break;
     default:
         throw std::runtime_error("Unrecognized message type in processMessages callback");
     }

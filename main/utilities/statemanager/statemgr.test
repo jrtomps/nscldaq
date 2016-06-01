@@ -2036,6 +2036,7 @@ tcltest::test processMessages-1 {One message to process} \
     set ::messages
 } -result [list \
            [dict create type GlobalStateChange state NotReady] \
+            [dict create type VarChanged path /RunState/SystemStatus value Inconsistent] \
            [dict create type ProgramStateChange state NotReady program test] \
         ]
 
@@ -2386,6 +2387,28 @@ tcltest::test getSystemStatusInconsistent {System status is inconsistent} \
    varmgr::var set $h /RunState/SystemStatus Inconsistent
    mgr getSystemStatus
 } -result Inconsistent
+
+tcltest::test varnotification {Test variable notification} \
+-setup {
+   setup
+   ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+
+   set h [varmgr::open  tcp://localhost]
+} \
+-cleanup {
+   ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+    varmgr::close $h
+
+} \
+-body {
+   varmgr::var set $h /RunState/RunNumber 1234
+   set ::notificationData ""
+   mgr processMessages [list set ::notificationData]
+   set notificationData
+} -result [dict create type VarChanged path /RunState/RunNumber value 1234]
+
 
 #
 #------------------------------------------------------------------

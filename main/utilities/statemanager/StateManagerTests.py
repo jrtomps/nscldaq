@@ -1067,7 +1067,11 @@ class ProcessMessageTests(StateManagerTests):
         time.sleep(1)        # Wait for the publications.
         api.processMessages(self.Callback, 2)
         self.assertEquals(
-            [[{'type' : "GlobalStateChange", "state" : "NotReady"}, 2]],
+            [
+                [{'type' : "GlobalStateChange", "state" : "NotReady"}, 2],
+                [{'type': "VarChanged", "path": "/RunState/SystemStatus", "value": "Inconsistent"}, 2],
+            ],
+            
             self._callbacklist
         )
     def test_processMessage_programchange(self):

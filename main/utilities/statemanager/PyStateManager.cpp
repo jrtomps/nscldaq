@@ -310,6 +310,19 @@ relayNotificationCallbacks(
                 PyString_FromString(notification.s_program.c_str())
             );
             break;
+        case CStateTransitionMonitor::VarChanged:
+            PyDict_SetItemString(
+                notDict, "type", PyString_FromString("VarChanged")
+            );
+            PyDict_SetItemString(
+                notDict, "path",
+                PyString_FromString(notification.s_state.c_str())
+            );
+            PyDict_SetItemString(
+                notDict, "value",
+                PyString_FromString(notification.s_program.c_str())
+            );
+            break;
         default:
             /* TODO:  Figure out what to do here?  */
             break;
