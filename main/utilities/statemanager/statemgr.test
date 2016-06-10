@@ -2404,6 +2404,8 @@ tcltest::test varnotification {Test variable notification} \
 } \
 -body {
    varmgr::var set $h /RunState/RunNumber 1234
+   after 300 incr waiter
+   vwait waiter;              # Let messages get queued up.
    set ::notificationData ""
    mgr processMessages [list set ::notificationData]
    set notificationData
