@@ -32,18 +32,14 @@
 /* Module specific error: */
 
 static PyObject* error;
+/* data types:  */
 
-
-/*
- * Api Object storage:
- */
 typedef struct {
-    PyObject_HEAD
-    
-    CStateManager*  m_pApi;
-    CStateProgram*  m_pPrograms;
-    
-} statemanager_ApiObject;
+    PyObject*   s_stateManager;
+    PyObject*   s_callback;
+    PyObject*   s_calldata;
+} CallbackInfo, *pCallbackInfo;
+
 
 
 /*
