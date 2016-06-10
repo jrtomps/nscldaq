@@ -27,19 +27,12 @@
 
 #include "CStateManager.h"
 #include "CStateProgram.h"
-
+#include "PyStateManager.h"
 
 /* Module specific error: */
 
 static PyObject* error;
 
-/* data types:  */
-
-typedef struct {
-    PyObject*   s_stateManager;
-    PyObject*   s_callback;
-    PyObject*   s_calldata;
-} CallbackInfo, *pCallbackInfo;
 
 /*
  * Api Object storage:
@@ -1761,7 +1754,9 @@ static PyMethodDef ApiObjectMethods[] = {
     {NULL, NULL, 0, NULL}                /* End of method definition marker */       
 };
 
+// For external consumption
 
+PyMethodDef* StateManagerMethods=ApiObjectMethods;
 
 /* Module level method dispatch table */
 

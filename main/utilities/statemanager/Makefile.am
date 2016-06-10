@@ -50,7 +50,7 @@ libPyStateClient_la_LIBADD = libstateclient.la
 libPyStateClient_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS) 
 
 
-libPyStateManager_la_SOURCES= PyStateManager.cpp
+libPyStateManager_la_SOURCES= PyStateManager.cpp PyStateManager.h
 libPyStateManager_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(COMMON_CPPFLAGS)
 libPyStateManager_la_LIBADD = libstateclient.la
 libPyStateManager_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS) 

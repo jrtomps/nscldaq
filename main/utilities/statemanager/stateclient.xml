@@ -1619,6 +1619,11 @@ cmd onStateChange script
         <refsect1>
            <title>DESCRIPTION</title>
            <para>
+            Note, this package also supports all of the subcommands in the
+            <link linkend='tcl3_statemanager' endterm='tcl3_statemanager_title' />
+            package.  See that package for the additional subcommands.
+           </para>
+           <para>
                 Provides Tcl bindings to the
                 <link linkend='daq3_cstateclientapi'
                       endterm='daq3_cstateclientapi_title' /> class.
