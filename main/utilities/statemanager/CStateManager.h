@@ -61,10 +61,14 @@ class CVarMgrApi;
 
 class CStateManager
 {
-private:    
     // Object data:
     
-    CStateTransitionMonitor*  m_pMonitor;
+protected:
+    CStateTransitionMonitor*  m_pMonitor;        
+private:    
+    
+    
+    
     std::string               m_reqURI;
     std::string               m_subURI;
     std::map<std::string, std::string> m_finalStates;
@@ -141,7 +145,7 @@ public:
     // State transition monitoring
     
     void waitTransition(TransitionCallback cb = 0, void* clientData = 0);
-    void processMessages(BacklogCallback cb = 0, void* clientData = 0,
+    virtual void processMessages(BacklogCallback cb = 0, void* clientData = 0,
 			 int timeout = 0);
     
     // Managing stand alone program state:

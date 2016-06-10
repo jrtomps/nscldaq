@@ -281,13 +281,13 @@ void ScmonTests::badrequrl()
 {
     CPPUNIT_ASSERT_THROW(
         CStateClientApi("file:///bin/false", "tcp://localhost", "test"),
-        CStateClientApi::CException
+        std::runtime_error
     );
     CPPUNIT_ASSERT_THROW(
         CStateClientApi(
             "tcp://localhost/no-such-service", "tcp://localhost", "test"
         ),
-        CStateClientApi::CException
+        std::runtime_error
     );
 }
 
@@ -298,13 +298,13 @@ void ScmonTests::badsuburl()
 
     CPPUNIT_ASSERT_THROW(
         CStateClientApi("tcp://localhost", "file:///bin/false", "test"),
-        CStateClientApi::CException
+        std::runtime_error
     );
     CPPUNIT_ASSERT_THROW(
         CStateClientApi(
             "tcp://localhost", "tcp://localhost/no-such-services", "test"
         ),
-        CStateClientApi::CException
+        std::runtime_error
     );
 }
 
@@ -318,7 +318,7 @@ void ScmonTests::badprogram()
 
     CPPUNIT_ASSERT_THROW(
         CStateClientApi("tcp://localhost", "tcp://localhost", "george"),
-        CStateClientApi::CException
+        std::runtime_error
     );
     
     // Move the base of the programs to somewhere else:
@@ -330,7 +330,7 @@ void ScmonTests::badprogram()
     
     CPPUNIT_ASSERT_THROW(
         CStateClientApi("tcp://localhost", "tcp://localhost", "test"),
-        CStateClientApi::CException
+        std::runtime_error
     );
 }
 
@@ -406,7 +406,7 @@ void ScmonTests::getInitialRunNum()
 {
 
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
-    EQ(0, api.runNumber());
+    EQ(0U, api.runNumber());
     
 }
 // Modified runnumber:
@@ -417,7 +417,7 @@ void ScmonTests::getModifiedRunNum()
 
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     m_pApi->set("/RunState/RunNumber", "1234");
-    EQ(1234, api.runNumber());
+    EQ(1234U, api.runNumber());
 }
 
 // Recording gflag:
@@ -553,7 +553,7 @@ void ScmonTests::saloneGlobalTransition()
 }
 
 // On the other hand transitions on the local state variable won't be ignored
-// in local mode:
+// in local mode:d
 
 void ScmonTests::saloneTransition()
 {

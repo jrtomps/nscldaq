@@ -27,7 +27,8 @@
 #include <string>
 #include <stdexcept>
 #include <CSynchronizedThread.h>
-#include <CGaurdedObject.h>
+#include "CStateTransitionMonitor.h"
+#include <CStateManager.h>
 
 
 class CVarMgrApi;
@@ -46,43 +47,21 @@ class CMutex;
  *
  *    This class should be thread-safe.
  */
-class CStateClientApi : public CGaurdedObject
+class CStateClientApi : public CStateManager
 {
-
-public:
-    typedef CBufferQueue<std::string> StateQueue;
 private:
-        // Thread that monitors state changes:
-    
-    class CMonitorThread : public CSynchronizedThread {
-        private:
-            std::string           m_name;
-            CStateClientApi*      m_pApi;
-            CVarMgrSubscriptions* m_pSubs;
-            bool                  m_exit;
-            bool                  m_standalone;
-        public:
-            CMonitorThread(
-                std::string name,
-                CStateClientApi* api,
-                CVarMgrSubscriptions* pSubs
-            );
-            virtual ~CMonitorThread();
-            
-            virtual void operator()();
-            virtual void init();
-            void scheduleExit();
-        private:
+    struct TransitionInfo {
+        bool            s_transitioned;      // True if there was a transition.
+        std::string     s_newState;          // True if there was a new state.
+        CStateClientApi& s_obj;
+        TransitionInfo(CStateClientApi& o) : s_transitioned(false), s_obj(o) {}
     };
+
     
 private:
-    CVarMgrApi*           m_pApi;
-    CVarMgrSubscriptions* m_pSubscriptions;
-    StateQueue            m_StateChanges;
     std::string           m_lastState;           // Cache to not beat on server.
     bool                  m_standalone;
     std::string           m_programName;
-    CMonitorThread*       m_pMonitor;
     // Canonicals:
     
 public:
@@ -96,9 +75,7 @@ public:
     void        setState(std::string newState);
     bool        isEnabled();
     bool        isStandalone() const {return m_standalone; }
-    std::string title();
-    int         runNumber();
-    bool        recording();
+    
     std::string outring();
     std::string inring();
    
@@ -117,7 +94,6 @@ public:
     // Not intended for general consumption:
     
 public:
-    void postTransition(std::string newState);
     void updateStandalone(bool newValue);
     std::string getProgramDirectory();
     std::string getProgramVar(const char* varname);
@@ -125,14 +101,16 @@ public:
     // Utilities:
     
 private:
-    void createApi(const char* uri);
-    void createSubscriptions(const char* uri);
-    void freeResources();
+ 
     
     std::string getProgramVarPath(const char* varname);
     
-
-    
+private:
+    static void waitTransitionMessageHandler(
+        CStateManager& mgr, CStateTransitionMonitor::Notification Notification,
+        void* cd
+    );
+    static bool stringToBool(std::string value);
 };
 
 
