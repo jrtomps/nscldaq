@@ -218,7 +218,7 @@ CTCLStateClientCommand::createEnsemble(
     } else {
         char message[1000];
         sprintf(
-            message, "state connection ommand '%s' was aready created",
+            message, "state connection command '%s' was aready created",
             name.c_str()
         );
         throw std::invalid_argument(message);

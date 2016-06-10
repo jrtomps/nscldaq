@@ -64,7 +64,8 @@ CStateProgram::CStateProgram(CVarMgrApi* pApi) :
     // see if m_pApi supports transactions:
     
     try {
-        std::unique_ptr<CVarMgrApi::Transaction> t(m_pApi->transaction());
+        CVarMgrApi::Transaction* t = m_pApi->transaction();
+        delete t;
         m_canTransact = true;
     }
     catch (...) {

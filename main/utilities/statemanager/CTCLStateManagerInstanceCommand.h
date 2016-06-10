@@ -66,7 +66,7 @@ public:
     CTCLStateManagerInstanceCommand(
         CTCLInterpreter& interp,
         CStateManager* pApi
-    ) : CTCLObjectProcessor(interp, false),
+    ) : CTCLObjectProcessor(interp, "junk", false),          //not registered.
         m_pApi(pApi), m_pPrograms(pApi->getProgramApi()) {}
     virtual ~CTCLStateManagerInstanceCommand();
     
