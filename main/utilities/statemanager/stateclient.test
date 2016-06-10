@@ -138,6 +138,7 @@ proc setup {} {
 proc cleanup {} {
     # Kill the server
     
+    
     exec kill -9 $::serverPid
     
     # Destroy the database
@@ -148,6 +149,7 @@ proc cleanup {} {
     
     set ::testFile ""
     set ::serverPid ""
+    
 }
 
 #------------------------------------------------------
@@ -173,8 +175,9 @@ tcltest::test create-makes-ensemble {Create makes a command ensemble} \
     setup
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
 } \
 -body {
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
@@ -187,8 +190,9 @@ tcltest::test ensemble-needs-subcommand {Created command needs a subcommand} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
 } \
 -body {
     catch {me}
@@ -202,13 +206,15 @@ tcltest::test getstate-initial {Get state gets the initial value} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
 } \
 -body {
     me getstate
 } -result "0Initial"
 
+if 0 {
 tcltest::test getstate-changed {Get state when it's been changed} \
 -setup {
     setup
@@ -219,17 +225,21 @@ tcltest::test getstate-changed {Get state when it's been changed} \
     
     varmgr::close $h
     
-    after 350;    # Wait on message pump.
+    after 350 incr waiter;    # Wait on message pump.
+    vwait waiter
     
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
     me getstate
 } -result "Readying"
+}
+
 
 tcltest::test getstate-standalone {If state is standalone - get program state} \
 -setup {
@@ -242,12 +252,14 @@ tcltest::test getstate-standalone {If state is standalone - get program state} \
     
     varmgr::close $h
     
-    after 350;    # Wait on message pump.
+    after 350 incr waiter;    # Wait on message pump.
+    vwait waiter
     
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -262,8 +274,9 @@ tcltest::test setstate-needs-new {Set state needs a new state parameter} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -276,8 +289,9 @@ tcltest::test setstate-sets {Set state sets a new legal state} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -295,8 +309,9 @@ tcltest::test set-state-notlegal {Setting an illegal state is an error} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -311,8 +326,9 @@ tcltest::test bad-subcommand {Illegal subcommand is an error} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -327,8 +343,9 @@ tcltest::test isenabled-yes {Program is enabled} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -344,8 +361,8 @@ tcltest::test isenabled-no {Program is disabled} \
     varmgr::close $h
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
    
 } \
 -body {
@@ -360,8 +377,9 @@ tcltest::test isstandalone-no {Program is not standalone} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -379,8 +397,9 @@ tcltest::test isstandalone-yes {Program is standalone} \
     after 300;       # Wait for message pump to change this.
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -395,8 +414,9 @@ tcltest::test title-initial {Initially empty} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -412,8 +432,9 @@ tcltest::test title-set {Modified} \
     varmgr::close $h
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -428,8 +449,9 @@ tcltest::test runnumber-initial {Initial run number 0} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -445,8 +467,9 @@ tcltest::test runnumber-set {set run number value tracked} \
     varmgr::close $h
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -461,8 +484,9 @@ tcltest::test recording-initial {Get the recording flag} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -478,8 +502,9 @@ tcltest::test recording-set {set run number value tracked} \
     varmgr::close $h
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -494,8 +519,9 @@ tcltest::test outring-initial {Output ring value} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -511,8 +537,9 @@ tcltest::test outring-modified {Outring modified value} \
     varmgr::close $h
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
+    
    
 } \
 -body {
@@ -527,8 +554,8 @@ tcltest::test inring-initial {Initial value of inring} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
    
 } \
 -body {
@@ -544,8 +571,8 @@ tcltest::test outring-set {Modified value of outring tracks} \
     varmgr::close $h
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
    
 } \
 -body {
@@ -565,8 +592,8 @@ tcltest::test onstate-change {State Change callbacks work} \
     ::nscldaq::stateclient me tcp://localhost tcp://localhost test
 } \
 -cleanup {
-    cleanup
     ::nscldaq::stateclient -delete me
+    cleanup
    
 } \
 -body {
