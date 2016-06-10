@@ -608,6 +608,20 @@ tcltest::test onstate-change {State Change callbacks work} \
     set state
 } -result NotReady
 
+
+tcltest::test delegation {Should be able to delegate commands to base class} \
+-setup {
+    setup
+    ::nscldaq::stateclient me tcp://localhost tcp://localhost test
+} \
+-cleanup {
+    ::nscldaq::stateclient -delete me
+    cleanup
+   
+} \
+-body {
+    me listPrograms
+} -result test
 #------------------------------------------------------------------
 #
 # Magic to exit with errors if there are test failures:

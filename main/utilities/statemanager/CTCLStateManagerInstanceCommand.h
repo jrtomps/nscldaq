@@ -23,11 +23,10 @@
 #define CSTATEMANAGERINSTANCECOMMAND_H
 #include <TCLObjectProcessor.h>
 #include <CStateTransitionMonitor.h>
-
+#include "CStateManager.h"
 
 class CTCLInterpreter;
 class CTCLObject;
-class CStateManager;
 class CStateProgram;
 
 #include <map>
@@ -64,6 +63,11 @@ public:
         CTCLInterpreter& interp, std::string name,
         std::string dburl
     );
+    CTCLStateManagerInstanceCommand(
+        CTCLInterpreter& interp,
+        CStateManager* pApi
+    ) : CTCLObjectProcessor(interp, false),
+        m_pApi(pApi), m_pPrograms(pApi->getProgramApi()) {}
     virtual ~CTCLStateManagerInstanceCommand();
     
 public:

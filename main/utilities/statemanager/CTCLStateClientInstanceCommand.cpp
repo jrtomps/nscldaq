@@ -22,6 +22,7 @@
 
 
 #include "CTCLStateClientInstanceCommand.h"
+#include "CTCLStateManagerInstanceCommand.h"
 #include "CTCLStateClientCommand.h"
 #include "TCLInterpreter.h"
 #include "TCLObject.h"
@@ -50,7 +51,8 @@ CTCLStateClientInstanceCommand::CTCLStateClientInstanceCommand(
 ) :
     CTCLObjectProcessor(interp, name.c_str(), true),
     m_pClient(0),
-    m_pPumpThread(0)
+    m_pPumpThread(0),
+    m_pSm(0)
 {
     m_pClient = new CStateClientApi(
         requri.c_str(), suburi.c_str(), programName.c_str()
@@ -59,6 +61,8 @@ CTCLStateClientInstanceCommand::CTCLStateClientInstanceCommand(
         m_pClient, Tcl_GetCurrentThread(), this, pRegistry
     );
     m_pPumpThread->start();
+    
+    m_pSm = new CTCLStateManagerInstanceCommand(interp, m_pClient);
     
     
 }
@@ -71,7 +75,7 @@ CTCLStateClientInstanceCommand::~CTCLStateClientInstanceCommand()
     m_pPumpThread->join();
     delete m_pPumpThread;
     
-    delete m_pClient;
+    // delete m_pClient;   // deleted by state manager instance.
 }
 
 /**
@@ -113,7 +117,7 @@ CTCLStateClientInstanceCommand::operator()(
         } else if (subcommand == "onStateChange") {
             onStateChange(interp, objv);
         } else {
-            throw std::invalid_argument("Invalid subcommand");
+            return (*m_pSm)(interp, objv);
         }
     }
      catch (std::string msg) {

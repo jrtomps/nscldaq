@@ -25,12 +25,11 @@
 #include "TCLObjectProcessor.h"
 #include <CSynchronizedThread.h>
 
-
 class CTCLInterpreter;
 class CTCLObject;
 class CStateClientApi;
 class CTCLStateClientCommand;
-
+class CTCLStateManagerInstanceCommand;
 
 /**
  * @class CTCLStateClientInstanceCommand
@@ -65,6 +64,8 @@ private:
     CStateClientApi* m_pClient;
     MessagePump*     m_pPumpThread;
     std::string      m_stateChangeScript;
+    CTCLStateManagerInstanceCommand* m_pSm;
+    
     
     // Canonicals
 public:
