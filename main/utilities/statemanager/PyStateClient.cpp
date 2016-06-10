@@ -22,6 +22,7 @@
 
 #include <Python.h>
 #include <stdexcept>
+#include <stdlib.h>
 #include <string.h>
 #include <string>
 
@@ -533,7 +534,81 @@ static PyMethodDef StateClientClassMethods[] = {
   {NULL, NULL, 0, NULL}                /* End of methods sentinell. */  
 };
 
+/**
+ * countMethods
+ *    Given a pointer to a method dispatch table, counts the number
+ *    of methods defined in it:
+ *
+ *   @param tbl - pointer to the first entry of the table.
+ *   @return size_t - number of methods in the table.
+ */
+static size_t
+countMethods(PyMethodDef* tbl)
+{
+    size_t result(0);
+    while(tbl->ml_name) {
+        result++;
+        tbl++;
+    }
+    return result;
+}
 
+/**
+ * addMethods
+ *   Given a pointer to a set of method slots fills them in from a source
+ *   table.
+ *   -   There must be sufficient slots in the destination for the method
+ *       defs in the source table.
+ *   -   The copy is shallow.
+ *
+ *   @param p    - Pointer to the first slot to fill.
+ *   @param m    - Pointer to the methods to fil
+ *   @return PyMethodDef*  - Pointer to the next free table slot.
+ */
+static PyMethodDef*
+addMethods(PyMethodDef* p, PyMethodDef* m)
+{
+    while (m->ml_name) {
+        memcpy(p, m, sizeof(PyMethodDef));
+        p++;
+        m++;
+    }
+    return p;
+}
+/**
+ *  Build a method dispatch table from our methods and those of
+ *  our base class.
+ *
+ *  @param mymethods - points to the dispatch table for our methods.
+ *  @param baseMethods - Points to the dispatch table for our base class methods.
+ *  @return PyMethoDef* - Dynamically allocated dispatch table with methods from
+ *                        both classes.
+ * (Yeah if I really understood how to do this in the API I'm sure it could be
+ *  simple  filling in tp_base and then what?)
+ */
+static PyMethodDef*
+buildDispatchTable(PyMethodDef* mymethods, PyMethodDef* baseMethods)
+{
+    // Total up the methods..
+    
+    size_t numMyMethods = countMethods(mymethods);
+    size_t numBaseMethods = countMethods(baseMethods);
+    
+    // Allocate the result table.
+    
+    PyMethodDef* result =
+        reinterpret_cast<PyMethodDef*>(calloc(
+            (numMyMethods + numBaseMethods + 1), sizeof(PyMethodDef)
+        ));
+    PyMethodDef* p      = result;
+    
+    // Fill in the table with methods from both classes
+    
+    p = addMethods(p, mymethods);
+    addMethods(p, baseMethods);
+    
+    return result;
+}
 
 /**
  * initpystateclient
@@ -565,6 +640,12 @@ initstateclient(void)
     PyModule_AddObject(module, "error", error);
   
  /* Register our new type */
+ 
+    // First we need to build the combined method dispatch table and
+    // plug it into the api type tp_methods
+    
+    stateClient_ApiType.tp_methods =
+        buildDispatchTable(ApiObjectMethods, StateManagerMethods);
     
     if (PyType_Ready(&stateClient_ApiType) < 0) {
         return;
