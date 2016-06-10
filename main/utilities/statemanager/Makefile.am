@@ -1,7 +1,7 @@
 #
 # Primary targets are the APIS used by clients and managers:
 
-lib_LTLIBRARIES = libstateclient.la libTclstateclient.la libPyStateClient.la libPyStateManager.la
+lib_LTLIBRARIES = libstateclient.la libTclstateclient.la libPyStateManager.la  libPyStateClient.la
 
 PREPROCESSOR=cpp
 
@@ -44,16 +44,17 @@ libTclstateclient_la_LDFLAGS= libstateclient.la $(COMMON_LOADFLAGS) @LIBTCLPLUS_
 
 # 
 
-libPyStateClient_la_SOURCES= PyStateClient.cpp 
-libPyStateClient_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(COMMON_CPPFLAGS)
-libPyStateClient_la_LIBADD = libstateclient.la
-libPyStateClient_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS) 
 
 
 libPyStateManager_la_SOURCES= PyStateManager.cpp PyStateManager.h
 libPyStateManager_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(COMMON_CPPFLAGS)
 libPyStateManager_la_LIBADD = libstateclient.la
 libPyStateManager_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS) 
+
+libPyStateClient_la_SOURCES= PyStateClient.cpp 
+libPyStateClient_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(COMMON_CPPFLAGS)
+libPyStateClient_la_LIBADD = libPyStateManager.la libstateclient.la
+libPyStateClient_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS) 
 
 
 # Headers for public APIS:

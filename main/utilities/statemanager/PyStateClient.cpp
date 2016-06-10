@@ -26,6 +26,7 @@
 #include <string>
 
 #include "CStateClientApi.h"
+#include "PyStateManager.h"
 
 
 /* Module specific error: */
@@ -35,11 +36,7 @@ static PyObject* error;
 /*
  * Api Object storage:
  */
-typedef struct {
-    PyObject_HEAD
-    
-    CStateClientApi*  m_pApi;
-} stateclient_ApiObject;
+typedef statemanager_ApiObject stateclient_ApiObject;
 
 /*
  *  Utility functions
@@ -67,7 +64,7 @@ static CStateClientApi*
 getApi(PyObject* self)
 {
     stateclient_ApiObject* pThis = reinterpret_cast<stateclient_ApiObject*>(self);
-    return pThis->m_pApi;
+    return dynamic_cast<CStateClientApi*>(pThis->m_pApi);
 }
 
 /*
@@ -93,6 +90,7 @@ Api_new(PyTypeObject* type, PyObject* args, PyObject* kwargs)
         reinterpret_cast<stateclient_ApiObject*>(type->tp_alloc(type, 0));
     if (self) {
         self->m_pApi = NULL;
+        self->m_pPrograms = NULL;
         return reinterpret_cast<PyObject*>(self);
     } else {
         PyErr_SetString(error,"Could not allocate an api object");
@@ -128,6 +126,7 @@ Api_init(stateclient_ApiObject* self, PyObject* args, PyObject* kwds)
     delete self->m_pApi;
     try {
         self->m_pApi = new CStateClientApi(reqUri, subUri, program);
+        self->m_pPrograms = self->m_pApi->getProgramApi();
     }
     catch(std::exception& e) {
         PyErr_SetString(error, e.what());
