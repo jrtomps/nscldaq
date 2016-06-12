@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <iostream>
 
 #include "CStateClientApi.h"
 #include "PyStateManager.h"

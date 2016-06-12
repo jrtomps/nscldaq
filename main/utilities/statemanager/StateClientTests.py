@@ -298,6 +298,15 @@ class StateClientTests(testBase.TestBase):
         result = api.waitTransition(2000)             # infinite timeout.
         self.assertTrue(result['changed'])
         self.assertEqual('NotReady', result['state'])
+    
+    def test_inheritance(self ):
+        api = nscldaq.vardb.stateclient.Api(
+            'tcp://localhost', 'tcp://localhost', 'test'
+        )
+        state = api.getProgramState('test')
+        self.assertEqual('0Initial', state)
+        pass
+    
         
 # Run the tests if this is main:
 
