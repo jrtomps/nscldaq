@@ -104,12 +104,6 @@ CTCLStateClientInstanceCommand::operator()(
             isEnabled(interp, objv);
         } else if (subcommand == "isstandalone") {
             isStandalone(interp, objv);
-        } else if (subcommand == "title") {
-            title(interp, objv);
-        } else if (subcommand == "runnumber") {
-            runNumber(interp, objv);
-        } else if (subcommand == "recording") {
-            recording(interp, objv);
         } else if (subcommand == "outring") {
             outring(interp, objv);
         } else if (subcommand == "inring"){

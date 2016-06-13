@@ -53,6 +53,7 @@ namespace eval state {
         Paused                                                  \
     ]
     variable lastGlobalState Readying
+    variable transitionCounter 0
 
 }
 
@@ -296,6 +297,7 @@ proc handleGlobalStateTransition newState {
                 set newState $oldNextState
             } 
         }
+        incr state::transitionCounter
     }
     set state::lastGlobalState $newState;     # Need to know come from.
     
