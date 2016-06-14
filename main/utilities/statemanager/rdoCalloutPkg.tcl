@@ -34,8 +34,11 @@ exec tclsh "$0" ${1+"$@"}
 #
 #  prebegin
 #  begin
+#  prepause
 #  pause
+#  preresume
 #  resume
+#  preend
 #  end
 #  ring   (changes the output ringbuffer).
 #
@@ -172,7 +175,7 @@ proc ring {name} {
 
 #-----------------------------------------------------------------------------
 # The set of procs below emulate (as much as possible) the API provided by the
-# old RedoutGUI:
+# old ReadoutGUI:
 #
 #
 #  NOTE:  We assume that the ::state::client command is a connection to the request
@@ -454,7 +457,7 @@ proc ReadoutGUI::Restart {} {
 # Begin
 #   Start a run:
 #
-proc RedoutGui::Begin {} {
+proc ReadoutGUI::Begin {} {
     ::ReadoutControl::Begin
 }
 ##

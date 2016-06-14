@@ -386,7 +386,7 @@ install-exec-local:
 	rm -f           @prefix@/TclLibs/stateclient/libTclstateclient.so
 	$(LN_S)         @libdir@/libTclstateclient.so @prefix@/TclLibs/stateclient/libTclstateclient.so
 	$(INSTALL_SCRIPT) $(TCL_PACKAGES) @prefix@/TclLibs/stateclient
-	echo pkg_mkIndex @prefix@/TclLibs/stateclient "*.so" "*.tcl" | @TCLSH_CMD@
+	echo pkg_mkIndex -verbose @prefix@/TclLibs/stateclient "*.so" "*.tcl" | @TCLSH_CMD@
 
 install-exec-hook:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
@@ -419,7 +419,8 @@ stateTests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 
 
-EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py StateManagerTests.py
+EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py StateManagerTests.py \
+	rdoco.test
 EXTRA_DIST+=$(TCL_PACKAGES)
 EXTRA_DIST+= stateclient.xml statemanager.xml
 
@@ -434,4 +435,4 @@ TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
 	DAQLIB=@prefix@/lib; export DAQLIB;
 TESTS = unittests stateTests \
 	stateclient.test statemgr.test \
-	StateClientTests.py StateManagerTests.py
+	StateClientTests.py StateManagerTests.py rdoco.test
