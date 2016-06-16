@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-
+#include <iostream>
 static const std::string DefaultSubscriptionService("vardb-changes");
 
 /**
@@ -459,9 +459,11 @@ CStateTransitionMonitor::MonitorThread::init()
 void
 CStateTransitionMonitor::MonitorThread::operator()()
 {
+    std::string notificationType;
     while (!m_exiting) {
+        CVarMgrSubscriptions::Message msg;
         if (m_pApi->waitmsg(0)) {
-            CVarMgrSubscriptions::Message msg = m_pApi->read();
+            msg = m_pApi->read();
             bool post = false;
             CStateTransitionMonitor::Notification notmsg; // s_type, s_state, s_program.
             if (m_pApi->checkFilters(msg.s_path.c_str())) {
@@ -472,7 +474,7 @@ CStateTransitionMonitor::MonitorThread::operator()()
                 
                 if (msg.s_operation == "ASSIGN") {
                     // State change:
-                                      
+                    
                     notmsg.s_state = msg.s_data;              // State value.
                     
                     // Global or program?
@@ -482,10 +484,12 @@ CStateTransitionMonitor::MonitorThread::operator()()
                         
                         post = true;                        // Post this transition.
                         notmsg.s_type = CStateTransitionMonitor::GlobalStateChange;
+                        notificationType = "Global State Change";
                     } else {
                          post = true;
                          notmsg.s_type    = CStateTransitionMonitor::ProgramStateChange;
                          notmsg.s_program = programFromVarPath(msg.s_path);
+                         notificationType = "Program State Change";
                     }
                 } else if (msg.s_operation == "MKDIR") {
                     // Be sure the path  is the paernt directory.  The data will be
@@ -495,12 +499,14 @@ CStateTransitionMonitor::MonitorThread::operator()()
                         notmsg.s_type = CStateTransitionMonitor::ProgramJoins;
                         notmsg.s_program = msg.s_data;
                         post = true;
+                        notificationType = "Join";
                     }
                 } else if (msg.s_operation == "RMDIR") {
                     if (msg.s_path == m_parentDir) {
                         notmsg.s_type = CStateTransitionMonitor::ProgramLeaves;
                         notmsg.s_program = msg.s_data;
                         post = true;
+                        notificationType = "Leaves";
                     }
                 }   
             } else {
@@ -511,13 +517,14 @@ CStateTransitionMonitor::MonitorThread::operator()()
                      notmsg.s_state   = msg.s_path;
                      notmsg.s_program = msg.s_data;
                      post = true;
+                     notificationType = "Assign";
                 }
             }
             // Only post if the operation resulted in  postable op.
                 
             if (post) {
                 m_pParent->postNotification(notmsg);
-            }
+            } 
         } else {
 	  usleep(100*1000);
 	}

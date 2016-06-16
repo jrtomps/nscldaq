@@ -47,6 +47,7 @@ CStateClientApi::CStateClientApi(
     m_lastState("unknown"),
     m_programName(programName)
 {
+    cacheProgramDirectory();
     m_standalone = stringToBool(getProgramVar("standalone"));
     if (m_standalone) {
         m_lastState = getProgramVar("State");
@@ -125,7 +126,6 @@ CStateClientApi::waitTransition(std::string& newState, int timeout)
     
     TransitionInfo t(*this);
     processMessages(waitTransitionMessageHandler, &t, 0);
-    
     // If there's no change pending then process with timeout.
 
     
@@ -159,15 +159,20 @@ CStateClientApi::updateStandalone(bool newValue)
  *    Return our program directory.
  * @return std::string
  */
-std::string
-CStateClientApi::getProgramDirectory()
+void
+CStateClientApi::cacheProgramDirectory()
 {
     std::string parent = getApi()->get("/RunState/ReadoutParentDir");
     if (parent == "") parent = "/RunState";
     
     parent += "/";
     parent += m_programName;
-    return parent;
+    m_programDirectory =  parent;
+}
+std::string
+CStateClientApi::getProgramDirectory()
+{
+    return m_programDirectory;
 }
 /**
  * getProgramVar
@@ -244,18 +249,17 @@ CStateClientApi::waitTransitionMessageHandler(
                 std::string path = o.getProgramVarPath("standalone");
                 if (path == Notification.s_state) {
                     o.updateStandalone(stringToBool(Notification.s_program));
-                    
                 }
             }
             break;
         case CStateTransitionMonitor::ProgramStateChange:
             // If standalone and our program this is a transition too:
-            
+        
             if (o.m_standalone && (Notification.s_program == o.m_programName)) {
                 pT->s_transitioned = true;
                 pT->s_newState     = Notification.s_state;
                 o.m_lastState      = Notification.s_state;  // cache the state.
-
+                
             }
             break;
         default:

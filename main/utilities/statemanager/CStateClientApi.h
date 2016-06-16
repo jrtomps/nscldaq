@@ -62,6 +62,7 @@ private:
     std::string           m_lastState;           // Cache to not beat on server.
     bool                  m_standalone;
     std::string           m_programName;
+    std::string           m_programDirectory;   // Directory our config lives in.
     // Canonicals:
     
 public:
@@ -102,7 +103,7 @@ public:
     
 private:
  
-    
+    void cacheProgramDirectory();
     std::string getProgramVarPath(const char* varname);
     
 private:

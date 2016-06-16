@@ -25,6 +25,8 @@
 #include <TCLObject.h>
 #include "CStateManager.h"
 #include "CStateProgram.h"
+#include <Exception.h>
+#include <stdexcept>
 
 #include <stdexcept>
 #include <iostream>
@@ -1070,8 +1072,25 @@ CTCLStateManagerInstanceCommand::dispatchTransitionScript(
     command += "} {";
     command += state;
     command += "}";
+    try {
+        pInfo->s_pInterp->GlobalEval(command);
+    }
+    catch (CException& e) {
+        std::cerr << "Transition script failed: " << e.ReasonText() << std::endl;
+    }
+    catch (std::exception& e) {
+        std::cerr << "Transition script failed: " << e.what() << std::endl;
+    }
+    catch (std::string msg) {
+        std::cerr << "Transition script failed: " << msg << std::endl;
+    }
+    catch (const char* msg) {
+        std::cerr << "Transition script failed: " << msg << std::endl;
+    }
+    catch (...) {
+        std::cerr << "Transition script resulted in an unexpected exception\n";
+    }
     
-    pInfo->s_pInterp->GlobalEval(command);
 }
 
 /**

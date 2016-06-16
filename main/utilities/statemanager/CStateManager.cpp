@@ -30,7 +30,7 @@
 #include <set>
 #include <stdlib.h>
 
-
+#include <iostream>
 /**
  * constructor
  *   @param requestURI  - URI of the REQ port of the server.
@@ -625,6 +625,7 @@ CStateManager::isActive(const char* name)
 void
 CStateManager::setProgramState(const char* name, const char* state)
 {
+    
     setProgramVar(name, "State", state);
 }
 /**

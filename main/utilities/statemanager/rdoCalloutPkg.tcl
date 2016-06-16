@@ -50,7 +50,6 @@ package provide ReadoutCalloutsHarness 1.0
 #  These global variables are maintained by the state manager:
 #
 set run 0
-set title {Set a new title}
 
 
 ##
@@ -59,12 +58,9 @@ set title {Set a new title}
 namespace eval ::RdoCallouts {
     ##
     # getRunNumber
-    #    Return the current run number - this is an internal proc used to
-    #    insulate us from the fact that the framework maintains the run number
-    #    in a global variable:
-    
+    #    Return the current run number 
     proc getRunNumber {} {
-        return $::run
+        return [ReadoutState::getRun]
     }
 }
 
@@ -243,8 +239,8 @@ proc ReadoutState::getRun {} {
 # @note - this is not atomic!!
 proc ReadoutState::incRun {} {
     set r [::ReadoutState::getRun]
-    incr i
-    ::ReadoutStateSetRun $r
+    incr r
+    ::ReadoutState::setRun $r
 }
 ##
 # setScalerCount

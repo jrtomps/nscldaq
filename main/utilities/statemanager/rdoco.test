@@ -120,6 +120,7 @@ proc cleanup {} {
 #                on the program's stdout.
 #                second element of the list is the process's PID.
 #
+
 proc startTestProgram script {
     set h [varmgr::open tcp://localhost]
     
@@ -173,7 +174,9 @@ proc startTestProgram script {
 #
 proc killTestProgram {pid fd} {
     fconfigure $fd -blocking 0
-    catch {close $fd}
+    if {[catch {close $fd} msg]} {
+        puts "Test program error : $msg"
+    }
     catch {exec kill -9 $pid}
 
 }
@@ -212,7 +215,7 @@ tcltest::test OnPreBegin {Test call of OnPreBegin} \
             flush stdout
         }
         package require ReadoutCalloutsHarness
-        vwait forever
+        vwait forevermore
     }]
     
     set fd [lindex $procinfo 0]
@@ -238,7 +241,7 @@ tcltest::test OnBegin {Test call of OnBegin} \
             flush stdout
         }
         package require ReadoutCalloutsHarness
-        vwait forever
+        vwait forevermore
     }]
     
     set fd [lindex $procinfo 0]
@@ -250,20 +253,359 @@ tcltest::test OnBegin {Test call of OnBegin} \
     cleanupWithScript $testpid $fd
 } \
 -body {
-    puts "Beginning"
     mgr setGlobalState Beginning
     set tresult [mgr waitTransition]
-    puts "Transition complete - starting"
-    after 100
     mgr setGlobalState Active
-    set output [gets $fd]
-    puts "Got $output"
     lappend tresult [mgr waitTransition]
-    puts "Transition complete"
+    if {$tresult == [list 1 1]} {
+        set output [gets $fd]
+    } else {
+        set output "transition timeout"
+    }
     list $tresult $output
 } -result [list [list 1 1] "begin 0"]
 
+tcltest::test OnPrepause {Check that prepause gets called}  \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrepause run {
+            puts "prepause $run"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    mgr setGlobalState Active
+    lappend tresult [mgr waitTransition]
+    
+    # Start pausing the run:
+    
+    mgr setGlobalState Pausing
+    lappend tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list [list 1 1 1] {prepause 0}]
 
+tcltest::test OnPause {Check that OnPause is invoked} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPause run {
+            puts "pause $run"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    mgr setGlobalState Active
+    lappend tresult [mgr waitTransition]
+    mgr setGlobalState Pausing
+    lappend tresult [mgr waitTransition]
+    
+    #  Complete the pause:
+    
+    mgr setGlobalState Paused
+    lappend tresult [mgr waitTransition]
+    set output [gets $fd]
+    
+    list $tresult $output
+} -result [list [list 1 1 1 1] "pause 0"]
+
+tcltest::test OnPreresume {Ensure that OnPreresume is invoked} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPreresume run {
+            puts "preresume $run"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    mgr setGlobalState Active
+    lappend tresult [mgr waitTransition]
+    mgr setGlobalState Pausing
+    lappend tresult [mgr waitTransition]
+    mgr setGlobalState Paused
+    lappend tresult [mgr waitTransition]
+    
+    #  Start a resume:
+    
+    mgr setGlobalState Resuming
+    lappend tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list [list 1 1 1 1 1] "preresume 0"]
+
+tcltest::test OnResume {Ensure OnResume is invoked} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnResume run {
+            puts "resume $run"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    mgr setGlobalState Active
+    lappend tresult [mgr waitTransition]
+    mgr setGlobalState Pausing
+    lappend tresult [mgr waitTransition]
+    mgr setGlobalState Paused
+    lappend tresult [mgr waitTransition]
+    mgr setGlobalState Resuming
+    lappend tresult [mgr waitTransition]
+
+    # finish the resume:
+    
+    mgr setGlobalState Active
+    lappend tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list [list 1 1 1 1 1 1] "resume 0"]
+
+tcltest::test OnPreend {Ensure OnPreend is called} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPreend run {
+            puts "preend $run"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    mgr setGlobalState Active
+    lappend tresult [mgr waitTransition]
+    
+    # start ending the run:
+    
+    mgr setGlobalState Ending
+    lappend tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list [list 1 1 1] "preend 0" ]
+
+tcltest::test OnEnd {Ensure the OnEnd proc is called} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnEnd run {
+            puts "onend $run"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    mgr setGlobalState Active
+    lappend tresult [mgr waitTransition]
+    mgr setGlobalState Ending
+    lappend tresult [mgr waitTransition]
+    
+    # Complete the end:
+    
+    mgr setGlobalState Ready
+    lappend tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list [list 1 1 1 1] "onend 0"]
+
+#-----------------------------------------------------------------------------
+#  Tests for API in ::ReadoutState::
+
+tcltest::test title {Set/Get title} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            ::ReadoutState::setTitle {This is a new title}
+        }
+        proc OnBegin run {
+            puts [::ReadoutState::getTitle]
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    # Prestarting a run will set the title and starting it
+    # will output it:
+    
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    mgr setGlobalState Active
+    lappend tresult [mgr waitTransition]
+    
+    set title [gets $fd]
+    list $tresult $title
+} -result [list [list 1 1] "This is a new title"]
+    
+tcltest::test setrun {Setting the run changes the run number to callbacks} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            puts "Run is $run"
+            flush stdout
+        }
+        
+        package require ReadoutCalloutsHarness
+        ReadoutState::setRun 1234
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    # Prebegin will output the run number:
+    
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list 1 "Run is 1234"]
+
+tcltest::test getrun {Scripts should be able to get the run number} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            puts "Run is [::ReadoutState::getRun]"
+            flush stdout
+        }
+        
+        package require ReadoutCalloutsHarness
+        ReadoutState::setRun 1234
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    # Prebegin will output the run number:
+    
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list 1 "Run is 1234"]
+  
+tcltest::test incrun {Can increment the run number} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            
+            puts "Run is $run"
+            flush stdout
+        }
+        
+        package require ReadoutCalloutsHarness
+        ::ReadoutState::incRun
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    # Prebegin will output the run number:
+    
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list 1 "Run is 1"]
 #------------------------------------------------------------------
 #
 # Magic to exit with errors if there are test failures:
