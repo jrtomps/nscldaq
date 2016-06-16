@@ -120,8 +120,8 @@ proc cleanup {} {
 #                on the program's stdout.
 #                second element of the list is the process's PID.
 #
-
-proc startTestProgram script {
+set fileindex 0
+proc startTestProgram {script {logerrs 0}} {
     set h [varmgr::open tcp://localhost]
     
     # Assuming the global state is 0Initial: -- need to set everything to readying
@@ -136,7 +136,11 @@ proc startTestProgram script {
     set ::env(SUB_URI) tcp://localhost
     set ::env(PROGRAM) test
     
-    set fd [open "| tclsh $script" r]
+    set redirect ""
+    if {$logerrs} {
+        set redirect " 2> errors.log.[incr ::fileindex]"
+    }
+    set fd [open "| tclsh $script $redirect" r]
     set pid [pid $fd]
     fconfigure $fd -buffering line
 
@@ -187,10 +191,10 @@ proc killTestProgram {pid fd} {
 # @param script - the script text.
 # @return [list fd pid]
 #
-proc setupWithScript {script} {
+proc setupWithScript {script {logerrs 0}} {
     setup    
     set ::scriptFile [tcltest::makeFile $script atest.tcl]
-    set procinfo [startTestProgram $::scriptFile]
+    set procinfo [startTestProgram $::scriptFile $logerrs]
     return $procinfo
 }
 ##
@@ -841,6 +845,152 @@ tcltest::test SetTitle {Set the run title} \
     list $tresult $output
 } -result [list 1 "Title is: This is a test"]
 
+#------------------------------------------------------------------------------
+#   Test the state transition operatyion of ReadoutControl.
+#
+tcltest::test Begin {ReadoutControl::Begin should start a run.} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            puts PreBegin
+        }
+        proc OnBegin run {
+            puts "Begin"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        #
+        #  We are not yet ready hence the delay?
+        #
+        after 1 {
+            ::ReadoutControl::Begin
+        }
+        vwait forevermore
+    }] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+    set line2 [gets $fd]
+    
+    list $line1 $line2
+} -result [list PreBegin Begin]
+
+tcltest::test End {ReadoutControl::End - ends a run.} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPreend run {
+            puts PreEnd
+        }
+        proc OnEnd run {
+            puts End
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        #
+        #  We are not yet ready hence the delay?
+        #
+        after 1 {
+            ::ReadoutControl::Begin
+            ::ReadoutControl::End
+        }
+        vwait forevermore
+    }] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+    set line2 [gets $fd]
+    
+    list $line1 $line2
+} -result [list PreEnd End]
+
+tcltest::test Pause {ReadoutControl::Pause - pause an active run} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrepause run {
+            puts Prepause
+        }
+        proc OnPause run {
+            puts Paused
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        #
+        #  We are not yet ready hence the delay?
+        #
+        after 1 {
+            ::ReadoutControl::Begin
+            ::ReadoutControl::Pause
+        }
+        vwait forevermore
+    }] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+    set line2 [gets $fd]
+    
+    list $line1 $line2
+} -result [list Prepause Paused]
+
+tcltest::test Resume {::ReadoutControl::Resume - resume a paused run} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPreresume run {
+            puts Preresume
+        }
+        proc OnResume run {
+            puts Active
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        #
+        #  We are not yet ready hence the delay?
+        #
+        after 1 {
+            ::ReadoutControl::Begin
+            ::ReadoutControl::Pause
+            ::ReadoutControl::Resume
+        }
+        vwait forevermore
+    } 1] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+    set line2 [gets $fd]
+    
+    list $line1 $line2
+} -result [list Preresume Active]
 #------------------------------------------------------------------
 #
 # Magic to exit with errors if there are test failures:

@@ -375,7 +375,7 @@ proc ReadoutControl::SetTitle t {
 }
 ##
 # _transition
-#   Internal method to perform a state transition
+#   Internal method to perform a state transition.
 #
 # @param s - desired state.
 #
