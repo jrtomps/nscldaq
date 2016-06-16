@@ -297,7 +297,7 @@ proc handleGlobalStateTransition newState {
                 set newState $oldNextState
             } 
         }
-        incr state::transitionCounter
+        incr ::state::transitionCounter
     }
     set state::lastGlobalState $newState;     # Need to know come from.
     
