@@ -606,6 +606,124 @@ tcltest::test incrun {Can increment the run number} \
     set output [gets $fd]
     list $tresult $output
 } -result [list 1 "Run is 1"]
+
+tcltest::test getRecording {retrieve state of recording flag} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            
+            puts "recording flag is [::ReadoutState::getRecording]"
+            flush stdout
+        }
+        
+        package require ReadoutCalloutsHarness
+
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list 1 "recording flag is 0"]
+
+tcltest::test enableRecording {Can set the recording flag on} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            
+            puts "recording flag is [::ReadoutState::getRecording]"
+            flush stdout
+        }
+        
+        package require ReadoutCalloutsHarness
+        ::ReadoutState::enableRecording
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list 1 "recording flag is 1"]
+
+tcltest::test disableRecording {Can set recording flag false} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            ::ReadoutState::disableRecording             
+            puts "recording flag is [::ReadoutState::getRecording]"
+            flush stdout
+        }
+        
+        package require ReadoutCalloutsHarness
+        ::ReadoutState::enableRecording
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list 1 "recording flag is 0"]
+
+tcltest::test setRecording {Set the recording flag to some value} \
+-setup {
+    set procinfo [setupWithScript {
+        proc OnPrebegin run {
+            
+            puts "recording flag is [::ReadoutState::getRecording]"
+            flush stdout
+        }
+        
+        package require ReadoutCalloutsHarness
+        ::ReadoutState::setRecording true
+        vwait forevermore
+    }]
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    mgr setGlobalState Beginning
+    set tresult [mgr waitTransition]
+    set output [gets $fd]
+    list $tresult $output
+} -result [list 1 "recording flag is 1"]
+
+
 #------------------------------------------------------------------
 #
 # Magic to exit with errors if there are test failures:
