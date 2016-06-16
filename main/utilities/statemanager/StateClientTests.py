@@ -288,16 +288,6 @@ class StateClientTests(testBase.TestBase):
         self.assertTrue(result['changed'])
         self.assertEqual('NotReady', result['state'])
         
-    def test_waittransition_standalone(self):
-        api = nscldaq.vardb.stateclient.Api(
-            'tcp://localhost', 'tcp://localhost', 'test'
-        )
-        self._api.set('/RunState/test/standalone', 'true')
-        self._api.set('/RunState/test/State', 'NotReady')
-        
-        result = api.waitTransition(2000)             # infinite timeout.
-        self.assertTrue(result['changed'])
-        self.assertEqual('NotReady', result['state'])
     
     def test_inheritance(self ):
         api = nscldaq.vardb.stateclient.Api(
