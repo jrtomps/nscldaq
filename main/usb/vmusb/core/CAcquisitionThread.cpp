@@ -411,8 +411,21 @@ CAcquisitionThread::stopDaq()
   Globals::pHLController->performStopOperations();
 
 
-
+  // turn off interrupts so that interrupts don't continue to trigger if the
+  // user chose to turn them off between runs
+  disableInterrupts();
 }
+
+void CAcquisitionThread::disableInterrupts() 
+{
+  // disable the interrupt service vectors
+  for (int regIdx=1; regIdx<=4; ++regIdx) {
+    m_pVme->writeVector(regIdx, 0);
+  }
+  // further... mask all of the interrupt request levels
+  m_pVme->writeIrqMask(0xff);
+}
+
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 
   requests until resume or stop was sent.

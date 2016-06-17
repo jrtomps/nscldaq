@@ -84,6 +84,7 @@ private:
   void endRun();
   void bootToTheHead();
   void reportErrorToMainThread(std::string msg);
+  void disableInterrupts();
 };
 
 #endif

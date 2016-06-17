@@ -24,6 +24,8 @@
 #include <CRingBuffer.h>
 #include <CRingTextItem.h>
 #include <RunState.h>
+#include <DataFormat.h>
+#include <fragment.h>
 
 
 #include <vector>
@@ -35,7 +37,7 @@ using namespace std;
 // Static class member data:
 
 CVariableBuffers* CVariableBuffers::m_pInstance(0);
-
+uint32_t CVariableBuffers::m_nSourceId(0);
 
 /*!
    Construction requires that the instance variable be
@@ -203,7 +205,11 @@ CVariableBuffers::createStateVariableEvent(CRingBuffer* pRing, uint64_t tbase)
  * Create a documenation event from a set of name value pairs.
  * Doing this is a matter of generating set varname value strings
  * which is easily done by creating Tcl lists, and extracting their representation
- * [that gets quoting right]
+ * [that gets quoting right] In keeping with the scaler behavior, we will add 
+ * a source id and a NULL_TIMESTAMP in the body header. This ensures that there is always 
+ * a body header. This won't create strange behavior. Not having the body header
+ * does create strange behavior because you cannot easily figure out where the doc item
+ * originated from after the event builder if it is missing.
  *
  * Parameters:
  *    CRingBuffer*   pRing     - Pointer to the ring buffer in which the event is made.
@@ -241,9 +247,13 @@ CVariableBuffers::createDocEvent(CRingBuffer* pRing,
   msTime *= 1000;
   msTime += currentTime.tv_nsec/(1000*1000);
 
-  CRingTextItem item(eventType, elements,
-		     (msTime - tbase)/1000,
-		     timestamp);
+  CRingTextItem item(eventType, 
+      NULL_TIMESTAMP, 
+      m_nSourceId, 
+      BARRIER_NOTBARRIER,
+      elements,
+      (msTime - tbase)/1000,
+      timestamp);
   item.commitToRing(*pRing);
 
 }
@@ -286,4 +296,16 @@ CVariableBuffers::HandleStateVarTrigger(Tcl_Event* evPtr,
   m_pInstance->m_pTriggerGuard->unlock();
 
   return 1;  
+}
+
+
+void 
+CVariableBuffers::setSourceId(uint32_t sourceId) 
+{
+  m_nSourceId = sourceId;
+}
+
+uint32_t CVariableBuffers::getSourceId() const
+{
+  return m_nSourceId;
 }

@@ -64,4 +64,3 @@ install-data-local:
 	for f in @builddir@/*.h; do $(INSTALL_DATA) -C $$f @prefix@/ccusbdriver/include; done
 	rm -f @prefix@/ccusbdriver/include/dummy.h
 
-

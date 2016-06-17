@@ -93,6 +93,7 @@ TESTS=./unittests
 BUILT_SOURCES = format_converter_options.c format_converter_options.h
 
 format_converter_options.c : format_converter_options.h
+
 format_converter_options.h: format_converter_options.ggo
 	$(GENGETOPT) -i @srcdir@/format_converter_options.ggo -F format_converter_options -a cmdLineOpts \
 		--output-dir=@builddir@
@@ -118,7 +119,7 @@ format_converter_CPPFLAGS = -I@srcdir@ \
 		    -I@top_srcdir@/base/headers
 
 EXTRA_DIST = format_converter_options.ggo \
-		 convert_format.py
+	 convert_format.py
 
 
 install-exec-local:

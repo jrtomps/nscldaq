@@ -96,6 +96,9 @@ CExperiment::CExperiment(string ringName,
 
   m_pRunState = RunState::getInstance();
 
+  // ensure that the variable buffers know what source id to use.
+  CVariableBuffers::getInstance()->setSourceId(m_nDefaultSourceId);
+
 }
 
 /*!
@@ -126,6 +129,7 @@ CExperiment::setDefaultSourceId(unsigned sourceId)
 {
     m_nDefaultSourceId = sourceId;
     m_nSourceId        = sourceId;
+    CVariableBuffers::getInstance()->setSourceId(sourceId);
 }
 /*!
   Sets a new size for the event buffer.  This must be at least big enough to hold a
@@ -265,7 +269,15 @@ CExperiment::Start(bool resume)
     // if this is a start run:
     
     if (!resume) {
-    CRingPhysicsEventCountItem count;
+    CRingPhysicsEventCountItem count(NULL_TIMESTAMP, 
+        getSourceId(), 
+        BARRIER_NOTBARRIER,
+        0, // count
+        0, // time offset
+        static_cast<uint32_t>(time(NULL)), // time now
+        1);
+
+
     count.commitToRing(*m_pRing);
     }
     
@@ -588,9 +600,12 @@ CExperiment::readScalers()
   }
   // Regardless, let's emit a physics event count stamp:
 
-  CRingPhysicsEventCountItem item(m_nEventsEmitted,
-				  endTime,
-				  now);
+  CRingPhysicsEventCountItem item(NULL_TIMESTAMP, 
+                                  getSourceId(), 
+                                  BARRIER_NOTBARRIER,
+                                  m_nEventsEmitted,
+                        				  endTime,
+                        				  now);
   item.commitToRing(*m_pRing);
 }
 
@@ -788,6 +803,9 @@ CExperiment::setSourceId(uint32_t id)
 {
     m_nSourceId  = id;
     m_needHeader = true;
+
+    // pass the new source id on to the variable buffers
+    CVariableBuffers::getInstance()->setSourceId(id);
 }
 /**
  * getSourceId

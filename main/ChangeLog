@@ -1108,3 +1108,6 @@ Work on 11.0-rc11 begins
 	   *   Task #5834 - Document missing stuff in os/thread
 	   *   Task #5822 - Document where to find Plotchart and how to
    	       load NSCL's special version.
+	* Fixes bugs 5029 and 5032. SBS Readout emits PHYSICS_EVENT_COUNT
+	  and MONITORED_VARIABLE items with a body header to match the
+		behavior of scaler items. 
