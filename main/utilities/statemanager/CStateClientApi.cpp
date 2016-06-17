@@ -239,6 +239,7 @@ CStateClientApi::waitTransitionMessageHandler(
             if (!o.m_standalone) {
                 // Cast cd to a TransitionInfo struct and fill it in:
                 
+                std::cerr << "Global state transition " << Notification.s_state << std::endl;
                 
                 pT->s_transitioned = true;
                 pT->s_newState     = Notification.s_state;
