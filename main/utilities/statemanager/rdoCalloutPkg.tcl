@@ -647,8 +647,8 @@ proc ReadoutGUIPanel::addUserMenu  {ident label} {
         while {".m_$index" in [winfo children .]} {
             incr index
         }
-        menu .m_$index
-        . configure -menu .m_$index
+        set m [menu .m_$index]
+        . configure -menu $m
     }
     #  Get the top level's menu:
     #  Create the submenu and attach it to a new cascade:
@@ -670,7 +670,6 @@ proc ReadoutGUIPanel::addUserMenu  {ident label} {
 # @return string - frame's full widget path.
 proc ReadoutGUIPanel::addUserFrame {ident} {
     package require Tk
-    
     set w [ttk::frame .$ident]
     grid $w -sticky nsew
     return $w

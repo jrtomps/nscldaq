@@ -3,7 +3,9 @@ package require snit
 # We'll provide mocks for bits of the packages below (if needed).
 
 package provide Tk $tcl_patchLevel
-package provide StateManagerControl
+package provide StateManagerControl 1.0
+
+package require ReadoutCalloutsHarness
 
 ##
 # frame object
@@ -13,7 +15,9 @@ namespace eval ::ttk {}
 ##
 # ttk::frame.
 snit::type ttk::frame {
+    constructor args {
 
+    }
 }
 
 
@@ -66,24 +70,31 @@ snit::type menu {
 
 tcltest::test addFirst {Add first user frame} \
 -setup {
-    clearGridList
+    clearGridlist
+} \
+-cleanup {
+   ::ReadoutGUIPanel::.f1 destroy 
 } \
 -body {
     set f1 [ReadoutGUIPanel::addUserFrame f1]
     
     list $f1 $gridlist
-} -result [list .f1 [list .f1 -sticky nsew]]
+} -result [list ::ReadoutGUIPanel::.f1 [list [list ::ReadoutGUIPanel::.f1 -sticky nsew]]]
 
 tcltest::test addTwo {add Two frames} \
 -setup {
-    clearGridList
+    clearGridlist
+} \
+-cleanup {
+    ::ReadoutGUIPanel::.f1 destroy
+    ::ReadoutGUIPanel::.f2 destroy
 } \
 -body {
     ReadoutGUIPanel::addUserFrame f1
     ReadoutGUIPanel::addUserFrame f2
     
     set gridlist
-} -result [list [list  .f1 -sticky nsew] [list .f2 -sticky nsew]]
+} -result [list [list  ::ReadoutGUIPanel::.f1 -sticky nsew] [list ::ReadoutGUIPanel::.f2 -sticky nsew]]
 
 ##
 # tests for addUserMenu:
@@ -100,13 +111,39 @@ tcltest::test addUserMenu-create {Add user menu forcing a creation} \
     ReadoutGUIPanel::addUserMenu test {a test menu}
     
     set menubar [. cget -menu]
-    set menu [$menubar getContents]
-    list $menubar $menu [$menu getContents]
-} -result [list .m_0 .m_0.test [list cascade -menu .m_0 -label "a test menu"]]
+    list $menubar  [$menubar getContents]
+} -result [list ::ReadoutGUIPanel::.m_0  [list [list cascade -menu ::ReadoutGUIPanel::.m_0.test -label "a test menu"]]]
 
-tcltest::test addUserMenu-exists {Add user menu when toplevel has one}
+tcltest::test addUserMenu-exists {Add user menu when toplevel has one} \
+-setup {
+    menu .junk
+    toplevel . -menu .junk
+} \
+-cleanup {
+    . destroy
+} \
+-body {
+    set menu [ReadoutGUIPanel::addUserMenu test {a test menu}]
+    set menubar [. cget -menu];   # Should still be .junk
+    set contents [$menubar getContents]
 
-#tcltest::test addUserMenu-dup {Add user menu when we need to hunt for a free widget.}
+    list $menubar $menu $contents
+    
+} -result [list .junk ::ReadoutGUIPanel::.junk.test [list [list cascade -menu ::ReadoutGUIPanel::.junk.test -label "a test menu"]]]
+
+
+tcltest::test addUserMenu-dup {Add user menu when we need to hunt for a free widget.} \
+-setup {
+    toplevel . -children [list .m_0 .m_1]
+} \
+-cleanup {
+    . destroy
+} \
+-body {
+ ReadoutGUIPanel::addUserMenu test {a test menu} 
+    set menubar [. cget -menu]
+    list $menubar  [$menubar getContents]
+} -result [list ::ReadoutGUIPanel::.m_2  [list [list cascade -menu ::ReadoutGUIPanel::.m_2.test -label "a test menu"]]]
 
 #------------------------------------------------------------------
 #
@@ -117,7 +154,7 @@ proc ::tcltest::cleanupTestsHook {} {
     set ::exitCode $numTests(Failed)
 }
 
-
 tcltest::cleanupTests
+
 exit $::exitCode
 
