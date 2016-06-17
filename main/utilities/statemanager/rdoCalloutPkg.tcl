@@ -276,7 +276,7 @@ proc ReadoutState::enableRecording {} {
     $api recording true
 }
 ##
-# disableRecording
+# `
 #   Turn recording off, starting with the next run.
 #
 proc ReadoutState::disableRecording {} {
@@ -384,6 +384,8 @@ proc ReadoutControl::_transition s {
     $api   setGlobalState $s
     vwait  ::state::transitionCounter;    # Wait for my state to change.
     $api   waitTransition;                # Wait for all participants to complete.
+
+    
 }
 ##
 # Begin
@@ -499,57 +501,6 @@ proc ReadoutGUI::End {} {
 namespace eval ReadoutGUIPanel {}
 
 ##
-# addUserMenu
-#   Adds a user menu.  If a menubar does not yet exist for . it is created.
-#   A new menu is added to the menubar with path derived from the
-#   menubar and the ident. Its path is given back to the user.
-#
-# @param ident - used as the last path element for the menu.
-# @param label - The menubutton's label.
-# @return string - path to the menu so the user can stock it.
-#
-proc ReadoutGUIPanel::addUserMenu  {ident label} {
-    package require Tk
-    # If necessary, create the menu.
-    
-    if {[. cget -menu] eq ""} {
-        
-        # Probe for an unused widget name:
-        
-        set index 0
-        while {".m_$index" ni [winfo children .]} {
-            incr index
-        }
-        menu .m_$index
-        . configure -menu .m_$index
-    }
-    #  Get the top level's menu:
-    #  Create the submenu and attach it to a new cascade:
-    
-    set menubar [. cget -menu]
-    set menu [menu $menubar.$ident]
-    $menubar add cascade -menu $menu -label $label
-    
-    return $menu
-}
-##
-#  addUserFrame
-#     Add a frame to the toplevel widget.  The frame widget path is passed
-#     back to the user.  In this implementation grid is used to layout
-#     the widgets.  The frame is placed below all existing frames and
-#     setup to be sticky on all sides to its bounding box.
-#
-# ident   - identifies the frame.  This will be the last element of the widget path.
-# @return string - frame's full widget path.
-proc ReadoutGUIPanel::addUserFrame {ident} {
-    package require Tk
-    
-    set w [ttk::frame .$ident]
-    grid $w -sticky nsew
-    return $w
-    
-}
-##
 # getHost
 #   Unimplemented as the readout system is distributed across a pile of hosts
 #   (potentially),.
@@ -656,6 +607,7 @@ proc ReadoutGUIPanel::recordData {} {
 #
 proc ReadoutGUIPanel::outputText text {
     puts $text
+    flush stdout
 }
 ##
 # isTimed
@@ -673,6 +625,57 @@ proc ReadoutGUIPanel::isTimed {} {
 ##
 # setRequestedRunTime - obsolete/unimplemented.
 
+##
+# addUserMenu
+#   Adds a user menu.  If a menubar does not yet exist for . it is created.
+#   A new menu is added to the menubar with path derived from the
+#   menubar and the ident. Its path is given back to the user.
+#
+# @param ident - used as the last path element for the menu.
+# @param label - The menubutton's label.
+# @return string - path to the menu so the user can stock it.
+#
+proc ReadoutGUIPanel::addUserMenu  {ident label} {
+    package require Tk
+    # If necessary, create the menu.
+    
+    if {[. cget -menu] eq ""} {
+        
+        # Probe for an unused widget name:
+        
+        set index 0
+        while {".m_$index" in [winfo children .]} {
+            incr index
+        }
+        menu .m_$index
+        . configure -menu .m_$index
+    }
+    #  Get the top level's menu:
+    #  Create the submenu and attach it to a new cascade:
+    
+    set menubar [. cget -menu]
+    set menu [menu $menubar.$ident  -tearoff 0]
+    $menubar add cascade -menu $menu -label $label
+    
+    return $menu
+}
+##
+#  addUserFrame
+#     Add a frame to the toplevel widget.  The frame widget path is passed
+#     back to the user.  In this implementation grid is used to layout
+#     the widgets.  The frame is placed below all existing frames and
+#     setup to be sticky on all sides to its bounding box.
+#
+# ident   - identifies the frame.  This will be the last element of the widget path.
+# @return string - frame's full widget path.
+proc ReadoutGUIPanel::addUserFrame {ident} {
+    package require Tk
+    
+    set w [ttk::frame .$ident]
+    grid $w -sticky nsew
+    return $w
+    
+}
 
 
 

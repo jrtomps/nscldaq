@@ -214,6 +214,7 @@ proc cleanupWithScript {pid fd} {
 tcltest::test OnPreBegin {Test call of OnPreBegin} \
 -setup {
     set procinfo [setupWithScript {
+        
         proc OnPrebegin run {
             puts "prebegin $run"
             flush stdout
@@ -851,6 +852,11 @@ tcltest::test SetTitle {Set the run title} \
 tcltest::test Begin {ReadoutControl::Begin should start a run.} \
 -setup {
     set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
         proc OnPrebegin run {
             puts PreBegin
         }
@@ -859,12 +865,8 @@ tcltest::test Begin {ReadoutControl::Begin should start a run.} \
             flush stdout
         }
         package require ReadoutCalloutsHarness
-        #
-        #  We are not yet ready hence the delay?
-        #
-        after 1 {
-            ::ReadoutControl::Begin
-        }
+        waitReady
+        ::ReadoutControl::Begin
         vwait forevermore
     }] 
     
@@ -886,6 +888,11 @@ tcltest::test Begin {ReadoutControl::Begin should start a run.} \
 tcltest::test End {ReadoutControl::End - ends a run.} \
 -setup {
     set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
         proc OnPreend run {
             puts PreEnd
         }
@@ -894,13 +901,9 @@ tcltest::test End {ReadoutControl::End - ends a run.} \
             flush stdout
         }
         package require ReadoutCalloutsHarness
-        #
-        #  We are not yet ready hence the delay?
-        #
-        after 1 {
-            ::ReadoutControl::Begin
-            ::ReadoutControl::End
-        }
+        waitReady
+        ::ReadoutControl::Begin
+        ::ReadoutControl::End
         vwait forevermore
     }] 
     
@@ -922,6 +925,11 @@ tcltest::test End {ReadoutControl::End - ends a run.} \
 tcltest::test Pause {ReadoutControl::Pause - pause an active run} \
 -setup {
     set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
         proc OnPrepause run {
             puts Prepause
         }
@@ -930,13 +938,9 @@ tcltest::test Pause {ReadoutControl::Pause - pause an active run} \
             flush stdout
         }
         package require ReadoutCalloutsHarness
-        #
-        #  We are not yet ready hence the delay?
-        #
-        after 1 {
-            ::ReadoutControl::Begin
-            ::ReadoutControl::Pause
-        }
+        waitReady
+        ::ReadoutControl::Begin
+        ::ReadoutControl::Pause
         vwait forevermore
     }] 
     
@@ -958,6 +962,11 @@ tcltest::test Pause {ReadoutControl::Pause - pause an active run} \
 tcltest::test Resume {::ReadoutControl::Resume - resume a paused run} \
 -setup {
     set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
         proc OnPreresume run {
             puts Preresume
         }
@@ -966,16 +975,13 @@ tcltest::test Resume {::ReadoutControl::Resume - resume a paused run} \
             flush stdout
         }
         package require ReadoutCalloutsHarness
-        #
-        #  We are not yet ready hence the delay?
-        #
-        after 1 {
-            ::ReadoutControl::Begin
-            ::ReadoutControl::Pause
-            ::ReadoutControl::Resume
-        }
+        waitReady
+        ::ReadoutControl::Begin
+        ::ReadoutControl::Pause
+        ::ReadoutControl::Resume
+
         vwait forevermore
-    } 1] 
+    }] 
     
     set fd [lindex $procinfo 0]
     set testpid [lindex $procinfo 1]
@@ -991,6 +997,415 @@ tcltest::test Resume {::ReadoutControl::Resume - resume a paused run} \
     
     list $line1 $line2
 } -result [list Preresume Active]
+
+#------------------------------------------------------------------
+#  Tests for the API in the ::ReadoutGUI namespace:
+
+tcltest::test ReadoutGUI_Begin {Test ::ReadoutGUI::Begin - start a run} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            puts Active
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result Active
+
+tcltest::test ReadoutGUI_Pause {Test ::ReadoutGUI::Pause pause a started run} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnPause run {
+            puts Paused
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        ::ReadoutGUI::Begin
+        ::ReadoutGUI::Pause
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result Paused
+
+tcltest::test ReadoutGUI_Resume {test ::ReadoutGUI::Resume - resume a paused run} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnResume run {
+            puts Resumed
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        ::ReadoutGUI::Begin
+        ::ReadoutGUI::Pause
+        ::ReadoutGUI::Resume
+        
+        vwait forevermore
+    } ]  
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result Resumed
+
+tcltest::test ReadoutGUI_End {test ::ReadoutGUI::End - end an active run} \
+-setup {
+    
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnEnd run {
+            puts Ended
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        ::ReadoutGUI::Begin
+        ::ReadoutGUI::End
+
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result Ended
+
+
+
+#-------------------------------------------------------------------------------
+#  Tests for API elements in ReadoutGUIPanel that don't actually involve
+#  Tk.
+
+tcltest::test ReadoutGUIPanel_setTitle {Set title in readoutguipanel correctly relays} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            
+            puts "Title: [::ReadoutState::getTitle]"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        
+        ::ReadoutGUIPanel::setTitle {Testing setTitle}
+        
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result {Title: Testing setTitle}
+
+tcltest::test ReadoutGuiPanel_getTitle {Test ::ReadoutGUIPanel::getTitle} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            
+            puts "Title: [::ReadoutGUIPanel::getTitle]"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        
+        ::ReadoutGUIPanel::setTitle {Testing setTitle}
+        
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result {Title: Testing setTitle}
+
+tcltest::test ReadoutGUIPanel_getRunNumber {Test ReadoutGUIPanel::getRunNumber} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            
+            puts "Run number: [::ReadoutGUIPanel::getRunNumber]"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        
+        ::ReadoutState::setRun 1234
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result {Run number: 1234}
+
+tcltest::test ReadoutGUIPanel_incrun {test ReadoutGUIPanel::incrRun} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            
+            puts "Run number: [::ReadoutGUIPanel::getRunNumber]"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        
+        ::ReadoutGUIPanel::incrRun
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result {Run number: 1}
+
+tcltest::test ReadoutGUIPanel_recordOff {Test ReadoutGUIPanel::recordOff} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            
+            puts "Recording: [::ReadoutState::getRecording]"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        
+        ::ReadoutGUIPanel::recordOff
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result {Recording: 0}
+
+tcltest::test ReadoutGUIPanel_recordOn {Test ReadoutGUIPanel::recordOn} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            
+            puts "Recording: [::ReadoutState::getRecording]"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        
+        ::ReadoutGUIPanel::recordOn
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result {Recording: 1}
+
+
+tcltest::test ReadoutGUIPanel_recordData {test ReadoutGUIPanel::recordData} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            puts "Recording: [::ReadoutGUIPanel::recordData]"
+            flush stdout
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+        
+        ::ReadoutGUIPanel::recordOn
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+} -result {Recording: 1}
+
+tcltest::test ReadoutGUIPanel_outputText {test ReadoutGUIPanel::outputText} \
+-setup {
+    set procinfo [setupWithScript {
+        proc waitReady {} {
+            while {[::ReadoutControl::getReadoutState] ne "Ready"} {
+                after 10
+            }
+        }
+        proc OnBegin run {
+            ReadoutGUIPanel::outputText {Hello World}
+        }
+        package require ReadoutCalloutsHarness
+        waitReady
+
+        ::ReadoutGUI::Begin
+        
+        vwait forevermore
+    } ] 
+    
+    set fd [lindex $procinfo 0]
+    set testpid [lindex $procinfo 1]
+    nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    nscldaq::statemanager -delete mgr
+    cleanupWithScript $testpid $fd
+} \
+-body {
+    set line1 [gets $fd]
+}  -result {Hello World}
 #------------------------------------------------------------------
 #
 # Magic to exit with errors if there are test failures:
