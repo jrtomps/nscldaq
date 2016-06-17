@@ -582,14 +582,23 @@ CStateManager::waitTransition(TransitionCallback cb, void* clientData)
 void
 CStateManager::processMessages(BacklogCallback cb, void* cd, int timeout)
 {
-    std::vector<CStateTransitionMonitor::Notification> nots =
-      m_pMonitor->getNotifications(-1, timeout);
-        
-    for (int i = 0; i < nots.size(); i++) {
-        if (cb) {
-            (*cb)(*this, nots[i], cd);
+    // We're actually going to keep processing messages until there are no more
+    // backed up by zmq.  In theory there's not a huge notification rate.
+    // If we don't do something like this there's a danger that two related
+    // messages won't be seen in the same call to processMessages if there's a
+    // tiny sliver of time between them and the first one comes close to our timeout.
+    // This was observed in tests of the python bindings
+    while (1) {
+        std::vector<CStateTransitionMonitor::Notification> nots =
+          m_pMonitor->getNotifications(-1, timeout);
+        if (nots.size() == 0) break;
+        if (timeout == -1) timeout = 1000;           // Don't loop forever on forever waits.
+        for (int i = 0; i < nots.size(); i++) {
+            if (cb) {
+                (*cb)(*this, nots[i], cd);
+            }
+            // Local processing goes here or above the if above.
         }
-        // Local processing goes here or above the if above.
     }
 }
 /*----------------------------------------------------------------------

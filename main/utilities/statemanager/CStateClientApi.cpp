@@ -239,7 +239,6 @@ CStateClientApi::waitTransitionMessageHandler(
             if (!o.m_standalone) {
                 // Cast cd to a TransitionInfo struct and fill it in:
                 
-                std::cerr << "Global state transition " << Notification.s_state << std::endl;
                 
                 pT->s_transitioned = true;
                 pT->s_newState     = Notification.s_state;
@@ -250,9 +249,7 @@ CStateClientApi::waitTransitionMessageHandler(
                 // Figure out if this is our standalone variable:
                 
                 std::string path = o.getProgramVarPath("standalone");
-                std::cerr << "Varchanged: " << path << " " << Notification.s_state << std::endl;
                 if (path == Notification.s_state) {
-                    std::cerr << "Updating standalone to " << Notification.s_program << std::endl;
                     o.updateStandalone(stringToBool(Notification.s_program));
                 }
             }
@@ -260,17 +257,13 @@ CStateClientApi::waitTransitionMessageHandler(
         case CStateTransitionMonitor::ProgramStateChange:
             // If standalone and our program this is a transition too:
         
-            std::cerr << "Program state change: " << o.m_programName << " " << Notification.s_program <<
-                (o.m_standalone ? "standalon " : "global ") << std::endl;
+        
             if (o.m_standalone && (Notification.s_program == o.m_programName)) {
-                std::cerr << "Stand alone state transition!";
                 pT->s_transitioned = true;
                 pT->s_newState     = Notification.s_state;
                 o.m_lastState      = Notification.s_state;  // cache the state.
                 
-            } else {
-                std::cerr << "This is not a standalone state transition\n";
-            }
+            } 
             break;
         default:
             break;
