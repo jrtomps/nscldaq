@@ -1,0 +1,123 @@
+package require tcltest
+package require snit
+# We'll provide mocks for bits of the packages below (if needed).
+
+package provide Tk $tcl_patchLevel
+package provide StateManagerControl
+
+##
+# frame object
+
+namespace eval ::ttk {}
+
+##
+# ttk::frame.
+snit::type ttk::frame {
+
+}
+
+
+##
+#  Mock for grid.
+#
+set gridlist [list]
+proc grid  args {
+    lappend ::gridlist $args
+}
+proc getGridlist {} {return $::gridlist}
+proc clearGridlist {} {set ::gridlist [list]}
+
+##
+# Mock for top level.
+snit::type toplevel {
+    option -menu ""
+    option -children [list]
+    
+    constructor args {
+        $self configurelist $args
+    }
+    destructor {
+        if {$options(-menu) ne ""} {
+            $options(-menu) destroy
+        }
+    }
+}
+
+proc winfo {children toplevel} {
+    return [$toplevel cget -children]
+}
+
+##
+# mock for menus:
+
+snit::type menu {
+    option -tearoff 1
+    
+    variable contents [list]
+
+    method add args {
+        lappend contents $args
+    }
+    method getContents {} {return $contents}
+}
+
+##
+# Tests for addUserFrame:
+
+tcltest::test addFirst {Add first user frame} \
+-setup {
+    clearGridList
+} \
+-body {
+    set f1 [ReadoutGUIPanel::addUserFrame f1]
+    
+    list $f1 $gridlist
+} -result [list .f1 [list .f1 -sticky nsew]]
+
+tcltest::test addTwo {add Two frames} \
+-setup {
+    clearGridList
+} \
+-body {
+    ReadoutGUIPanel::addUserFrame f1
+    ReadoutGUIPanel::addUserFrame f2
+    
+    set gridlist
+} -result [list [list  .f1 -sticky nsew] [list .f2 -sticky nsew]]
+
+##
+# tests for addUserMenu:
+
+tcltest::test addUserMenu-create {Add user menu forcing a creation} \
+-setup {
+    toplevel .
+    
+} \
+-cleanup {
+    . destroy
+} \
+-body {
+    ReadoutGUIPanel::addUserMenu test {a test menu}
+    
+    set menubar [. cget -menu]
+    set menu [$menubar getContents]
+    list $menubar $menu [$menu getContents]
+} -result [list .m_0 .m_0.test [list cascade -menu .m_0 -label "a test menu"]]
+
+tcltest::test addUserMenu-exists {Add user menu when toplevel has one}
+
+#tcltest::test addUserMenu-dup {Add user menu when we need to hunt for a free widget.}
+
+#------------------------------------------------------------------
+#
+# Magic to exit with errors if there are test failures:
+
+proc ::tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests
+exit $::exitCode
+

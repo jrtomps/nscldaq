@@ -416,7 +416,7 @@ inring(PyObject* self, PyObject* args)
     return result;    
 }
 /**
-* waitTransition
+* waitTransitionRequest
 *     Wait for a transition or timeout.
 *
 * @param self - Pointer to the object whose method this is.
@@ -428,16 +428,16 @@ inring(PyObject* self, PyObject* args)
 *       -1 means never timeout and is what happens when no parameter is present.
 */
 static PyObject*
-waitTransition(PyObject* self, PyObject* args)
+waitTransitionRequest(PyObject* self, PyObject* args)
 {
     int timeout;
     if (PySequence_Size(args) == 0) {
         timeout = -1;
     } else if(!PyArg_ParseTuple(args, "i", &timeout)) {
-        return raise("waitTransition can have at most one parameter, a timeout");
+        return raise("waitTransitionRequest can have at most one parameter, a timeout");
     }
     if (timeout < -1) {
-        return raise("waitTransition timeouts must be -1 or >= 0");
+        return raise("waitTransitionRequest timeouts must be -1 or >= 0");
     }
     
     CStateClientApi* pApi = getApi(self);
@@ -481,7 +481,7 @@ static PyMethodDef ApiObjectMethods[] = {
      {"recording", recording, METH_VARARGS, "Reg recording state"},
      {"outring",   outring,   METH_VARARGS, "Get output ring"},
      {"inring",    inring,    METH_VARARGS, "Get input ring"},
-     {"waitTransition", waitTransition, METH_VARARGS, "Wait/get transition"},
+     {"waitTransitionRequest", waitTransitionRequest, METH_VARARGS, "Wait/get transition"},
      {NULL, NULL, 0, NULL}                /* End of method definition marker */       
 };
 

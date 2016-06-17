@@ -435,4 +435,4 @@ TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
 	DAQLIB=@prefix@/lib; export DAQLIB;
 TESTS = unittests stateTests \
 	stateclient.test statemgr.test \
-	StateClientTests.py StateManagerTests.py rdoco.test
+	StateClientTests.py StateManagerTests.py rdoco.test RGPGuiTests.test

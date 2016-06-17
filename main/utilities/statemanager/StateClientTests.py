@@ -267,7 +267,7 @@ class StateClientTests(testBase.TestBase):
         api = nscldaq.vardb.stateclient.Api(
             'tcp://localhost', 'tcp://localhost', 'test'
         )
-        result = api.waitTransition(0)
+        result = api.waitTransitionRequest(0)
         self.assertFalse(result['changed'])
         
     def test_waittransition_invalidtimeout(self):
@@ -275,7 +275,7 @@ class StateClientTests(testBase.TestBase):
             'tcp://localhost', 'tcp://localhost', 'test'
         )
         with self.assertRaises(nscldaq.vardb.stateclient.error):
-            api.waitTransition(-2)
+            api.waitTransitionRequest(-2)
             
     def test_waittransition_occured(self):
         api = nscldaq.vardb.stateclient.Api(
@@ -284,7 +284,7 @@ class StateClientTests(testBase.TestBase):
         self._api.set('/RunState/test/standalone', 'false')
         self._api.set('/RunState/State', 'NotReady')
         
-        result = api.waitTransition(2000)             # infinite timeout.
+        result = api.waitTransitionRequest(2000)             # infinite timeout.
         self.assertTrue(result['changed'])
         self.assertEqual('NotReady', result['state'])
         

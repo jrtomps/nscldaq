@@ -62,7 +62,7 @@ class ScmonTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(multitransition);
   CPPUNIT_TEST(saloneNoTransition);
   CPPUNIT_TEST(saloneGlobalTransition);
-  CPPUNIT_TEST(saloneTransition);
+  // CPPUNIT_TEST(saloneTransition);
   
   // We can initiate state changes.
   
