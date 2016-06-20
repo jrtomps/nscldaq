@@ -516,6 +516,8 @@ void SubTests::acceptFilter()
     sub.subscribe("/test");          // Blanket for stuff in /test.
     sub.addFilter(CVarMgrSubscriptions::accept, "/test/a*"); // filtered to a* stuff.
     
+    usleep(100*1000);            // Wait for the subscription to filter through.
+    
     // This should create a notification:
     
     m_pApi->set("/test/atest", "1");
