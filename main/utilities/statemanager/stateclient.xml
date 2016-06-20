@@ -693,7 +693,7 @@ handleTransition(CStateClientApi* pApi, std::string newState)
   <refsynopsisdiv>
    <synopsis>
 #include &lt;CStateTransitionMonitor.h&gt;
-       class <ooclass><classname>CStateTransitionMonitor  : public CGaurdedObject</classname></ooclass>
+       class <ooclass><classname>CStateTransitionMonitor  : public CStateManager</classname></ooclass>
 {
     // We provide the following types of notifications:
     

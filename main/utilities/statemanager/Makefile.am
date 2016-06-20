@@ -422,7 +422,7 @@ stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py StateManagerTests.py \
 	rdoco.test RGPGuiTests.test
 EXTRA_DIST+=$(TCL_PACKAGES)
-EXTRA_DIST+= stateclient.xml statemanager.xml
+EXTRA_DIST+= stateclient.xml statemanager.xml varmgrrdoco.xml
 
 # Test setup and specification.
 
