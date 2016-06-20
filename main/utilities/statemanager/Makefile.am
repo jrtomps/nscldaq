@@ -385,7 +385,7 @@ install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs/stateclient
 	rm -f           @prefix@/TclLibs/stateclient/libTclstateclient.so
 	$(LN_S)         @libdir@/libTclstateclient.so @prefix@/TclLibs/stateclient/libTclstateclient.so
-	$(INSTALL_SCRIPT) $(TCL_PACKAGES) @prefix@/TclLibs/stateclient
+	for f in $(TCL_PACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/TclLibs/stateclient; done
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/stateclient "*.so" "*.tcl" | @TCLSH_CMD@
 
 install-exec-hook:
