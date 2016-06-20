@@ -202,7 +202,7 @@ bool CVarMgrSubscriptions::waitmsg(int milliseconds)
 {
     zmq_pollitem_t item =  { (void*)(*m_pSocket), -1, ZMQ_POLLIN, 0};
     
-    int nItems = zmq_poll(&item, 1, milliseconds == -1 ? -1 : milliseconds*1000);
+    int nItems = zmq_poll(&item, 1, (milliseconds == -1) ? -1 : milliseconds*1000);
     
     return nItems == 1;
 }
