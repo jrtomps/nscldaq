@@ -400,6 +400,9 @@ install-exec-hook:
 	echo "ReadoutGui.main()" >> @bindir@/ReadoutGui
 	chmod a+x @bindir@/ReadoutGui
 
+
+DOCS=stateclient.xml statemanager.xml varmgrrdoco.xml
+
 #---------------------------------------------------------------------------------
 # tests:
 #
@@ -422,7 +425,7 @@ stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py StateManagerTests.py \
 	rdoco.test RGPGuiTests.test
 EXTRA_DIST+=$(TCL_PACKAGES)
-EXTRA_DIST+= stateclient.xml statemanager.xml varmgrrdoco.xml
+EXTRA_DIST+= $(DOCS)
 
 # Test setup and specification.
 

@@ -1,0 +1,479 @@
+<!-- chapter frameworks -->
+
+<chapter>
+    <title>Variable data base manager ReadoutCallouts emulator</title>
+    <para>
+        In the ReadoutGUI prior to the variable database, hooks were provided
+        for users to add actions to state transitions of the system.  As it may
+        be desirable to continue using that additional functionality, the variable
+        database manager run control system provides an emulation of that
+        system.  The emulation extends the <filename>ReadoutCallouts.tcl</filename>
+        system in several ways but, of necessity, also restricts to some extent
+        the API calls available to these scripts.
+    </para>
+    <para>
+        In this chapter we will explore:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            The differences between ReadoutCallouts scripts for the variable database
+            manager run control system and the ReadoutGUI run control system.
+        </para></listitem>
+        <listitem><para>
+            How to construct and register an readout callout script.
+        </para></listitem>
+    </itemizedlist>
+    <section>
+        <title>Differences Between Variable Database ReadoutCallouts and ReadoutGUI</title>
+        <para>
+            While we have attempted to maintain compatibility between Readout Callout
+            applications run under the variable database run control system and
+            those under the traditional ReadoutGUI, there are necessarily some
+            differences.  This section compares and contrasts those differences.
+        </para>
+        <para>
+            First let's review the ReadoutGUI's ReadoutCallouts support and
+            implementation.  The main feature of ReadoutGUI's implementation of
+            the ReadoutCallouts support was that the user's callout script was
+            incorporated textually into the ReadoutGUI's script.   This led
+            to several features/problems:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                There could be only one ReadoutCallouts script although it was
+                common to use either the Tcl <command>source</command> or
+                <command>package require</command> command to blend scripts
+                together.
+            </para></listitem>
+            <listitem><para>
+                Naming and location conventions were used by the ReadoutGUI
+                to determine if a readout callout script had been defined and
+                to load it if so.
+            </para></listitem>
+            <listitem><para>
+                While there were well defined application programming interfaces
+                (APIs) exported by the ReadoutGUI to readout callout scripts,
+                the fact that the user's script was textually incorporated made
+                it impossible to enforce programming only to those APIs, it was
+                possible for users to invoke procedures and methods that were
+                not intended to be maintained as stable interfaces.
+            </para></listitem>
+            <listitem><para>
+                Because the Readout Callout script and the ReadoutGUI were the
+                same program, application specific elements could be added to the
+                ReadoutGUI's control panel, e.g. the Event builder packages made
+                use of this to provide some control over the event building
+                pipeline when it is instantiated.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            By contrast, the readout callouts facility in the variable data base
+            system runs as standalone applications and are not tightly bound to any
+            other application.  Readout Callouts applications appear to the system
+            as a state sensitive program that does not necessarily have either an
+            output ring nor an input ring.  This implies that:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                You can have more than one independent ReadoutCallouts script,
+                you may also name them anything you want and put them in any
+                directory you like.
+            </para></listitem>
+            <listitem><para>
+                While Readout callout script callbacks are invoked as a result
+                of state transitions, their functionality is asynchronous to the
+                any operations of the Readout programs as they perform their
+                state transitions.
+            </para></listitem>
+            <listitem><para>
+                Readout callouts that made use of internal procs and methods of
+                ReadoutGUI will not work, as those procs and methods will not
+                be present in the environment of the callout script.  Note,
+                however, that a large part of the defined API is present in the
+                environment under which callout scripts run.
+            </para></listitem>
+            <listitem><para>
+                Since the callouts scripts are decoupled from any control panel,
+                while a script can create it own control panel, it cannot place
+                elements on the control panel of any existing GUI.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            There are other differences that are driven by considerations other
+            than the script environment.   Specificically, since state transitions
+            are generally performed in two steps (e.g. Beginning and Active),
+            Readout Callouts is expanded with additional callback procs
+            to allow finer grained handling of state transitions.  Keep in mind
+            that you may wish  to spread some state change operations between
+            the two subtransitions.
+        </para>
+        <para>
+            Callout scripts have full access to the variable database both through
+            an emulation API and through direct database operations.
+        </para>
+        <para>
+            For information about the full set of callbacks and API calls available
+            to State manager readout callouts scripts see:
+            <link linkend='tcl3_smgrreadoutcallouts' endterm='tcl3_smgrreadoutcallouts_title' />
+        </para>
+    </section>
+    <section>
+        <title>Constructing and Registering a Readout Callout script.</title>
+        <para>
+            A readout callout script is a Tcl scripts that:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                Incorporates wrapping code that invokes user defined Tcl procs
+                when state transitions are requested (normally via globa state
+                transitions requests).
+            </para></listitem>
+            <listitem><para>
+                Is registered with the variable database as a state sensitive
+                program.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            In this section, we will create a simple readout callout script
+            and show two ways to register it with the system.  When so registered,
+            the system boot manager will start the wrapper script which monitors
+            state transitions and invokes the appropriate procs in our script
+            in response to state transition requests.
+        </para>
+        <section>
+            <title>Sample Readout callout script.</title>
+            <para>
+                The script below simply demonstrates all of the state transition
+                callbacks.  note that the readout callouts framework introspects
+                the presence of a proc before invoking it so you don't need to
+                define/implemenet procs you don't need.
+            </para>
+            <example>
+                <title>State manager readout callouts script</title>
+                <programlisting>
+#!/usr/bin/tclsh
+
+package require ReadoutCalloutsHarness         <co id='rdoco_require' />
+
+proc OnPrebegin runNo {                        <co id='rdoco_prebegin' />
+    puts "Prebegin about to start run $runNo
+}
+
+proc OnBegin runNo {                           <co id='rdoco_begin' />
+    puts "Run $runNo has begun.
+}
+
+proc OnPrepause runNo {                        <co id='rdoco_prepause' />
+    puts "Run $runNo prepaused - about to pause"
+}
+
+proc OnPause runNo {                            <co id='rdoco_pause' />
+    puts "Run $runNo paused"
+}
+
+proc OnPreresume runNo {                        <co id='rdoco_preresume' />
+    puts "Run $runNo about to resume (pre-resume)."
+}
+
+proc OnResume runNo {                           <co id='rdoco_resume' />
+    puts "Run $runNo has resumed"
+}
+
+proc Onpreend runNo {                           <co id='rdoco_preend' />
+    puts "Run $runNo about to end (pre-end).
+}
+
+proc OnEnd runNo {                              <co id='rdoco_end' />
+    puts "Run $runNo has ended"
+    
+}
+vwait forever                                  <co id='rdoco_event_loop' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='rdoco_require'>
+                    <para>
+                        This <command>package require</command> command
+                        pulls in the framework that makes the readout callouts
+                        script work.  The framework subscribes to state transitions
+                        and invokes the appropriate <command>proc</command>s from
+                        the event loop as state transitions are requested.
+                        On successful completion of each user <command>proc</command>
+                        the state transition request is echoed in the program's
+                        local state indicating the completion of the transition.
+                    </para>
+                    <para>
+                        The framework will expect the following environment
+                        variables.   The boot manager will set these
+                        variables properly:
+                        <variablelist>
+                            <varlistentry>
+                                <term><literal>REQ_URI</literal></term>
+                                <listitem>
+                                    <para>
+                                        URI that specifies the REQ/REP port
+                                        for the variable data base server.
+                                        This port can be used to make specific
+                                        requests of the server.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>SUB_URI</literal></term>
+                                <listitem>
+                                    <para>
+                                        The URI that specifies the PUB/SUB port
+                                        of the variable database server.  The
+                                        framework subscribes to appropriate changes
+                                        in the database to get notified of state
+                                        changes.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>PROGRAM</literal></term>
+                                <listitem>
+                                    <para>
+                                        Specifies the program name.   This
+                                        determines which variable directory
+                                        contains the program's configuration.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                        </variablelist>
+                    </para>
+                    <para>
+                        Tcl stores environment names in the erray
+                        <literal>::env</literal>.  The indices of these
+                        names are environment names (e.g. <literal>REQ_URI</literal>),
+                        the values are the values of these names.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_prebegin'>
+                    <para>
+                        The <command>OnPrebegin</command> proc is invoked when
+                        the <literal>Beginning</literal> state is requested.
+                        On successful completion of this proc, the framework
+                        sets the program's state to <literal>Beginning</literal>.
+                        If there is a failure, the Global state is set to
+                        <literal>NotReady</literal> which should shut down the
+                        entire system.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_begin'>
+                    <para>
+                        Called when a <literal>Active</literal> state transition
+                        is requested when the prior state is <literal>Beginning</literal>.
+                        This transition indicates the start of a run.  The run number
+                        of the new run is passed as a parameter.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_prepause'>
+                    <para>
+                        Called when a transition to the <literal>Pausing</literal>
+                        state is requested.   This indicates the run is about
+                        to be paused,
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_prepause'>
+                    <para>
+                        Called when a transition to the <literal>Pausing</literal>
+                        state is requested.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_pause'>
+                    <para>
+                        Called when a transition to the <literal>Paused</literal>
+                        state is requested.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_preresume'>
+                    <para>
+                        Called when a transition to the <literal>Resuming</literal>
+                        state is requested.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_resume'>
+                    <para>
+                        Called when a transition to the <literal>Active</literal>
+                        state is requested when the prior state was
+                        <literal>Resuming</literal>.   This indicates the
+                        resumption of a paused run.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_preend'>
+                    <para>
+                        Called when a transition to the <literal>Ending</literal>
+                        state is requested.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_end'>
+                    <para>
+                        Called when a transition to the <literal>Ready</literal>
+                        state is made from the <litearl>Ending state</litearl>.
+                        This indicates an active run has ended.
+                    </para>
+                </callout>
+                <callout arearefs='rdoco_event_loop' >
+                    <para>
+                        Since this is a pure Tcl script, this dummy
+                        <command>vwait</command> is used to prevent the script
+                        from exiting when execution runs of its end, instead
+                        running the event loop.
+                    </para>
+                    <para>
+                        If the script uses Tk or is run from <command>evttclsh</command>
+                        rather than from Tcl, this command is not needed.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                In all cases, the program does not complete the state transition
+                until the script has returned without an error.  In the event of
+                an error, the Global state is set to <literal>NotReady</literal>
+                which should shut the experiment system down.
+            </para>
+        </section>
+        <section>
+            <title>Registering the script as a state sensitive program.</title>
+            <para>
+                Scripts can registered as state sensitive programs in two ways:
+            </para>
+            <orderedlist>
+                <listitem><para>
+                    The <command>addrdo</command> command can be used to
+                    add the script as a Readout program in the experiment's
+                    variable database.
+                </para></listitem>
+                <listitem><para>
+                    The <command>expEditor</command> command can be used
+                    to add the script as a readout program graphically. 
+                </para></listitem>
+            </orderedlist>
+            <para>
+                Suppose our variable database is in <filename>$HOME/experiment.db</filename>,
+                our script is $HOME/stagearea/experiment/current/ReadoutCallouts.tcl.
+                The command below will register the script as the readout named
+                <literal>ReadoutCallouts_1</literal> to be run in <literal>spdaq20</literal>
+            </para>
+            <informalexample>
+                <programlisting>
+$DAQBIN/addrdo --host spdaq20 \
+               --path=$HOME/stagearea/experiment/current/ReadoutCallouts.tcl \
+               --name ReadoutCallouts_1 file://$HOME/experiment.db
+                </programlisting>
+            </informalexample>
+        </section>
+    </section>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3tcl -->
+      <refentry id='tcl3_smgrreadoutcallouts'>
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id=''tcl3_smgrreadoutcallouts_title'>ReadoutCalloutsHarness</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>ReadoutCalloutsHarness</refname>
+           <refpurpose>Run ReadoutCallouts.tcl scripts under database run control.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+package require ReadoutCalloutsHarness
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+proc OnPrebegin runNum {...}
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+proc OnBegin runNum {...}
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+proc OnPrepause runNum {...}
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+proc OnPause runNum {...}
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+proc OnPreresume runNum {...}
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+proc OnResume runNum {...}
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+proc OnPreend runNum {...}
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+proc OnEnd runNum {...}
+            </command>
+          </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <literal>ReadoutCalloutsHarness</literal> is a package that provides
+            a wrapper around ReadoutCallouts scripts for the
+            <literal>ReadoutGUI</literal> allowing them to run in the
+            context of the variable database runcontrol system.  To use this package:
+           </para>
+           <itemizedlist>
+            <listitem><para>
+                Do a <command>package require ReadoutCalloutsHarness</command>
+                towards the top of your ReadoutCallouts script
+            </para></listitem>
+            <listitem>
+                <para>
+                    End your script with a <command>vwait forever</command>, unless
+                    it is being run within an interpreter that will fall into the
+                    event loop at the end of the script (such as
+                    <command>Tk</command> or <command>evttclsh</command>).
+                </para>
+            </listitem>
+           </itemizedlist>
+           <para>
+            Many of the API calls available to readout callout scripts in
+            the ReadoutGUI have been emulated by this package. See
+            <literal>API EMULATION</literal> below for more information.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              API EMULATION
+           </title>
+           <para></para>
+           
+        </refsect1>
+
+      </refentry>
+
+<!-- /manpage -->
