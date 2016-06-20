@@ -310,7 +310,7 @@ vwait forever                                  <co id='rdoco_event_loop' />
                 <callout arearefs='rdoco_end'>
                     <para>
                         Called when a transition to the <literal>Ready</literal>
-                        state is made from the <litearl>Ending state</litearl>.
+                        state is made from the <literal>Ending state</literal>.
                         This indicates an active run has ended.
                     </para>
                 </callout>
@@ -382,7 +382,7 @@ $DAQBIN/addrdo --host spdaq20 \
           <productnumber></productnumber>
         </refentryinfo>
         <refmeta>
-           <refentrytitle id=''tcl3_smgrreadoutcallouts_title'>ReadoutCalloutsHarness</refentrytitle>
+           <refentrytitle id='tcl3_smgrreadoutcallouts_title'>ReadoutCalloutsHarness</refentrytitle>
            <manvolnum>3tcl</manvolnum>
            <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
