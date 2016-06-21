@@ -131,6 +131,9 @@ CVariableDb::createSchema(CSqlite& db)
             parent_id  INTEGER DEFAULT NULL                       \
         )"
     );
+    CSqliteStatement::execute(
+       db,
+       "CREATE INDEX IF NOT EXISTS directoryname ON directory (name)");
     
     CSqliteStatement::execute(
         db, "INSERT INTO directory (id) VALUES (1)"
@@ -153,6 +156,10 @@ CVariableDb::createSchema(CSqlite& db)
             value               VARCHAR(256)  NOT NULL          \
         )"
     );
+    CSqliteStatement::execute(
+       db,
+      "CREATE INDEX variablename ON variables (name)"
+			      );
 
 }
 
