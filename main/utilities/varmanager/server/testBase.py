@@ -58,6 +58,7 @@ class TestBase(unittest.TestCase):
         self._pid     = process.pid
         self._stdout  = process.stdout
         self._process = process
+        time.sleep(0.1)
         return process
     ##
     # getport
