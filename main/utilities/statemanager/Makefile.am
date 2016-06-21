@@ -401,7 +401,7 @@ install-exec-hook:
 	chmod a+x @bindir@/ReadoutGui
 
 
-DOCS=stateclient.xml statemanager.xml varmgrrdoco.xml
+DOCS=stateclient.xml statemanager.xml vardbrdoco.xml
 
 #---------------------------------------------------------------------------------
 # tests:
