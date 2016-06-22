@@ -465,15 +465,655 @@ proc OnEnd runNum {...}
             the ReadoutGUI have been emulated by this package. See
             <literal>API EMULATION</literal> below for more information.
            </para>
+           <para>
+            The framework requires environment variables be defined
+            (See <literal>ENVIRONMENT</literal> below) to function
+            properly.  If the readout callout application is started by the
+            boot manager, that program will ensure the correct definition
+            of those names.
+           </para>
         </refsect1>
         <refsect1>
            <title>
               API EMULATION
            </title>
-           <para></para>
-           
+           <para>
+            The ReadoutGUI exported several APIs that lived in specific namespaces.
+            This section describes the namespaces and APIs that are emulated
+            by this package.  Where appropriate, the differences between the
+            emulated <command>proc</command> and the original are described.
+           </para>
+           <refsect2>
+            <title>::ReadoutState::</title>
+            <para>
+                <command>proc</command>s in this namespace acted on the state of
+                the Readout.  The namespace includes procs that manipulate
+                scaler information; <command>setScalerCount</command>,
+                <command>getScalerCount</command>, <command>setScalerPeriod</command>,
+                and <command>getScalerperiod</command>.  These are obsolete as each
+                readout program may have its own independent set of scalers and
+                scaler readout period.
+            </para>
+            <para>
+                Similarly, the namespace contains <command>proc</command>s that
+                manipulate timed runs.  These are also obsolete:
+                <command>isTimedRun</command>, <command>TimedRun</command>,
+                <command>notTimedRun</command>, <command>TimedLength</command> and
+                <command>setTimedLength</command>.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>proc ReadoutState::setTitle <replaceable>string</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Changes the title to <parameter>string</parameter>.
+                            This modifies the value of the <varname>Title</varname>
+                            variable in the <filename>/ReadoutState</filename>
+                            directory of the variable database.  This string,
+                            in general becomes the next run title for readout
+                            programs that understand the concept of a run
+                            title.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutState::getTitle {}</command></term>
+                    <listitem>
+                        <para>
+                            Returns the title of the run.  This is the current
+                            value of the variable <filename>/ReadoutState/Title</filename>
+                            in the variable database.  Note that this is actually
+                            the title of the next run at any given time.  Normally,
+                            however the title is not set until just before a run
+                            is begun so it is <emphasis>most likely</emphasis>
+                            the title of any current run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutState::setRun <replaceable>number</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Sets the run number.  This actually sets the
+                            <filename>/ReadoutState/RunNumber</filename>.   This
+                            is the run number that will be used for the next run.
+                            Normally, since this is not changed until an active
+                            run is ended, this is probably the current run number
+                            if a run is active.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutState::getRun {}</command></term>
+                    <listitem>
+                        <para>
+                            Returns the current value of the
+                            <filename>/ReadoutState/RunNumber</filename> variable.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>proc ReadoutState::enableRecording {}</term>
+                    <listitem>
+                        <para>
+                            Turns on event recording for the next run.
+                            This sets
+                            the value of the <filename>ReadoutState/Recording</filename>
+                            variable to <literal>true</literal>.
+                            Note that normally this value remains unmodified
+                            until just prior to beginning a run.  This implies that
+                            very likely the value of this variable reflects the
+                            recording state of an active run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutState::disableRecording</command></term>
+                    <listitem>
+                        <para>
+                            Turns event recording off for the next run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutState::setRecording <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Sets the recording state to the boolean value of
+                            <parameter>value</parameter>.  <parameter>value</parameter>
+                            can be any valid Tcl boolean but is mapped to either
+                            <literal>true</literal> or <literal>false</literal>
+                            when setting <filename>/RunState/Recording</filename>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutState::getRecording </command></term>
+                    <listitem>
+                        <para>
+                            Returns a Tcl boolean that reflects the state of
+                            the <filename>/RunState/Recording</filename> variable.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+           </refsect2>
+           <refsect2>
+            <title>The ::ReadoutControl</title>
+            <para>
+                This namespace contained <command>proc</command>s that used to
+                communicate with 'the' readout program.  Since there is no
+                single readout program in NSCLDAQ, the API in this namespace
+                largely delegates to the API in ::ReadoutState:: which manipulates
+                variables in the <filename>/RunState</filename> directory.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>proc ReadoutControl::getReadoutState</command></term>
+                    <listitem>
+                        <para>
+                            Returns the current global state.  This is the
+                            value of the variable:
+                            <filename>/RunState/State</filename>.  The global state
+                            reflects the state the system is requested to
+                            be in.  The requestor will then wait for the subordinate
+                            programs to transition, or timeout.  Programs that
+                            are not able to transition will, in general request a
+                            transition to the <literal>NotReady</literal> state.
+                        </para>
+                        <para>
+                            The variable <filename>/RunState/SystemStatus</filename>
+                            will be either <literal>Consistent</literal> when no state
+                            transition is in progress or <literal>Inconsistent</literal>
+                            if a state transition is in progress.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutControl::isExecuting</command> </term>
+                    <listitem>
+                        <para>
+                            Returns a boolean which is <literal>true</literal>
+                            if the global state is not one of
+                            <literal>0Initial, NotReady</literal> or
+                            <literal>Readying</literal> <literal>false</literal>
+                            otherwise.  Note that if the
+                            program is running under the boot manager, it will have
+                            been signaled to exit if the global state is one of
+                            the above.  The ReadoutCallouts framework on sensing
+                            a transition to one of those states will exit the
+                            software.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutControl::SetRun <replaceable>n</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Sets the run number variable (<filename>/RunState/RunNumber</filename>)
+                            to <parameter>n</parameter>.  In general this is the
+                            run number that the next run will have.  It is most
+                            likely also the run number of any active run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutControl::SetTitle <replaceable>t </replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Sets the title string for the next run (
+                            <filename>/RunState/Title</filename>).  Note that
+                            since usually title changes are done when the run
+                            is halted this variable very likely also contains
+                            the title of any active run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutControl::Begin</command></term>
+                    <listitem>
+                        <para>
+                            Begins a run.   This actually involves performing
+                            two state transitions. The first transition is to
+                            the <literal>Beginning</literal> state (only
+                            legal when in the <literal>Ready</literal> state).
+                            The second transition is to the
+                            <literal>Active</literal> state.
+                        </para>
+                        <para>
+                            This is done in such a way that the program's own
+                            <command>OnPrebegin</command> and
+                            <command>OnBegin</command> procedures are
+                            invoked.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutControl::End </command></term>
+                    <listitem>
+                        <para>
+                            Ends an active or paused run.  This requires
+                            performing two state transitions.  The first
+                            transition is to  the <literal>Ending</literal>
+                            state (reachable only from <literal>Active</literal>
+                            or <literal>Paused</literal>).  Once that
+                            transition is complete, a transition to
+                            <literal>Ready</literal> is requested.
+                        </para>
+                        <para>
+                            Both transitions are done so that the readout callouts
+                            framework will get callbacks for its own transition
+                            handlers.  This means that <command>OnPreend</command>
+                            and <command>OnEnd</command> will both get called for the
+                            invoking script before this proc returns.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutControl::Pause</command></term>
+                    <listitem>
+                        <para>
+                            Pauses an active run.  This requires two state
+                            transitions.  The first transitions to the
+                            <literal>Pausing</literal> state.  <literal>Pausing</literal>
+                            is only reachable from the <literal>Active</literal>
+                            state.   Once the system is in the <literal>Pausing</literal>
+                            state a transition to the <literal>Paused</literal> state
+                            is performed.
+                        </para>
+                        <para>
+                            Both transitions are done in a manner that allows
+                            the readout callouts framework to react to
+                            state transitions.  In particular this means that
+                            the application's <command>OnPrepause</command> and
+                            <command>OnPause</command> are invoked before this
+                            proc returns.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutControl::Resume</command></term>
+                    <listitem>
+                        <para>
+                            Resumes a paused run.  This requires two state
+                            transitions.  The first transitions to the
+                            <literal>Resuming</literal> state.  This is
+                            only reachable from <literal>Paused</literal>.
+                            The second transitions to the <literal>Active</literal>
+                            state.
+                        </para>
+                        <para>
+                            As with all of these methods, the transitions
+                            are performed in a manner that allows the readout
+                            callouts framework to respond to the state transtions.
+                            This means that the <command>OnPreresume</command>
+                            and <command>OnResume</command> procs will be invoked
+                            prior to the return from this proc.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+           </refsect2>
+           <refsect2>
+            <title>The ::ReadoutGUI:: namespace</title>
+            <para>
+                Previously, the API elements in this namespace were resposible
+                for performing actions on the ReadoutGUI user interface
+                elements.  Under the readout callouts framework in the
+                variable database, the script is not able to directly modify
+                the contents of any graphical user interface other than one
+                it displays.  
+            </para>
+            <para>
+                It is possible to modify the contents of graphical user interfaces
+                by modifying the values of variable database variables that are
+                typically reflected by those GUIs.  For example, if a GUI displays
+                the run number, modifying the <filename>/RunState/RunNumber</filename>
+                variable will modify the number shown by that user interface.
+            </para>
+            <para>
+                <command>::ReadoutGUI::SourceFile</command> used to source a
+                Tcl file into readout program.  This is no longer implemented.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>proc ReadoutGUI::Start </command></term>
+                    <listitem>
+                        <para>
+                            On the ReadoutGUI, this would have activated the
+                            user interface element that would have started
+                            the readout program.  In this implementation two
+                            statet ransitiuons are performed.  The first to
+                            <literal>Readying</literal> starts all programs and
+                            the second to <literal>Ready</literal> makes all
+                            programs ready to take data.
+                        </para>
+                        <para>
+                            Note that if your readout callouts program is started
+                            by the boot manager, you're not going to be able to
+                            perform this operation as your script will be
+                            started when the global state <literal>Readying</literal>
+                            is requested (only reachable from <literal>NotReady</literal>)
+                            and shut down whenthe global state <literal>NotReady</literal>
+                            is requested.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUI::Restart</command></term>
+                    <listitem>
+                        <para>
+                            With the ReadoutGUI, this would normally ask the
+                            readout programs to exit and then start them again.
+                            In this implementation we make a state transition
+                            to <literal>NotReady</literal> and then call
+                            <command>Start</command>.  This should restart
+                            all programs.  
+                        </para>
+                        <para>
+                            Normally, however you won't be able to restart
+                            all programs because the transition to
+                            <literal>NotReady</literal> will cause your program
+                            to exit.  If you redefine <command>exit</command>
+                            to prevent this, the <command>Restart</command>
+                            will make the boot manager start another instance of
+                            you which is probably ok as long as the instance
+                            requesting this transition exits.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUI::Begin</command></term>
+                    <listitem>
+                        <para>
+                            In ReadoutCallouts.tcl for the ReadoutGUI, this would
+                            normally invoke the <guibutton>Begin</guibutton> button.
+                            This behavior, which normally would start a run,
+                            is emulated by invoking <command>::ReadoutControl::Begin</command>
+                            which actually starts a new run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUI::Pause </command></term>
+                    <listitem>
+                        <para>
+                            In ReadoutCallouts.tcl for the ReadoutGUI, this would
+                            normally invoke the <guibutton>Pause</guibutton> button
+                            which in turn would pause a run.  This behavior
+                            is emulated by invoking
+                            <command>::ReadoutControl::Pause</command> which
+                            directly attempts to pause a run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUI::Resume </command></term>
+                    <listitem>
+                        <para>
+                            In ReadoutCallouts.tcl for the ReadoutGUI, this would
+                            normally invoke the <guibutton>Resume</guibutton>
+                            button which would resume a paused run.  This behavior
+                            is emulated by invoking
+                            <command>::ReadoutControl::Resume</command> which
+                            attempts to directly resume a run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUI::End </command></term>
+                    <listitem>
+                        <para>
+                            In ReadoutCallouts.tcl for the ReadoutGUI, this would
+                            invoke the <guibutton>End</guibutton> button
+                            which, in turn would end the run.
+                            This behavior is emulated by invoking
+                            <command>::ReadoutControl::End</command> which
+                            directly ends the run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+           </refsect2>
+           <refsect2>
+            <title>The ::ReadoutGUPanel:: namespace</title>
+            <para>
+                This namespace also held procs that could query and modify the
+                user interface elements of the ReadoutGUI.  As with
+                <literal>::ReadoutGUI</literal>, these procs are implemented
+                to directly modify the state variables user interfaces might
+                monitor.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>proc ReadoutGUIPanel::setTitle <replaceable>title </replaceable></term>
+                    <listitem>
+                        <para>
+                            Sets the <filename>/RunState/Title</filename> variable.
+                            In the old ReadoutGUI, this would have only set the
+                            title entry field of the GUI.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::getTitle</command></term>
+                    <listitem>
+                        <para>
+                            Returns the current title.  This operates by
+                            returning the value of <filename>/RunState/Title</filename>.
+                            In the old ReadoutGUI, this would have returned the
+                            value of the title entry field in the GUI.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::getRunNumber </command></term>
+                    <listitem>
+                        <para>
+                            Return the value of
+                            <filename>/RunState/RunNumber</filename>.  In the old
+                            ReadoutGUI, this would have returned the
+                            value of the run number entry field in the GUI.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::setRun <replaceable>run</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Sets the run number (value of
+                            <filename>/RunState/RunNumber</filename>) to
+                            <parameter>run</parameter>.  In the old ReadoutGUI,
+                            this would have only set the value displayed in the
+                            run number entry widget of the GUI.  Note that since
+                            the readout GUI for the variable database run control
+                            system subscribes to changes in this variable, once
+                            the application changes it all instances that
+                            subscribe to the same database will soon update.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::incrRun</command></term>
+                    <listitem>
+                        <para>
+                            Increments the run number.  This is a non-atomic
+                            read of <filename>/RunState/RunNumber</filename>
+                            followed by a write.  
+                            In the old  version of the ReadoutGUI this proc
+                            would smiply increment the value in the
+                            ReadoutGUI's run number entry widget.
+                        </para>
+                        <para>
+                            Since the increment is not done atomically with respect
+                            to the database, it is  possible, but
+                            unlikely for two increments, by separate processes
+                            to result in only one increment of the variable:
+                            If two processes A,B perform the increment and
+                            the order of operations is A reads the run number,
+                            B reads the run number A writes the run number back
+                            and then B writes the run number back, for example,
+                            the run number will only have been incremented once
+                            since both processes, A and B will have read and
+                            incremented the same run number value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::recordOff</command></term>
+                    <listitem>
+                        <para>
+                            Sets the <filename>/RunState/Recording</filename>
+                            variable to <literal>false</literal>.
+                            In the old Readout GUI this
+                            would have simply unchecked the <guibutton>Recording</guibutton>
+                            check button.  
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::recordOn</command></term>
+                    <listitem>
+                        <para>
+                            Sets the <filename>/RunState/Recording</filename>
+                            variable to <literal>true</literal>.  In the old
+                            ReadoutGUI, this would have simply checked the
+                            <guibutton>Recording</guibutton> check button.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::recordData</command></term>
+                    <listitem>
+                        <para>
+                            Returns the value of <filename>/RunState/Recording</filename>.
+                            This is a boolean that, when true, informs the
+                            eventlogger it must record data for the next active
+                            run.
+                            In the old ReadoutGUI, this would simply return the
+                            state of the <guibutton>Recording</guibutton>
+                            check button.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::outputText <replaceable>text</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Outputs <parameter>text</parameter> to the
+                            <literal>stdout</literal> channel.  In the old
+                            ReadoutGUI, this output text to a scrolling text window.
+                            Running your application inside a tkCon console will
+                            grab the <literal>stdout</literal> and
+                            <literal>stderr</literal> output and direct it to a
+                            similar scrolling window.
+                        </para>
+                        <para>
+                            Similarly, in Tcl8.6 and later you can use the
+                            <command>chan push</command> command to capture
+                            data sent to stdout and redirect it to a
+                            widget.  For a pointer on how to get started
+                            with this see:
+                            <ulink url='http://stackoverflow.com/questions/14530354/stdout-redirection'>
+                                http://stackoverflow.com/questions/14530354/stdout-redirection
+                            </ulink>.  That page also has some suggestions for
+                            pre 8.6 Tcl.  Note that <command>outputText</command>
+                            uses <command>puts</command>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::addUserMenu  {<replaceable>ident label</replaceable>}</command></term>
+                    <listitem>
+                        <para>
+                            If necessary, this proc does a
+                            <command>package require Tk</command>.  If necessary
+                            it also creates a menu bar for the application.
+                            Finally it adds a menu to the menubar.
+                            <parameter>ident</parameter> is used as the final path
+                            element for the menu widget associated with the menu
+                            and <parameter>label</parameter> is the text
+                            for the menu on the menubar.
+                        </para>
+                        <para>
+                            In the old ReadoutGUI, this proc added a new
+                            menu to the existing menus for the ReadoutGUI.
+                            If the application has a menubar this proc will
+                            behave in a similar manner.  
+                        </para>
+                        <para>
+                            The proc returns the menu widget that was created.
+                            It is up to the caller to stock the menu with items.
+                            Note that if the menubar needs to be created a unique
+                            widget path is chosen for it.  The assumption, however
+                            is that the <parameter>ident</parameter> parameter is
+                            unique amongst all menus added.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>proc ReadoutGUIPanel::addUserFrame <replaceable>ident</replaceable> </command></term>
+                    <listitem>
+                        <para>
+                            If necessary, this proc does a
+                            <command>pacakge require Tk</command> which creates
+                            the top level widget <literal>.</literal>  The
+                            proc adds a new frame to the top level and
+                            grids it at the bottom of the frame.  The
+                            <parameter>ident</parameter> is used to
+                            construct the frame name which is returned to the
+                            caller.
+                        </para>
+                        <para>
+                            Previously with the old ReadoutGUI, the proc would
+                            add this frame to the existing ReadoutGUI.  If the
+                            application has a GUI already, the proc behaves in
+                            a similar manner.  If it does not, a GUI is created
+                            with the new frame as its only element.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+           </refsect2>
         </refsect1>
-
+        <refsect1>
+            <title>ENVIRONMENT</title>
+            <para>
+                The readout callouts framework requires the following environment
+                variables:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>REQ_URI</literal></term>
+                    <listitem>
+                        <para>
+                            The URI that describes the REQ/REP port of the database
+                            server that is managing the database we care about.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>SUB_URI</literal></term>
+                    <listitem>
+                        <para>
+                            The URI that describes the PUB/SUB port of the database
+                            server that is managing the database we care about.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>PROGRAM</literal></term>
+                    <listitem>
+                        <para>
+                            The name of the program associated with this script.
+                            This determines which subdirectory of
+                            <filename>/ReadoutState</filename> is used to
+                            hold the variables associated with this program.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
       </refentry>
 
 <!-- /manpage -->
