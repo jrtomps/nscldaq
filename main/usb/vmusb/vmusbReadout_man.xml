@@ -828,7 +828,577 @@ vmusb cget name
    
          </refentry>
    
-   
+   <!-- SIS 3300 simplified driver. -->
+      <refentry id="vmusb3-sis3300">
+	<refentryinfo>
+	  <author>
+		  <personname>
+			  <firstname>Ron</firstname>
+			  <surname>Fox</surname>
+		  </personname>
+	  </author>
+	  <productname>NSCLDAQ</productname>
+	  <productnumber></productnumber>
+	</refentryinfo>
+	<refmeta>
+	   <refentrytitle id='vmusb3-sis3300-title'>sis3300</refentrytitle>
+	   <manvolnum>3vmusb</manvolnum>
+	   <refmiscinfo class='empty'></refmiscinfo>
+	</refmeta>
+	<refnamediv>
+	   <refname>sis3300</refname>
+	   <refpurpose>Simplified sis3300 support.</refpurpose>
+	</refnamediv>
+	
+	<refsynopsisdiv>
+	  <cmdsynopsis>
+	    <command>
+package require sis330x
+	   </command>
+	  </cmdsynopsis>
+	  <cmdsynopsis>
+	       <command>
+sis330x <replaceable>name ?options...?</replaceable>
+	       </command>
+	  </cmdsynopsis>
+	  <cmdsynopsis>
+	       <command>
+<replaceable>name</replaceable> configure <replaceable>option value ?...?</replaceable>
+	       </command>
+	  </cmdsynopsis>
+	  <cmdsynopsis>
+	       <command>
+addtcldriver <replaceable>name</replaceable>
+	       </command>
+	  </cmdsynopsis>
+	</refsynopsisdiv>
+	<refsect1>
+	   <title>DESCRIPTION</title>
+	   <para>
+	       This driver provides a simplified driver for the SIS 3300/3301
+	       FADC family.  The driver provides three modes of operation for
+	       the device:
+	   </para>
+	   <variablelist>
+	       <varlistentry>
+		   <term>start</term>
+		   <listitem>
+		       <para>
+			 In start mode an external start input is required to start
+			 digitization.  Digitization stops either when the desired
+			 number of samples have been acquired or when an external
+			 stop input is provided. 
+		       </para>
+		       <para>
+			 The start input is the second from the top (input 3).
+			 The stop input is the third from the top (input 2).
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>stop</term>
+		   <listitem>
+		       <para>
+			 In stop mode, the digitizer is continuously digitizing.
+			 Digitization then stops  when an NIM pulse is presented
+			 to input 2 (third from the top).
+		       </para>
+		       <para>
+			 Note that in stop mode, the actual acquired data my
+			 not be at the beginning of the digitizer data.
+			 See <literal>OUPUT DATA FORMAT</literal> below for
+			 more information.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>gate</term>
+		   <listitem>
+		       <para>
+			 In gate mode, a gate signal is presented to
+			 the start input (input 3 second from the top).
+			 digitization begins on the falling edge of the gate
+			 and ends on the rising edge of the gate, or when the
+			 maximum number of samples has been acquired (if
+			 the gate is wider than the time required to digitize
+			 the maximum number of samples).
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	   </variablelist>
+	</refsect1>
+	<refsect1>
+	   <title>
+	      OPTIONS
+	   </title>
+	   <variablelist>
+	       <varlistentry>
+		   <term><option>-base</option> <replaceable>base-address</replaceable></term>
+		   <listitem>
+		       <para>
+			 Sets the VME base address of the module.  For the 3300,
+			 this is set via jumpers that control the top four bits
+			 of VME address.  For the 3301, this is set via a pair
+			 of rotary switches that allow the top eight bits
+			 of the VME address to be set.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-clock</option> <replaceable>source-spec</replaceable></term>
+		   <listitem>
+		       <para>
+			 Sets the digitizer clock source.  This can be one of
+			 several internal clock frequencies available or
+			 one the external clock modes.
+			 The default clock source is <literal>100Mhz</literal>
+			 The valid clock
+			 sources are:
+		       </para>
+		       <variablelist>
+			 <varlistentry>
+			     <term>100Mhz, 50Mhz, 25Mhz, 12.5Mhz, 6.25Mhz or 3.125Mhz</term>
+			     <listitem>
+				 <para>
+				   Selects an internal clock source at the
+				   specified frequency.  The default value is
+				 </para>
+			     </listitem>
+			 </varlistentry>
+			 <varlistentry>
+			     <term><literal>external</literal></term>
+			     <listitem>
+				 <para>
+				   The clock is provided as an external symmetric
+				   pulse train on input 4 (top input).  See
+				   section 2.5.2 of the SIS330x manual
+				   for information about the signal
+				   requriements for this clock.
+				 </para>
+			     </listitem>
+			 </varlistentry>
+			 <varlistentry>
+			     <term><literal>random</literal></term>
+			     <listitem>
+				 <para>
+				   Allows arbitray clock trains or slow clocks.
+				   The internal logic runs at 100Mhz.  On each
+				   falling edge of the external clock, data
+				   are digitized by the next falling edge of the
+				   internal clock and transferred to the buffer
+				   memory 10 interal clocks later.
+				 </para>
+			     </listitem>
+			 </varlistentry>
+			 <varlistentry>
+			     <term>hira</term>
+			     <listitem>
+				 <para>
+				   Runs in HiRa random clock mode.  This is suitable
+				   for use with the Wash-U multiplexing front end boards.
+				   Note that new applications should make use
+				   of XLM boards with integrated digitizers
+				   rather than the XLM + SIS3301
+				   pair.
+				 </para>
+			     </listitem>
+			 </varlistentry>
+		       </variablelist>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-mode</option> <literal>start | stop | gate</literal></term>
+		   <listitem>
+		       <para>
+			 Selects the mode of the digitizer.  Defaults to <literal>start</literal> mode.
+			 See <literal>DESCRIPTION</literal> above for a summary of the modes.
+			 Note that <literal>start</literal> and <literal>stop</literal>
+			 modes represent special use cases of the digitizers's
+			 start/stop trigger mode while <literal>gate</literal>
+			 is the digitizer's gate trigger mode.
+		       </para>
+		       <para>
+			 The <option>-mode</option> selected can affect the
+			 way you need to decode the data from each event.
+			 See <literal>OUTPUT DATA FORMAT</literal> below
+			 for more information.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-startdelay</option> <literal>disabled | value</literal></term>
+		   <listitem>
+		       <para>
+			 If the value of this option is <literal>disabled</literal>,
+			 the start delay is not enabled.  Otherwise, the value
+			 must be a positive integer in the range <literal>[0,65535]</literal>
+			 and is the number of clock ticks the digitizer start is
+			 delayed before actually being applied.
+		       </para>
+		       <para>
+			 This option defaults to <literal>disabled.</literal>
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-stopdelay</option> <literal>disabled | value</literal></term>
+		   <listitem>
+		       <para>
+			 Same as <option>-startdelay</option> above, however
+			 the delay, if enabled, applies to the stop time.
+		       </para>
+		       <para>
+			 Defaults to <literal>disabled</literal>
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-samples</option> <replaceable>value</replaceable></term>
+		   <listitem>
+		       <para>
+			 Selects the maximum number of sample that will be
+			 acquired.  This defaults to <literal>128K</literal>.
+			 The following values are allowed:
+			 <literal>128K, 16K, 4K, 2K, 1K, 512, 256, 128</literal>.
+			 Note that the <literal>K</literal> multiplier in the
+			 list above means <literal>1024</literal>.
+		       </para>
+		       <para>
+			 It is possible that fewer than <option>-samples</option>
+			 will be acquired.  This can happen in:
+		       </para>
+		       <itemizedlist>
+			 <listitem><para>
+			      In <literal>start</literal> mode if there is a
+			      stop input that fires to the time required
+			      to digitize all samples.
+			 </para></listitem>
+			 <listitem><para>
+			      In <literal>stop</literal> mode if the stop
+			      comes soon enough after the digitizer is started
+			      by the VMUSB that not all the samples have
+			      been digitized.
+			 </para></listitem>
+			 <listitem><para>
+			      In <literal>gate</literal> mode if the gate is
+			      narrower than the time required to digitize
+			      all samples.
+			 </para></listitem>
+		       </itemizedlist>
+		       <para>
+			 The data structure allows you to determine if this is
+			 the case.  See <literal>OUTPUT DATA FORMAT</literal>
+			 for information about this.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-thresholdslt</option> <replaceable>list</replaceable></term>
+		   <listitem>
+		       <para>
+			 A list of 8 booleans, one per digitizer channel.  If
+			 a list element is
+			 <literal>true</literal>, the channel threshold
+			 is applied for a crossing from above to below the
+			 threshold.  If <literal>false</literal>, the
+			 channel threshold is applied to a crossing from
+			 below the threshold to above it.
+		       </para>
+		       <para>
+			 See <option>-thresholds</option> below for more information.
+			 Defaults to an 8 element list of <literal>false</literal>
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-thresholds</option> <replaceable>list</replaceable></term>
+		   <listitem>
+		       <para>
+			 A list of 8 integer in the range <literal>[0,4096)</literal>
+			 for the SIS 3300 and <literal>[0,16384)</literal> for
+			 the SIS3301.  If the input signal crosses this value
+			 in the direction specified by the corresponding
+			 <option>-thresholdslt</option> value,
+			 a pulse is sent on the trigger output (bottom lemo).
+		       </para>
+		       <para>
+			 This pulse can be cabled to the <literal>start</literal>
+			 or <literal>stop</literal> input to directly trigger
+			 the digitizer or sent to external trigger logic
+			 as a term in a more complex trigger scheme.
+		       </para>
+		       <para>
+			 The default value is a list of 8 <literal>16383</literal>
+			 values.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-minletime</option> <replaceable>list</replaceable></term>
+		   <listitem>
+		       <para>
+			 This parameter is a list of four integers, one per channel
+			 group that
+			 specifies the minimum number of clock ticks the trace
+			 in a group must
+			 be below the threshold to result in a trigger when a channel's
+			 <option>thresholdslt</option> value is <literal>true</literal>.
+			 This defaults to a list of 4<literal>0</literal> which disables the
+			 use of this parameter.  The value must be in the range
+			 <literal>[0, 16)</literal>.  A value of <literal>0</literal>
+			 disables the enforcement of this parameter.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-mingttime</option> <replaceable>list</replaceable></term>
+		   <listitem>
+		       <para>
+			  Same as <option>-minletime</option> except that
+			  this specifies the number of consecutive clock ticks a
+			  channel must be above the threshold value when
+			  <option>-thresholdslt</option> for the channels
+			  is <literal>false.</literal>.
+		       </para>
+		       <para>
+			 As with <option>-minletime</option>, this defaults to
+			 <literal>0</literal> for all channelgroups.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-trigwidth</option> <replaceable>list</replaceable></term>
+		   <listitem>
+		       <para>
+			 List of four integers in the range <literal>[0,16)</literal>,
+			 one for each group of two channels.  If the value for
+			 a group is <literal>0</literal> (the default), the
+			 settable output gate width feature is disabled.  Otherwise,
+			 this value represents the desired output width of the
+			 trigger in clock ticks.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-groupenables <replaceable>list</replaceable></option></term>
+		   <listitem>
+		       <para>
+			 List of four booleans (defaults to all <literal>true</literal>),
+			 one for each ADC channel group.  If a group's flag is
+			 <literal>true</literal> it is read out, if not it
+			 is not read out.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-header</option> <replaceable>value</replaceable></term>
+		   <listitem>
+		       <para>
+			 This 16 bit value is inserted into the data from the
+			 module prior to the data from each group.
+			 See <literal>OUTPUT DATA FORMAT</literal> below
+			 for more information about where this appears.
+		       </para>
+		       <para>
+			 This defaults to <literal>0xfadc</literal>
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term><option>-trailer</option> <replaceable>value</replaceable></term>
+		   <listitem>
+		       <para>
+			 This 16 bit value is inserted into the data from the
+			 module after the data from each group.  See
+			 <literal>OUTPUT DATA FORMAT</literal> below for
+			 more information.  Defaults to <literal>0xffff</literal>
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	   </variablelist>
+	</refsect1>
+        <refsect1>
+	  <title>OUTPUT DATA FORMAT</title>
+	
+	<para>
+	  The output format for this module does not depend on mode.  The
+	  interpretation of some of the data is, however mode dependent.
+	  The overal format of the data is shown below:
+	</para>
+	<informalexample>
+	  <programlisting>
++----------------------------------------+
+|  Mask of group enables (16 bit)        |
++----------------------------------------+
+| DAQ Control register value (32 bits)   |
++----------------------------------------+
+|  Data from the lowest set bit in       |
+|  group enables                         |
+              ...
++----------------------------------------+
+              ...
+	  </programlisting>
+	</informalexample>
+	<para>
+	  The DAQ control register value provides two bits of useful
+	  information:
+	</para>
+	<orderedlist>
+	  <listitem><para>
+	       If its bottom bit (bit 0) is set you need to delay more
+	       prior to reading the module as this bit means the module
+	       is still digitizing at the time of readout.
+	  </para></listitem>
+	  <listitem><para>
+	       If bit number 10 is set, the module is being used in gate mode.
+	       If not it is being used in either start or stop mode (there
+	       is no hardware way to determine the difference).  
+	  </para></listitem>
+	  <listitem><para>
+	       Bits 12-14 define the clock source according to the table in section
+	       4.5.  Note that there is no way from this register alone to
+	       distinguish between the various external clock modes.
+	  </para></listitem>
+	</orderedlist>
+	<para>
+	  Other bits may be set but they are not relevant to this discussion.
+	</para>
+	<para>
+	  Data from each enabled group is provided from lowest to highest
+	  group number.  No data is provided for disabled groups.
+	</para>
+	<para>
+	  The data from each group is:
+	</para>
+	<informalexample>
+	  <programlisting>
++-----------------------------------------------+
+| header (16 bits)                              |
++-----------------------------------------------+
+| Group trigger event directory (32 bits)       |
++-----------------------------------------------+
+| Size of data from group                       |
++-----------------------------------------------+
+|  Data from group                              |
+             ...
++-----------------------------------------------+
+| trailer  (16 bits)                            |
++-----------------------------------------------+
+
+	  </programlisting>
+	</informalexample>
+	<para>
+	  In the data format shown above;
+	</para>
+	<variablelist>
+	  <varlistentry>
+	      <term>header</term>
+	      <listitem>
+		  <para>
+		    Is the value of the <option>-header</option> option.  If not
+		    configured by you this defaults to <literal>0xfadc</literal>
+		  </para>
+	      </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	      <term>trailer</term>
+	      <listitem>
+		  <para>
+		    Is the value of the <option>-trailer</option> option
+		  </para>
+	      </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	      <term>Group trigger event directory</term>
+	      <listitem>
+	          <para>
+		    See section 4.25 of the SIS3300/3301 manual for the
+		    detailed format of these 32 bits.
+		  </para>
+		  <para>
+		    The bottom 17 bits of this value modula the number of samples
+		    you have selected are sample in the data from the group after
+		    which the data have ended.   In the  start and gate
+		    mode the trace always begins at the first data item and this
+		    value indicates the sample after which data end.  In start mode,
+		    and gate mode, this may indicate fewer samples have been
+		    digitized than were acquired if, for example there is an
+		    external stop in start mode or, in gate mode, if
+		    the gate is short relative to the selected sample size.
+		  </para>
+		  <para>
+		    In
+		    stop mode, the digitizer treats the data buffer as a circular
+		    buffer into which it is continously digitizing the input.
+		    The stop signal then indicates when digitization ends (
+		    the actual stop may
+		    be delayed by the <option>-stopdelay</option>).
+		    Therefore in stop mode the bottom 17 bits modula the
+		    <option>-samples</option> together with bit 19 (the wrap bit)
+		    indicate at which sample the trace starts.
+		  </para>
+		  <para>
+		    If the wrap bit is not set, then trace begins at the first
+		    sample in the buffer and ends at the sample just prior to
+		    the value in the bottom 17 bits.  If the wrap bit is set,
+		    data begins at the sample number in the data indicated
+		    by the bottom 17 bits and wraps circulalry to the beginnning
+		    of the data before ending in the sample just prior to the
+		    first sample.
+		  </para>
+		  <para>
+		    If you are using the internal thresholds, bits 24-31 indicate
+		    which, if any, channels satisfied their threshold conditions.
+		    Bit 31 represents the state of the channel 1 trigger and
+		    bit 24 the state of the channel 8 trigger.
+		  </para>
+	      </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	      <term>Size of data from group</term>
+	      <listitem>
+		  <para>
+		    This is the actual number of samples that will appear
+		    in the data buffer.  At present, (this may change), in start
+		    and in stop mode, this is the number of samples selected
+		    by <option>-samples</option>.  In gate mode, this value
+		    repeats the trigger event directory and the bottom 17 bits
+		    indicate the number of samples acquired.
+		  </para>
+	      </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	      <term>Data from the group.</term>
+	      <listitem>
+		  <para>
+		    This is the raw sample data, 32 bits per sample containing
+		    a sample from each ADC in the group of two samples as shown
+		    in section 4.33 of the SIS3300/3301 manual.  Note that to
+		    decode the data you will need to know if the digitizer
+		    is an SIS3300 (12 bits of data over range flag in bit 12)
+		    or an SIS3301 (14 bits of data over range flag in bit 14).
+		  </para>
+	      </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	      <term>trailer</term>
+	      <listitem>
+		  <para>
+		    These 16 bits are the value of the <option>-trailer</option>
+		    option.  If not configured by you, this defaults to
+		    <literal>0xffff</literal>.  Note that since bit 15 is set,
+		    this is not a legal conversion value from the AD and therefore
+		    is distinguishable from real data.   I recommend that if you
+		    choose a different <option>-trailer</option> from the
+		    default value, that you select one that has the top bit
+		    set.
+		  </para>
+	      </listitem>
+	  </varlistentry>
+	</variablelist>
+	</refsect1>	
+      </refentry>
+
    <!-- SIS 330x FADC driver -->
    
          <refentry id="vmusb3-sis330x">
@@ -898,6 +1468,11 @@ addtcldriver <replaceable>name</replaceable>
                 below (all elements are 32 bit integers unless otherwise
                 indicated):
               </para>
+	      <para>
+	       This driver is known to work properly for HiRA for a simpler
+	       driver, known to work in all use cases, see
+	       <link linkend='vmusb3-sis3300' endterm='vmusb3-sis3300-title' />
+	      </para>
               <informalexample>
                 <programlisting>
 +-------------------------------+

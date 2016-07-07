@@ -523,7 +523,7 @@ snit::type sis330x {
         # In start mode and gated mode, the inputs will start sampling:
         #  -  Start mode, the start input will start sampling and stop or
         #     event size will stop it.
-        #  -  Gate mode, the falling edge of start begins sampling and the
+       #  -  Gate mode, the falling edge of start begins sampling and the
         #     rising edge (or event size) stops it.
         #  - Stop mode VME starts sampling and the Stop input will stop it.
         #    we have the wrap bit set so there's not going to be a stop
