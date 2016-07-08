@@ -410,7 +410,8 @@ snit::type sis330x {
 	puts [format "Firmware is version %d.%d" $major $minor]
 
         $controller vmeWrite32 [expr {$base + $Reset}] $setupAmod 0;  # Reset the module.
-        
+	after 500 
+
         # Figure out the value of the acquisition control register.  This is a
         # function -mode,  -stopdelay, -startdelay, -clock and program the register:
         
@@ -444,9 +445,11 @@ snit::type sis330x {
         
         # If the clock mode is HiRA we need to set the External clock random
         # mode in that register as well
-        set evtConfigReg [$self _readEvtConfigReg $controller ]
-        $self _writeEvtConfigReg $controller [expr {$evtConfigReg | $HiRaRandomClockEvtConfigReg} ]
-        
+
+	if {$options(-clock) eq "hira"} {
+	    set evtConfigReg [$self _readEvtConfigReg $controller ]
+	    $self _writeEvtConfigReg $controller [expr {$evtConfigReg | $HiRaRandomClockEvtConfigReg} ]
+        }
         # In stop mode we'll let the memory wrap
         
         if {$options(-mode) eq "stop"} {
@@ -523,7 +526,7 @@ snit::type sis330x {
         # In start mode and gated mode, the inputs will start sampling:
         #  -  Start mode, the start input will start sampling and stop or
         #     event size will stop it.
-       #  -  Gate mode, the falling edge of start begins sampling and the
+        #  -  Gate mode, the falling edge of start begins sampling and the
         #     rising edge (or event size) stops it.
         #  - Stop mode VME starts sampling and the Stop input will stop it.
         #    we have the wrap bit set so there's not going to be a stop
@@ -533,6 +536,10 @@ snit::type sis330x {
         if {$options(-mode) eq "stop"} {
             $controller vmeWrite32 [expr {$base + $VMEStart}] $setupAmod 1
         }
+
+
+
+
     }
     ##
     # addReadoutList
@@ -816,6 +823,7 @@ snit::type sis330x {
     # @param value - value to write to the register.
     #
     method _writeEvtConfigReg {c value} {
+
         $c vmeWrite32 \
             [expr {$options(-base) + $CommonInfo + $EventConfiguration}] $setupAmod $value
 
