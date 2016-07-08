@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+#   Auto generate a tarball and its md5 for the current release of
+#   some product.
+#
+#  - configure.ac is used to get the product name.
+#  - /var/log/installer/lsb-release is used to get the debian os release code name.
+#  - arch is used toget the architecture.
+#
+
+
+#  Figure out the debian release code name:
+
+debian_release=`grep DISTRIB_RELEASE /var/log/installer/lsb-release | cut -d" " -f2 |tr -d "()"`
+
+echo Generating tarballs for debian $debian_release
+
+# Figure out the architecture: amd64 for x86_64 and i386 for x86:
+#
+
+raw_arch=`arch`
+case $raw_arch in 
+     x86_64)
+	architecture=amd64
+	;;
+     x86)
+	architecture=i386
+	;;
+     *)
+	architecture=unknown
+	;;
+esac
+
+echo tarball for $architecture
+
+#
+#   Get the product and version from configure.ac
+#
+
+product=`grep AC_INIT configure.ac |cut -d"(" -f2|cut -d, -f1`
+version=`grep AC_INIT configure.ac |cut -d"(" -f2|cut -d, -f2|tr -d " "`
+
+echo tarball for:  $product $version
+
+# String all this stuff together to create the tarball name:
+
+tarball_name=$product-$version-$debian_release-$architecture.tar.gz
+
+echo this will make the tarball: $tarball_name
+
+#
+#  Assume we are starting with a raw checkout
+#  we need to:
+#   -  autoreconf -i -f to generate confrigure.
+#   -  if there's a tcl++incorp.sh script we need to run it to pull
+#      the version libtcl++ it specifies is good for us.
+#   -  we need to do a full configuratino into /usr/opt
+#   -  build/install
+#   -  Make the tarball.
+#   -  Make the associatesd md5 file.
+#
+
+autoreconf -i -f
+
+
+if [ -x tcl++incorp.sh ]
+then
+    libtclplus_version=`grep libtclplus tcl++incorp.sh|cut -d" " -f5`
+    echo grabbing $libtclplus_version
+    ./tcl++incorp.sh $libtclplus_version
+fi 
+
+# 
+#   In case it already exists, kill off the target:
+
+rm -rf /usr/opt/$product/$version
+
+#  Configure with full options (assumes nscldaq actually):
+
+./configure --prefix=/usr/opt/$product/$version  \
+    --enable-usb --enable-sbs=/usr/src/linux-headers-`uname -r` \
+    --enable-epics-tools=yes -enable-docs \
+    --with-epics-rootdir=/usr/lib/epics
+
+make clean all install
+(cd /usr/opt; tar czf - $product/$version)  > $tarball_name
+
+md5sum $tarball_name > $tarball_name.md5
+
+#
+#   If desired make a releasee tag:
+#
+
+
+#
+#  If desired make a maintenance branch.
+#
