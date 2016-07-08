@@ -1123,8 +1123,10 @@ snit::type Stopwatch {
     #                values are lists of commands called when that time is hit.
     #
     variable elapsedTimeMs 0
+    variable startMs       0;    # When we start counting.
     variable afterId    -1
     variable alarms -array [list]
+    variable calledAlarms -array [list]
     
     variable timerResolution 250;   # Ms per tick.
     
@@ -1148,6 +1150,8 @@ snit::type Stopwatch {
     method start {} {
         if {![$self isRunning] } {
             $self _startTimer
+            set startMs [clock milliseconds]
+            array set calledAlarms [list]
         } else {
             error "Timer is already running!"
         }
@@ -1171,6 +1175,8 @@ snit::type Stopwatch {
     #
     method reset {} {
         set elapsedTimeMs 0
+        set startMs [clock milliseconds]
+        array set calledAlarms [list]
     }
     ##
     #  addAlarm
@@ -1264,7 +1270,9 @@ snit::type Stopwatch {
     #    called when timer tick must be counted.
     #
     method _tick {} {
-        incr elapsedTimeMs $timerResolution
+        set now [clock milliseconds]
+        set elapsedTimeMs  [expr {$now - $startMs}]
+
         $self _startTimer;     # schedules the next one.
         $self _callScripts;    # this order gives a more stable time.
     }
@@ -1273,6 +1281,19 @@ snit::type Stopwatch {
     #    Invokes all the scripts set for this elapsed time.
     #
     method _callScripts {} {
+        foreach name [array names alarms] {
+            if {$name ni [array names calledAlarms]} {
+                if {$elapsedTimeMs > $name} {
+                    foreach script $alarms($name) {
+                        uplevel #0 $script
+                    }
+                    set calledAlarms($name) 1
+                }
+            }
+        }
+        return
+    
+    
         if {[array names alarms $elapsedTimeMs] ne ""} {
             foreach script $alarms($elapsedTimeMs) {
                 uplevel #0 $script
