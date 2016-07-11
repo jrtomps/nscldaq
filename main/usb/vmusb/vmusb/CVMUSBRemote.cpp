@@ -48,26 +48,6 @@ static const int ENDPOINT_IN(0x86);
 
 static const int DEFAULT_TIMEOUT(2000);	// ms.
 
-// The register offsets:
-
-static const unsigned int FIDRegister(0);       // Firmware id.
-static const unsigned int GMODERegister(4);     // Global mode register.
-static const unsigned int DAQSetRegister(8);    // DAQ settings register.
-static const unsigned int LEDSrcRegister(0xc);	// LED source register.
-static const unsigned int DEVSrcRegister(0x10);	// Device source register.
-static const unsigned int DGGARegister(0x14);   // GDD A settings.
-static const unsigned int DGGBRegister(0x18);   // GDD B settings.
-static const unsigned int ScalerA(0x1c);        // Scaler A counter.
-static const unsigned int ScalerB(0x20);        // Scaler B data.
-static const unsigned int ExtractMask(0x24);    // CountExtract mask.
-static const unsigned int ISV12(0x28);          // Interrupt 1/2 dispatch.
-static const unsigned int ISV34(0x2c);          // Interrupt 3/4 dispatch.
-static const unsigned int ISV56(0x30);          // Interrupt 5/6 dispatch.
-static const unsigned int ISV78(0x34);          //  Interrupt 7/8 dispatch.
-static const unsigned int DGGExtended(0x38);    // DGG Additional bits.
-static const unsigned int USBSetup(0x3c);       // USB Bulk transfer setup. 
-static const unsigned int USBVHIGH1(0x40);       // additional bits of some of the interrupt vectors.
-static const unsigned int USBVHIGH2(0x44);       // additional bits of the other interrupt vectors.
 
 
 // Bits in the list target address word:

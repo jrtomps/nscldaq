@@ -126,6 +126,8 @@ public:
 
 public:
     void writeActionRegister(uint16_t value);
+    void  writeRegister(unsigned int address, uint32_t data);
+    uint32_t readRegister(unsigned int address);
 
     int executeList(CVMUSBReadoutList& list,
 		    void*               pReadBuffer,
@@ -151,8 +153,6 @@ private:
 
     int transaction(void* writePacket, size_t writeSize,
 		                void* readPacket,  size_t readSize);
-    void  writeRegister(unsigned int address, uint32_t data);
-    uint32_t readRegister(unsigned int address);
 };
 
 #endif
