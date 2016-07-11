@@ -159,6 +159,15 @@ caenv956 cget <replaceable>name</replaceable>
                   and defaults to 0x80.  The vector value is ignored if the
                   module interrupts are disabled.
                </para>
+	       <para>
+		    Note that the VMUSB processes 16 bit vectors, but the
+		    vector produced by this series of modules is 8 bits wide.
+		    The VME standard is ambiguous about how such modules
+		    produce the top eight bits of the vector under these
+		    circumstances.  These modules set those top bits
+		    to zero.  E.g. <option>-vector </option> <literal>0x80</literal>
+		    produces a vector, as see by the VMUSB of <literal>0x0080</literal>
+	       </para>
             </listitem>
          </varlistentry>
          <varlistentry>
@@ -2113,7 +2122,7 @@ v830 cget <replaceable>name</replaceable>
                </listitem>
             </varlistentry>
             <varlistentry>
-               <term><option>-highwatermakr</option> <replaceable>value</replaceable></term>
+               <term><option>-highwatermark</option> <replaceable>value</replaceable></term>
                <listitem>
                   <para>
                      Configures the value of the V830 <firstterm>Almost Full Level</firstterm>
@@ -3356,6 +3365,15 @@ madc cget <replaceable>name</replaceable>
                     <option>-vector</option> configuration parameter used to
                     trigger the stack.
                   </para>
+		  <para>
+		    Note that the VMUSB uses a 16 bit status/ID cycle to
+		    read the interrupt vector from the module, while the
+		    actual status id is 8 bits wide.  The VME standard
+		    is ambiguous about how the top bits of this 16 bit value
+		    are set.  The MADC32 sets those top bits to 0xff.  Therefore
+		    a <option>-vector</option> <literal>0x80</literal> produces
+		    a vector, as seen by the VMUSB of <literal>0xff80</literal>.
+		  </para>
                 </listitem>
               </varlistentry>
               <varlistentry>
@@ -3817,6 +3835,15 @@ madc config adc -thresholds $thresholds                  <co id="madcthresholds"
                   <literal>0</literal> and
                   <literal>255</literal>
                 </para>
+		<para>
+		    Note that while the MTDC32 produces an 8 bit vector, the
+		    VMUSB reads a 16 bit vector.  The VME standard is
+		    ambiguous about how the top 8 bits are set.  The
+		    MTDC sets these unused bits to 1.  Therefore
+		    a <option>-vector</option> <literal>0x80</literal>
+		    will produce a vector as seen by the VMUSB of
+		    <literal>0xff80</literal>.
+		</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -4479,6 +4506,16 @@ mqdc cget <replaceable>name</replaceable>
                 <para>
                   The default value is <literal>1</literal>.
                 </para>
+		<para>
+		    Note that while the MQDC has an 8 bit statusID, the
+		    VMUSB does a 16 bit transfer to read it when an interrupt
+		    occurs.   The VME standard is ambiguous about what the
+		    top bits of the statusID will be as seen by the
+		    VMUSB.  The MQDC sets those unused bits to 1.  Therefore,
+		    a <option>-vector</option> <literal>0x80</literal>
+		    in an MQDC will produce a statusID of <literal>0xff80</literal>
+		    as seen by the VMUSB.
+		</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -6282,8 +6319,22 @@ stack cget <replaceable>name</replaceable>
                   to trigger the list.  This taken together with the value of the
                   <option>-ipl</option> configuration option defines the trigger
                   condition for these stacks. The <parameter>status-id</parameter>
-                  must be a value between 0 and 255.
+                  must be a value between 0 and <literal>0xffff</literal>
+		  inclusive.
                </para>
+	       <para>
+		    Note that while the <option>-vector</option> parameter is
+		    a 16 bit value, all modules we have produce 8 bit vectors.
+		    The VME standard is ambiguous about how the top bits of
+		    an 8 bit vector are returned when read by a 16 bit wide
+		    statusID cycle.  The standard allows these bits to either
+		    be set or clear.  Where we know what individual modules
+		    do, we have documented that.  If what your module
+		    does is not documented, we have not charted what the module
+		    does.  Try either setting those bits to 1 or 0 and please
+		    let us know what you find so that we can improve
+		    this documentation.
+	       </para>
             </listitem>
          </varlistentry>
          <varlistentry>
