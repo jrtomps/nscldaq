@@ -1076,4 +1076,9 @@ Work on 11.0-rc11 begins
 	resume ring items.
       * Bug #5980 - Fix input range selection on MADC32 - had interchanged
                     10V and 8 V input range selectors.
-		    
+      * Bug #5363 - Make proxy rings have the fully qualified host name
+	            of the actual ring source.  In this way, we prevent
+	            duplicate proxy/hoister pipelines via dumpers on e.g.
+	            tcp://spdaq20/0400x and
+	            tcp://spdaq20.nscl.msu.edu/0400x
+

@@ -233,7 +233,7 @@ CRingAccess::daqConsumeFrom(string uri)
   if (local(host)) {
     return new CRingBuffer(ring, CRingBuffer::consumer);
   }
-
+  host = Os::getfqdn(host.c_str());
   // If the proxy ring exists..and has a feeder... we can just connect to it:
 
   string proxyRingName(host);
