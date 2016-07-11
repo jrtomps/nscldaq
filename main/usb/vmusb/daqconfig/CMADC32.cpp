@@ -376,10 +376,10 @@ CMADC32::Initialize(CVMUSB& controller)
     list.addWrite16(base + InputRange, initamod,(uint16_t) 0);
   }
   else if (inputrange == string("8v")) {
-    list.addWrite16(base + InputRange, initamod, (uint16_t)1);
+    list.addWrite16(base + InputRange, initamod, (uint16_t)2);
   }
   else {			// 10V
-    list.addWrite16(base + InputRange, initamod, (uint16_t)2);
+    list.addWrite16(base + InputRange, initamod, (uint16_t)1);
   }
   list.addDelay(MADCDELAY);
 

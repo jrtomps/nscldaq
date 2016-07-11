@@ -1074,4 +1074,6 @@ Work on 11.0-rc11 begins
 	resume ring items.
       * Bug #5882 - CCUSBReadout - Pause and resume must emit pause and
 	resume ring items.
-	
+      * Bug #5980 - Fix input range selection on MADC32 - had interchanged
+                    10V and 8 V input range selectors.
+		    
