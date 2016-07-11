@@ -1062,3 +1062,10 @@ Work on 11.0-rc11 begins
 	* Fixes bugs 5029 and 5032. SBS Readout emits PHYSICS_EVENT_COUNT
 	  and MONITORED_VARIABLE items with a body header to match the
 		behavior of scaler items. 
+
+11.1-005
+
+      * Bug #5958 - Add new SIS330x driver that works properly in modes other
+        than HiRA
+      * Bug #5453 - Fix elapsed time drift in ReadoutGUI elapsed time clock.
+      * Bug #5879 - Properly handle top 8 bits of interrupt status id value.
