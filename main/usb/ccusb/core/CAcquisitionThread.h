@@ -83,6 +83,8 @@ private:
   void drainUsb();
   void beginRun();
   void endRun();
+  void pauseRun();     // Bug #5882
+  void resumeRun();    // Bug #5882
   void reportErrorToMainThread(std::string msg);
   
 };

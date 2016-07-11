@@ -1068,4 +1068,10 @@ Work on 11.0-rc11 begins
       * Bug #5958 - Add new SIS330x driver that works properly in modes other
         than HiRA
       * Bug #5453 - Fix elapsed time drift in ReadoutGUI elapsed time clock.
-      * Bug #5879 - Properly handle top 8 bits of interrupt status id value.
+      * Bug #5879 - Properly handle top 8 bits of interrupt status id
+	value. 
+      * Bug #5882 - VMUSBReadout - Pause and resume must emit pause and
+	resume ring items.
+      * Bug #5882 - CCUSBReadout - Pause and resume must emit pause and
+	resume ring items.
+	

@@ -82,6 +82,8 @@ private:
   void drainUsb();
   void beginRun();
   void endRun();
+  void pauseRun();
+  void resumeRun();
   void bootToTheHead();
   void reportErrorToMainThread(std::string msg);
   void disableInterrupts();

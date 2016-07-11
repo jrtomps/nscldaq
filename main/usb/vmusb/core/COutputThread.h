@@ -163,8 +163,10 @@ private:
   void processStrings(DataBuffer& buffer, StringsBuffer& strings);
 
   uint8_t* newOutputBuffer();                //
-  void startRun(DataBuffer& buffer); // 
-  void endRun(DataBuffer& buffer);   // 
+  void startRun(DataBuffer& buffer); //  
+  void endRun(DataBuffer& buffer);   //
+  void pauseRun(DataBuffer& buffer);   //  Bug #5882
+  void resumeRun(DataBuffer& buffer);  //  Bug #5882
   void event(void* pData);      //
   void scaler(void* pData);	//
   void sendToTclServer(uint16_t* pEvent);

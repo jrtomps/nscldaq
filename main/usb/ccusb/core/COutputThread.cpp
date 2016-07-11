@@ -241,6 +241,15 @@ COutputThread::processBuffer(DataBuffer& buffer)
   else if (buffer.s_bufferType == TYPE_STOP) {
     endRun(buffer);
   }
+  // Add TYPE_PAUSE and TYPE_RESUME for Bug #5882:
+  
+  else if (buffer.s_bufferType == TYPE_PAUSE) {
+    pauseRun(buffer);
+  }
+  else if (buffer.s_bufferType == TYPE_RESUME) {
+    resumeRun(buffer);
+  }
+  
   else if (buffer.s_bufferType == TYPE_STRINGS) {
         pStringsBuffer pBody = reinterpret_cast<pStringsBuffer>(buffer.s_rawData);
         processStrings(buffer, *pBody);
@@ -278,6 +287,10 @@ COutputThread::formatBuffer(DataBuffer& buffer)
     }
   } 
 }
+/**
+ * TODO:  The item generation for startRun, endRun, pauseRun and resumeRun
+ *         can be factored into common code.
+ */
 
 /*
    Process a begin run pseudo buffer. I call this a psuedo buffer because
@@ -376,6 +389,74 @@ COutputThread::endRun(DataBuffer& buffer)
 }
 
 /**
+ * pauseRun     (Bug #5882)
+ *   Emit a pause run item.
+ *
+ * @param buffer - the buffer sent from the acquisition thread.
+ */
+void
+COutputThread::pauseRun(DataBuffer& buffer)
+{
+  free(m_pBuffer);
+  m_pBuffer = 0;
+
+  // Determine the absolute timestamp.
+
+  time_t stamp;
+  if (time(&stamp) == -1) {
+    throw CErrnoException("Failed  to get the timestamp in COutputThread::endRun");
+  }
+ 
+  timespec microtime;
+  clock_gettime(CLOCK_REALTIME, &microtime);
+  timespec microdiff;
+  mytimersub(&microtime, &m_startTimestamp, &microdiff);
+  
+  CRingStateChangeItem pause(NULL_TIMESTAMP, Globals::sourceId, BARRIER_END,
+                           PAUSE_RUN,
+			   m_runNumber,
+			   microdiff.tv_sec,
+			   stamp,
+			   m_title);
+
+  pause.commitToRing(*m_pRing);
+}
+/**
+ * resumeRun    (Bug #5882)
+ *
+ *     Send a resume run ring item.
+ * @param buffer  -buffer sent to us by the readout thread.
+ */
+void
+COutputThread::resumeRun(DataBuffer& buffer)
+{
+  free(m_pBuffer);
+  m_pBuffer = 0;
+
+  // Determine the absolute timestamp.
+
+  time_t stamp;
+  if (time(&stamp) == -1) {
+    throw CErrnoException("Failed  to get the timestamp in COutputThread::endRun");
+  }
+ 
+  timespec microtime;
+  clock_gettime(CLOCK_REALTIME, &microtime);
+  timespec microdiff;
+  mytimersub(&microtime, &m_startTimestamp, &microdiff);
+  
+  CRingStateChangeItem resume(NULL_TIMESTAMP, Globals::sourceId, BARRIER_END,
+                           RESUME_RUN,
+			   m_runNumber,
+			   microdiff.tv_sec,
+			   stamp,
+			   m_title);
+
+  resume.commitToRing(*m_pRing);  
+}
+
+
+/**
  * Process a scaler event:
  * - Figure out the time interval start/stop times, and the absolute time.
  * - extract the vector of scalers from the CC-USB event.
@@ -465,8 +546,6 @@ COutputThread::scaler(void* pData)
   delete pEvent;
 
 }
-
-
 
 /*
   Process the events in an event buffer.  For each event segment, we're going to call

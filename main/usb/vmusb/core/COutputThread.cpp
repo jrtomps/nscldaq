@@ -253,7 +253,14 @@ COutputThread::processBuffer(DataBuffer& buffer)
   else if (buffer.s_bufferType == TYPE_STOP) {
     endRun(buffer);
   }
+  // TYPE_PAUSE and TYPE_RESUME buffer added to resolve Bug #5882
   
+  else if (buffer.s_bufferType == TYPE_PAUSE) {
+    pauseRun(buffer);  
+  }
+  else if (buffer.s_bufferType == TYPE_RESUME) {
+    resumeRun(buffer);
+  }
   else if (buffer.s_bufferType == TYPE_EVENTS) {
     processEvents(buffer);
   }
@@ -269,6 +276,12 @@ COutputThread::processBuffer(DataBuffer& buffer)
     throw std::string(exceptionText);
   }
 }
+
+/**
+ *  TODO: Belowe  startRun, endRun, pauseRun and resumeRun:
+ *        The generation of the control ring item can be factored once the
+ *        run start time has been memorized.
+*/
 
 /*
    Process a begin run pseudo buffer. I call this a psuedo buffer because
@@ -378,6 +391,79 @@ COutputThread::endRun(DataBuffer& buffer)
 			   
 
 
+}
+/**
+ * pauseRun    (Bug#5882)
+ *  Pause the run.
+ *    @param buf - the data buffer.
+ */
+void
+COutputThread::pauseRun(DataBuffer& buffer)
+{
+  free(m_pBuffer);
+  m_pBuffer = 0;
+
+  // Determine the absolute timestamp.
+
+  time_t stamp;
+  if (time(&stamp) == -1) {
+    throw CErrnoException("Failed  to get the timestamp in COutputThread::endRun");
+  }
+  // Determine the run relative timestamp:
+  // See Issue #423 - need to factor this.
+ 
+  timespec microtime;
+  clock_gettime(CLOCK_REALTIME, &microtime);
+  timespec microdiff;
+  mytimersub(&microtime, &m_startTimestamp, &microdiff);
+  
+  CRingStateChangeItem pause(NULL_TIMESTAMP, Globals::sourceId, BARRIER_END,
+                           PAUSE_RUN,
+			   m_runNumber,
+			   microdiff.tv_sec,
+			   stamp,
+			   m_title);
+
+  pause.commitToRing(*m_pRing);  
+}
+/**
+ * resumeRun    (Bug#5882)
+ *    Resume the run.  The run is considered active across the
+ *    pause.  This allows us to know the amount of time the run was paused by
+ *    looking at the timestamps in both the pause and resume items
+ *    It also means that the end item will be the total time between
+ *    begin and end.
+ *
+ *  @param buffer - the data buffer.
+ */
+void
+COutputThread::resumeRun(DataBuffer& buffer)
+{
+  free(m_pBuffer);
+  m_pBuffer = 0;
+
+  // Determine the absolute timestamp.
+
+  time_t stamp;
+  if (time(&stamp) == -1) {
+    throw CErrnoException("Failed  to get the timestamp in COutputThread::endRun");
+  }
+  // Determine the run relative timestamp:
+  // See Issue #423 - need to factor this.
+ 
+  timespec microtime;
+  clock_gettime(CLOCK_REALTIME, &microtime);
+  timespec microdiff;
+  mytimersub(&microtime, &m_startTimestamp, &microdiff);
+  
+  CRingStateChangeItem resume(NULL_TIMESTAMP, Globals::sourceId, BARRIER_END,
+                           RESUME_RUN,
+			   m_runNumber,
+			   microdiff.tv_sec,
+			   stamp,
+			   m_title);
+
+  resume.commitToRing(*m_pRing);
 }
 
 /**!
