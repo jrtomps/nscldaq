@@ -614,5 +614,5 @@ CVMUSBusb::openVMUsb()
     // - is the only way to ensure the m_irqMask value matches the register.
     // - ensures m_irqMask actually gets set:
 
-   // writeIrqMask(0xff);   /* Seems to like to timeout :-( */)
+   writeIrqMask(0xff);   /* Seems to like to timeout */
 }

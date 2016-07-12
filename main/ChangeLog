@@ -1081,4 +1081,7 @@ Work on 11.0-rc11 begins
 	            duplicate proxy/hoister pipelines via dumpers on e.g.
 	            tcp://spdaq20/0400x and
 	            tcp://spdaq20.nscl.msu.edu/0400x
+      * Bug #6067 - Only clear the bits we need to clear in the 
+	            interrupt mask for interrupt triggered stacks.
+	            
 

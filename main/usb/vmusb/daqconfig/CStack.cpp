@@ -493,15 +493,11 @@ CStack::enableStack(CVMUSB& controller)
 
   
   // Ensure the IPL's bit is not set in the interrupt mask:
-  // I think there were problems selecting the interrupt to enable so we'll
-  // enable all interrupt levels.  Note that since the vector registers
-  // all get initialized to zero only IPLs for which vector registers
-  // have been programmed will actually make the VMUSB respond.
-  // at some point this needs to be resolved either from our end
-  // (do I really need to enable all interrupts or is there a VMUSB error
-  // Jan needs to fix.)
-
+  
   uint8_t irqmask = controller.readIrqMask();
+  irqmask        &= ~(1 << irq);                // Clear our irq bit.
+  
+  
   irqmask        =  0;		// Enable all the damned interrupts.
   controller.writeIrqMask(irqmask);
 }
