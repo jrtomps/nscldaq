@@ -318,6 +318,22 @@ snit::type Plotchart::xyplotContainer {
             error "Series $name does not exist"
         }
     }
+    ##
+    # setSeriesPointLimit
+    #   Set the limit on the number of points a series will hold before it
+    #    trims
+    #
+    #  @param name  - name of the series.
+    #  @param n     - number of points.
+    #
+    method setSeriesPointLimit {name n} {
+        if {[array names plotSeries $name] ne ""} {
+            set series [dict get $plotSeries($name) data]
+            $series configure -ptlimit $n
+        } else {
+            error "Series $name does not exist"
+        }
+    }
 
     ##
     # getSeriesMinMax
