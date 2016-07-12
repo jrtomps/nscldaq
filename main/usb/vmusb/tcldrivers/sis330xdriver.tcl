@@ -57,7 +57,7 @@ package provide SIS330XDriver 1.0
 
 snit::type sis330xDriver {
     option -base            -default 0              -configuremethod configureInt
-    option -clocksource     -default Internal100Mhz -configuremethod configureClockSource
+    option -clocksource     -default 100Mhz -configuremethod configureClockSource
     option -startdelay      -default off            -configuremethod configureBool
     option -startdelayticks -default   0            -configuremethod configureInt
     option -stopdelay       -default off            -configuremethod configureBool
