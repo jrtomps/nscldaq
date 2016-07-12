@@ -100,6 +100,9 @@ caenv956 cget <replaceable>name</replaceable>
 	    <listitem>
 		<para>
                   Allows you to reconfigure the base address of a module.
+		  This defaults to <literal>0</literal>.  The required
+		  <parameter>base</parameter> parameter of the create
+		  command for this device overrides the default value.
 		</para>
 	    </listitem>
 	 </varlistentry>
@@ -124,6 +127,9 @@ caenv956 cget <replaceable>name</replaceable>
                   are multiplied by 16 before being applied as the channel
                   threshold values.
                </para>
+	       <para>
+		    The value defaults to a list of 32 zeros.
+	       </para>
             </listitem>
          </varlistentry>
          <varlistentry>
@@ -136,6 +142,9 @@ caenv956 cget <replaceable>name</replaceable>
                   a false boolean means the threshold value is multiplied by 16
                   and then applied.
                </para>
+	       <para>
+		    This parameter defaults to <literal>false</literal>.
+	       </para>
             </listitem>
          </varlistentry>
          <varlistentry>
@@ -176,12 +185,20 @@ caenv956 cget <replaceable>name</replaceable>
                <para>
                   Defines how many events the module should accumulate before
                   it interrutps.  A value of zero also disables interrupts.
-                  The default value is 24 evetns.  This is best suited for
+                  The default value is 24 events (75% full).  This is best suited for
                   singles applications where allowing the module to accumulate
                   a few events before being read is a good thing.
                   This value will be ignored if the <option>-ipl</option> option
                   has been configured to zero as that also disables module interrupts.
                </para>
+	       <para>
+		    If you want to use interrupts but in single event mode,
+		    you should set this to <literal>1</literal>.  If you don't
+		    want to use interrupts you should set at least set one of
+		    <option>-highwater</option>, <option>-vector</option>
+		    or <option>-ipl</option> to zero as any of those actions
+		    disables interrupts.
+	       </para>
             </listitem>
          </varlistentry>
          <varlistentry>
@@ -194,13 +211,20 @@ caenv956 cget <replaceable>name</replaceable>
                   be correctly programmed in order to help SpecTcl form a mapping
                   between data values and parameter names.
                </para>
+	       <para>
+		    The default for this value is an empty string which is
+		    not legal.  Therefore it is mandatory that you configure
+		    this option.
+	       </para>
             </listitem>
          </varlistentry>
          <varlistentry>
             <term><command>-fastclear</command> <replaceable>value</replaceable></term>
             <listitem>
                <para>
-                  Defines the fast clear window for the module.
+                  Defines the fast clear window for the module.  This defaults to
+		  <literal>0</literal> and therefore must be configured if you
+		  will use the fast clear capability of the module.
                </para>
             </listitem>
          </varlistentry>
@@ -209,10 +233,16 @@ caenv956 cget <replaceable>name</replaceable>
             <listitem>
                <para>
                   If <literal>true</literal> the module will supress overflows
-                  and underthreshold conversions.  If not all channels will
+                  and under threshold conversions.  If not all channels will
                   supply data for an event.  In most cases, this should be set to
-                  <literal>false</literal>.
+                  <literal>false</literal>.  This defaults to <literal>true</literal>
                </para>
+	       <para>
+		    Often when setting up the module it is a good idea to
+		    take data with <option>-supressrange</option> set to
+		    <literal>false</literal> to get an idea of where
+		    the thresholds are.
+	       </para>
             </listitem>
          </varlistentry>
          <varlistentry>
@@ -226,6 +256,9 @@ caenv956 cget <replaceable>name</replaceable>
                   range of the TDC in nanoseconds and must be between
                   <literal>140</literal> and <literal>1200</literal>.
                </para>
+	       <para>
+		    This value defaults to <literal>600</literal>
+	       </para>
             </listitem>
          </varlistentry>
 	 <varlistentry>
@@ -243,6 +276,21 @@ caenv956 cget <replaceable>name</replaceable>
 	      </para>
             </listitem>
          </varlistentry>
+	 <varlistentry>
+	      <term><option>-requiredata</option> <replaceable>yes | no</replaceable></term>
+	      <listitem>
+		  <para>
+		    This boolean parameter (actually any value Tcl accepts
+		    as a boolean is valid) defaults to <literal>false</literal>.
+		    When <literal>true</literal>, the module is required to
+		    provide at least a header and a trailer when read as long
+		    as there was a pulse in the <literal>gate</literal>
+		    input.   Headers and trailers will be output even if none
+		    of the channels satisfied the over and under range values
+		    with <option>-suppressrange</option> <literal>true</literal>.
+		  </para>
+	      </listitem>
+	  </varlistentry>
      </variablelist>
   </refsect1>
   <refsect1>
@@ -337,12 +385,16 @@ caenchain cget <replaceable>name</replaceable>
    	    <term><option>-base</option> <replaceable>integer</replaceable></term>
    	    <listitem>
    		<para>
-                  Provides the base address to be used to program the CBLT
+                  Provides the base address to be used to program the CBLT and
+		  multicast
                   address of the module.  Only the top two hexadecimal digits
                   of an 8 digit hexadecimal address should be non zero. e.g.
                   <literal>0x12000000</literal> is ok, but
                   <literal>0x12340000</literal> is not.
    		</para>
+		<para>
+		    The default for ths value is <literal>0</literal>.
+		</para>
    	    </listitem>
    	</varlistentry>
         <varlistentry>
@@ -358,6 +410,11 @@ caenchain cget <replaceable>name</replaceable>
                <literal>-modules [list adc1 adc2 adc3]</literal> is ok,
                <literal>-modules adc1 adc2 adc3</literal> is not.
             </para>
+	    <para>
+	       The default for this value is an empty list.  Note that at least
+	       a first and last module must be defined for this to work
+	       properly.
+	    </para>
             </listitem>
          </varlistentry>
         </variablelist>
@@ -476,13 +533,18 @@ vmusb cget name
                             <literal>busy, trigger, busrequest, eventdatatobuvffer,
                             dgga, endevent</literal> or <literal>usbtrigger</literal>.
                         </para>
+			<para>
+			 If not explicitly programmed, this defaults to
+			 <literal>busy</literal>.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
                     <term><option>-inverto1</option></term>
                     <listitem>
                         <para>
-                            Inverts the sense of the O1 nim output.
+                            Inverts the sense of the O1 nim output.  By default
+			    this is <literal>false</literal>.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -491,7 +553,7 @@ vmusb cget name
                     <listitem>
                         <para>
                             Latches the O1 asserted when the condition that asserts
-                            it is met.
+                            it is met.  By default this is <literal>false</literal>.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -507,13 +569,18 @@ vmusb cget name
                             eventdataobuffer, dgga, dggb,</literal> or
                             <literal>endevent</literal>.
                         </para>
+			<para>
+			 By default this is <literal>vmeas</literal> which reflects
+			 the VME address strobe line. 
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
                     <term><option>-inverto2</option></term>
                     <listitem>
                         <para>
-                            Inverts the sense of the NIM O2 output.
+                            Inverts the sense of the NIM O2 output.  This is
+			    <literal>false</literal> by default.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -522,7 +589,9 @@ vmusb cget name
                     <listitem>
                         <para>
                             Latches the state of the O2 NIM output when the
-                            condition that would assert it is met.
+                            condition that would assert it is met.  This
+			    is <literal>false</literal> if not explicitly
+			    programmed.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -538,6 +607,11 @@ vmusb cget name
                             infifofull, berr, vmebr,</literal> or
                             <literal>vmebg</literal>.
                         </para>
+			<para>
+			 If not explicitly programmed, this will default to
+			 <literal>ofifonotempty</literal>, that is lit when there
+			 is data in the output fifo.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -545,6 +619,7 @@ vmusb cget name
                     <listitem>
                         <para>
                             Inverts the sense of the top yellow LED.
+			    Defaults to <literal>false</literal>.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -553,7 +628,8 @@ vmusb cget name
                     <listitem>
                         <para>
                             Latches the top yellow LED in the on state when the
-                            condition is met that would light it.
+                            condition is met that would light it.  Defaults to
+			    <literal>false</literal>.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -568,6 +644,11 @@ vmusb cget name
                             <literal>trigger, nimi1, nimi2, busy, dtack, berr, vmebr</literal>
                             or <literal>vmebg</literal>.
                         </para>
+			<para>
+			 If not explicitly programmed, this defaults to
+			 <literal>busy</literal>, and is therefore lit
+			 when the VMUSB is busy.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -575,6 +656,7 @@ vmusb cget name
                     <listitem>
                         <para>
                             Inverts the state of the red LED.
+			    Defaults to <literal>false</literal>
                         </para>
                     </listitem>
                 </varlistentry>
@@ -584,6 +666,7 @@ vmusb cget name
                         <para>
                             Latches the red led on when the condition to light
                             it has been met.
+			    Default value is <literal>false</literal>.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -599,6 +682,10 @@ vmusb cget name
                             trigger, dtack, berr, vmebr</literal> or
                             <literal>vmebg</literal>.
                         </para>
+			<para>
+			 If not explicitly configured, this defaults to
+			 <literal>acquire</literal>.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -606,6 +693,7 @@ vmusb cget name
                     <listitem>
                         <para>
                             Inverts the condition that lights the green LED.
+			    Defaults to <literal>false</literal>
                         </para>
                     </listitem>
                 </varlistentry>
@@ -615,6 +703,7 @@ vmusb cget name
                         <para>
                             If true, the green LED is latched in the on state
                             once the condition that would light it is met.
+			    If not configured defaults to <literal>false</literal>.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -629,6 +718,12 @@ vmusb cget name
                             <literal>notslot1, usbtrigger, usbreset, berr, dtack, vmebr</literal>
                             or <literal>vmebg</literal>.
                         </para>
+			<para>
+			 If not explicitly configured, defaults to <literal>dtack</literal>.
+			 This is the VME bus Data Transfer Acknowledge signal
+			 that target modules use to indicate that a transfer
+			 operation is complete.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -636,7 +731,8 @@ vmusb cget name
                     <listitem>
                         <para>
                             Inverts the condition that lights the bottom yellow
-                            LED.
+                            LED.  Defaults to <literal>false</literal> if
+			    ot explicitly configured.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -646,6 +742,7 @@ vmusb cget name
                         <para>
                             Latches the bottom yellow LED in the lit state
                             once the condition is met to light it.
+			    Defaults to <literal>false</literal>.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -660,6 +757,11 @@ vmusb cget name
                             and <option>-scalerb</option> below which define
                             when each scaler increments.
                         </para>
+			<para>
+			 By default, the value of this option is
+			 <literal>false</literal>, meaning the scalers will
+			 not be read.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -673,6 +775,11 @@ vmusb cget name
                             atomically read and clear scalers, counts can be lost
                             between the read and clear.
                         </para>
+			<para>
+			 By default this is <literal>true</literal>.  If you plan
+			 to use the VMUSB scaler(s) as a timestamp, you must
+			 set this to <literal>false</literal>.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -683,6 +790,11 @@ vmusb cget name
                             This can be one of the following values:
                             <literal>dgga, nimi1, nimi2</literal> or <literal>event</literal>.
                         </para>
+			<para>
+			 By default, this value is <literal>nimi2</literal>, causing
+			 this scaler to be incremented on an external pulse
+			 plugged into the IN2 input.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -699,6 +811,11 @@ vmusb cget name
                             64 bit scaler that is incremented by the condition
                             defined in the <option>-scalera</option> option.
                         </para>
+			<para>
+			 By default this option is <literal>carry</literal>
+			 making Scaler B the high order bits of a 64 bit scaler
+			 with Scaler A the low order bits.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -712,6 +829,11 @@ vmusb cget name
                             <literal>endofevent</literal>,<literal>usbtrigger</literal>, 
                             and <literal>pulser</literal>. The default option is <literal>pulser</literal>.
                         </para>
+			<para>
+			 By default, the value of this option is
+			 <literal>pulser</literal>, starting DGGA on the
+			 internal pulser.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -725,6 +847,11 @@ vmusb cget name
                             <literal>endofevent</literal>,<literal>usbtrigger</literal>, 
                             and <literal>pulser</literal>. The default option is <literal>nimi2</literal>.
                         </para>
+			<para>
+			 By default, this option is <literal>nimi2</literal>
+			 starting DGGB when an input pulse is received on the
+			 IN2 input.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -732,6 +859,8 @@ vmusb cget name
                     <listitem>
                         <para>
                             Determines the width of the gate produced by dgga in units of 12.5 ns.
+			    This defaults to <literal>1</literal> giving a
+			    <literal>12.5</literal>ns gate width.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -741,6 +870,8 @@ vmusb cget name
                         <para>
                             Determines the amount of time in units of 12.5 ns to delay the gate
                             output of dgga once it has been triggered.
+			    Defaults to <literal>0</literal>, no delay between
+			    the start and the gate output.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -749,6 +880,8 @@ vmusb cget name
                     <listitem>
                         <para>
                             Determines the width of the gate produced by dggb in units of 12.5 ns.
+			    This defaults to <literal>1</literal> resulting
+			    in a <literal>12.5</literal>ns output pulse.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -758,6 +891,8 @@ vmusb cget name
                         <para>
                             Determines the amount of time in units of 12.5 ns to delay the gate
                             output of dggb once it has been triggered.
+			    By default this is <literal>0</literal>; no delay
+			    between start and gate output.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -768,6 +903,9 @@ vmusb cget name
                             Sets whether scaler and event data can coexist in the same buffer.
                             The default is false.
                         </para>
+			<para>
+			 <literal>false</literal> by default.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -784,6 +922,7 @@ vmusb cget name
                         <para>
                             If set to true, the VM-USB will immediately output scaler data 
                             once a scaler stack is executed. Default is false.
+			    By default this is <literal>false</literal>
                         </para>
                     </listitem>
                 </varlistentry>
@@ -804,6 +943,7 @@ vmusb cget name
                             Determines whether a second optional header word will follow the first
                             buffer header word. When present, this extra header specifies the number
                             of words in the buffer. The default value is false.
+			    This is <literal>false</literal> by default.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -1099,6 +1239,9 @@ addtcldriver <replaceable>name</replaceable>
 			 the case.  See <literal>OUTPUT DATA FORMAT</literal>
 			 for information about this.
 		       </para>
+		       <para>
+			 This option defaults to <literal>128K</literal>
+		       </para>
 		   </listitem>
 	       </varlistentry>
 	       <varlistentry>
@@ -1157,6 +1300,7 @@ addtcldriver <replaceable>name</replaceable>
 			 <literal>[0, 16)</literal>.  A value of <literal>0</literal>
 			 disables the enforcement of this parameter.
 		       </para>
+		       <para>Defaults to a list of four <literal>0</literal> values</para>
 		   </listitem>
 	       </varlistentry>
 	       <varlistentry>
@@ -1171,7 +1315,7 @@ addtcldriver <replaceable>name</replaceable>
 		       </para>
 		       <para>
 			 As with <option>-minletime</option>, this defaults to
-			 <literal>0</literal> for all channelgroups.
+			 a list of four <literal>0</literal> values.
 		       </para>
 		   </listitem>
 	       </varlistentry>
@@ -1186,6 +1330,7 @@ addtcldriver <replaceable>name</replaceable>
 			 this value represents the desired output width of the
 			 trigger in clock ticks.
 		       </para>
+		       <para>a list of four <literal>0</literal> values</para>
 		   </listitem>
 	       </varlistentry>
 	       <varlistentry>
@@ -1196,6 +1341,9 @@ addtcldriver <replaceable>name</replaceable>
 			 one for each ADC channel group.  If a group's flag is
 			 <literal>true</literal> it is read out, if not it
 			 is not read out.
+		       </para>
+		       <para>
+			 Defaults to a group of four <literal>false</literal> valsuss.
 		       </para>
 		   </listitem>
 	       </varlistentry>
@@ -1534,6 +1682,7 @@ addtcldriver <replaceable>name</replaceable>
                     <term><option>-base</option> <replaceable>base-address</replaceable></term>
                     <listitem>
                         <para>Module base address in VME.</para>
+			<para>This defaults to <literal>0</literal></para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1548,6 +1697,7 @@ addtcldriver <replaceable>name</replaceable>
                             ADC (or when data are clocked in in the case of
                             HiRA Mode.
                         </para>
+			<para>Defaults to 100Mhz</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1559,6 +1709,9 @@ addtcldriver <replaceable>name</replaceable>
                             is controlled.  Note that the start delay determines when
                             the first sample is saved relative to the start.
                         </para>
+			<para>
+			 Defaults to <literal>off</literal>
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1568,6 +1721,9 @@ addtcldriver <replaceable>name</replaceable>
                             <option>-startdelay</option> is <literal>
                             false</literal>, this parameter is not used.
                         </para>
+			<para>
+			 Defaults to <literal>0</literal>
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1576,7 +1732,8 @@ addtcldriver <replaceable>name</replaceable>
                         <para>
                              If true, the stop delay is enabled. See
                              <option>-stopdelayticks</option> to set the actual
-                             stop delay.
+                             stop delay.  Defaults to
+			     <literal>off</literal>
                         </para>
                     </listitem>
                 </varlistentry>
@@ -1591,6 +1748,7 @@ addtcldriver <replaceable>name</replaceable>
                             completely ignored if <option>-stopdelay</option>
                             is <literal>false</literal>.
                         </para>
+			<para>Defaults to <literal>0</literal></para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1602,6 +1760,10 @@ addtcldriver <replaceable>name</replaceable>
                             <option>-stopdelay</option> and
                             <option>-stopdelayticks</option>
                         </para>
+			<para>
+			 Implies that the module start will be via the VME.
+			 Defaults to <literal>off</literal>
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1612,6 +1774,7 @@ addtcldriver <replaceable>name</replaceable>
                             the module is started from the falling edge of the
                             gate input and stopped by the rising edge of that signal.
                         </para>
+			<para>Defaults to <literal>off</literal></para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1630,7 +1793,8 @@ addtcldriver <replaceable>name</replaceable>
                                 Backplane signals on the p2 connector
                                 provide start/stop.  Note that this and
                                 <option>lemostartstop</option> are not
-                                mutually exlusive.
+                                mutually exlusive.  Defaults to
+				<literal>off</literal>
                         </para>
                     </listitem>
                 </varlistentry>
@@ -1644,6 +1808,11 @@ addtcldriver <replaceable>name</replaceable>
                             XLM-VV when the analog information is collected
                             by an SIS 3301 board.
                         </para>
+			<para>
+			 Defaults to <literal>off</literal>. If true, the
+			 <literal>-clocksource</literal> must be set to
+			 <literal>FrontPanel</literal> e.g.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1653,6 +1822,11 @@ addtcldriver <replaceable>name</replaceable>
                              a symmetric pulse shape
                              See section2.5.3 of the module documentation.
                         </para>
+			<para>
+			 Defaults to <literal>off</literal>.  If enabled,
+			 the <option>-clocksource</option> must be
+			 set to e.g. <literal>FrontPanel</literal>.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1662,6 +1836,9 @@ addtcldriver <replaceable>name</replaceable>
                             following text strings:
                             <literal>128K, 16K, 4K, 2K, 1K, 512, 256 128</literal>.
                         </para>
+			<para>
+			 Defaults to <literal>128K</literal>
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1687,6 +1864,12 @@ addtcldriver <replaceable>name</replaceable>
                             used with negative going pulses since the data are
                             represented as half-scale offset unsigned integers.
                         </para>
+			<para>
+			 Defaults to <literal>false</literal>.  Note that
+			 while the SIS3300/1 supports, different values
+			 for this parameter for each group (of two) ADCs,
+			 this driver only supports a common value.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1698,6 +1881,10 @@ addtcldriver <replaceable>name</replaceable>
                               <option>thresholdslt</option> which can modify
                               how this value is interpreted.
                         </para>
+			<para>
+			 Defaults to a list of eight <literal>0x3fff</literal>
+			 values.
+			</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -1709,6 +1896,10 @@ addtcldriver <replaceable>name</replaceable>
                             list element allows or disables the readout of group 1
                             and so on.
                         </para>
+			<para>
+			 Defaults to a list of four <literal>true</literal>
+			 values.
+			</para>
                     </listitem>
                 </varlistentry>
 
@@ -1813,12 +2004,14 @@ sis3820 cget <replaceable>name</replaceable>
       	    </listitem>
       	 </varlistentry>
          <varlistentry>
-            <term><option>--timestamp</option> <parameter>on | off</parameter></term>
+            <term><option>-timestamp</option> <parameter>on | off</parameter></term>
             <listitem>
                 <para>
                     If this option is true, the scaler is read in timestamp mode as
                     2 48 bit scalers.  If false (the default), 32 bits are read for
-                    each channel.
+                    each channel.  This defaults to <literal>off</literal>.
+		    Note that normally if <option>-timestamp </option> is on,
+		    this module will be put in the event stack.
                 </para>
             </listitem>
 	 </varlistentry>
@@ -1956,6 +2149,9 @@ v830 cget <replaceable>name</replaceable>
                      can trigger execution of a stack. The default value is zero
                      which disables the periodic trigger.
                   </para>
+		  <para>
+		    Defaults to <literal>0</literal>
+		  </para>
                </listitem>
             </varlistentry>
             <varlistentry>
@@ -1970,18 +2166,12 @@ v830 cget <replaceable>name</replaceable>
                      The default value is <literal>false</literal> which is appropriate
                      for the case where this module will be used in a scaler stack.
                   </para>
+		  <para>
+		    Defaults to <literal>false</literal>
+		  </para>
                </listitem>
             </varlistentry>
-	    <varlistentry>
-	      <term><option>-incremental</option> <replaceable>bool</replaceable></term>
-	      <listitem>
-		<para>
-		  If <literal>true</literal> (the default) scaler ring items are labeled
-		  as incremental.  If <literal>false</literal> scaler ring items are labeled
-		  as not being incremental.
-		</para>
-	      </listitem>
-	    </varlistentry>
+	    
             <varlistentry>
                <term><option>-trigger</option> <replaceable>random | periodic | vme</replaceable></term>
                <listitem>
@@ -2016,6 +2206,10 @@ v830 cget <replaceable>name</replaceable>
                         </varlistentry>
                      </variablelist>
                   </para>
+		  <para>
+		    Defaults to <literal>vme</literal>.  this means triggers
+		    will come via VME bus cycles.
+		  </para>
                </listitem>
             </varlistentry>
             <varlistentry>
@@ -2061,6 +2255,9 @@ v830 cget <replaceable>name</replaceable>
                      if used in other places, must be set to the physical slot number
                      the scaler is using (not a bad idea in any event).
                   </para>
+		  <para>
+		    The default value is <literal>0</literal>
+		  </para>
                </listitem>
             </varlistentry>
             <varlistentry>
@@ -2076,6 +2273,9 @@ v830 cget <replaceable>name</replaceable>
                      for the normal use case of a module in the scaler stack where
                      the GEO address is not relevant.
                   </para>
+		  <para>
+		    The default value of this option is <literal>false</literal>
+		  </para>
                </listitem>
             </varlistentry>
             <varlistentry>
@@ -2119,6 +2319,10 @@ v830 cget <replaceable>name</replaceable>
                      Module interrupts can be used to triggers VM-USB stack
                      execution. 
                   </para>
+		  <para>
+		    Default value is <literal>0</literal>, which disables
+		    interrupts.
+		  </para>
                </listitem>
             </varlistentry>
             <varlistentry>
@@ -2259,6 +2463,9 @@ well formed Tcl list that consists of option name value pairs.
                    Each bit set in the register prevents the corresponding
                    front panel input from being seen by the module.
                </para>
+		<para>
+		    This defaults to <literal>0</literal>
+		</para>
              </listitem>
           </varlistentry>
           <varlistentry>
@@ -2280,6 +2487,9 @@ well formed Tcl list that consists of option name value pairs.
                    listing of the combinations of read modes and read and clear
                    settings and their implications for how the module is read.
                    </para>
+	       <para>
+		    Defaults to <literal>singlehit</literal>
+	       </para>
               </listitem>
           </varlistentry>
           <varlistentry>
@@ -2302,6 +2512,9 @@ well formed Tcl list that consists of option name value pairs.
                     <option>-ipl</option> and <option>-vetor</option> if
                     you intend to use the module with interrupts.
                     </para>
+		 <para>
+		    Defaults to <literal>0</literal>
+		 </para>
                  </listitem>
           </varlistentry>
           <varlistentry>
@@ -2314,6 +2527,9 @@ well formed Tcl list that consists of option name value pairs.
                    read is added to the readout stack.  For more information,
                    see the table at the end of this section.
                 </para>
+		<para>
+		    Defaults to <literal>true</literal>
+		</para>
              </listitem>
           </varlistentry>
           <varlistentry>
@@ -2325,6 +2541,9 @@ well formed Tcl list that consists of option name value pairs.
                    <parameter>interrupt-level</parameter> is <literal>0</literal>
                    (the default), interrupts will not be used.
                 </para>
+		<para>
+		    Defaults to <literal>0</literal>
+		</para>
              </listitem>
           </varlistentry>
           <varlistentry>
@@ -2337,6 +2556,9 @@ well formed Tcl list that consists of option name value pairs.
                    If the <parameter>status-id</parameter> is <literal>0</literal>
                    (default), interrupts are not generated on the dataway.
                 </para>
+		<para>
+		    Defaults to <literal>0</literal>
+		</para>
              </listitem>
           </varlistentry>
           <varlistentry>
@@ -2347,9 +2569,27 @@ well formed Tcl list that consists of option name value pairs.
                    int he control register, and the module operates in pattern
                    mode.  If not, the module operates in I/O register mode.
                 </para>
+		<para>Defaults to false</para>
              </listitem>
           </varlistentry>
-          
+          <varlistentry>
+	      <term><option>-gate</option> <replaceable>true | false</replaceable></term>
+	      <listitem>
+		  <para>
+		    If true the module is in gate mode.  This default to
+		    <literal>trueSS</literal>
+		  </para>
+	      </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	      <term><option>ormask</option> <replaceable>true | false</replaceable></term>
+	      <listitem>
+		  <para>
+		    If true, sets the ORmask bit in the CSR.  Defaults to
+		    <literal>false</literal>.
+		  </para>
+	      </listitem>
+	  </varlistentry>
       </variablelist>
       <table frame='all'>
 	  <title>Readmode and Read and clear implications</title>
@@ -2624,7 +2864,8 @@ hira cget <replaceable>name</replaceable>
                 <listitem>
                     <para>
                         Provides the id tag that precedes the data from the
-                        two actual modules.
+                        two actual modules.  This defaults to
+			<literal>0x618a</literal>
                     </para>
                 </listitem>
             </varlistentry>
@@ -2633,7 +2874,7 @@ hira cget <replaceable>name</replaceable>
                 <listitem>
                     <para>
                         This parameter is a list of one or two XLM modules assoiated
-                        with this HiRA.
+                        with this HiRA. This has no default.
                     </para>
                 </listitem>
             </varlistentry>
@@ -2642,7 +2883,7 @@ hira cget <replaceable>name</replaceable>
                 <listitem>
                     <para>
                         This parameter is the name of the sis330x module that
-                        gets the analog data
+                        gets the analog data.  This has no default.
                     </para>
                 </listitem>
             </varlistentry>
@@ -2773,6 +3014,9 @@ hytec cget <replaceable>name</replaceable>
                         configured in the software must match the address configured
                         in the module's address jumpers.
                       </para>
+		      <para>
+			 The default for this parameter is <literal>0</literal>
+		      </para>
                   </listitem>
               </varlistentry>
               <varlistentry>
@@ -2791,6 +3035,9 @@ hytec cget <replaceable>name</replaceable>
                      as any overlap can cause corrupted data to be read from the
                      modules.
                   </para>
+		  <para>
+		    The default for this parameter is <literal>0</literal>
+		  </para>
                </listitem>
               </varlistentry>
                <varlistentry>
@@ -2808,6 +3055,9 @@ hytec cget <replaceable>name</replaceable>
                         which disables module interrupts.  See also the
                         <option>-vector</option> option below.
                      </para>
+		     <para>
+			 Defaults to <literal>0</literal> which disables interrupts.
+		     </para>
                   </listitem>
                </varlistentry>
                <varlistentry>
@@ -2829,6 +3079,9 @@ hytec cget <replaceable>name</replaceable>
                         you are directing the interrupt at other modules in the VME
                         crate.
                      </para>
+		     <para>
+			 Defaults to <literal>0</literal> wich disables the interrutps.
+		     </para>
                   </listitem>
                </varlistentry>
                <varlistentry>
@@ -2841,6 +3094,9 @@ hytec cget <replaceable>name</replaceable>
                         See the manual for the relationship between
                         <parameter>millivolts</parameter> and threshold DAC values.
                      </para>
+		     <para>
+			 Defaults to <literal>0.0</literal> millivolts.
+		     </para>
                   </listitem>
                </varlistentry>
                <varlistentry>
@@ -2854,6 +3110,10 @@ hytec cget <replaceable>name</replaceable>
                         See the manual for the relationship between
                         <parameter>volts</parameter> and threshold DAC values.
                      </para>
+		     <para>
+			 Default is <literal>8.191</literal> which is the full
+			 scale range of the ADC.
+		     </para>
                   </listitem>
                </varlistentry>
                <varlistentry>
@@ -2880,6 +3140,9 @@ hytec cget <replaceable>name</replaceable>
 			2530V305, therefore the <parameter>value</parameter> is
 			inserted as a marker word prior to the data from the ADC.
 		     </para>
+		     <para>
+			 Defaults to 0
+		     </para>
 		     </listitem>
 		  </varlistentry>
 	       <varlistentry>
@@ -2891,6 +3154,9 @@ hytec cget <replaceable>name</replaceable>
 			discriminators are not present in the data from the
 			device.  If the value is a boolean true, all 8 channels
 			are present in the data.
+		     </para>
+		     <para>
+			 Defaults to <literal>on</literal>
 		     </para>
 		  </listitem>
 	       </varlistentry>
