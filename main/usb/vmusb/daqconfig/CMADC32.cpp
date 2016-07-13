@@ -96,7 +96,7 @@ static CConfigurableObject::Limits irqThresholdLimits(Zero, irqThresholdMax);
 
 // Note for all enums, the first item in the list is the default.
 
-
+ 
 // Legal gatemode values for the enumerator:
 
 static const char* GateModeValues[2] = {"common", "separate"};
@@ -201,9 +201,9 @@ CMADC32::onAttach(CReadoutModule& configuration)
   // just different default values.
 
   m_pConfiguration->addParameter("-holddelays", CConfigurableObject::isIntList,
-				 &HoldValidity, "15");
+				 &HoldValidity, "15 15");
   m_pConfiguration->addParameter("-holdwidths", CConfigurableObject::isIntList,
-				 &HoldValidity, "20");
+				 &HoldValidity, "20 20");
 
   m_pConfiguration->addParameter("-gategenerator", CConfigurableObject::isBool,
 				 NULL, "false");
