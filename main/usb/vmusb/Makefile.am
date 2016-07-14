@@ -62,6 +62,7 @@ cmdline.h: commandline.ggo
 		@output-dir=@builddir@/vmusb --set-version=@VERSION@
 
 
-EXTRA_DIST=commandline.ggo vmusbReadout_user.xml vmusbReadout_man.xml
+EXTRA_DIST=commandline.ggo vmusbReadout_user.xml vmusbReadout_man.xml \
+	vmusbReadout_man1.xml
 
 

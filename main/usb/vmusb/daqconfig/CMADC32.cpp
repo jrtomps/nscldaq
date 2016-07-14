@@ -237,7 +237,8 @@ CMADC32::onAttach(CReadoutModule& configuration)
 
 
   m_pConfiguration->addParameter("-thresholds", CConfigurableObject::isIntList,
-				 &ThresholdValidity, "0");
+				 &ThresholdValidity,
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0");
 
   m_pConfiguration->addParameter("-pulser", CConfigurableObject::isBool,
 				 NULL, "false");

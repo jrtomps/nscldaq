@@ -7773,7 +7773,20 @@ AXLM72ScalerControl <replaceable>name option value ...</replaceable>
       <term><replaceable>name</replaceable> <command>Get</command> <replaceable>vmusb parameter</replaceable></term>
       <listitem>
         <para>
-          The Get command causes a read from the XLM72. There are 5 parameters that can be provided to this method: enable, alltriggers, firmware, runstate, and allscalers. These all return the value read from the device. The enable parameter returns a 0 or 1 indicating whether the scalers are enabled. The alltriggers parameter returns a 32-bit integer with the status of each channel's trigger status encoded in its bits. Channel 0's status is encoded in bit 0 and channel 31's status is encoded in bit 31, with all others likewise. The firmware parameter returns the firmware signature. The runstate parameter causes a return of the run state as one of the following strings: idle, starting, stopping, active, paused. Finally the allscalers parameters causes the scaler values to be latched and read out of the device. These are returned as a list of 32 integers beginning with channel 0.
+          The Get command causes a read from the XLM72. There are 5 parameters
+	  that can be provided to this method: enable, alltriggers, firmware,
+	  runstate, and allscalers. These all return the value read from the
+	  device. The enable parameter returns a 0 or 1 indicating whether
+	  the scalers are enabled. The alltriggers parameter returns a 32-bit
+	  integer with the status of each channel's trigger status encoded in
+	  its bits. Channel 0's status is encoded in bit 0 and channel 31's
+	  status is encoded in bit 31, with all others likewise. The firmware
+	  parameter returns the firmware signature. The runstate parameter
+	  causes a return of the run state as one of the following strings:
+	  idle, starting, stopping, active, paused. Finally the allscalers
+	  parameters causes the scaler values to be latched and read out of
+	  the device. These are returned as a list of 32 integers beginning
+	  with channel 0.
         </para>
       </listitem>
     </varlistentry>
@@ -7918,8 +7931,22 @@ update the values at a selectable frequency.
     <title>Configuration</title>
 
     <para>
-      The XLM72ScalerGUI is designed employes aclient-server architecture and thus
-      using it requires setting up two different pieces: the client and the server. The setup of the server will be explained first. To avoid confusion, the server that will be communicated with is the VMUSBReadout slow-controls server and thus setting it up requires loading a driver with the needed functionality into it. The specific driver to be used is contained in the AXLM72ScalerControl class. It is just a standard slow-controls driver written purely in TCL that implements the Set, Get, and Update methods. Once an instance has been created of the AXLM72ScalerControl class, it needs to be registered as a TCL module using the ?Module? command. The name of the ensemble is just the name of the instance created. As with all slow-controls set up, this must be done in the ctlconfig.tcl file. The name of the AXLM72ScalerControl instance is not important so long as it does not conflict with any other tcl commands (e.g. setting the name to ?set? would lead to unexpected failures). Here is a sample of how to set it up in the ctlconfig.tcl file.
+      The XLM72ScalerGUI is designed employes a client-server architecture and thus
+      using it requires setting up two different pieces: the client and the
+      server. The setup of the server will be explained first. To avoid
+      confusion, the server that will be communicated with is the
+      VMUSBReadout slow-controls server and thus setting it up requires
+      loading a driver with the needed functionality into it. The specific
+      driver to be used is contained in the AXLM72ScalerControl class. It is
+      just a standard slow-controls driver written purely in TCL that
+      implements the Set, Get, and Update methods. Once an instance has been
+      created of the AXLM72ScalerControl class, it needs to be registered as a T
+      CL module using the ?Module? command. The name of the ensemble is just
+      the name of the instance created. As with all slow-controls set up, this
+      must be done in the ctlconfig.tcl file. The name of the AXLM72ScalerControl
+      instance is not important so long as it does not conflict with any other
+      tcl commands (e.g. setting the name to ?set? would lead to unexpected
+      failures). Here is a sample of how to set it up in the ctlconfig.tcl file.
     </para>
 
     <example>
@@ -7935,11 +7962,20 @@ Module config xlm72sclrctl -ensemble XLM72SclrCtl ;# set the name of the ensembl
     </example>
 
     <para>
-The second portion of the XLM72ScalerGUI is the setup of the client. The client is much simpler and amounts to running the XLM72ScalerGUI program with the appropriate arguments. This program requires a few pieces of information to successfully communicate with the server. Those are the name of the host running the VMUSBReadout slow-controls server, the port on which that server is listening for connections, the name of the ringbuffer being filled by the VMUSBReadout program, and the name of the slow-controls module that is receiving requests from the GUI. In the above example, the name of that module would be "xlm72sclrctl".  
+The second portion of the XLM72ScalerGUI is the setup of the client. The client
+is much simpler and amounts to running the XLM72ScalerGUI program with the
+appropriate arguments. This program requires a few pieces of information to
+successfully communicate with the server. Those are the name of the host
+running the VMUSBReadout slow-controls server, the port on which that server
+is listening for connections, the name of the ringbuffer being filled by the
+VMUSBReadout program, and the name of the slow-controls module that is receiving
+requests from the GUI. In the above example, the name of that module would be
+"xlm72sclrctl".  
     </para>
 
     <para>
-    That is it. If you want know why the ringbuffer name is needed read on about run state awareness.
+    That is it. If you want know why the ringbuffer name is needed read on
+    about run state awareness.
     </para>
 
   </refsect1>
@@ -7947,11 +7983,37 @@ The second portion of the XLM72ScalerGUI is the setup of the client. The client 
   <refsect1>
     <title>Run State Awareness</title>
     <para>
-  The XLM72ScalerGUI is only allowed to query the XLM72 while a run is not in progress. When a run is in progress (i.e. the VM-USB is in data acquisition mode rather than interactive mode), all of the GUI components become disabled except for the Exit button. When a run ends, the GUI components become active again. The idea is that the XLM72ScalerGUI is really a diagnostics tool rather than a tool for data acquisition. In order to respond to run state transitions, the GUI needs to have some run state awareness. Two mechanisms provide this to form some redundancy. The primary means by which it obtains run state information is through a sclclient program attached to the ringbuffer filled by the VMUSBReadout program. This is why the user must provide the name of the ringbuffer, when starting up the GUI. The sclclient communicates with a TclServer embedded into the GUI and manages a variable called RunState. Unfortunately, this approach is leaves a small chance that the GUI sends a request after the run has started but before the sclclient has alerted the TclServer of the change. In this scenario, the second redundancy kicks in because the first thing that happens before a request is a request from the slow-controls server to return the run state. If the run state is not idle, then it is assumed that a run is in progress. Otherwise, the requests proceed as usual. 
+  The XLM72ScalerGUI is only allowed to query the XLM72 while a run is not in
+  progress. When a run is in progress (i.e. the VM-USB is in data acquisition
+  mode rather than interactive mode), all of the GUI components become disabled
+  except for the Exit button. When a run ends, the GUI components become active
+  again. The idea is that the XLM72ScalerGUI is really a diagnostics tool
+  rather than a tool for data acquisition. In order to respond to run state
+  transitions, the GUI needs to have some run state awareness. Two mechanisms
+  provide this to form some redundancy. The primary means by which it obtains
+  run state information is through a sclclient program attached to the
+  ringbuffer filled by the VMUSBReadout program. This is why the user must
+  provide the name of the ringbuffer, when starting up the GUI. The sclclient
+  communicates with a TclServer embedded into the GUI and manages a variable
+  called RunState. Unfortunately, this approach is leaves a small chance that
+  the GUI sends a request after the run has started but before the sclclient
+  has alerted the TclServer of the change. In this scenario, the second
+  redundancy kicks in because the first thing that happens before a request
+  is a request from the slow-controls server to return the run state. If the
+  run state is not idle, then it is assumed that a run is in progress.
+  Otherwise, the requests proceed as usual. 
     </para>
 
     <para>
-      This may seem overkill but there is a good reason for doing it this way that is tied to how the slow-controls server handles requests while in acquisition mode. Should a request come in that mode, the VMUSB will exit acquisition mode, process the request, and then resume acquisition. Unfortunately, ending a run usually lasts about a second or two, which causes long wait times. To avoid repeated interruptions like this, the above scheme ensures that at most, one interruption can occur. Understand that no data is ever lost in these scenarios, the data stream is simply interrupted for a period of time. 
+      This may seem overkill but there is a good reason for doing it this way
+      that is tied to how the slow-controls server handles requests while in
+      acquisition mode. Should a request come in that mode, the VMUSB will exit
+      acquisition mode, process the request, and then resume acquisition.
+      Unfortunately, ending a run usually lasts about a second or two, which
+      causes long wait times. To avoid repeated interruptions like this, the
+      above scheme ensures that at most, one interruption can occur. Understand
+      that no data is ever lost in these scenarios, the data stream is simply
+      interrupted for a period of time. 
     </para>
   </refsect1>
   
@@ -8136,7 +8198,11 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      Immediately performs an A32/D32 read from the address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns the value of read from the device.
+                      Immediately performs an A32/D32 read from the
+		      address $<parameter>dev</parameter>+$<parameter>address</parameter>.
+		      The access is performed through the swig wrapped CVMUSB
+		      class provided as <parameter>ctlr</parameter>. The method
+		      returns the value of read from the device.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8147,7 +8213,12 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      Immediately performs an A32/D32 write of <parameter>data</parameter> to the address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The returns the status of the write operation (success = 0, failure otherwise).
+                      Immediately performs an A32/D32 write of
+		      <parameter>data</parameter> to the address
+		      $<parameter>dev</parameter>+$<parameter>address</parameter>.
+		      The access is performed through the swig wrapped CVMUSB
+		      class provided as <parameter>ctlr</parameter>. Returns
+		      the status of the write operation (success = 0, failure otherwise).
                     </para>
                 </listitem>
             </varlistentry>
@@ -8158,7 +8229,17 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      Immediately performs a block transfer (A32/D32) of <parameter>words</parameter> transfers beginning at address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns a swig wrapped std::vector&lt;uint8_t&gt; so one must use the cvmusb::uint8_vector_get and cvmusb::uint8_vector_size procs to handle it. The VMUSBDriverSupport::convertBytesListToTclList will convert it to a tcl list of 32-bit integer values if that is desired and sensible.
+                      Immediately performs a block transfer (A32/D32) of
+		      <parameter>words</parameter> transfers beginning at
+		      address $<parameter>dev</parameter>+$<parameter>address</parameter>.
+		      The access is performed through the swig wrapped CVMUSB
+		      class provided as <parameter>ctlr</parameter>. The method
+		      returns a swig wrapped std::vector&lt;uint8_t&gt; so one
+		      must use the cvmusb::uint8_vector_get and
+		      cvmusb::uint8_vector_size procs to handle it.
+		      The VMUSBDriverSupport::convertBytesListToTclList will
+		      convert it to a tcl list of 32-bit integer values if that
+		      is desired and sensible.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8169,7 +8250,21 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      Immediately performs a block transfer (A32/D32) whose transfer count is determined by read data from the address $<parameter>ndev</parameter>+$<parameter>naddr</parameter> and applying the mask <parameter>mask</parameter> to the result. This read is an unprivileged A32/D32 read. A subsequent block transfer then begins at address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns a swig wrapped std::vector&lt;uint8_t&gt; so one must use the cvmusb::uint8_vector_get and cvmusb::uint8_vector_size procs to handle it. The VMUSBDriverSupport::convertBytesListToTclList will convert it to a tcl list of 32-bit integer values if that is desired and sensible.
+                      Immediately performs a block transfer (A32/D32) whose
+		      transfer count is determined by read data from the
+		      address $<parameter>ndev</parameter>+$<parameter>naddr</parameter>
+		      and applying the mask <parameter>mask</parameter> to the
+		      result. This read is an unprivileged A32/D32 read. A
+		      subsequent block transfer then begins at
+		      address $<parameter>dev</parameter>+$<parameter>address</parameter>.
+		      The access is performed through the swig wrapped CVMUSB
+		      class provided as <parameter>ctlr</parameter>. The method
+		      returns a swig wrapped std::vector&lt;uint8_t&gt; so one
+		      must use the cvmusb::uint8_vector_get and
+		      cvmusb::uint8_vector_size procs to handle it.
+		      The VMUSBDriverSupport::convertBytesListToTclList
+		      will convert it to a tcl list of 32-bit integer values
+		      if that is desired and sensible.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8183,9 +8278,11 @@ AXLM72 <replaceable>name slot</replaceable>
                       Convenience function for gaining access of an internal bus. This is 
                       two single shot operations. The first requests the bus of interest
                       and the second inhibits the FPGA and DSP from gaining mastership.
-                      The valid values for <parameter>code</parameter> are any bitwise OR of bus A (0x1), bus B (0x2), 
-                      bus X (0x1000), and bus D (0x2000). The <parameter>ctlr</parameter> is a 
-   swig cvmusb::CVMUSB object.
+                      The valid values for <parameter>code</parameter> are any
+		      bitwise OR of bus A (0x1), bus B (0x2), 
+                      bus X (0x1000), and bus D (0x2000).
+		      The <parameter>ctlr</parameter> is a 
+		     swig cvmusb::CVMUSB object.
 
                     </para>
                 </listitem>
@@ -8228,7 +8325,8 @@ AXLM72 <replaceable>name slot</replaceable>
                 <listitem>
                     <para>
    A convenience method for writing to the FPGA boot source register.
-   Valid values for <parameter>source</parameter> are : 0x0, 0x1, 0x2, 0x3, and 0x10000. The meanings
+   Valid values for <parameter>source</parameter> are : 0x0, 0x1, 0x2, 0x3, and
+   0x10000. The meanings
    are as follows: 
                   </para>
   <informaltable frame="all">
@@ -8274,7 +8372,8 @@ AXLM72 <replaceable>name slot</replaceable>
                 <listitem>
                     <para>
     Loads firmware into SRAMA and then boots the device from SRAMA. The firmware is
-    loaded from <parameter>filename</parameter>. The <parameter>ctlr</parameter> is a swig cvmusb::CVMUSB object.
+    loaded from <parameter>filename</parameter>. The <parameter>ctlr</parameter>
+    is a swig cvmusb::CVMUSB object.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8301,7 +8400,10 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-   Adds an A32/D32 read from $<parameter>dev</parameter>+$<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+   Adds an A32/D32 read from
+   $<parameter>dev</parameter>+$<parameter>addr</parameter> to
+   <parameter>stack</parameter>. <parameter>stack</parameter> is a swig
+   cvmusbreadoutlist::CVMUSBReadoutList object.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8312,7 +8414,10 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-   Adds a A32/D32 write of <parameter>data</parameter> to $<parameter>dev</parameter>+$<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+   Adds a A32/D32 write of <parameter>data</parameter> to
+   $<parameter>dev</parameter>+$<parameter>addr</parameter> to
+   <parameter>stack</parameter>. <parameter>stack</parameter> is a swig
+   cvmusbreadoutlist::CVMUSBReadoutList object.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8323,7 +8428,10 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-    Adds a standard block read of <parameter>words</parameter> transfers beginning at <parameter>dev</parameter>+<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+    Adds a standard block read of <parameter>words</parameter> transfers
+    beginning at <parameter>dev</parameter>+<parameter>addr</parameter> to
+    <parameter>stack</parameter>. <parameter>stack</parameter> is a swig
+    cvmusbreadoutlist::CVMUSBReadoutList object.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8334,7 +8442,9 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      This adds the same functionality of ReadNBLT to <parameter>stack</parameter>. See documentation for ReadNBLT for explanation of its functionality.
+                      This adds the same functionality of ReadNBLT to
+		      <parameter>stack</parameter>. See documentation for
+		      ReadNBLT for explanation of its functionality.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8345,7 +8455,9 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      Adds a bus access command to the <parameter>stack</parameter> readoutlist. See documentation for AccessBus for the allowed values.
+                      Adds a bus access command to the <parameter>stack</parameter>
+		      readoutlist. See documentation for AccessBus for the
+		      allowed values.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8356,7 +8468,9 @@ AXLM72 <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      Adds a command to the <parameter>stack</parameter> readoutlist to release acquisition of any previously acquired busses.
+                      Adds a command to the <parameter>stack</parameter>
+		      readoutlist to release acquisition of any previously
+		      acquired busses.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8524,7 +8638,8 @@ AXLM72Scaler <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      Reads and returns the firmware signature. The <parameter>ctlr</parameter> is
+                      Reads and returns the firmware signature. The
+		      <parameter>ctlr</parameter> is
                       a cvmusb::CVMUSB object.
                     </para>
                 </listitem>
@@ -8536,8 +8651,10 @@ AXLM72Scaler <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                    Atomically resets all scaler values by writing a 1 and then a 0 to the lowest
-                    address of the FPGA address space. Returns 0 on success or a negative value for failure.
+                    Atomically resets all scaler values by writing a 1 and then
+		    a 0 to the lowest
+                    address of the FPGA address space. Returns 0 on success or
+		    a negative value for failure.
                     The <parameter>ctlr</parameter> is a cvmusb::CVMUSB object. 
                     </para>
                 </listitem>
@@ -8549,12 +8666,14 @@ AXLM72Scaler <replaceable>name slot</replaceable>
               </command></cmdsynopsis></term>
                 <listitem>
                     <para>
-                      Latch the current values of the scaler counters into SRAMA for readout. 
+                      Latch the current values of the scaler counters into
+		      SRAMA for readout. 
                       The <parameter>ctlr</parameter> is a cvmusb::CVMUSB object.
 
                     </para>
                     <para>
-                      The return value of this is either 0 for success or -1 for failure.
+                      The return value of this is either 0 for success or -1 for
+		      failure.
                     </para>
                 </listitem>
             </varlistentry>
@@ -8795,7 +8914,7 @@ v1495sc cget <replaceable>name</replaceable>
 		       <para>
 			 Allows you to override the base address set at creation
 			 time.  The base address must be the address of a
-			 V1495sc module.
+			 V1495sc module.  Defaults to <literal>0</literal>
 		       </para>
 		   </listitem>
 	       </varlistentry>
@@ -8919,7 +9038,7 @@ v1495sc cget <replaceable>name</replaceable>
 		       <para>
 			 When the internal trigger is enabled, this sets the
 			 number of microseconds between internal triggers.
-			 The default value is <literal>0x20000</literal>, an
+			 The default value is <literal>0x2000000</literal>, an
 			 arbitrary value that works out to .131 seconds or so.
 		       </para>
 		   </listitem>

@@ -183,7 +183,7 @@ CStack::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-delay",
 				 CConfigurableObject::isInteger, &delayRange, "0");
   m_pConfiguration->addParameter("-vector",
-				 CConfigurableObject::isInteger, &vectorRange);
+				 CConfigurableObject::isInteger, &vectorRange, "0");
   m_pConfiguration->addParameter("-ipl",
 				 CConfigurableObject::isInteger, &iplRange, "6");
   m_pConfiguration->addParameter("-modules",
