@@ -1086,3 +1086,7 @@ Work on 11.0-rc11 begins
       * Bug #5639 - Scaler display performance degraded over time when
 	doing strip charts.  Set the series trimlist limit from the
 	default of 2M to 20K. 
+      * Bug #5381 - Improve documentation of XXUSBReadout default
+	parameters.  Note that there are also opportunistic fixes to small
+	defects and formatting issues with the driver and documentation
+	source code.
