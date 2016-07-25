@@ -7177,11 +7177,29 @@ if "-eventwiseClear" is true
 		    </para>
 	      </listitem>
 	    </varlistentry>
+     </variablelist>
+     <para>
+      The next set of parameters allow the user to intialize the trigger parameters.
+      These are best understood by referencing a picture of the ULM trigger
+      GUI.   See below:
+     </para>
+     <figure>
+      <title>S800 Trigger GUI</title>
+      <mediaobject>
+	 <imageobject>
+	    <imagedata fileref='s800trigger.jpg' format='JPEG' />
+	 </imageobject>
+      </mediaobject>
+     </figure>
+     <variablelist>
 	    <varlistentry>
 	      <term><command>-pcDelay</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware pcDelay parameter). Default is 0.
+                        Primary S800 Gate and delay generator delay value
+			in units of 25ns.  This is for the green box at the left
+			of the top branch of the trigger logic.
+			Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7189,7 +7207,10 @@ if "-eventwiseClear" is true
 	      <term><command>-pcWidth</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware pcWidth parameter). Default is 0.
+			Primary S800 Gate and delay generator width value in
+			units of 25 ns. This is for the green box at the left of
+			the top branch of the trigger logic.
+			Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7197,7 +7218,10 @@ if "-eventwiseClear" is true
 	      <term><command>-scDelay</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware scDelay parameter). Default is 0.
+			Secondary gate and delay generator delay value
+			in 25ns units.  This is for the green box to the
+			left of the bottom branch of the trigger logic.
+			Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7205,15 +7229,30 @@ if "-eventwiseClear" is true
 	      <term><command>-scWidth</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware scWidth parameter). Default is 0.
+			Secondary gate and delay generator width
+			in 25ns units.  This is for the green box to the
+			left of the bottom branch of the trigger logic.
+			Default is 0.
 		    </para>
 	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><command>-psDelay</command></term>
+		<listitem>
+		    <para>
+		     Delay length in units of 25ns for the delay generator
+		     (pink box) in the primary trigger branch of the logic.
+		     Default is 0.
+		    </para>
+		</listitem>
 	    </varlistentry>
 	    <varlistentry>
 	      <term><command>-ccWidth</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware ccWidth parameter). Default is 0.
+		     Width of the coincidence gate (yellow box
+		     after the AND in the middle of the trigger
+		     logic) in 25ns units.  Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7221,7 +7260,10 @@ if "-eventwiseClear" is true
 	      <term><command>-ssDelay</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware ssDelay parameter). Default is 0.
+			 Length of delay in 25ns units for the delay generator
+			 in the secondary trigger.  This is the pink box
+			 at the bottom of the trigger GUI.
+			 Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7229,7 +7271,9 @@ if "-eventwiseClear" is true
 	      <term><command>-bypasses</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware bypassses parameter). Default is 0.
+			Bitmask of bypasses (check boxes on various elements
+			of the trigger logic). 
+			Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7237,7 +7281,8 @@ if "-eventwiseClear" is true
 	      <term><command>-pdFactor</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware pdFactor parameter). Default is 0.
+			S800 downscale value (the blue box at the top
+			middle of the trigger GUI). Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7245,7 +7290,8 @@ if "-eventwiseClear" is true
 	      <term><command>-sdFactor</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware sdFactor parameter). Default is 0.
+                      Secondary trigger scaledown value (the blue box
+		      at the bottom middle of the trigger GUI). Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7253,7 +7299,8 @@ if "-eventwiseClear" is true
 	      <term><command>-triggerBox</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware triggerBox parameter). Default is 0.
+			Bit mask for the check boxes in the
+			<literal>Trigger Box</literal>. Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7261,7 +7308,8 @@ if "-eventwiseClear" is true
 	      <term><command>-inspect1</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware inspect1 parameter). Default is 0.
+                        Selects the wire number routed to the inpect 1
+			output. Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7269,7 +7317,8 @@ if "-eventwiseClear" is true
 	      <term><command>-inspect2</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware inspect2 parameter). Default is 0.
+			Selects the wire number routed to the
+			inspect 2 output. Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7277,7 +7326,8 @@ if "-eventwiseClear" is true
 	      <term><command>-inspect3</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware inspect3 parameter). Default is 0.
+			Selects the wire number routed to the
+			inspect 3 output. Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7285,7 +7335,8 @@ if "-eventwiseClear" is true
 	      <term><command>-inspect4</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware inspect4 parameter). Default is 0.
+			Selects the wire number routed to the
+			inspect 4 output. Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7293,7 +7344,10 @@ if "-eventwiseClear" is true
 	      <term><command>-adcWidth</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware adcWidth parameter). Default is 0.
+		     Selects the width of the output from the
+		     ADC Gate generator (see the yellow boxes to the
+		     right of the trigger GUI).
+		     Units are 25ns. Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7301,7 +7355,10 @@ if "-eventwiseClear" is true
 	      <term><command>-qdcWidth</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware qdcWidth parameter). Default is 0.
+			Sets the width (in 25 ns units) of the
+			gate generator for the QDC.  See the
+			yellow boxes at the right of the trigger
+			GUI. Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7309,7 +7366,9 @@ if "-eventwiseClear" is true
 	      <term><command>-tdcWidth</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware tdcwidth parameter . Default is 0.
+			Sets the width of the TDC gate generator in
+			25ns units.  See the yellow boxes at the
+			right of the trigger GUI. Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -7317,7 +7376,8 @@ if "-eventwiseClear" is true
 	      <term><command>-coincWidth</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Unknown (firmware coincWidth parameter). Default is 0.
+			Sets the width of the coincidence gate generator
+			in 25ns units.  Default is 0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
