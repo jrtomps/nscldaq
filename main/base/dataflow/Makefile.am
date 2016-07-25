@@ -31,7 +31,7 @@ libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp
 libRingBuffer_la_DEPENDENCIES = libDataFlow.la
 
-libRingBuffer_la_LIBADD  = 	@top_builddir@/base/dataflow/libDataFlow.la 
+libRingBuffer_la_LIBADD  = 	@builddir@/libDataFlow.la 
 
 libRingBuffer_la_LDFLAGS = 	@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) \
 				-version-info $(SOVERSION) \
@@ -69,7 +69,7 @@ stdintoringsw.h: stdintoringsw.ggo
 	@GENGETOPT@ <@srcdir@/stdintoringsw.ggo \
 		--output-dir=@builddir@ --file=stdintoringsw --unamed-opts
 
-ringtostdout_LDADD	=  libDataFlow.la \
+ringtostdout_LDADD	=  @builddir@/libDataFlow.la \
 			@LIBEXCEPTION_LDFLAGS@	\
 			@top_builddir@/base/os/libdaqshm.la	\
 			$(THREADLD_FLAGS) -lrt
@@ -83,7 +83,7 @@ stdintoring_DEPENDENCIES = libDataFlow.la
 
 
 
-stdintoring_LDADD	=  libDataFlow.la	\
+stdintoring_LDADD	=  @builddir@/libDataFlow.la	\
 			@top_builddir@/base/os/libdaqshm.la	\
 			@LIBEXCEPTION_LDFLAGS@ \
 			$(THREADLD_FLAGS) -lrt
@@ -102,7 +102,7 @@ unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.
 		ManageTest.cpp WhilePredTest.cpp crmastertests.cpp RemoteTests.cpp
 
 unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) \
-			-lDataFlow		\
+			@builddir@/libDataFlow.la		\
 			@top_builddir@/base/os/libdaqshm.la	\
 			@LIBEXCEPTION_LDFLAGS@	\
 			-lrt
@@ -113,7 +113,7 @@ unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
 producer_SOURCES	=	producer.cpp
 
-producer_LDADD    = -L@prefix@/lib libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
+producer_LDADD    = -L@prefix@/lib @builddir@/libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
 
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
@@ -121,7 +121,7 @@ producer_CPPFLAGS=$(COMPILATION_FLAGS)
 
 consumer_SOURCES	=	consumer.cpp
 
-consumer_LDADD    = -L@prefix@/lib libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
+consumer_LDADD    = -L@prefix@/lib @builddir@/libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
 
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 

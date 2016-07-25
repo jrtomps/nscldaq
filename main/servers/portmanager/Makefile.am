@@ -71,7 +71,7 @@ EXTRA_DIST =$(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(PYTHON_PACKAGES) $(PYTHON_TE
 noinst_PROGRAMS = cpptest
 
 cpptest_SOURCES = cpptest.cpp
-cpptest_LDADD= -L. -lPortManager @LIBEXCEPTION_LDFLAGS@
+cpptest_LDADD= @builddir@/libPortManager.la @LIBEXCEPTION_LDFLAGS@
 cpptest_CPPFLAGS = $(COMPILATION_FLAGS)
 
 

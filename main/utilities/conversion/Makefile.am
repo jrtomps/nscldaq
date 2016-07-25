@@ -59,7 +59,7 @@ unittests_SOURCES = TestRunner.cpp \
 		    c10p0to8p0mediatortests.cpp
 
 unittests_LDADD	= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
-                   @top_builddir@/utilities/conversion/libConversion.la	\
+                   @builddir@/libConversion.la	\
                    @top_builddir@/utilities/Buffer/libbuffer.la	\
 		   @top_builddir@/utilities/format/V8/libdataformatv8.la	\
 		   @top_builddir@/utilities/format/V10/libdataformatv10.la	\

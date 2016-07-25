@@ -47,7 +47,7 @@ INCLUDES		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
 
 
 
-libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
+libVMUSBRemote_la_LIBADD = @builddir@/libVMUSB.la \
 	@TCL_LDFLAGS@ \
 	@top_builddir@/base/tcpip/libTcp.la \
 	@LIBEXCEPTION_LDFLAGS@  @THREADLD_FLAGS@
@@ -63,7 +63,7 @@ tests_CPPFLAGS = -std=c++11 -g -I@prefix@/include -I@top_srcdir@/base/thread \
 		$(CPPUNIT_INCLUDES)
 tests_LDADD = @top_builddir@/base/thread/libdaqthreads.la \
 		$(CPPUNIT_LDFLAGS) \
-		-L@prefix@/usb -lVMUSB \
+		@builddir@/libVMUSB.la \
 		 @TCL_LDFLAGS@ \
 		 @LIBTCLPLUS_LDFLAGS@
 
@@ -92,7 +92,7 @@ unittests_SOURCES = $(UNITTEST_MODULES)
 
 unittests_CPPFLAGS = -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES)
 unittests_LDADD = $(CPPUNIT_LDFLAGS) \
-								 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la  \
+								 	@builddir@/libVMUSB.la  \
 									@TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
 unittests_LDFLAGS = -Wl,"-rpath=@prefix@/lib"
 
@@ -120,7 +120,7 @@ check-TESTS :  unittests
 # Swig interface generation:
 
 libCVMUSB_la_SOURCES = @srcdir@/CVMUSB_wrap.cxx
-libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
+libCVMUSB_la_LIBADD  = @builddir@/libVMUSB.la @THREADLD_FLAGS@
 
 libCVMUSB_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
@@ -130,7 +130,7 @@ BUILT_SOURCES=@srcdir@/CVMUSB_wrap.cxx @srcdir@/CVMUSBReadoutList_wrap.cxx
 	@SWIG@ -c++ -outdir @srcdir@ -debug-classes -tcl -namespace -pkgversion 1.0 @srcdir@/CVMUSB.i
 
 libCVMUSBReadoutList_la_SOURCES = @srcdir@/CVMUSBReadoutList_wrap.cxx
-libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
+libCVMUSBReadoutList_la_LIBADD = @builddir@/libVMUSB.la @THREADLD_FLAGS@
 
 libCVMUSBReadoutList_la_CPPFLAGS=$(COMPILATION_FLAGS)
 

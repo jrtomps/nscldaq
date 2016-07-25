@@ -2,7 +2,7 @@ lib_LTLIBRARIES=libActions.la
 
 libActions_la_SOURCES=Actions.cpp
 libActions_la_CPPFLAGS = -I@top_srcdir@/base/thread @LIBTCLPLUS_CFLAGS@
-libActions_la_LDFLAGS  = @top_builddir@/base/thread/libdaqthreads.la @LIBEXCEPTION_LDFLAGS@
+libActions_la_LIBADD  = @top_builddir@/base/thread/libdaqthreads.la @LIBEXCEPTION_LDFLAGS@
 include_HEADERS = Actions.h
 
 install-exec-local:
@@ -28,7 +28,7 @@ noinst_PROGRAMS=testacts
 
 testacts_SOURCES=TestActionPackage.cpp
 testacts_CPPFLAGS=$(libActions_la_CPPFLAGS)
-testacts_LDFLAGS=@builddir@/libActions.la $(libActions_la_LDFLAGS) @TCL_LDFLAGS@
+testacts_LDADD = @builddir@/libActions.la $(libActions_la_LIBADD) @TCL_LDFLAGS@
 
 check-TESTS:
 	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl

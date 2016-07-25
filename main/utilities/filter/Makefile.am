@@ -96,7 +96,7 @@ unittests_SOURCES	= TestRunner.cpp  \
 #						oneshotmediatortests.cpp  
 
 unittests_LDADD		= \
-			@top_builddir@/utilities/filter/libfilter.la	\
+			@builddir@/libfilter.la	\
 			@top_builddir@/utilities/IO/libdaqio.la \
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/base/uri/liburl.la 	\
@@ -127,7 +127,7 @@ testapp_LDADD = -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/base/uri/liburl.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
-			@top_builddir@/utilities/filter/libfilter.la	\
+			@builddir@/libfilter.la	\
 			@LIBEXCEPTION_LDFLAGS@
 testapp_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 
