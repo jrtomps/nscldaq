@@ -1176,6 +1176,7 @@ snit::type Stopwatch {
     method reset {} {
         set elapsedTimeMs 0
         set startMs [clock milliseconds]
+        array unset calledAlarms 
         array set calledAlarms [list]
     }
     ##
@@ -1281,6 +1282,7 @@ snit::type Stopwatch {
     #    Invokes all the scripts set for this elapsed time.
     #
     method _callScripts {} {
+
         foreach name [array names alarms] {
             if {$name ni [array names calledAlarms]} {
                 if {$elapsedTimeMs > $name} {
