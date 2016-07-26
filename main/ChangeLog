@@ -1090,3 +1090,7 @@ Work on 11.0-rc11 begins
 	parameters.  Note that there are also opportunistic fixes to small
 	defects and formatting issues with the driver and documentation
 	source code.
+	* Bug #6082 - Fixes broken elapsed time clock. It was not actually 
+	updating its value after the first run.
+	* Bug #5900 - Modifies the Makefiles so that NSCLDAQ can build in
+	 parallel.
