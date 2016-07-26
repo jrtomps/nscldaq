@@ -1461,8 +1461,6 @@ proc ::ElapsedTime::enter  {from to} {
         $timer start
     } elseif {($from eq "Paused") && ($to eq "Active")} {
         $timer start
-    } elseif {$from  eq "Active"} {
-        $timer stop
     }
 }
 ##
@@ -1472,7 +1470,15 @@ proc ::ElapsedTime::enter  {from to} {
 #
 # @param from - state being left.
 # @param to   - State we are going to enter.
-proc ::ElapsedTime::leave  {from to} {}
+proc ::ElapsedTime::leave  {from to} {
+  
+    set timer [::ElapsedTime::getInstance]
+    if {$from  eq "Active"} {
+        $timer stop
+    } elseif {$to eq "NotReady"} {
+      catch {$timer stop; $timer reset }
+    }
+}
 
 
 
