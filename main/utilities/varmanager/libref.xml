@@ -517,6 +517,15 @@ catch (std::exception&amp; e) {
                     Errors are thrown as <classname>CVarDirTree::CException</classname>
                     objects.
                 </para>
+                <para>
+                  Note that as several database operations
+                  may be required to create a directory,
+                  a transaction is used to make this operation atomic with
+                  respect to the database.  Note as well that since
+                  transactions are not nestable by standard, if you are using
+                  a transaction in an upper layer of code you must be areful
+                  not to use mkdir within that transaction for that reason.
+                </para>
             </listitem>
         </varlistentry>
         <varlistentry>

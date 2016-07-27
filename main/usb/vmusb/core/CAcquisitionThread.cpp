@@ -565,10 +565,7 @@ CAcquisitionThread::endRun()
   pBuffer->s_bufferSize = pBuffer->s_storageSize;
   pBuffer->s_bufferType = TYPE_STOP;
   processBuffer(pBuffer);
-<<<<<<< HEAD
 
-} 
-=======
 }
 /**
  *   pauseRun    (Bug #5882)
@@ -594,7 +591,6 @@ DataBuffer* pBuffer   = gFreeBuffers.get();
   pBuffer->s_bufferType = TYPE_RESUME;
   processBuffer(pBuffer);  
 }
->>>>>>> master
 
 /*!
   Do a 'drastic purge' of the VM-USB.
