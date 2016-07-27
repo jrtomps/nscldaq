@@ -106,6 +106,8 @@ public:
     // Register I/O operations.
 public:
     void writeActionRegister(uint16_t value);
+    void  writeRegister(unsigned int address, uint32_t data);
+    uint32_t readRegister(unsigned int address);
 
     int readFirmwareID();
 
@@ -181,8 +183,6 @@ public:
  
 private:
 
-    void  writeRegister(unsigned int address, uint32_t data);
-    uint32_t readRegister(unsigned int address);
 
     std::string marshallList(CVMUSBReadoutList& list);
     size_t      marshallOutputData(void* pOutputBuffer, const char* reply, size_t maxOutputSize);

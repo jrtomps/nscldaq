@@ -297,9 +297,11 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
     throw 1;
   }
   else if (command == CControlQueues::PAUSE) {
+    pauseRun();
     pauseDaq();
 
   }
+
   else {
     // bad error:
 
@@ -429,9 +431,9 @@ CAcquisitionThread::pauseDaq()
       queues->Acknowledge();
       pState->setState(CRunState::Idle);
       throw 1;                 // Integer exception is exit.
-
     }
     else if (req == CControlQueues::RESUME) {
+      resumeRun();
       startDaq();
       queues->Acknowledge();
       pState->setState(CRunState::Active);
@@ -502,6 +504,11 @@ CAcquisitionThread::drainUsb()
   cerr << "Done finished\n";
 
 }
+/**
+ *  TODO:  beginRun, endRun, pauseRun, resumeRun item generation can be
+ *         factored into common code.
+ */
+
 /*!
    Emit a begin run buffer to the output thread.
    the key info in this buffer is just its type and timestamp.
@@ -526,6 +533,30 @@ CAcquisitionThread::endRun()
   DataBuffer* pBuffer   = gFreeBuffers.get();
   pBuffer->s_bufferSize = pBuffer->s_storageSize;
   pBuffer->s_bufferType = TYPE_STOP;
+  processBuffer(pBuffer);
+}
+/**
+ *  pauseRun
+ *     Called to emit a pause item.
+ */
+void
+CAcquisitionThread::pauseRun()
+{
+  DataBuffer* pBuffer   = gFreeBuffers.get();
+  pBuffer->s_bufferSize = pBuffer->s_storageSize;
+  pBuffer->s_bufferType = TYPE_PAUSE;
+  processBuffer(pBuffer);
+}
+/**
+ * resumeRun
+ *    Called to emit a resume item.
+ */
+void
+CAcquisitionThread::resumeRun()
+{
+  DataBuffer* pBuffer   = gFreeBuffers.get();
+  pBuffer->s_bufferSize = pBuffer->s_storageSize;
+  pBuffer->s_bufferType = TYPE_RESUME;
   processBuffer(pBuffer);
 }
 /**

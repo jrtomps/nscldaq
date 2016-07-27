@@ -23,6 +23,8 @@
 #include <time.h>
 #include <signal.h>
 #include <stdexcept>
+#include <netdb.h>
+
 
 static const unsigned NSEC_PER_SEC(1000000000); // nanoseconds/second.
 
@@ -158,4 +160,32 @@ int Os::checkNegativeStatus(int returnStatus)
   }
 
   return returnStatus;
+}
+/**
+ * getfqdn
+ *    Return the fully qualified domain name of a host.
+ *
+ *  @param host - the host name to lookup.  Note that this can be either
+ *                a partially or fully qualified domain name.
+ *  @return std::string - Fully qualified domain name.
+ *  @throw std::string  - If the gethostbyname_r call fails.  This
+ *                        could happen for a few reasons including:
+ *                        *  No DNS server available.
+ *                        *  The input host does not exist.
+ */
+std::string
+Os::getfqdn(const char* host)
+{
+  struct hostent result;
+  struct hostent* pResult;
+  char   buffer[8192];                 // Ought to be big enough.
+  int    errorCode;
+  
+  gethostbyname_r(
+    host, &result, buffer, sizeof(buffer), &pResult, &errorCode
+  );
+  if (!pResult) {
+    throw std::string(hstrerror(errorCode));
+  }
+  return result.h_name;
 }

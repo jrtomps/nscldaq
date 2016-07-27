@@ -1,3 +1,4 @@
+
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2013.
 #
@@ -3095,11 +3096,11 @@ snit::widgetadaptor ReadoutGUI {
             -title {Choose script file}             \
             -filetypes [list                        \
                 [list {Tcl Scripts} {.tcl}]         \
-                [list {Tk Scripts}  {.tk"}]         \
+                [list {Tk Scripts}  {.tk}]         \
                 [list {All Files}    *]             \
             ]]
         #
-        #  The dialog returns "" if cancel is clicked
+        #  The dialog returns an empty string if cancel is clicked
         #
         if {$scriptPath ne ""} {
             uplevel #0 source $scriptPath

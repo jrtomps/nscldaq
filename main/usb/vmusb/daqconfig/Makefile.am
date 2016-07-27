@@ -171,7 +171,8 @@ cmdtests_SOURCES=TestRunner.cpp Asserts.h ad811test.cpp \
 
 
 cmdtests_CXXFLAGS=@CPPUNIT_CFLAGS@ $(libVMUSBDaqConfig_la_CXXFLAGS) $(libVMUSBDaqConfig_la_CPPFLAGS)
-cmdtests_LDFLAGS=@CPPUNIT_LDFLAGS@ libVMUSBDaqConfig.la $(libVMUSBDaqConfig_la_LIBADD)
+cmdtests_LDFLAGS=@CPPUNIT_LDFLAGS@ 
+cmdtests_LDADD=@builddir@/libVMUSBDaqConfig.la $(libVMUSBDaqConfig_la_LIBADD)
 
 TESTS=cmdtests
 

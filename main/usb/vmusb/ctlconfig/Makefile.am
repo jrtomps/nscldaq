@@ -121,14 +121,14 @@ unittests_CXXFLAGS = \
 			$(CPPUNIT_INCLUDES)
 
 unittests_LDADD = \
-			@top_builddir@/usb/vmusb/ctlconfig/libVMUSBCtlConfig.la \
+			@builddir@/libVMUSBCtlConfig.la \
 			@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 			@TCL_LDFLAGS@ \
 			@LIBTCLPLUS_LDFLAGS@  \
 			@CPPUNIT_LDFLAGS@
 
 unittests_DEPENDENCIES = \
-			@top_builddir@/usb/vmusb/ctlconfig/libVMUSBCtlConfig.la 
+			@builddir@/libVMUSBCtlConfig.la 
 		  
 check-TESTS: 
 		./unittests

@@ -485,6 +485,7 @@ CVMUSB::readScalerB()
       between 1 and 4.  1 is ISV12, 2 ISV34 ... 4 ISV78.
     \param value : uint32_t
        The new value to write to the register.
+       Note that the VMUSB supports 16 bit vectors.
 
     \throw string  - if the which value is illegal.
 */
@@ -495,12 +496,7 @@ CVMUSB::writeVector(int which, uint32_t value)
     writeRegister(regno, value);
     unsigned int regIndex = 2*((regno - ISV12)/sizeof(uint32_t))+1;
     m_regShadow.interruptVectors[regIndex] = value;
-    // Horrible kluge... 
-    // set the tops of the vectors to 0xfffffff in keeping with what 8bit
-    // interrupters (the only type  I know of) require).
 
-    writeRegister(USBVHIGH1, 0xffffffff);
-    writeRegister(USBVHIGH2, 0xffffffff);
 }
 
 

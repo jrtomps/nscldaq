@@ -96,3 +96,5 @@ static const int TYPE_START(1);
 static const int TYPE_STOP(2);
 static const int TYPE_EVENTS(3);
 static const int TYPE_STRINGS(4);
+static const int TYPE_PAUSE(5);           // Pause/resume for Bug #5882
+static const int TYPE_RESUME(6);

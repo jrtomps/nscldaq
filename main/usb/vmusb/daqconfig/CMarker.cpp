@@ -71,7 +71,9 @@ CMarker::onAttach(CReadoutModule& configuration)
 {
   m_pConfiguration = &configuration;
 
-  m_pConfiguration->addParameter("-value", CConfigurableObject::isInteger, &valueLimits, "0");
+  m_pConfiguration->addParameter(
+    "-value", CConfigurableObject::isInteger, &valueLimits, "0"
+  );
 
 }
 /*!

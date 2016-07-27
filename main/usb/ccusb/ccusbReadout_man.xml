@@ -27,7 +27,7 @@ addtcldriver <replaceable>tcl-command</replaceable>
            </para>
            <para>
                 The <parameter>tcl-command</parameter> is the command
-                to regsiter.
+                to register.
            </para>
         </refsect1>
         <refsect1>
@@ -124,6 +124,10 @@ ad811 cget <replaceable>module-name</replaceable>
 			   module should be unique.  This option allows you
 			   to set the virtual slot number for the module.
 		     </para>
+		     <para>
+			The default value for this parameter i
+			<literal>0</literal>
+		     </para>
 		     </listitem>
 	       </varlistentry>
 	       <varlistentry>
@@ -136,6 +140,11 @@ ad811 cget <replaceable>module-name</replaceable>
 			left, with an increasing slot number towards the right.
 			The right two slots are reserved for the CAMAC Crate
 			controller (in our case a CC-USB).
+		     </para>
+		     <para>
+			The default for <option>-slot</option> which is not
+			a legal CAMAC slot.  You must therefore explicitly
+			configure this parameter.
 		     </para>
 		  </listitem>
 	       </varlistentry>
@@ -240,6 +249,11 @@ c1205 config <replaceable>module-name</replaceable>
 	       a warning, if the slot <literal>n</literal> is empty.
 	       This parameter must be provided.
 	    </para>
+	    <para>
+		<option>-slot</option> defaults to <literal>0</literal> which
+		is illegal and therefore forces you to explicitly configure this
+		option.
+	    </para>
 	 </listitem>
 	 </varlistentry>
 	 <varlistentry>
@@ -274,13 +288,17 @@ c1205 config <replaceable>module-name</replaceable>
 		  set to one which enables pedestal subtraction from the input
 		  signal.
 	       </para>
+	       <para>
+		The default is <literal>true</literal> which enables the
+		pedestals.
+	       </para>
 	    </listitem>
 	 </varlistentry>
 	 <varlistentry>
 	    <term><option>-hires</option> <replaceable>true|false</replaceable></term>
 	    <listitem>
 	       <para>
-		  The value of this configuration parameter determins how
+		  The value of this configuration parameter determines how
 		  bit 16 of the module control status register is
 		  initialized.  If <literal>true</literal> (default value)
 		  the bit is set to zero enabling high resolution mode.
@@ -314,6 +332,10 @@ c1205 config <replaceable>module-name</replaceable>
 		  Provides a list of 16 integers (0-4095) which are subtracted
 		  from the data values to  produce the low range value.
 	       </para>
+	       <para>
+		The default value of <option>-lopedestals</option> is
+		a list of 16 <literal>0</literal> values.
+	       </para>
 	    </listitem>
 	 </varlistentry>
 	 <varlistentry>
@@ -323,6 +345,10 @@ c1205 config <replaceable>module-name</replaceable>
 		  Same  as <option>-lopedestals</option> but the pedestals
 		  are applied to the mid level conversion.
 	       </para>
+	       <para>
+		The default value for <option>-lopdestals</option> is a list of
+		16 <literal>0</literal> values. 
+	       </para>
 	    </listitem>
 	 </varlistentry>
 	 <varlistentry>
@@ -331,6 +357,9 @@ c1205 config <replaceable>module-name</replaceable>
 	       <para>
 		  Same as <option>-lopedestals</option> but the pedestals
 		  are applied to the low level conversion.
+	       </para>
+	       <para>
+		Defaults to a list of 16 <literal>0</literal> values.
 	       </para>
 	    </listitem>
 	 </varlistentry>
@@ -466,6 +495,12 @@ c257 cget <replaceable>name</replaceable>
 	       be correct or else the software will not be able to
 	       communicate with the module.
 	    </para>
+	    <para>
+		 The default <option>-slot</option> value is
+		 <literal>0</literal> which is not a legal slot.
+		 The <option>-slot</option> is therefore a mandatory
+		  configuration parameter.
+	      </para>
 	 </listitem>
       </varlistentry>
       <varlistentry>
@@ -480,6 +515,9 @@ c257 cget <replaceable>name</replaceable>
 	       stack and is intended as latent support for using the
 	       scaler in an event stack (e.g. for supplying an event
 	       timestamp).
+	      </para>
+	      <para>
+		Defaults to <literal>0</literal>.
 	      </para>
 	  </listitem>
       </varlistentry>
@@ -511,6 +549,12 @@ c257 cget <replaceable>name</replaceable>
 	       If <literal>false</literal> the module is read via 16
 	       F0's directed at specific subaddresses followed by an
 	       F9 to reset the counters.
+	      </para>
+	      <para>
+		Since the scaler values are not guaranteed to be good and stable
+		(due to carries from individual counters), it is not reliable
+		to read this scaler while it is incrementing.  Inhibiting the
+		crate will, among other things, inhibit the scaler from counting.
 	      </para>
 	  </listitem>
       </varlistentry>
@@ -594,6 +638,9 @@ ccusb cget name
                         of values accepted for <option>-gdgasource</option>
                         are accepted for this option.
                     </para>
+		    <para>
+			Defaults to <literal>disabled</literal>
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -604,6 +651,9 @@ ccusb cget name
                         This can be a value from <literal>0</literal> through
                         <literal>0xffff</literal> and is in 10ns units.
                     </para>
+		    <para>
+			Defaults to <literal>1</literal>, or 10ns.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -612,6 +662,9 @@ ccusb cget name
                     <para>
                         Sets the output width of the B gate and delay generator.
                     </para>
+		    <para>
+			Defaults to <literal>1</literal>, or 10ns.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -625,6 +678,9 @@ ccusb cget name
                         <literal>DGG_A</literal> register and the
                         <literal>DGG_Ext</literal> register.
                     </para>
+		    <para>
+			Defaults to <literal>0</literal>
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -633,6 +689,9 @@ ccusb cget name
                     <para>
                         Sets the output delay on the B gdg output.
                     </para>
+		    <para>
+			Defaults to <literal>0</literal>
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -649,6 +708,9 @@ ccusb cget name
                         <literal>event, busy, usboutnotempty</literal> and
                         <literal>usbinnotfull</literal>
                     </para>
+		    <para>
+			The default value is <literal>event</literal>
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -658,6 +720,9 @@ ccusb cget name
                         This boolean parameter, if <literal>true</literal>
                         inverts the sense of the red front panel LED.
                     </para>
+		    <para>
+			By default this is <literal>false</literal>
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -667,6 +732,9 @@ ccusb cget name
                         If true, this boolean parameter latches the red front panel
                         LED on once the condition required to ligth it is met.
                     </para>
+		    <para>
+			By default this is <literal>false</literal>
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -680,13 +748,17 @@ ccusb cget name
                         <literal>acquire, nimi1, nimi2, usbinnotemtpy</literal>
                         and <literal>usbtrigger</literal>.
                     </para>
+		    <para>
+			The default is <literal>acquire</literal>.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>-greeninvert</option></term>
                 <listitem>
                     <para>
-                        Inverts the sense of the green front panel LED.
+                        Boolean value that, when true, inverts the sense of the green front panel LED.
+			<literal>false</literal> by default
                     </para>
                 </listitem>
             </varlistentry>
@@ -694,9 +766,13 @@ ccusb cget name
                 <term><option>-greenlatch</option></term>
                 <listitem>
                     <para>
-                        Latches the green LED on when the condition to light it
+                        Boolean value that, when true, latches the green LED on
+			when the condition to light it
                         is met.
                     </para>
+		    <para>
+			<literal>false</literal> by default.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -709,8 +785,32 @@ ccusb cget name
                         <literal>nimi1, nimi3, busy</literal> or
                         <literal>usbinfifionotempty</literal>.
                     </para>
+		    <para>
+			By default this is <literal>nimi2</literal>
+		    </para>
                 </listitem>
             </varlistentry>
+	    <varlistentry>
+		<term><option>-yellowinvert</option></term>
+		<listitem>
+		    <para>
+			Boolean parameter (default <literal>false</literal>).
+			When true the yellow led shows the inverse of the
+			condition selected vai <option>-yellow</option>
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><option>-yellowlatch</option></term>
+		<listitem>
+		    <para>
+			Boolean parameter (default <literal>false</literal>).
+			When true, the yellow light latches on when its
+			condition (modified by <option>-yellowinvert</option>)
+			is met.
+		    </para>
+		</listitem>
+	    </varlistentry>
             <varlistentry>
                 <term><option>-scalara</option></term>
                 <listitem>
@@ -724,6 +824,9 @@ ccusb cget name
                         24 bits of a 48 bit scaler with the B scaler the least
                         significant 24 bits.
                     </para>
+		    <para>
+			Defaults to <literal>disabled</literal>
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -739,6 +842,9 @@ ccusb cget name
                         24 bits of a 48 bit scaler with the A scaler the least
                         significant 24 bits.
                     </para>
+		    <para>
+			Defaults to <literal>disabled</literal>
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -752,13 +858,16 @@ ccusb cget name
                         <literal>busy, event, gdga</literal> or
                         <literal>gdgb</literal>.
                     </para>
+		    <para>By default, this parameter is <literal>busy</literal></para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>-out1invert</option></term>
                 <listitem>
                     <para>
-                        Inverts the sense of the O1 NIM output.
+                        Boolean value that when
+			<literal>true</literal>nverts the sense of the O1 NIM output.
+			The default value is <literal>false</literal>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -766,8 +875,12 @@ ccusb cget name
                 <term><option>-out1latch</option></term>
                 <listitem>
                     <para>
-                        Latches the state of O1 once the condition needed to
+                        Boolean value that when
+			<literal>true</literal> latches the state of O1 once
+			the condition needed to
                         make it a logic true has been detected.
+			The default value of this parameter is
+			<literal>false</literal>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -782,13 +895,20 @@ ccusb cget name
                         <literal>acquire, event, gdga, </literal> or
                         <literal>gdgb</literal>.
                     </para>
+		    <para>
+			The default value for this parameter is
+			<literal>event</literal>, that is a pulse is emitted
+			when an event trigger (IN1) occurs.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>-out2invert</option></term>
                 <listitem>
                     <para>
-                        Inverts the sense of the O2 NIM output.
+                        This boolean parameter inverts the sense of the O2 NIM output
+			when <literal>true</literal>.   By default, the value
+			is <literal>false</literal>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -796,11 +916,16 @@ ccusb cget name
                 <term><option>-out2latch</option></term>
                 <listitem>
                     <para>
-                        Latches the NIM O2 state when the condition to assert
+                        This boolean value, latches the NIM O2 state if
+			<literal>true</literal> when the condition to assert
                         it has been met.  This condition is determined by
                         both <option>-out2</option> and
                         <option>-out2invert</option>.
                     </para>
+		    <para>
+			By default, the value of this parameter is
+			<literal>false</literal>.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -813,13 +938,20 @@ ccusb cget name
                         values: <literal>busyend, busy, gdga, </literal> or
                         <literal>gdgb</literal>.
                     </para>
+		    <para>
+			The default value of this parameter is
+			<literal>busyend</literal>, a pulse is emitted
+			when the busy is released after processing a stack.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>-o3invert</option></term>
                 <listitem>
                     <para>
-                        Inverts the condition that asserts O3.
+                        This boolean parameter inverts the condition that asserts O3
+			when set to <literal>true</literal>.  By default the
+			value is <literal>false</literal>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -827,8 +959,10 @@ ccusb cget name
                 <term><option>-o3latch</option></term>
                 <listitem>
                     <para>
-                        Latches O3 in the asserted state when the condition
-                        to assert it is met.
+                        Boolean that when <literal>true</literal>
+			latches O3 in the asserted state when the condition
+                        to assert it is met.  By default, this value is
+			<literal>false</literal>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -838,7 +972,8 @@ ccusb cget name
                     <para>
                         Boolean that when true enables the readout of the A and
                         B scalers in the stack this module is in.  The A scaler
-                        is read first then the B scaler.  
+                        is read first then the B scaler.   Defaults to
+			<literal>false</literal>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -852,6 +987,9 @@ ccusb cget name
                         Note that in general some counts may be lost as there
                         is no way to atomically read and clear the scaler counters.
                     </para>
+		    <para>
+			Defaults to <literal>false</literal>.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -870,6 +1008,10 @@ ccusb cget name
                         The user must specify the <literal>-bulktransfertimeout</literal>
                         option for this mode. 
                    </para>
+		    <para>
+			Defaults to <literal>default</literal> as that value
+			implies.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -880,6 +1022,14 @@ ccusb cget name
                       bundle in a given usb bulk write. This must be a number between
                       1 and 255.
                     </para>
+		    <para>
+			Defaults to <literal>-1</literal> which is not a legal
+			value, making this parameter mandatory when
+			<option>-bulktransfermode</option> is
+			<literal>nbuffers</literal>.  If not set in that mode,
+			an error will be emitted when the run is started and
+			the run will not start.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -890,6 +1040,15 @@ ccusb cget name
                         Values are between 0 and 15 and specify the number of seconds 
                         beyond 1 second to timeout.
                     </para>
+		    <para>
+			Defaults to <literal>-1</literal> which is not a legal
+			value.  It is therefor mandatory to set the
+			value of this option when
+			<option>-bulktransfermode</option> is <literal>timeout</literal>.
+			If not configured in that mode an error message will
+			be emitted when the run is started and the run
+			will not start.
+		    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -898,7 +1057,10 @@ ccusb cget name
                     <para>
                         Enum that specifies the buffer size used by the CCUSB. This can
                         be any of the following values: 4096, 2048, 1024, 512, 256, 128, 
-                        64, singleevent
+                        64, singleevent.  Defaults to <literal>4096</literal>.
+			If your event rate is low, you may get better response
+			by reducing this value or even by setting it to
+			<literal>singleevent</literal>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -1041,7 +1203,11 @@ lrs2228 cget <replaceable>module-name</replaceable>
 			module has been installed (<parameter>camac_slot</parameter>).
 			This must match the physical slot the module has been
 			stuffed in in order to ensure the proper module is
-			initialized and reads.
+			initialized and reads.  
+		     </para>
+		     <para>
+			Defaults to <literal>0</literal> which is illegal,
+			making this a mandatory parameter.
 		     </para>
 		  </listitem>
 	       </varlistentry>
@@ -1061,6 +1227,7 @@ lrs2228 create tdc -slot 6 -id 4
 	      </example>
 	   </refsect1>
 	 </refentry>
+	 
 	 <refentry id="ccusb3-lrs2249">
 	   <refmeta>
 	      <refentrytitle>lrs2249</refentrytitle>
@@ -1148,6 +1315,10 @@ lrs2249 cget <replaceable>module-name</replaceable>
 			parameter must match the number of the slot in the
 			CAMAC crate in which the module is installed.
 		     </para>
+		     <para>
+			Defaults to <literal>0</literal> which is illegal,
+			making this a mandatory parameter.
+		     </para>
 		  </listitem>
 	       </varlistentry>
 	    </variablelist>
@@ -1227,6 +1398,9 @@ lrs2551 cget <replaceable>module-name</replaceable>
 			channel. This shoulid be false when used with the NSCLDAQ
 			scaler display program in the scaler stack.
 		     </para>
+		     <para>
+			Defaults to <literal>false</literal>.
+		     </para>
 		  </listitem>
 	       </varlistentry>
 	       <varlistentry>
@@ -1236,8 +1410,12 @@ lrs2551 cget <replaceable>module-name</replaceable>
 			Supplies the virtual slot number; <replaceable>vsn</replaceable>
 			for the module.  This only needs to be supplied if the
 			module is going to be read in the event stack.
-			Note that currently unpacking scaler data from the event
-			stack is not supported.
+			Note that currently VMUSBSpecTcl does not support
+			scaler data in the event
+			stack.
+		     </para>
+		     <para>
+			Defaults to <literal>0</literal>
 		     </para>
 		  </listitem>
 	       </varlistentry>
@@ -1262,6 +1440,10 @@ lrs2551 cget <replaceable>module-name</replaceable>
 			When installed in the CAMAC crate, the module should
 			be inserted in the <parameter>slot</parameter> specified
 			by this option.
+		     </para>
+		     <para>
+			Defaults to the illegal value of <literal>0</literal>,
+			making this a required configuration parameter.
 		     </para>
 		  </listitem>
 		  </varlistentry>
@@ -1342,7 +1524,8 @@ marker cget <replaceable>name</replaceable>
                  <para>
                      Defines the unsigned integer 16 value that will be
                      inserted into the buffer when the
-                     marker is in a triggered stack.
+                     marker is in a triggered stack.  Defaults to
+		     <literal>0</literal>
                  </para>
              </listitem>
          </varlistentry>
@@ -1479,6 +1662,7 @@ ph7xxx cget <replaceable>name</replaceable>
                         <literal>disabled</literal> are all recognized as false
                         values.
                      </para>
+		     <para>Defaults to <literal>true</literal></para>
                   </listitem>
                   </varlistentry>
                   <varlistentry>
@@ -1509,6 +1693,7 @@ ph7xxx cget <replaceable>name</replaceable>
                         <literal>disabled</literal> are all recognized as false
                         values.
                      </para>
+			<para>Defaulst to <literal>true</literal></para>
                      </listitem>
                   </varlistentry>
                   <varlistentry>
@@ -1539,6 +1724,9 @@ ph7xxx config someadc -pedestals [list 20 20 20 20 20 20 20 20 20 20 20 20 20 20
                            by preceding a number with the text <literal>0x</literal>
                            or octal by preceding the number with a leading <literal>0</literal>.
                         </para>
+			<para>
+			    Defaults to a list of 16 <literal>0</literal> values.
+			</para>
                      </listitem>
                   </varlistentry>
                   <varlistentry>
@@ -1571,6 +1759,9 @@ ph7xxx config someadc -pedestals [list 20 20 20 20 20 20 20 20 20 20 20 20 20 20
                            above for more information about how to construct
                            this list.
                         </para>
+			<para>
+			    Defaults to a list of 16 <literal>0</literal> values.
+			</para>
                      </listitem>
                   </varlistentry>
                   <varlistentry>
@@ -1599,6 +1790,7 @@ ph7xxx config someadc -pedestals [list 20 20 20 20 20 20 20 20 20 20 20 20 20 20
                         <literal>disabled</literal> are all recognized as false
                         values.
                      </para>
+		       <para>Defaults to <literal>false</literal></para>
                      </listitem>
                   </varlistentry>
                   <varlistentry>
@@ -1627,6 +1819,7 @@ ph7xxx config someadc -pedestals [list 20 20 20 20 20 20 20 20 20 20 20 20 20 20
                         <literal>disabled</literal> are all recognized as false
                         values.
                      </para>
+		       <para>Defaults to <literal>false</literal></para>
                      </listitem>
                   </varlistentry>
                   <varlistentry>
@@ -1653,6 +1846,7 @@ ph7xxx config someadc -pedestals [list 20 20 20 20 20 20 20 20 20 20 20 20 20 20
                         <literal>disabled</literal> are all recognized as false
                         values.
                      </para>
+		       <para>Defaults to <literal>false</literal></para>
                      </listitem>
                   </varlistentry>
               </variablelist>
@@ -1817,6 +2011,10 @@ stack cget <replaceable>name</replaceable>
                            by this stack.  See the EXAMPLES section below
                            for more information.
                         </para>
+			<para>
+			    The list defaults to empty which is not legal, making
+			    this a mandatory configuration parameter.
+			</para>
                      </listitem>
                   </varlistentry>
                </variablelist>
@@ -1831,7 +2029,8 @@ stack cget <replaceable>name</replaceable>
                      <listitem>
                         <para>
                            Specifies the mask of LAMs that can trigger the list.
-                           I suggest leaving this value at zero, and deriving a
+                           I suggest leaving this value at zero (the default),
+			   and deriving a
                            trigger signal for the NIM IN1 input as the readout
                            trigger.
                         </para>
@@ -1860,6 +2059,11 @@ stack cget <replaceable>name</replaceable>
                            has sufficient time to complete its digitization prior
                            to stack execution. Defaults to zero.
                         </para>
+			<para>
+			    Note that in general this value is not suitable
+			    as CAMAC digitizers often require a significant
+			    amount of time to convert after their triggers.
+			</para>
                      </listitem>
                   </varlistentry>
                </variablelist>
@@ -2103,7 +2307,11 @@ During stack execution initiated by an event trigger, the event-wise procedures 
 	      <term><command>-modules</command> <replaceable>list</replaceable></term>
 	      <listitem>
 		    <para>
-        Specify a proper tcl list of modules to be registered with this crate. these must all be compatible with a CC-USB controller. The order in which modules are listed will be the order in which each module is serviced. A single module can be registered to multiple CamacCrates. Default is an empty list. 
+        Specify a proper tcl list of modules to be registered with this crate.
+	These must all be compatible with a CC-USB controller. The order in
+	which modules are listed will be the order in which each module is
+	serviced. A single module can be registered to multiple CamacCrates.
+	Default is an empty list. 
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2123,7 +2331,9 @@ CamacCrate config crate0 -modules [list sclr]
          </programlisting>
       </example>
       <para>
-       Defines a camac crate with a single LeCroy2551 to operate on with a CBD8210 branch driver. This crate is labeled with index 1 on the branch and the branch is labeled with index 0.
+       Defines a camac crate with a single LeCroy2551 to operate on with a
+       CBD8210 branch driver. This crate is labeled with index 1 on the branch
+       and the branch is labeled with index 0.
       </para>
   </refsect1>
 </refentry>
@@ -2158,10 +2368,18 @@ LeCroy4300B cget <replaceable>name</replaceable>
   <refsect1>
      <title>DESCRIPTION</title>
   <para>
-  This provides control over a LeCroy 4300B FERA that lives in a crate controlled by a CC-USB. This is the counterpart to the CBDLeCroy4300B driver that is functional in the VMUSBReadout framework. The currently described driver needn't be registered to a CamacCrate to function. 
+  This provides control over a LeCroy 4300B FERA that lives in a crate
+  controlled by a CC-USB. This is the counterpart to the CBDLeCroy4300B driver
+  that is functional in the VMUSBReadout framework. The currently described
+  driver needn't be registered to a CamacCrate to function. 
   </para>
   <para>
-There are a number of options that are provided to ultimately control the command register of the device. The command register is what establishes how the FERA will read out its data. Two options must be specified to operate the device, -pedestals and slot. If either of these are not specified, the initialization of the module will fail. 
+There are a number of options that are provided to ultimately control the command
+register of the device. The command register is what establishes how the FERA
+will read out its data. Two options must be specified to operate the device,
+<option>-pedestals</option> and
+<option>-slot</option>. If either of these are not specified, the initialization
+of the module will fail. 
   </para>
 
   <para>
@@ -2174,7 +2392,10 @@ There are a number of options that are provided to ultimately control the comman
       <para> Write all pedestals passed to the -pedestal option </para>
      </listitem>
      <listitem>
-      <para> Compute the command register from user define options and write it to the module </para>
+      <para>
+	Compute the command register from user define options and write it
+	to the module
+      </para>
      </listitem>
   </orderedlist>
   </para>
@@ -2203,7 +2424,8 @@ There are a number of options that are provided to ultimately control the comman
 	      <term><command>-slot</command> <replaceable>value</replaceable></term>
 	      <listitem>
 		    <para>
-        Specifies the slot of the CAMAC crate the target module is occupying. DEFAULT is 1.
+        Specifies the slot of the CAMAC crate the target module is occupying.
+	DEFAULT is 1.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2211,7 +2433,10 @@ There are a number of options that are provided to ultimately control the comman
 	      <term><command>-pedestals</command> <replaceable>list</replaceable></term>
 	      <listitem>
 		    <para>
-          A proper tcl list of 16 integer parameters defining the pedestals for each of the 16 channels. The first element of the list will configure the first channel of the FERA, the second element will configure the second channel, and so on. REQUIRED
+          A proper tcl list of 16 integer parameters defining the pedestals for
+	  each of the 16 channels. The first element of the list will configure
+	  the first channel of the FERA, the second element will configure the
+	  second channel, and so on. REQUIRED.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2219,7 +2444,8 @@ There are a number of options that are provided to ultimately control the comman
 	      <term><command>-vsn</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-The virtual station number to associate with the target device. This will be included in the header if data compression is enabled. 
+The virtual station number to associate with the target device. This will be
+included in the header if data compression is enabled. 
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2227,7 +2453,8 @@ The virtual station number to associate with the target device. This will be inc
 	      <term><command>-eclpedsub</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-        	Specify whether to use pedestal subtraction in ECL port readout (aka. EPS). Default is false.
+        	Specify whether to use pedestal subtraction in ECL port readout
+		(aka. EPS). Default is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2235,7 +2462,8 @@ The virtual station number to associate with the target device. This will be inc
 	      <term><command>-eclcompression</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-          Specify whether to enable a data compression cycle before ECL port readout (aka. ECE). Default is false.
+          Specify whether to enable a data compression cycle before ECL port
+	  readout (aka. ECE). Default is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2243,7 +2471,8 @@ The virtual station number to associate with the target device. This will be inc
 	      <term><command>-eclenable</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-        	Specify whether to enable ECL port readout (aka. EEN). Default is false.
+        	Specify whether to enable ECL port readout (aka. EEN). Default
+		is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2251,7 +2480,8 @@ The virtual station number to associate with the target device. This will be inc
 	      <term><command>-camacpedsub</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-          Specify whether to use pedestal subtraction in CAMAC readout (aka. CPS). Default is false.
+          Specify whether to use pedestal subtraction in CAMAC readout
+	  (aka. CPS). Default is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2259,7 +2489,8 @@ The virtual station number to associate with the target device. This will be inc
 	      <term><command>-camaccompression</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-          Specify whether to enable a data compression cycle before CAMAC readout (aka. CCE). Default is false.
+          Specify whether to enable a data compression cycle before CAMAC
+	  readout (aka. CCE). Default is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2267,7 +2498,8 @@ The virtual station number to associate with the target device. This will be inc
 	      <term><command>-camacseqrdo</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-          Specify whether to configure the device for sequential readout in CAMAC (aka. CSR). Default is false.
+          Specify whether to configure the device for sequential readout in
+	  CAMAC (aka. CSR). Default is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2275,7 +2507,8 @@ The virtual station number to associate with the target device. This will be inc
 	      <term><command>-camaclam</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-          Specify whether the allow the device to emit a LAM when data is available to be read (aka. CLE). Default is false.
+          Specify whether the allow the device to emit a LAM when data is
+	  available to be read (aka. CLE). Default is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2283,7 +2516,8 @@ The virtual station number to associate with the target device. This will be inc
 	      <term><command>-overflowsuppress</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-          Specify whether to suppress output of overflows as well as zeros (aka. OAFS). Default is false.
+          Specify whether to suppress output of overflows as well as zeros
+	  (aka. OAFS). Default is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2304,7 +2538,8 @@ LeCroy4300B config fera -camacclear off
          </programlisting>
       </example>
       <para>
-        Sets up a LeCroy 4300B module with all pedestals 1 to be read out by the ECL ports. The FERA resides in slot 10.
+        Sets up a LeCroy 4300B module with all pedestals 1 to be read out by
+	the ECL ports. The FERA resides in slot 10.
       </para>
   </refsect1>
 </refentry>
@@ -2339,7 +2574,9 @@ LeCroy4434 cget <replaceable>name</replaceable>
   <refsect1>
      <title>DESCRIPTION</title>
     <para>
-The LeCroy4434 is intended to control a LeCroy 4434 scaler situated on in a crate controlled by a CC-USB. It is the counterpart to the CBDLeCroy4434 module that is functional in the VMUSBReadout framework. 
+The LeCroy4434 is intended to control a LeCroy 4434 scaler situated on in a
+crate controlled by a CC-USB. It is the counterpart to the CBDLeCroy4434 module
+that is functional in the VMUSBReadout framework. 
   </para>
 
   <para>
@@ -2355,7 +2592,8 @@ The CBDLeCroy4434 can be registered directly to a stack or to a CamacCrate.
   </para>
 
   <para>
-  During stack execution initiated by an event trigger, this driver will operate based on the following logic:
+  During stack execution initiated by an event trigger, this driver will operate
+  based on the following logic:
   <programlisting>
 
   Read all channels
@@ -2375,7 +2613,8 @@ The CBDLeCroy4434 can be registered directly to a stack or to a CamacCrate.
 	      <term><command>-slot</command> <replaceable>value</replaceable></term>
 	      <listitem>
 		    <para>
-        Specifies the slot of the CAMAC crate the target module is occupying. Default is 1.
+        Specifies the slot of the CAMAC crate the target module is occupying.
+	Default is 1.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2383,7 +2622,8 @@ The CBDLeCroy4434 can be registered directly to a stack or to a CamacCrate.
 	      <term><command>-incremental</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-          Specifies whether to clear the scalers on each event after latching them. Default is false.
+          Specifies whether to clear the scalers on each event after latching
+	  them. Default is false.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2433,7 +2673,11 @@ LeCroy2551 cget <replaceable>name</replaceable>
   <refsect1>
      <title>DESCRIPTION</title>
     <para>
-The LeCroy2551 is intended to control a LeCroy 2551 scaler situated on a crate controlled by a CC-USB. It is the counterpart to the CBDLeCroy4434 driver that lives in the VMUSBReadout framework. In this case, the LeCroy2551 can be registered directly to a stack and does not need to be registered first to a CamacCrate. There is no reason you cannot register it to a CamacCrate though.
+The LeCroy2551 is intended to control a LeCroy 2551 scaler situated on a crate
+controlled by a CC-USB. It is the counterpart to the CBDLeCroy4434 driver that
+lives in the VMUSBReadout framework. In this case, the LeCroy2551 can be
+registered directly to a stack and does not need to be registered first to a
+CamacCrate. There is no reason you cannot register it to a CamacCrate though.
   </para>
 
   <para>
@@ -2445,7 +2689,8 @@ The LeCroy2551 is intended to control a LeCroy 2551 scaler situated on a crate c
   </para>
 
   <para>
-  During stack execution initiated by an event trigger, all 12 scaler channels are read individually.
+  During stack execution initiated by an event trigger, all 12 scaler channels
+  are read individually.
   </para>
 
   </refsect1>
@@ -2458,7 +2703,8 @@ The LeCroy2551 is intended to control a LeCroy 2551 scaler situated on a crate c
 	      <term><command>-slot</command> <replaceable>value</replaceable></term>
 	      <listitem>
 		    <para>
-        Specifies the slot of the CAMAC crate the target module is occupying. Default is 1.
+        Specifies the slot of the CAMAC crate the target module is occupying.
+	Default is 1.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2508,11 +2754,18 @@ ULMTrigger cget <replaceable>name</replaceable>
   <refsect1>
      <title>DESCRIPTION</title>
     <para>
-The ULMTrigger is intended to control a LeCroy 2367 ULM situated in a crate controlled by a CC-USB. It is the counterpart to the CBDULMTrigger driver that lives in the VMUSBReadout framework. In this case, the ULMTrigger does not need to be registered first to a CamacCrate, though it still can be. Instead, it can be directly registered to a stack.
+The ULMTrigger is intended to control a LeCroy 2367 ULM situated in a crate
+controlled by a CC-USB. It is the counterpart to the CBDULMTrigger driver
+that lives in the VMUSBReadout framework. In this case, the ULMTrigger does
+not need to be registered first to a CamacCrate, though it still can be.
+Instead, it can be directly registered to a stack.
   </para>
 
   <para>
-Two options need to be specified to function properly. The first is firmware which defines the location of the firmware file to load. The second is the slot number in the camac crate it lives in. This will only work properly if running the usbtrig.bit firmware that Daniel Bazin has written. 
+Two options need to be specified to function properly. The first is firmware w
+hich defines the location of the firmware file to load. The second is the slot
+number in the camac crate it lives in. This will only work properly if running
+the usbtrig.bit firmware that Daniel Bazin has written. 
   </para>
 
   <para>
@@ -2524,7 +2777,8 @@ Two options need to be specified to function properly. The first is firmware whi
   </para>
 
   <para>
-  During stack execution initiated by an event trigger, the following logic is carried out:
+  During stack execution initiated by an event trigger, the following logic is
+  carried out:
 
   <programlisting>
 if "-registerRead" is true
@@ -2547,7 +2801,8 @@ if "-eventwiseClear" is true
 	      <term><command>-slot</command> <replaceable>value</replaceable></term>
 	      <listitem>
 		    <para>
-        Specifies the slot of the CAMAC crate the target module is occupying. Default is 1.
+        Specifies the slot of the CAMAC crate the target module is occupying.
+	Default is 1.
 		    </para>
 	       </listitem>
 	    </varlistentry>
@@ -2563,7 +2818,8 @@ if "-eventwiseClear" is true
 	      <term><command>-readRegister</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-        Specifies whether to add a hit register read into the event stack. Defaults to true.
+        Specifies whether to add a hit register read into the event stack.
+	Defaults to true.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -2571,7 +2827,8 @@ if "-eventwiseClear" is true
 	      <term><command>-eventwiseClear</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-        Specifies whether to send a clear command via the CAMAC dataway at the end of the event. Defaults to true.
+        Specifies whether to send a clear command via the CAMAC dataway at the
+	end of the event. Defaults to true.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -2579,7 +2836,12 @@ if "-eventwiseClear" is true
 	      <term><command>-forceFirmwareLoad</command> <replaceable>bool</replaceable></term>
 	      <listitem>
 		    <para>
-        By default, the ULM will only load the firmware if it fails to validate the configuration. This occurs always after a bad firmware load or after a crate has been power cycled. Firmware loads take a bit of time so it is worthwhile to skip reloading the firmware on every run. However, sometimes it may be considered useful. This option causes the firmware to be loaded at the start of EVERY run. Defaults to false.
+        By default, the ULM will only load the firmware if it fails to validate
+	the configuration. This occurs always after a bad firmware load or after
+	a crate has been power cycled. Firmware loads take a bit of time so it
+	is worthwhile to skip reloading the firmware on every run. However,
+	sometimes it may be considered useful. This option causes the firmware
+	to be loaded at the start of EVERY run. Defaults to false.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -2587,7 +2849,9 @@ if "-eventwiseClear" is true
 	      <term><command>-configuration</command> <replaceable>num</replaceable></term>
 	      <listitem>
 		    <para>
-        Specifies the number that will be used to validate a successful firmware configuration. This number is compared to the value returned by the function A=15 F=0.
+        Specifies the number that will be used to validate a successful firmware
+	configuration. This number is compared to the value returned by the
+	function A=15 F=0.
 		    </para>
 	      </listitem>
 	    </varlistentry>
@@ -4759,8 +5023,10 @@ Get <replaceable>name parameter</replaceable>
                     </term>
                     <listitem>
                         <para> 
-                            Reads the state of the dataway I line (inhibit). This is only
-                            meaningful if the firmware version is greater than 0x8e000601. Otherwise,
+                            Reads the state of the dataway I line (inhibit).
+			    This is only
+                            meaningful if the firmware version is greater than
+			    0x8e000601. Otherwise,
                             the behavior is undefined.
                         </para>
                     </listitem>
@@ -4825,7 +5091,8 @@ Get <replaceable>name parameter</replaceable>
                     </term>
                     <listitem>
                         <para>
-                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and CCCUSBRemote classes for
+                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and
+			    CCCUSBRemote classes for
                             implementation.
                         </para>
                         <para>
@@ -4861,7 +5128,8 @@ Get <replaceable>name parameter</replaceable>
                     </term>
                     <listitem>
                         <para>
-                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and CCCUSBRemote classes for
+                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and
+			    CCCUSBRemote classes for
                             implementation.
                         </para>
                         <para>
@@ -12621,7 +12889,7 @@ $l addWrite16 $n $a $f $d
                  <para>
                    The subaddress within a module.   A CAMAC modules is
                    defined to have 16 subaddresses numbered 0-15.
-                   Each module uses this set of subaddresses differently.\
+                   Each module uses this set of subaddresses differently.
                  </para>
                </listitem>
              </varlistentry>
@@ -12661,7 +12929,8 @@ $l addWrite16 $n $a $f $d
            (i.e. <parameter>host</parameter>), the
            port it listens for connections on (i.e. <parameter>port</parameter>), 
            and the name of the module loaded
-           into the slow-controls server (i.e. <parameter>module</parameter>) into a connection information database.
+           into the slow-controls server (i.e. <parameter>module</parameter>)
+	   into a connection information database.
            The <parameter>b</parameter> and <parameter>c</parameter> parameters are
            used to compute a unique index to associate the connection information
            to. For any given <parameter>b</parameter> and <parameter>c</parameter>

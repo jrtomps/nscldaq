@@ -377,6 +377,25 @@ $container <replaceable>methodname</replaceable>    ...
                     </para>
                 </listitem>
             </varlistentry>
+	    <varlistentry>
+	      <term><methodname>setSeriesPointLimit</methodname> <parameter>name n</parameter></term>
+	      <listitem>
+		<para>
+		  Sets a limit on the number of points that will be allowed for a series.
+		  This is most useful in strip charts.  When the number of points in a 
+		  series exceeds this limit, the series will be trimmed. 
+		  <parameter>name</parameter> specifies the series name and
+		  <parameter>n</parameter> is the number of points a series can have.
+		  The default for <parameter>n</parameter> if this method is not
+		  called to override it is <literal>2000000</literal>
+		</para>
+		<para>
+		  When a series is to be trimmed, every other point in the oldest 25% of the points
+		  is discarded.  In this way, a sense for the entire history of the data
+		  is retained, however at lower resolution for older data.
+		</para>
+	      </listitem>
+	    </varlistentry>
             <varlistentry>
                 <term>
                     <methodname>getSeriesMinMax </methodname> <parameter>left right</parameter>

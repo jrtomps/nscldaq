@@ -6,6 +6,7 @@ AC_PREREQ(2.61)
 AC_INIT(nscldaq, 11.2-001, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
 
 
+
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])

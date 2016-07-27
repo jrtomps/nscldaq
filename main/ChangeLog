@@ -1102,7 +1102,7 @@ Work on 11.0-rc11 begins
 11.1-004
 	* Feature #5663 Filter out rings in ringbuffer status - by default
 	show only those created by the current user.
-	* Feature #5792 Provide tracebacsk on control config file errors
+	* Feature #5792 Provide traceback on control config file errors
 	  in XXUSBReadout program.s
 	* Feature #4870 Documentation:
 	   *   Task #5834 - Document missing stuff in os/thread
@@ -1111,3 +1111,35 @@ Work on 11.0-rc11 begins
 	* Fixes bugs 5029 and 5032. SBS Readout emits PHYSICS_EVENT_COUNT
 	  and MONITORED_VARIABLE items with a body header to match the
 		behavior of scaler items. 
+
+11.1-005
+
+      * Bug #5958 - Add new SIS330x driver that works properly in modes other
+        than HiRA
+      * Bug #5453 - Fix elapsed time drift in ReadoutGUI elapsed time clock.
+      * Bug #5879 - Properly handle top 8 bits of interrupt status id
+	value. 
+      * Bug #5882 - VMUSBReadout - Pause and resume must emit pause and
+	resume ring items.
+      * Bug #5882 - CCUSBReadout - Pause and resume must emit pause and
+	resume ring items.
+      * Bug #5980 - Fix input range selection on MADC32 - had interchanged
+                    10V and 8 V input range selectors.
+      * Bug #5363 - Make proxy rings have the fully qualified host name
+	            of the actual ring source.  In this way, we prevent
+	            duplicate proxy/hoister pipelines via dumpers on e.g.
+	            tcp://spdaq20/0400x and
+	            tcp://spdaq20.nscl.msu.edu/0400x
+      * Bug #6067 - Only clear the bits we need to clear in the 
+	            interrupt mask for interrupt triggered stacks.
+      * Bug #5639 - Scaler display performance degraded over time when
+	doing strip charts.  Set the series trimlist limit from the
+	default of 2M to 20K. 
+      * Bug #5381 - Improve documentation of XXUSBReadout default
+	parameters.  Note that there are also opportunistic fixes to small
+	defects and formatting issues with the driver and documentation
+	source code.
+	* Bug #6082 - Fixes broken elapsed time clock. It was not actually 
+	updating its value after the first run.
+	* Bug #5900 - Modifies the Makefiles so that NSCLDAQ can build in
+	 parallel.

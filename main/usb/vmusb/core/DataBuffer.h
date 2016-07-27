@@ -93,4 +93,6 @@ static const int VMUSBStackIdShift(13);
 static const int TYPE_START(1);
 static const int TYPE_STOP(2);
 static const int TYPE_EVENTS(3);
-static const int TYPE_STRINGS(4); 
+static const int TYPE_STRINGS(4);
+static const int TYPE_PAUSE(5);             // Bug #5882
+static const int TYPE_RESUME(6);            // Bug #5882

@@ -62,7 +62,7 @@ static CConfigurableObject::Limits stackRange(stackLow, stackHigh);
 //         mulitiply it by 2.
 
 static CConfigurableObject::limit vectorLow(0);
-static CConfigurableObject::limit vectorHigh(0xff);
+static CConfigurableObject::limit vectorHigh(0xffff);    // 16bit vector (Bug #5879).
 static CConfigurableObject::Limits vectorRange(vectorLow, vectorHigh);
 
 // -delay is in the range 0 - 0xff  number of microseconds of delay 
@@ -142,7 +142,7 @@ Option           value type               Value meaning
 -delay            integer 0-0xff          Number of microseconds to delay between NIM 1
                                           and stack 0 start (allowance for conversion times
                                           of digitizers e.g.).
--vector           integer 0-0xff          VME Interrupt status/ID that will be used to trigger this list.
+-vector           integer 0-0xffff         VME Interrupt status/ID that will be used to trigger this list.
                                           This is ignored if the trigger is not interrupt.
 -ipl              integer 1-7             Interrupt priority level of the interrupt that will trigger
                                           this stack.  This will be ignored if the trigger is not 
@@ -185,7 +185,7 @@ CStack::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-delay",
 				 CConfigurableObject::isInteger, &delayRange, "0");
   m_pConfiguration->addParameter("-vector",
-				 CConfigurableObject::isInteger, &vectorRange);
+				 CConfigurableObject::isInteger, &vectorRange, "0");
   m_pConfiguration->addParameter("-ipl",
 				 CConfigurableObject::isInteger, &iplRange, "6");
   m_pConfiguration->addParameter("-modules",
@@ -437,7 +437,7 @@ CStack::enableStack(CVMUSB& controller)
   //
   //
   int which     = (listNumber - 2)/2 + 1; // the ISV pair number.
-  bool highHalf = (listNumber % 2) == 0;   // evens are in the low 1/2 odds the top  1/2.
+  bool highHalf = (listNumber % 2) == 1;   // evens are in the low 1/2 odds the top  1/2.
 
   uint32_t isvValue = controller.readVector(which); // manipulate the current value.
 
@@ -462,20 +462,44 @@ CStack::enableStack(CVMUSB& controller)
   if (highHalf) {
     isvValue |=  (stackNumber << CVMUSB::ISVRegister::BStackIDShift) | 
                  (irq         << CVMUSB::ISVRegister::BIPLShift)     | 
-                 (vectorNumber<< CVMUSB::ISVRegister::BVectorShift);
+                 ((vectorNumber & 0xff)<< CVMUSB::ISVRegister::BVectorShift);
   }
   else {
     isvValue |=  (stackNumber << CVMUSB::ISVRegister::AStackIDShift)  | 
                  (irq         << CVMUSB::ISVRegister::AIPLShift)      | 
-                 (vectorNumber<< CVMUSB::ISVRegister::AVectorShift);
+                 ((vectorNumber & 0xff) << CVMUSB::ISVRegister::AVectorShift);
   }
   // Write the vector back, which enables the trigger when data taking is turned on:
 
   controller.writeVector(which, isvValue);
 
-  // Ensure the IPL's bit is not set in the interrupt mask:
+  // Now deal with the top 8 bits of the vector:  These are packed four to a
+  // register in USBVHIGH1 and USBVHIGH2.  Since we've allocated vector numbers
+  // by stack we can compute the register and its shift count:
+  
+  which          = (((stackNumber - 2) / 4) == 0) ? CVMUSB::USBVHIGH1 : CVMUSB::USBVHIGH2;
 
+
+
+  uint32_t shift = ((stackNumber -2) % 4) * 8;
+  uint32_t mask  = 0xff << shift;
+  
+  uint32_t extValue = controller.readRegister(which);
+
+  extValue &= ~mask;                   // Remove the old bits.
+  extValue |= ((vectorNumber >> 8) << shift); // or in the new bits.
+
+
+
+  controller.writeRegister(which, extValue);
+
+  
+  // Ensure the IPL's bit is not set in the interrupt mask:
+  
   uint8_t irqmask = controller.readIrqMask();
+  irqmask        &= ~(1 << irq);                // Clear our irq bit.
+  
+  
   irqmask        =  0;		// Enable all the damned interrupts.
   controller.writeIrqMask(irqmask);
 }

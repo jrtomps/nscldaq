@@ -352,6 +352,7 @@ proc clearStripcharts {} {
 	set seriesNames [$::stripcharts getSeries]
 	foreach series $seriesNames {
 	    $::stripcharts clearSeries $series
+            $::stripcharts setSeriesPointLimit $series 20000
 	}
 
 

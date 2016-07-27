@@ -114,6 +114,8 @@ public:
 public:
 
     void writeActionRegister(uint16_t action);
+    void  writeRegister(unsigned int address, uint32_t data);
+    uint32_t readRegister(unsigned int address);
 
     int executeList(CVMUSBReadoutList& list,
 		    void*               pReadBuffer,
@@ -134,8 +136,6 @@ public:
     // Local functions:
 private:
 
-    void  writeRegister(unsigned int address, uint32_t data);
-    uint32_t readRegister(unsigned int address);
 
     std::string marshallList(CVMUSBReadoutList& list);
     size_t      marshallOutputData(void* pOutputBuffer, const char* reply, size_t maxOutputSize);

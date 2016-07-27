@@ -44,7 +44,6 @@ unittests_SOURCES	= TestRunner.cpp  \
 
 unittests_LDADD		= \
 			@builddir@/libdaqformatio.la \
-			@top_builddir@/utilities/FormattedIO/libdaqformatio.la \
 			@top_builddir@/utilities/IO/libdaqio.la \
                         @top_builddir@/utilities/Buffer/libbuffer.la \
 			@top_builddir@/utilities/format/V8/libdataformatv8.la \

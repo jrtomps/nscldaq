@@ -325,6 +325,7 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
     throw 0;
   }
   else if (command == CControlQueues::PAUSE) {
+    pauseRun();
     pauseDaq();
 
   }
@@ -460,10 +461,12 @@ CAcquisitionThread::pauseDaq()
       queues->Acknowledge();
       throw 0;
     }
+    // Bug #5882 - pause/resume elements need to be emitted.
+    else if (req == CControlQueues::PAUSE) {    // Really should not happen.
+      pauseRun();
+    }
     else if (req == CControlQueues::RESUME) {
-      //
-      // TODO: This should emit a resume item.
-      
+      resumeRun();             // Bug #5882
       startDaq();
       queues->Acknowledge();
       return;
@@ -532,6 +535,10 @@ CAcquisitionThread::drainUsb()
   cerr << "Done finished\n";
 
 }
+/**
+ * TODO:
+ *    beginRun, endRun, pauseRun, resumeRun can be factored.
+ */
 /*!
   Emit a begin run buffer to the output thread.
   the key info in this buffer is just its type and timestamp.
@@ -558,8 +565,36 @@ CAcquisitionThread::endRun()
   pBuffer->s_bufferSize = pBuffer->s_storageSize;
   pBuffer->s_bufferType = TYPE_STOP;
   processBuffer(pBuffer);
+<<<<<<< HEAD
 
 } 
+=======
+}
+/**
+ *   pauseRun    (Bug #5882)
+ *     Emit a pause run item.
+ */
+void
+CAcquisitionThread::pauseRun()
+{
+  DataBuffer* pBuffer   = gFreeBuffers.get();
+  pBuffer->s_bufferSize = pBuffer->s_storageSize;
+  pBuffer->s_bufferType = TYPE_PAUSE;
+  processBuffer(pBuffer);  
+}
+/**
+ * resumeRun    (Bug#5882)
+ *   Emit a resume run item.
+ */
+void
+CAcquisitionThread::resumeRun()
+{
+DataBuffer* pBuffer   = gFreeBuffers.get();
+  pBuffer->s_bufferSize = pBuffer->s_storageSize;
+  pBuffer->s_bufferType = TYPE_RESUME;
+  processBuffer(pBuffer);  
+}
+>>>>>>> master
 
 /*!
   Do a 'drastic purge' of the VM-USB.

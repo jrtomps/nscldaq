@@ -38,6 +38,7 @@ public:
   static int  blockSignal(int sigNum);
   static int  checkStatus(int status, int checkStatus, std::string msg);
   static int  checkNegativeStatus(int returnCode);
+  static std::string  getfqdn(const char* host);
 };
 
 #endif

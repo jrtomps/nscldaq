@@ -96,7 +96,7 @@ static CConfigurableObject::Limits irqThresholdLimits(Zero, irqThresholdMax);
 
 // Note for all enums, the first item in the list is the default.
 
-
+ 
 // Legal gatemode values for the enumerator:
 
 static const char* GateModeValues[2] = {"common", "separate"};
@@ -201,9 +201,9 @@ CMADC32::onAttach(CReadoutModule& configuration)
   // just different default values.
 
   m_pConfiguration->addParameter("-holddelays", CConfigurableObject::isIntList,
-				 &HoldValidity, "15");
+				 &HoldValidity, "15 15");
   m_pConfiguration->addParameter("-holdwidths", CConfigurableObject::isIntList,
-				 &HoldValidity, "20");
+				 &HoldValidity, "20 20");
 
   m_pConfiguration->addParameter("-gategenerator", CConfigurableObject::isBool,
 				 NULL, "false");
@@ -237,7 +237,8 @@ CMADC32::onAttach(CReadoutModule& configuration)
 
 
   m_pConfiguration->addParameter("-thresholds", CConfigurableObject::isIntList,
-				 &ThresholdValidity, "0");
+				 &ThresholdValidity,
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0");
 
   m_pConfiguration->addParameter("-pulser", CConfigurableObject::isBool,
 				 NULL, "false");
@@ -376,10 +377,10 @@ CMADC32::Initialize(CVMUSB& controller)
     list.addWrite16(base + InputRange, initamod,(uint16_t) 0);
   }
   else if (inputrange == string("8v")) {
-    list.addWrite16(base + InputRange, initamod, (uint16_t)1);
+    list.addWrite16(base + InputRange, initamod, (uint16_t)2);
   }
   else {			// 10V
-    list.addWrite16(base + InputRange, initamod, (uint16_t)2);
+    list.addWrite16(base + InputRange, initamod, (uint16_t)1);
   }
   list.addDelay(MADCDELAY);
 
