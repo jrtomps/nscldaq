@@ -10,7 +10,8 @@ TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 
 
 
-IMAGES=program.png ringbuffer.png sysprogram.png arrow.png eventBuilder.png dsource.png
+IMAGES=program.png ringbuffer.png sysprogram.png arrow.png eventBuilder.png dsource.png 
+DOC_IMAGES=propertyeditor.png expEditorinitial.jpg
 
 
 install-exec-hook:
@@ -20,6 +21,8 @@ install-exec-hook:
 	for f in $(IMAGES) ; do $(INSTALL_DATA) @srcdir@/$$f @prefix@/TclLibs/expeditor; done
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/expeditor "*.tcl" | @TCLSH_CMD@
 	$(INSTALL_PROGRAM) @srcdir@/expEditor.tcl @bindir@/expEditor
+	$(mkinstalldirs) @prefix@/share/html
+	$(INSTALL_DATA) $(IMAGES) $(DOC_IMAGES) @prefix@/share/html
 
 
 
@@ -36,4 +39,4 @@ TESTS = $(TCLTESTS)
 
 
 
-EXTRA_DIST = $(TCLPACKAGES) $(TCLTESTS) $(IMAGES) expEditor.tcl
+EXTRA_DIST = $(TCLPACKAGES) $(TCLTESTS) $(IMAGES) $(DOC_IMAGES) expEditor.tcl

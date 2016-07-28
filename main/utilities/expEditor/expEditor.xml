@@ -3,8 +3,744 @@
 <chapter id='chap.expconfig'>
   <title id='chap.expconfig.title'>Experiment configuration editor </title>
   <para>
-    To be written
+    The experiment configuration editor is a tool that simplifies the description
+    of the software components of experiments with complex data flows.  Using
+    this system may be overkill for simple experiments involving a single readout.
+    Using the experiment configuration editor, you can visually lay out the
+    data flow and components that are state sensitive along the data flow paths.
   </para>
+  <para>
+    The output of the experiment configuration editor (expEditor) is a variable
+    database the describes the executable and static components of the system.
+    The boot manager can take this database filea s input and instantiate all
+    of the system components and monitor their execution.  Entities described
+    by expEditor are considered critical.  If they exit, the boot manager
+    will declare a transition to <literal>NotReady</literal> which will
+    all all system components.
+  </para>
+  <para>
+    This chapter describes how to use the expEditor.  Command examples will
+    assume that the <filename>daqsetup.bash</filename> file for the data
+    acquisition system version you are using has been sourced into
+    your shell.  The expEditor component is available in NSCLDAQ 11.2 and later.
+  </para>
+  <section>
+    <title>Starting the expEditor.</title>
+    <para>
+      There are two ways to run the expEditor:
+    </para>
+    <informalexample>
+      <programlisting>
+$DAQBIN/expEditor
+      </programlisting>
+    </informalexample>
+    <para>
+      This form of invocation does not connect the program with any existing
+      database file.  The <guimenu>File</guimenu><guimenuitem>Save</guimenuitem>
+      menu command connects the editor to a database and saves the current
+      configuration to that database file.  The 
+      <guimenu>File</guimenu><guimenuitem>Restore...</guimenuitem> connects the
+      editor to a file, reads in the configuration from that file replacing
+      any existing configuration.
+    </para>
+    <para>
+      You may also start the expEditor:
+    </para>
+    <informalexample>
+      <cmdsynopsis><command>
+$DAQBIN/expEditor <replaceable>database-filename</replaceable>  
+      </command></cmdsynopsis>
+    </informalexample>
+    <para>
+      This form of the command connects the editor to a database file;
+      <replaceable>database-filename</replaceable>and
+      reads the configuration from that file.  Note that
+      <replaceable>database-filename</replaceable> is a filesystem path,
+      not a URI.
+      When invoked in that way,
+      <guimenu>File</guimenu><guimenuitem>Save</guimenuitem> saves the configuration
+      to <replaceable>database-file</replaceable> without prompting for the name
+      of the save file.  <guimenu>File</guimenu><guimenuitem>Restore...</guimenuitem>
+      Connects the editor to the new file, replacing the configuration with
+      the configuration in that file.
+    </para>
+    <para>
+      In either case, if you use the <guimenu>File</guimenu><guimenuitem>Exit</guimenuitem>
+      menu command after changes to the configuration have been made you'll be
+      prompted to save the state.
+    </para>
+  </section>
+  <section>
+    <title>
+      Components of the editor.
+    </title>
+    <para>
+      The figure below shows what the editor looks like.
+    </para>
+    <figure>
+      <title>The experiment editor</title>
+      <mediaobject>
+         <imageobject>
+          <imagedata fileref='expEditorinitial.jpg' format='JPEG' />
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <para>
+      At the top of the window is the menu.  In the previous section, we've
+      already described the contents of the <guimenu>File</guimenu> menu.
+      The <guimenu>File</guimenu> menu also has an
+      <guimenu>File</guimenu><guimenuitem>Exit...</guimenuitem>.
+      The <guimenu>View</guimenu> menu has the command
+      <guimenu>View</guimenu><guimenuitem>Validation...</guimenuitem>
+      which performs several validation and consistency checks on your
+      configuration and reports potential problems to you.
+    </para>
+    <para>
+      At the left of the window is a toolbox of items you can add to the configuration.
+      A configuration item is added by double clicking it.  When double clicked,
+      the item appears at the left end of the editing window and can then
+      be dragged to the desired position on the editor canvas.
+    </para>
+    <section>
+      <title>Toolbox items</title>
+      <para>
+        This section describes the objects.s in the toolbar, what they represent and
+        the properties associated with them.  The next section describes how to
+        modify the properties of an object.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+              Ring buffer: 
+                <inlinemediaobject>
+                   <imageobject>
+                    <imagedata fileref='ringbuffer.png' format='PNG' />
+                  </imageobject>
+                </inlinemediaobject>
+            </term>
+            <listitem>
+                <para>
+                  Ring buffers represent the primary data flow mechanism of NSCLDAQ.
+                  Ring buffers have a host, the system in which they are created,
+                  and a name.  NSCLDAQ allows remote access to ring buffers from
+                  systems other than their host.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              State sensitive programs
+              <inlinemediaobject>
+                 <imageobject>
+                  <imagedata fileref='program.png' format='PNG' />
+                </imageobject>
+              </inlinemediaobject>
+            </term>
+            <listitem>
+                <para>
+                  State sensitive programs are programs that must react to
+                  changes in the state of the global state machine.  They must
+                  have their own local state machine and reflect global state
+                  transitions and local state transition in their own state
+                  machine.
+                </para>
+                <para>
+                  State sensitive programs have the following properties:
+                </para>
+                <variablelist>
+                  <varlistentry>
+                      <term><literal>name</literal></term>
+                      <listitem>
+                          <para>
+                            The name of the program as it is know to the
+                            variable data base.  This will be used to create a
+                            subdirectory by that name under <filename>RunState</filename>
+                            directory.  All of the properties and the state
+                            associated with the program will be stored in variables
+                            inside that subdirectory.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>enable</literal></term>
+                      <listitem>
+                          <para>
+                            This value defaults to
+                            <literal>true</literal>.  It indicates if the
+                            program is enabled or not.  Disabled programs
+                            are not expected to react to state changes in either
+                            their local or the global state machine.
+                          </para>
+                          <para>
+                            This flag allows you to temporarily switch off a program.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>standalone</literal></term>
+                      <listitem>
+                          <para>
+                            Defaults to <literal>false</literal>.   If
+                            <literal>true</literal>, the program should
+                            respond to changes in its local state machine
+                            rather than the global state machine.  This provides
+                            a mechanism to test a program independent of the
+                            entire system.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>path</literal></term>
+                      <listitem>
+                          <para>
+                            The directory path to the program or script
+                            to execute with the
+                            system starts up.   Note that the program starts up
+                            with current working directory set to the user's home
+                            directory, the environment variables defined in the
+                            users's <filename>.bashrc</filename> and the
+                            following environment names set by the boot manager:
+                          </para>
+                          <variablelist>
+                            <varlistentry>
+                                <term><literal>REQ_URI</literal></term>
+                                <listitem>
+                                    <para>
+                                      The request URI for the variable database
+                                      manager service.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>SUB_URI</literal></term>
+                                <listitem>
+                                    <para>
+                                      The subscription URI for the variable
+                                      database manager service.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>PROGRAM</literal></term>
+                                <listitem>
+                                    <para>
+                                      The value of the program property.  This
+                                      allows several instances of the same program
+                                      to know which has been started.  It is also
+                                      necessary for some of the API calls.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>DAQROOT</literal></term>
+                                <listitem>
+                                    <para>
+                                      Points to the top level directory of the
+                                      version of NSCLDAQ being used.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>DAQBIN</literal></term>
+                                <listitem>
+                                    <para>
+                                      Points to the <filename>bin</filename>
+                                      directory of the version of NSCLDAQ
+                                      being run.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>DAQLIB</literal></term>
+                                <listitem>
+                                    <para>
+                                      Points to the <filename>lib</filename>
+                                      directory of the version of
+                                      NSCLDAQ being run.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>PYTHONPATH</literal></term>
+                                <listitem>
+                                    <para>
+                                      Path to Python libraries that includes
+                                      the path to the python libraries
+                                      for the current version of NSCLDAQ.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>OUTRING</literal></term>
+                                <listitem>
+                                    <para>
+                                      If the program is a source of data
+                                      (e.g. a Readout program, or a filter),
+                                      this specifies the name (not URI) of the
+                                      ring into which to place data.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>INRING</literal></term>
+                                <listitem>
+                                    <para>
+                                      If the program is a sink of data
+                                      (e.g. eventlog or a filter), this
+                                      specifies the URI of the ring from which
+                                      to take data.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                          </variablelist>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>host</literal></term>
+                      <listitem>
+                          <para>
+                            The host in which the program will be run.
+                            Note that this can be changed or if the program
+                            gets connected to an output ring.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>Input Ring</literal></term>
+                      <listitem>
+                          <para>
+                            The program's input ring.  This cannot be manually
+                            set.  Set this property by drawing a dataflow from
+                            a ring buffer object to the program.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>Output Ring</literal></term>
+                      <listitem>
+                          <para>
+                            The program's output ring.  This cannot be manually
+                            set.  Set this property by drawing a dataflow
+                            from this program to a ring buffer object.
+                          </para>
+                          <para>
+                            Note that since a producer for a ring buffer must
+                            run in the same host that the ring buffer lives in,
+                            doing this will force the <literal>host</literal>
+                            property to be the ring buffer's host and disable
+                            editing of that property as long as the
+                            ring buffer remains the program's output ring.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                Data source
+                <inlinemediaobject>
+                   <imageobject>
+                    <imagedata fileref='dsource.png' format='PNG' />
+                  </imageobject>
+                </inlinemediaobject>
+            </term>
+            <listitem>
+                <para>
+                  A data source provides a stream of event fragments to an
+                  event builder.  It normally connects from a ring buffer
+                  object to an event builder object.  It has the following properties:
+                </para>
+                <variablelist>
+                  <varlistentry>
+                      <term><literal>name</literal></term>
+                      <listitem>
+                          <para>
+                            The name of the data source.  This becomes the
+                            directory name of the database variables that
+                            capture the program's persistent state.   These
+                            directories are located inside the
+                            <filename>/EventBuilder</filename> directory.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>host</literal></term>
+                      <listitem>
+                          <para>
+                            The host in which the data source runs.  This need
+                            not be in either the system that has the data source
+                            ring buffer nor the system running the event builder.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>path</literal></term>
+                      <listitem>
+                          <para>
+                            Path to the data source.  This defaults to the
+                            ring fragment source for the current version of
+                            NSCLDAQ.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>info</literal></term>
+                      <listitem>
+                          <para>
+                            A string that is passed to the event builder at
+                            when the data source connects.  This string is
+                            supplied to allow you to document the purpose of the
+                            data source.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>ids</literal></term>
+                      <listitem>
+                          <para>
+                            A space separated list of the integer data source
+                            ids for which this program will send fragments to the
+                            event builder.  The event builder will be unhappy if
+                            the data  source sends data tagged with other data
+                            sources to it.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>ring</literal></term>
+                      <listitem>
+                          <para>
+                            The URI of the ring buffer from which the source
+                            is taking data.  This cannot be entered manually
+                            but should be set by connecting a ring buffer to
+                            the data source.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                        <term><literal>defaultId</literal></term>
+                          <listitem>
+                              <para>
+                                NSCLDAQ 11.x has a mechanism to interact with
+                                NSCLDAQ 10.x data.  Specifically ring items can
+                                have  a body header which contains the event
+                                fragemnt's timestamp and source id, or they
+                                may have an empty body header in which case this
+                                information must be derived somehow.  
+                              </para>
+                              <para>
+                                The <literal>defaultId</literal> is the source id
+                                that will be supplied for ring items that don't
+                                have body headers.  It defaults to <literal>0</literal>.
+                                Ring items with body headers will get the source
+                                id that is in their body header.
+                              </para>
+                          </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>timestampExtractor</literal></term>
+                        <listitem>
+                            <para>
+                              See <literal>defaultId</literal> above for a
+                              descsription of body headers and their purpose.
+                              The <literal>timestampExtractor</literal>
+                              value should be a filesystem path to a shared
+                              object library that knows how to extract
+                              timestamps from ringitems that don't have body
+                              headers.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>expectBodyHeaders</literal></term>
+                        <listitem>
+                            <para>
+                              Default is <literal>true</literal>.  When
+                              <literal>true</literal> the ringFragmentSource
+                              expects that all ring items will have body headers
+                              and will signal an error if it comes across items
+                              that don't.
+                            </para>
+                            <para>
+                              If this is <literal>true</literal>, the
+                              <literal>defaultId</literal> and
+                              <literal>timestampExtractor</literal>
+                              parameters can be left empty.  If
+                              <literal>false</literal> it is an error
+                              to leave either of these blank.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                          Event Builder
+                            <inlinemediaobject>
+                               <imageobject>
+                                <imagedata fileref='eventBuilder.png' format='PNG' />
+                              </imageobject>
+                               
+                            </inlinemediaobject>
+                        </term>
+                        <listitem>
+                            <para>
+                              An event builder receives time stamped event fragments
+                              from one or more data sources and glues them together
+                              into events.  An event is a set of fragments that
+                              have timestamps within some fixed
+                              coincidence interval of a first fragment.
+                            </para>
+                            <para>
+                              Event builders are described in the
+                              <literal>/EventBuilder</literal> directory
+                              of the the variable database.   Event builders
+                              have the following properties:
+                            </para>
+                            <variablelist>
+                              <varlistentry>
+                                  <term><literal>name</literal></term>
+                                  <listitem>
+                                      <para>
+                                        The name of the event builder. This
+                                        becomes a subdirectory inside the
+                                        <filename>/EventBuilder</filename>
+                                        directory of the variable database.
+                                        Furthermore,  event builders that
+                                        feed data to this event builder
+                                        will be located in subdirectories
+                                        below the event builder's.
+                                      </para>
+                                  </listitem>
+                              </varlistentry>
+                              <varlistentry>
+                                  <term><literal>host</literal></term>
+                                  <listitem>
+                                      <para>
+                                        The host in which the event builder
+                                        will be run.
+                                      </para>
+                                  </listitem>
+                              </varlistentry>
+                              <varlistentry>
+                                  <term><literal>servicePrefix</literal></term>
+                                  <listitem>
+                                      <para>
+                                        Defaults to <literal>ORDERER</literal>
+                                      </para>
+                                      <para>
+                                        The event builder advertises itself with
+                                        the NSLDAQ port manager application.
+                                        That application provides named services,
+                                        qualified with a username, with TCP/IP
+                                        ports.
+                                      </para>
+                                      <para>
+                                        The service name the event builder uses
+                                        is of the form
+                                        <replaceable>prefix:username:suffix</replaceable>
+                                        where <replaceable>prefix</replaceable>
+                                        is the value of this property,
+                                        <replaceable>username</replaceable>is
+                                         the name of the user that is running
+                                         the event builder and
+                                         <replaceable>suffix</replaceable>
+                                         is a settable service suffix value.
+                                      </para>
+                                  </listitem>
+                              </varlistentry>
+                              <varlistentry>
+                                  <term><literal>serviceSuffix</literal></term>
+                                  <listitem>
+                                      <para>
+                                        Defaults to empty.  Provides the service
+                                        suffix of the event builder's port.
+                                        If blank a unique numeric value will
+                                        be chosen at run time (specifically
+                                        the unix timestamp at startup).
+                                      </para>
+                                  </listitem>
+                              </varlistentry>
+                              <varlistentry>
+                                  <term><literal>coincidenceInterval</literal></term>
+                                  <listitem>
+                                      <para>
+                                        The conicidence interval for event building.
+                                        All event fragments that are within this
+                                        number of timestamp ticks of a first fragment
+                                        are included in an event.  Note that it is
+                                        possible for there to be multiple fragments
+                                        from a single data source.  The meaning
+                                        of that depends on the experiment.
+                                      </para>
+                                  </listitem>
+                              </varlistentry>
+                              <varlistentry>
+                                  <term><literal>build</literal></term>
+                                  <listitem>
+                                      <para>
+                                        Defaults to <literal>true</literal>. If
+                                        <literal>true</literal>, event building is
+                                        performed.   If <literal>false</literal>,
+                                        the system only produces a list fragments
+                                        that are totally ordered over all data
+                                        sources.
+                                      </para>
+                                  </listitem>
+                              </varlistentry>
+                              <varlistentry>
+                                  <term><literal>timestampPolicy</literal></term>
+                                  <listitem>
+                                      <para>
+                                        Only relevant when <literal>build</literal>
+                                        is <literal>true</literal>.
+                                        Built events are assigned a new timestamp
+                                        in accordance with the policy selected by
+                                        this property.  Valid values are:
+                                        <literal>earliest</literal> (the default),
+                                        <literal>latest</literal>, <literal>average</literal>
+                                      </para>
+                                  </listitem>
+                              </varlistentry>
+                            </variablelist>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              System Programs
+                <inlinemediaobject>
+                   <imageobject>
+                    <imagedata fileref='sysprogram.png' format='PNG' />
+                  </imageobject>
+                </inlinemediaobject>
+            </term>
+            <listitem>
+                <para>
+                  System programs are programs that are an indispensible part of
+                  the system but do not participate in the data flow.  One example
+                  of a system program is the variable database server.
+                </para>
+                <para>
+                  System programs have the following properties:
+                </para>
+                <variablelist>
+                  <varlistentry>
+                      <term><literal>name</literal></term>
+                      <listitem>
+                          <para>
+                            Name of the system program.  This will be the
+                            subdirectory name under
+                            <filename>/Services</filename> that will hold the
+                            persistent state of the program.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>host</literal></term>
+                      <listitem>
+                          <para>
+                            Host in which the program should run.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><literal>path</literal></term>
+                      <listitem>
+                          <para>
+                            Path to the system program.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                </variablelist>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>Modifying properites</title>
+      <para>
+        Once an object has been put on the editor canvas (right part of the
+        experiment editor window), you can move it around by dragging it
+        with the mouse.   Right clicking an object brings up a context menu
+        for that object which allows you to delete the object or to edit its
+        properties.
+      </para>
+      <para>
+        Each object type has its own set of properties as described in the previous
+        section.  All use a common property editor.  The picture below is
+        the property editor for a program object:
+      </para>
+      <figure>
+        <title>Property editor example.</title>
+        <mediaobject>
+           <imageobject>
+            <imagedata fileref='propertyeditor.png' format='PNG' />
+          </imageobject>
+        </mediaobject>
+      </figure>
+        <para>
+          You can type in property values to the right of the property you
+          want to modify.  Note that greyed out properties cannot be directly
+          modified but are normally modified by making a connection to or from
+          the object (see next section).
+        </para>
+        <para>
+          When done, the <guibutton>Ok</guibutton> button saves the object properties
+          while <guibutton>Cancel</guibutton> abandons all changes.  Some
+          property values have a restricted set of values.   For example
+          in the figure above, <literal>enable</literal> can only be
+          <literal>true</literal> or <literal>false</literal>.  If you click
+          <guibutton>Ok</guibutton> and a property has an invalid value a dialog
+          will pop up indicating which value is illegal and no changes
+          will be made.  The property editor will then remain open allowing
+          you to fix your error.
+        </para>
+    </section>
+    <section>
+      <title>Making connections</title>
+      <para>
+        The point of the expEditor is not only to describe objects but how
+        even data and event fragments flow through the system.  Data flow is
+        indicated by connecting elements via arrows.
+        
+          <inlinemediaobject>
+             <imageobject>
+              <imagedata fileref='arrow.png' format='PNG' />
+            </imageobject>
+             
+          </inlinemediaobject>
+      </para>
+      <para>
+        Define a connection by first double clicking the arrow in the toolbox.
+        Next click the object from which the the dataflows and finally
+        click the object to which the data flows.  Once tow objects are
+        connected moving one, the other or both will stretch the connections as
+        needed to maintain the connections in the editor.
+        Not all pairs of object types can be connected.
+      </para>
+      <para>
+        A connection can be removed by right clicking the line part of the
+        connection and selecting <guimenuitem>Delete...</guimenuitem>
+        from the pop up context menu.
+      </para>
+      <para>
+        Note that connecting two objects usually has side effects on the the
+        properties of one or both of the objects.  For example, connecting a program
+        to a ring buffer will
+      </para>
+      <orderedlist>
+        <listitem><para>
+          Set the output ring of the program to the ring's name.
+        </para></listitem>
+        <listitem><para>
+          Set the program's host to the host of the ringbuffer as producers
+          must run in the same host a the ring they produce for.
+        </para></listitem>
+      </orderedlist>
+    </section>
+  </section>
 </chapter>
 
 
