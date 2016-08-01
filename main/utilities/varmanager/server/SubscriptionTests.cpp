@@ -25,6 +25,7 @@
 #include "CVarMgrServerApi.h"
 
 #include "CVarMgrSubscriptions.h"
+#include <errno.h>
 
 
 
@@ -238,7 +239,8 @@ void SubTests::stopServer()
 {
     int exitStatus;
     kill(m_serverPid, SIGKILL);
-    waitpid(m_serverPid, &exitStatus, 0);
+    while ((waitpid(m_serverPid, &exitStatus, 0) < 0) && (errno == EINTR)) 
+      ;
     
 }
 
