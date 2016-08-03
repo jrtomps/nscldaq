@@ -92,6 +92,7 @@ class TestBase(unittest.TestCase):
     #
     def createClient(self, type, service):
         port = self.getport(service)
+        time.sleep(0.1)             # Ensure things are started.
         
         uri = 'tcp://localhost:%d' % port
  
