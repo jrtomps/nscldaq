@@ -232,6 +232,7 @@ proc getRingUsage host {
 	error "Expected OK from Ring master but got $OK"
     }
     gets $sock info
+
     close $sock
     return $info
 }
@@ -437,6 +438,7 @@ proc displayStatus tail {
     # Get the usage and filter it by the pattern:
 
     set info [getRingUsage $parse(--host)]
+
     set resultList [list]
     foreach item $info {
 	set ringname [lindex $item 0]
@@ -448,7 +450,7 @@ proc displayStatus tail {
 
     set resultList [lsort -index 0 $resultList]
 
-0
+
     set resultList [filterRingStats $resultList [array get parse]]
 
 
