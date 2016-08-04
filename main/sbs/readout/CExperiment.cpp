@@ -195,12 +195,16 @@ CExperiment::Start(bool resume)
 
   // The run must be in the correct state:
 
-  if (resume && (m_pRunState->m_state != RunState::paused)) {
+  if (resume &&
+    ( (m_pRunState->m_state != RunState::paused) && (m_pRunState->m_state != RunState::pausing))
+  ) { 
     throw CStateException(m_pRunState->stateName().c_str(),
 			  RunState::stateName(RunState::paused).c_str(),
 			  "Starting data taking");
   }
-  if (!resume && (m_pRunState->m_state != RunState::inactive)) {
+  if (!resume &&
+      ((m_pRunState->m_state != RunState::inactive) && (m_pRunState->m_state != RunState::starting))
+  ) {
     throw CStateException(m_pRunState->stateName().c_str(),
 			  RunState::stateName(RunState::inactive).c_str(),
 			  "Starting data taking");

@@ -110,7 +110,7 @@ proc beginRunOrDie {} {
     
     if {[catch begin msg]} {
         ::state::client setstate NotReady
-        end
+        catch {end}
         error "Failed to begin a run: $msg"
         exit -1
     }    
