@@ -82,7 +82,7 @@ snit::type EventBuilder {
             -name timestampPolicy -value earliest -validate TsPolicy]
         $properties add [property %AUTO% \
             -name sourceId -value 0 -validate [snit::integer %AUTO% -min 0]]
-        $properties add [property %AUTO% -name ring]
+        $properties add [property %AUTO% -name ring -editable 0]
         
         $self configurelist $args
         

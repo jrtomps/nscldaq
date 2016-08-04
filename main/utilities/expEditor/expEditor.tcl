@@ -112,60 +112,7 @@ proc createDbFile dbFile {
     initDbFile     $dbFile    
 }
 
-# Make the tool bar:
-
-toolbar .t -width 60 -height 512
-
-# Make the target canvas, bind the toolbar to it and layout the ui:
-
-canvas .c -width 512 -height 512
-.t configure -target .c
-grid .t .c -sticky nsew
-grid rowconfigure . 0 -weight 1
-grid columnconfigure . 1 -weight 1
-
-# Create and add some tools:
-
-set os [ObjectInstaller %AUTO%]
-
-tool ring [RingBufferObject %AUTO%] $os
-.t add ring
-
-tool statePgm [StateProgram %AUTO%] $os
-.t add statePgm
-
-tool eventbuilder [EventBuilderObject %AUTO%] $os
-.t add eventbuilder
-tool dsource      [DataSourceObject %AUTO%] $os
-.t add dsource
-
-tool service [Service %AUTO%] $os
-.t add service
-
-
-
-# Connector
-
-set cs [ConnectorInstaller %AUTO%]
-$os configure -deletecmd [list $cs uninstall %O %I %W]
-$os configure -installcmd [list $cs newObject %O %I %W]
-tool knect [ConnectorObject %AUTO%] $cs;   # Need new installer
-.t add knect
-
-#  Establish the file if provided:
-
-
-
-if {[llength $argv] > 0} {
-    set dbFile [lindex $argv 0]
-    
-    #  If necessary, create the database file:
-    
-    if {![file exists $dbFile]} {
-        createDbFile $dbFile     
-    }
-}
-
+#
 
 #----------------------------------------------------------------------------
 #
@@ -488,20 +435,12 @@ proc restoreConnections {uri dataSources} {
 }
 
 ##
-# restoreState
-#   Handler for the File->Restore... menu entry.
-#   - Prompts for a file.
-#   - Destroys current objects.
-#   - Reads in objects from database.
+# loadFile
+#    Load a database file into the configuration.
 #
-proc restoreState {} {
-    set file [tk_getOpenFile \
-        -parent . -title {Select database} -defaultextension .db    \
-        -filetypes [list [list {Database Files} .db]               \
-                         [list {All files} * ] ]                    \
-    ]
-    if {$file eq ""} return;                # Cancelled.
-    
+# @param file - path to file to load.
+#
+proc loadFile file {
     $::cs clearCanvas .c;                        # Get rid of all database objects.
     
     #  Now open the database file and restore all the stuff it has that affects
@@ -535,6 +474,26 @@ proc restoreState {} {
     }
     
     restoreConnections $uri $dataSourceByEvb
+    
+}
+
+##
+# restoreState
+#   Handler for the File->Restore... menu entry.
+#   - Prompts for a file.
+#   - Destroys current objects.
+#   - Reads in objects from database.
+#
+proc restoreState {} {
+    set file [tk_getOpenFile \
+        -parent . -title {Select database} -defaultextension .db    \
+        -filetypes [list [list {Database Files} .db]               \
+                         [list {All files} * ] ]                    \
+    ]
+    if {$file eq ""} return;                # Cancelled.
+    
+    loadFile $file
+    
 }
 
 ##
@@ -566,6 +525,63 @@ proc exitProgram {} {
     ]
     if {$exitOk eq "yes"} exit
 }
+
+# Make the tool bar:
+
+toolbar .t -width 60 -height 512
+
+# Make the target canvas, bind the toolbar to it and layout the ui:
+
+canvas .c -width 512 -height 512
+.t configure -target .c
+grid .t .c -sticky nsew
+grid rowconfigure . 0 -weight 1
+grid columnconfigure . 1 -weight 1
+
+# Create and add some tools:
+
+set os [ObjectInstaller %AUTO%]
+
+tool ring [RingBufferObject %AUTO%] $os
+.t add ring
+
+tool statePgm [StateProgram %AUTO%] $os
+.t add statePgm
+
+tool eventbuilder [EventBuilderObject %AUTO%] $os
+.t add eventbuilder
+tool dsource      [DataSourceObject %AUTO%] $os
+.t add dsource
+
+tool service [Service %AUTO%] $os
+.t add service
+
+
+
+# Connector
+
+set cs [ConnectorInstaller %AUTO%]
+$os configure -deletecmd [list $cs uninstall %O %I %W]
+$os configure -installcmd [list $cs newObject %O %I %W]
+tool knect [ConnectorObject %AUTO%] $cs;   # Need new installer
+.t add knect
+
+#  Establish the file if provided:
+
+
+
+if {[llength $argv] > 0} {
+    set dbFile [lindex $argv 0]
+    
+    #  If necessary, create the database file:
+    
+    if {![file exists $dbFile]} {
+        createDbFile $dbFile     
+    } else {
+      loadFile $dbFile  
+    }
+}
+
 
 #  Establish the menubar and its menus:
 

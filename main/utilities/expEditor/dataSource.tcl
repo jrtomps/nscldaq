@@ -79,7 +79,11 @@ snit::type DataSource {
         # Figure out the ringFragmentSource path:
         
         set here [file dirname [info script]]
-        set bindir [file normalize [file join $here ../../bin]]
+        if {[array names ::env DAQBIN] eq "DAQBIN"} {
+            set bindir $::env(DAQBIN)
+        } else {
+            set bindir [file normalize [file join $here ../bin]]
+        }
         set fragsrc [file join $bindir ringFragmentSource]
         
         # Add properties to the list:
@@ -89,7 +93,7 @@ snit::type DataSource {
         $properties add [property %AUTO% -name path -value $fragsrc] 
         $properties add [property %AUTO% -name info]
         $properties add [property %AUTO% -name ids -validate IntegerList]
-        $properties add [property %AUTO% -name ring]
+        $properties add [property %AUTO% -name ring -editable 0]
         $properties add [property %AUTO% \
             -name defaultId -validate [snit::integer %AUTO% -min 0] -value 0]
         $properties add [property %AUTO% -name timestampExtractor]

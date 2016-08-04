@@ -144,7 +144,7 @@ snit::type EventBuilderObject {
     ##
     # Enable editing the host property
     #
-    method _enaleHostEditing {} {
+    method _enableHostEditing {} {
         set p [$self _findProperty host]
         $p configure -editable 1
     }
