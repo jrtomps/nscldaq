@@ -116,6 +116,17 @@ class Programs:
         self._filesToProgram[stdout] = programObj
         self._filesToProgram[stderr] = programObj
     
+    
+    ##
+    # _setAllNotReady
+    #    Set all active programs to notready state:
+    #
+    def _setAllNotReady(self)  :
+        for name in self._client.listActivePrograms() :
+            if self._client.getProgramState(name) != 'NotReady':
+                self._client.setProgramState(name, 'NotReady')
+                
+                
     #----------------- Public interfaces ---------------------
         
     ##
@@ -131,6 +142,7 @@ class Programs:
     # All programs were externally stopped due to system shutdown.
     #
     def stop(self):
+        self._setAllNotReady()
         self._filesToProgram = dict()
     
     ##

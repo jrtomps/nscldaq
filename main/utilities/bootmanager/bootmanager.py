@@ -33,10 +33,14 @@
 #
 
 import nscldaq.vardb.statemanager
-from  nscldaq.programs import ssh
-from  nscldaq.programs import programs
-from  nscldaq.vardb    import VardbEvb
-from  nscldaq.programs import eventbuilders
+from   nscldaq.programs  import ssh
+from   nscldaq.programs  import programs
+from   nscldaq.vardb     import VardbEvb
+from   nscldaq.programs  import eventbuilders
+from   nscldaq.programs  import rings
+from   nscldaq.vardb     import VardbRingbuffer
+from   nscldaq.vardb     import varmgr
+
 
 import argparse
 import time
@@ -139,6 +143,7 @@ def makeAbsoluteUri(uri):
 def processChanges(changes):
     for c in changes:
         if c['state'] == 'Readying':
+            rings.makeAllRings(VardbRingbuffer.api(reqUri))
             eventBuilders.start()
             programs.start()
             client.waitTransition()
@@ -146,7 +151,11 @@ def processChanges(changes):
             print('system shutting down')
             programs.stop()
             eventBuilders.stop()
+            rings.rmAllRings(VardbRingbuffer.api(reqUri))
 
+            # The SystemState is now consistent:
+            
+            varmgr.Api(reqUri).set('/RunState/SystemStatus', 'Consistent') 
 ##
 # relayProgramOutput
 #

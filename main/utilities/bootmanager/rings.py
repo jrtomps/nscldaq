@@ -51,8 +51,9 @@ def delRing(host, name):
     
     # Delete the ringbuffer drain output/error ignoring:
     
+    print("Deleting %s@%s" % (name, host))
     deleter = ssh.Transient(
-        host, '%s %s %s' % (command, 'ringbuffer delete', name)
+        host, '%s %s %s' % (command, 'delete', name)
     )
     deleter.output()
     deleter.error()
@@ -74,20 +75,20 @@ def delRing(host, name):
 #   
 def makeRing(host, name):
     delRing(host, name)
-    
+    print ("makeRing %s@%s" % (host, name))
     command = _ringbufferCommand()
     
     #  Create the new ring buffer, ignore the output but any error lines
     #  raise an exception:
     
+    print('%s %s %s' % (command, ' create', name))
+
     creator = ssh.Transient(
-        host, '%s %s %s' % (command, 'ringbuffer create', name)
+        host, '%s %s %s' % (command, ' create', name)
     )
     creator.output()
-    errortext = creator.error()
-    if len(errortext > 0):
-        raise RuntimeError('\n'.join(errortext))
-
+    creator.error()
+    
 ##
 # makeAllRings
 #   Creat all rings defined in a variable database
