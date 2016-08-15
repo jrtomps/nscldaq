@@ -58,7 +58,7 @@ void
 COutputStatsObserver::operator()(const std::vector<EVB::pFragment>& event)
 {
   m_nTotalFragments += event.size();
-
+  CriticalSection c(m_perSourceStatGuard);
   for (std::vector<EVB::pFragment>::const_iterator p = event.begin(); p != event.end(); p++) {
     EVB::pFragment pf = *p;
     uint32_t sourceId = pf->s_header.s_sourceId;
@@ -73,6 +73,7 @@ COutputStatsObserver::operator()(const std::vector<EVB::pFragment>& event)
 void
 COutputStatsObserver::clear()
 {
+  CriticalSection c(m_perSourceStatGuard);
   m_nTotalFragments = 0;
   m_perSourceStatistics.clear();
 }
@@ -88,6 +89,7 @@ COutputStatsObserver::getStatistics() const
 {
   Statistics result;
   result.s_nTotalFragments = m_nTotalFragments;
+  CriticalSection c(const_cast<CMutex&>(m_perSourceStatGuard));
   for (PerSourceStats::const_iterator p = m_perSourceStatistics.begin(); p != m_perSourceStatistics.end(); 
        p++) {
     result.s_perSourceFragments.push_back(*p);
