@@ -42,7 +42,24 @@ Thread(std::string("OutputThread"))
 COutputThread::~COutputThread() {}
 
 
-
+/*---------------------------------------------------------------------------
+ * Thread entry point.
+ */
+void
+COutputThread::run()
+{
+    while (1) {
+        std::vector<EVB::pFragment>* pFrags = getFragments();
+        {
+            CriticalSection c(m_observerGuard);
+            for (auto p = m_observers.begin(); p != m_observers.end(); p++) {
+                CFragmentHandler::Observer* pO = *p;
+                (*pO)(*pFrags);
+            }
+        }
+        freeFragments(pFrags); 
+    }
+}
 /*---------------------------------------------------------------------------
  * Methods called by other threads:
  */
@@ -91,4 +108,41 @@ void
 COutputThread::queueFragments(std::vector<EVB::pFragment>* pFrags)
 {
     m_inputQueue.queue(pFrags);
+}
+/*----------------------------------------------------------------------------
+ * private utilities
+ */
+
+/**
+ * getFragments
+ *    Return the next set of fragments that were queued for processing by our
+ *    observers.
+ * @return std::vector<EVB::pFragment>*
+ */
+std::vector<EVB::pFragment>*
+COutputThread::getFragments()
+{
+    return m_inputQueue.get();
+}
+/**
+ * freeFragments
+ *    Releases storage associated with a set of fragments
+ *
+ * @param frags - pointer to a fragment vector
+ * @note  There are two strong assumptions made by this method:
+ *        *  The fragments are all dynamically allocated.
+ *        *  The vector itself was dynamically allocated:
+ */
+void
+COutputThread::freeFragments(std::vector<EVB::pFragment>* frags)
+{
+    std::vector<EVB::pFragment>& fs(*frags);
+    // free storage associated with each fragment.
+    
+    for (int i = 0; i < fs.size(); i++) {
+        freeFragment(fs[i]);
+    }
+    // and now the vector itself:
+    
+    delete frags;
 }
