@@ -699,8 +699,9 @@ while(1) {
          <programlisting>
 #include &lt;Thread.h&gt;
          </programlisting>
-         <classsynopsis>
-            <ooclass><classname>Thread</classname></ooclass>
+         <synopsis>
+            class <ooclass><classname>Thread</classname></ooclass>
+{
             <constructorsynopsis>
                 <methodname>Thread()</methodname>
                 <void />
@@ -745,8 +746,8 @@ while(1) {
                                              <methodname>run</methodname>
                                              <void /> 
             </methodsynopsis>
-
-         </classsynopsis>
+}
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
