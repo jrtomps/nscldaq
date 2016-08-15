@@ -28,6 +28,7 @@
 #include <vector>
 #include "fragment.h"
 #include <CMutex.h>
+#include <CBufferQueue.h>
 
 /**
  * @class COutputThread
