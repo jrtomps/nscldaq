@@ -21,6 +21,73 @@
 */
 #ifndef COUTPUTTHREAD_H
 #define COUTPUTTHREAD_H
+#include <Thread.h>
+
+#include "CFragmentHandler.h"
+#include <list>
+#include <vector>
+#include "fragment.h"
+#include <CMutex.h>
+
+/**
+ * @class COutputThread
+ *     This thread is responsible for handling the output observers for the
+ *     event ordering stage of the event builder.  The thread contains
+ *     a thread safe queue of pointers to vectors of ordered fragments
+ *     and an ordered list of observers.  A mutex protects the list of observers.
+ *     The queue has its own mutex/condition variable.
+ *
+ *     The action of the thread is to get vectors of fragments fromt its thread
+ *     safe queue and pass them on to the ordered lists of observers.  Each observer
+ *     does as it will with the fragments.   A separate thread is used for two
+ *     reasons:
+ *      -  Theoretically on a multicore system we can improve performance by
+ *         pipelining fragment sorting with fragment outupt.
+ *      -  More importantly, without this thread we observed (see Bug #6079) that
+ *         flow control on the output would block user interface updates which,
+ *         in turn, would mislead the user about how the event builder was
+ *         performing.
+ *
+ */
+class COutputThread : Thread
+{
+    // Local data:
+    
+private:
+    // Buffer queue between the fragment source and us:
+    
+    CBufferQueue<std::vector<EVB::pFragment>* > m_inputQueue;
+    
+    // The mutex guard and the list of observers it guards:
+    
+    CMutex                                 m_observerGuard;
+    std::list<CFragmentHandler::Observer*> m_observers;
+    
+public:
+    COutputThread();
+    virtual ~COutputThread();
+    
+    // Thread entry point:
+    
+    virtual void run();
+    
+    // Methods to manipulate the observer list:
+    
+public:
+    void addObserver(CFragmentHandler::Observer* o);
+    void removeObserver(CFragmentHandler::Observer* o);
+
+    // Make fragments available to the thread:
+public:
+    void queueFragments(std::vector<EVB::pFragment>* pFrags);
+    
+    // Private utilities:
+    
+private:
+    std::vector<EVB::pFragment>* getFragments();
+    void freeFragments(std::vector<EVB::pFragment>* frags);
+    
+};
 
 #endif
 
