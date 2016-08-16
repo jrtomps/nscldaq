@@ -45,7 +45,7 @@ static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
 static const time_t DefaultStartupTimeout(4); // default seconds to accumulate data before ordering.
 static time_t timeOfFirstSubmission(UINT64_MAX); //
 static const  size_t defaultXonLimit(150*Mega);     // Default total fragment storage at which we can xon
-static const  size_t defaultXoffLimit(200*Mega);    // Default total fragment storage at which we xoff.
+static const  size_t defaultXoffLimit(2*Mega);    // Default total fragment storage at which we xoff.
 
 /*---------------------------------------------------------------------
  * Debugging
@@ -215,7 +215,9 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
     }
 
-
+    if (inFlightFragmentCount() > m_nXoffLimit && (!m_fXoffed)) {
+        Xoff();
+    }
 }
 /**
  * setBuildWindow
@@ -875,7 +877,7 @@ CFragmentHandler::flushQueues(bool completely)
       } else {
 	m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
       }
-      m_nTotalFragmentSize -= p->second->s_header.s_size;
+      m_nTotalFragmentSize--;
       sortedFragments.push_back(p->second);
       delete p;
     } else {
@@ -902,7 +904,7 @@ CFragmentHandler::flushQueues(bool completely)
         } else {
           m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
         }
-        m_nTotalFragmentSize -= p->second->s_header.s_size;
+        m_nTotalFragmentSize--;
         sortedFragments.push_back(p->second);
         delete p;
       } else {
@@ -927,7 +929,7 @@ CFragmentHandler::flushQueues(bool completely)
   
   // If XOFed and below the low water mark, XON:
   
-  if ((m_nTotalFragmentSize < m_nXonLimit) && m_fXoffed) {
+  if ((inFlightFragmentCount() < m_nXonLimit) && m_fXoffed) {
     Xon();
   }
   
@@ -1201,10 +1203,8 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
 #endif
     // Tally the fragment size and Xoff if the high water mark was hit:
     
-    m_nTotalFragmentSize += pHeader->s_size;
-    if (m_nTotalFragmentSize > m_nXoffLimit && (!m_fXoffed)) {
-        Xoff();
-    }
+    m_nTotalFragmentSize++;
+
 
 }
 /**
@@ -1663,4 +1663,13 @@ CFragmentHandler::IdlePoll(ClientData data)
   // reschedule
 
   pHandler->m_timer = Tcl_CreateTimerHandler(1000*IdlePollInterval,  &CFragmentHandler::IdlePoll, pHandler);
+}
+/**
+ * inflightFragmentCont
+ *    @return size_t number of fragments in flight.
+ */
+size_t
+CFragmentHandler::inFlightFragmentCount()
+{
+  return m_nTotalFragmentSize + m_outputThread.getInflightCount();
 }

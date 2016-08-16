@@ -29,6 +29,7 @@
 #include "fragment.h"
 #include <CMutex.h>
 #include <CBufferQueue.h>
+#include <atomic>
 
 /**
  * @class COutputThread
@@ -64,6 +65,10 @@ private:
     CMutex                                 m_observerGuard;
     std::list<CFragmentHandler::Observer*> m_observers;
     
+    // Book keeping for in-flight fragments.
+    
+    std::atomic<size_t>   m_nInflightCount;
+    
 public:
     COutputThread();
     virtual ~COutputThread();
@@ -81,6 +86,7 @@ public:
     // Make fragments available to the thread:
 public:
     void queueFragments(std::vector<EVB::pFragment>* pFrags);
+    size_t getInflightCount() const;
     
     // Private utilities:
     

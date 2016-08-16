@@ -30,7 +30,8 @@
  *   constructor.
  */
 COutputThread::COutputThread() :
-Thread(std::string("OutputThread"))
+Thread(std::string("OutputThread")),
+m_nInflightCount(0)
 {
     
 }
@@ -57,6 +58,7 @@ COutputThread::run()
                 (*pO)(*pFrags);
             }
         }
+        m_nInflightCount -= (pFrags->size());
         freeFragments(pFrags); 
     }
 }
@@ -108,7 +110,20 @@ void
 COutputThread::queueFragments(std::vector<EVB::pFragment>* pFrags)
 {
     m_inputQueue.queue(pFrags);
+    m_nInflightCount += pFrags->size();
 }
+/**
+ * getInflightCount
+ *    Return the number of fragments in the queue.
+ *
+ * @return size_t
+ */
+size_t
+COutputThread::getInflightCount() const
+{
+    return m_nInflightCount;
+}
+
 /*----------------------------------------------------------------------------
  * private utilities
  */

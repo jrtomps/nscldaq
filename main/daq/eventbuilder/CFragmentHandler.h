@@ -408,6 +408,7 @@ private:
   // Static private methods:
 
   static void IdlePoll(ClientData obj);
+  size_t inFlightFragmentCount();
 };
 
 
