@@ -77,6 +77,7 @@
 
 #include <limits>
 
+class COutputThread;
 
 // Forward definitions:
 
@@ -90,6 +91,9 @@ namespace EVB {
   struct _Fragment;
   typedef struct _Fragment Fragment, *pFragment;
 };
+
+
+
 /**
  * @class CFragmentHandler
  *
@@ -262,7 +266,7 @@ private:
 
   std::uint32_t                     m_nFragmentsLastPeriod; //!< # fragments in last flush check interval.
 
-  std::list<Observer*>                       m_OutputObservers;
+  
   std::list<DataLateObserver*>               m_DataLateObservers;
   std::list<BarrierObserver*>                m_goodBarrierObservers;
   std::list<PartialBarrierObserver*>         m_partialBarrierObservers;
@@ -283,7 +287,7 @@ private:
   bool                         m_fXoffed;
   size_t                       m_nTotalFragmentSize;
 
-
+  COutputThread&               m_outputThread;
 
   // Canonicals/creationals. Note that since this is a singleton, construction
   // is private.
@@ -371,7 +375,7 @@ public:
 private:
   void flushQueues(bool completely=false);
   std::pair<time_t, ::EVB::pFragment>* popOldest();
-  void   observe(const std::vector<EVB::pFragment>& event); // pass built events on down the line.
+  void   observe(std::vector<EVB::pFragment>& event); // pass built events on down the line.
   void   dataLate(const ::EVB::Fragment& fragment);		    // Data late handler.
   void   addFragment(EVB::pFlatFragment pFragment);
   size_t totalFragmentSize(EVB::pFragmentHeader pHeader);
