@@ -50,7 +50,7 @@
  *         performing.
  *
  */
-class COutputThread : Thread
+class COutputThread : public Thread
 {
     // Local data:
     
