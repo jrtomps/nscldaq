@@ -67,8 +67,9 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h  \
 libEventBuilderClient_la_LIBADD = @top_builddir@/base/tcpip/libTcp.la \
 	@top_builddir@/servers/portmanager/libPortManager.la   \
 	@top_builddir@/base/tcpip/libTcp.la	\
+	@top_builddir@/base/thread/libdaqthreads.la 	\
 	@top_builddir@/base/os/libdaqshm.la		\
-	@LIBTCLPLUS_LDFLAGS@
+	@LIBTCLPLUS_LDFLAGS@ 
 
 libEventBuilder_la_LIBADD = @LIBTCLPLUS_LDFLAGS@	\
 	@top_builddir@/base/os/libdaqshm.la    \
@@ -139,10 +140,11 @@ unittests_DEPENDENCIES = cmdline.o cmdline.h
 ordertests_SOURCES = TestRunner.cpp orderTests.cpp duptscmdtest.cpp \
 	configcmdtests.cpp tclflowtest.cpp \
 	CFragmentHandler.cpp fragment.c CDuplicateTimeStatCommand.cpp \
-	CConfigure.cpp CXonXOffCallbackCommand.cpp
+	CConfigure.cpp CXonXOffCallbackCommand.cpp COutputThread.cpp
 
 
-ordertests_LDADD = 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
+ordertests_LDADD = 	@top_builddir@/base/thread/libdaqthreads.la 	\
+	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
 ordertests_CXXFLAGS=$(COMPILATION_FLAGS) @TCL_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@
 
