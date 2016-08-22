@@ -19,8 +19,8 @@ class ConfigCmdTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(ConfigCmdTest);
   CPPUNIT_TEST(setxon);
   CPPUNIT_TEST(setxoff);
-  CPPUNIT_TEST(xoffObserved);
-  CPPUNIT_TEST(xonObserved);
+//  CPPUNIT_TEST(xoffObserved);
+//  CPPUNIT_TEST(xonObserved);
   CPPUNIT_TEST_SUITE_END();
 
 
