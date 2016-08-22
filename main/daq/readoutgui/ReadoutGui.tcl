@@ -361,6 +361,7 @@ snit::type ReadoutGuiApp {
     component dataSourceMenu
     component settingsMenu
 
+    option -settingsfile -default ".settings.tcl"
     
     ##
     # constructor
@@ -393,7 +394,7 @@ snit::type ReadoutGuiApp {
         # State is saved to the stagearea root in the file .settings.tcl
         # this is a hidden file from the user's standpoint.
         
-        set savedFile [file join [ExpFileSystem::getStageArea] .settings.tcl]
+        set savedFile [file join [ExpFileSystem::getStageArea] [$self cget -settingsfile]]
         set state [StateManagerSingleton %AUTO% -file $savedFile]
         
         # Set up Run state saving.
