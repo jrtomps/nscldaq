@@ -8,6 +8,7 @@ COMPILATION_FLAGS =  \
 	-I@top_srcdir@/base/tcpip        \
 	-I@top_srcdir@/servers/portmanager \
 	-I@top_srcdir@/base/os \
+	-I@top_srcdir@/base/thread \
 	@LIBTCLPLUS_CFLAGS@ \
 	@THREADCXX_FLAGS@ @TCL_FLAGS@
 
