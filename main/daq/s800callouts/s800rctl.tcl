@@ -47,8 +47,8 @@ snit::type s800rctl {
   variable requestReply "";   # reply received from the slave after request
 
   typevariable listenSocket "";		# Listens for connections from the slave 
-  variable replySocket "";		# Socket that can respond to requests from the slave
-  variable replyReply "";     # Incoming message from slave
+  #  variable replySocket "";	# channel local.	# Socket that can respond to requests from the slave
+  typevariable replyReply -array [list];     # Incoming message from slave
 
   variable ACK "OK"
   variable NAK "FAIL"
@@ -103,10 +103,10 @@ snit::type s800rctl {
     } msg
     catch {
       # close any connection to the server that may have been made
-      if {$replySocket ne ""} {
-        chan event $replySocket readable {}
-        close $replySocket
-        set replySocket ""
+      #if {$replySocket ne ""} {
+      #  chan event $replySocket readable {}
+      #  close $replySocket
+      #  set replySocket ""
       }
     }
   }
@@ -537,16 +537,23 @@ snit::type s800rctl {
   # 
   # @returns ""
   #
-  method _onReplyReadable {} {
+  method _onReplyReadable {replySocket} {
 
     # read what can be read from the channel
     set readInfo [$self _onReadable $replySocket]
     
     # append what was read to what was previously read
-    append replyReply [lindex $readInfo 1]
+    append replyReply($replySocket) [lindex $readInfo 1]
 
     # if the read was complete, handle the received message
-    if {![lindex $readInfo 0]} {
+    #
+    #  Quick notes on readInfo:
+    #     Could be a command word.
+    #     On eof from the peer it can be either:
+    #       -   0 - The close succeeded.
+    #       -   1 - the close failed but what are you going to do so we ignore
+    #               the result.
+    if {![lindex $readInfo 0] && ($readInfo != 1)} {
 
       # we have to reset the string replyReply but at the same time
       # use the result in _handleCommand. The issue is that someone could
@@ -557,10 +564,13 @@ snit::type s800rctl {
       # causes a tcl error because the namespace for replyReply no longer 
       # exists. So we have to copy it into a temporary variable that we 
       # use later in the method. Shoot.
-      set command $replyReply
-      set replyReply ""
+      set command $replyReply($replySocket)
+      set replyReply($replySocket) ""
 
       # only evaluate the command if it was valid
+      
+
+      
       if {[ $self _isValidCommand [lindex $command 0]]} {
       # if we had a valid command, then send the response immediately.
       # Executing the command the peer sent may require further
@@ -661,12 +671,11 @@ snit::type s800rctl {
   # @param clientport - Remote Port address.
   #
   method _onConnection {client clientaddr clientport} {
-    if {$replySocket != ""} {
-      close $client
-    } else {
+    
       chan configure $client -buffering line
       set replySocket $client
-      chan event $replySocket readable [mymethod _onReplyReadable]
-    }
+      chan event $replySocket readable [mymethod _onReplyReadable $replySocket]
+      
+      set replyReply($replySocket) ""
   }
 }
