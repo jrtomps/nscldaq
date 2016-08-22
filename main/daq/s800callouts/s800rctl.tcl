@@ -46,7 +46,7 @@ snit::type s800rctl {
   variable requestReplyReceived 0; # flags when complete reply has been received
   variable requestReply "";   # reply received from the slave after request
 
-  variable listenSocket "";		# Listens for connections from the slave 
+  typevariable listenSocket "";		# Listens for connections from the slave 
   variable replySocket "";		# Socket that can respond to requests from the slave
   variable replyReply "";     # Incoming message from slave
 
@@ -73,9 +73,10 @@ snit::type s800rctl {
   constructor args {
     $self configurelist $args
 
-    set port [$self _getPortForService s800rctl]
-    set listenSocket [socket -server [mymethod _onConnection] $port]
-
+    if {$listenSocket eq ""} {
+      set port [$self _getPortForService s800rctl]
+      set listenSocket [socket -server [mymethod _onConnection] $port]
+    }
     $self Connect
   }
 
@@ -130,6 +131,7 @@ snit::type s800rctl {
     }
 
     # we did not find a preallocated port, so allocate one.
+    
     set port [$allocator allocatePort s800rctl]
     $allocator destroy
     return $port
