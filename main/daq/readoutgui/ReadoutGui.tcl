@@ -396,7 +396,6 @@ snit::type ReadoutGuiApp {
         # State is saved to the stagearea root in the file .settings.tcl
         # this is a hidden file from the user's standpoint.
         
-        puts "[$self cget -settingsfile]"
         set savedFile [file join [ExpFileSystem::getStageArea] [$self cget -settingsfile]]
         set state [StateManagerSingleton %AUTO% -file $savedFile]
         
