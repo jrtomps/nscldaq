@@ -375,6 +375,8 @@ snit::type ReadoutGuiApp {
     # @param args - not used as we have no options to be concerned with.
     #
     constructor args {
+        $self configurelist $args
+
         install stateMachine using RunstateMachineSingleton %AUTO%
         install dataSources  using DataSourcemanagerSingleton %AUTO%
         install readoutGUI using ReadoutGUI .gui
@@ -394,6 +396,7 @@ snit::type ReadoutGuiApp {
         # State is saved to the stagearea root in the file .settings.tcl
         # this is a hidden file from the user's standpoint.
         
+        puts "[$self cget -settingsfile]"
         set savedFile [file join [ExpFileSystem::getStageArea] [$self cget -settingsfile]]
         set state [StateManagerSingleton %AUTO% -file $savedFile]
         
