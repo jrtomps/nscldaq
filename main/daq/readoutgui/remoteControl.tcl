@@ -328,12 +328,20 @@ snit::type ReadoutGuiRemoteControl {
   #    -  set the replyfd attribute to -1 so new clients canconnect
   #
   method _onClientExit {} {
-    close $replyfd
-    set replyfd -1
+    puts "_onClientExit"
+    if {$replyfd != -1} {
+      catch {close $replyfd}
+      set replyfd -1
+    }
+    if {$requestfd != -1} {
+      catch {close $requestfd}
+      set requestfd -1
+    }
     ::ReadoutGUIPanel::setRun $priorRunNumber
     ::ReadoutGUIPanel::setTitle $priorTitle
-    $self _setMaster
     $statusmanager setMessage $statusbar "Remote controlled by: nobody"
+    $self _setMaster
+    
   }
 
   ##
@@ -382,7 +390,7 @@ snit::type ReadoutGuiRemoteControl {
   method _onReadable {fd} {
 
     # allow the specific handlers to handle how to deal with end of file
-    if {![eof $fd]} {
+    if {($fd != -1) && ![eof $fd]} {
       # read what we can at the moment and return it
       if {[catch {gets $fd line} len]} {
         set msg "ReadoutGUIRemoteControl::_onReadable unable to read data from "
@@ -392,7 +400,7 @@ snit::type ReadoutGuiRemoteControl {
         # return a list consisting of whether it blocked and the data read
         return [list [chan blocked $fd] $line]
       }
-    }
+    } 
   }
 
   ##
@@ -411,6 +419,8 @@ snit::type ReadoutGuiRemoteControl {
   # check to see if the channel eof is reached
     if {[eof $replyfd]} {
       $self _onClientExit
+      puts "EOF on replyfd"
+      set replyfd -1
     } else {
     # read whatever we can from the channel
       set readInfo [$self _onReadable $replyfd]
@@ -442,7 +452,9 @@ snit::type ReadoutGuiRemoteControl {
   # @returns ""
   method _onRequestReadable {} {
     if {[eof $requestfd]} {
+      puts "EOF on request fd"
       catch {close $requestfd}
+      $self _onClientExit
       set requestfd -1 
     } else {
       set readInfo [$self _onReadable $requestfd]
@@ -635,8 +647,9 @@ snit::type ReadoutGuiRemoteControl {
       return
     }
     set sm [::RunstateMachineSingleton %AUTO%]
+    set currentState [$sm getState]
     if {[catch {$sm masterTransition $to} msg]} {
-      $self _reply ERROR "The current state ($currentState) does not allow transition to $to state"
+      $self _reply ERROR "The current state ($currentState) does not allow transition to $to state $msg"
     } else {
       $self _reply OK
     }

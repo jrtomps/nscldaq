@@ -344,6 +344,8 @@ snit::type DataSourceManager {
                 dict set paramDict sourceid $id
                 if {[catch {::${providerType}::start $paramDict} msg]} {
                     incr failures
+                    set msg [string map [list \" \\\"] $msg]
+                    puts "Failure: $msg"
                     lappend errors [join $msg " "]
                 }
             }

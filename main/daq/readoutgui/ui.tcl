@@ -657,6 +657,7 @@ snit::widgetadaptor RunControl {
             grid forget $win.slavemode
             $self _layoutWidgets
             $self _changePauseVisibility -pauseable $options(-pauseable)
+            $self _updateAppearance
         }
         
     }
