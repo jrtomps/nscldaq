@@ -125,6 +125,7 @@ private:
   bool getBoolParameter(std::string name);
   void getThresholds(std::vector<uint16_t>& thresholds);
   int  getModuleType(CVMUSB& controller, uint32_t base);
+  void applyTristate(CVMUSB& controller, std::string option, uint16_t bitMask);
 };
 
 

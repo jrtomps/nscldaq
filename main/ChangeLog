@@ -1143,3 +1143,6 @@ Work on 11.0-rc11 begins
 	updating its value after the first run.
 	* Bug #5900 - Modifies the Makefiles so that NSCLDAQ can build in
 	 parallel.
+12.0-000
+      * Bug #5903 - add separate options to enable/disable underflow and
+        overflow in the "adc" command of VMUSBReadout

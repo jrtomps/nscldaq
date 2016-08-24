@@ -245,6 +245,30 @@ caenv956 cget <replaceable>name</replaceable>
 	       </para>
             </listitem>
          </varlistentry>
+	 <varlistentry>
+	     <term><option>-suppressover</option> <replaceable>tristate</replaceable></term>
+	     <listitem>
+		 <para>
+		    The value of this option can be one of:
+		    <literal>unused</literal>, <literal>true</literal>, or
+		    <literal>false</literal>.  If the value is
+		    <literal>unused</literal>, the <option>-supressrange</option>
+		    option value will set the overflow supression on or off.
+		    If not, then the value of <option>-supressover</option>
+		    will override the value of <option>-supressrange</option>
+		    for turning on or off supresion of overflows.
+		 </para>
+	     </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	     <term><option>-supressunder</option> <replaceable>tristate</replaceable></term>
+	     <listitem>
+		 <para>
+		    Same as for <option>-supressover</option>, however underflow
+		    supression is managed by this option.
+		 </para>
+	     </listitem>
+	 </varlistentry>
          <varlistentry>
             <term><command>-timescale</command> <replaceable>ns</replaceable></term>
             <listitem>

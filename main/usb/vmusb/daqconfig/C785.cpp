@@ -165,6 +165,8 @@ static CConfigurableObject::limit ipedLow(0);
 static CConfigurableObject::limit ipedHigh(255);
 static CConfigurableObject::Limits ipedRange(ipedLow, ipedHigh);
 
+
+static const char* tristate[] = {"unused", "true", "false", 0};
 //////////////////////////////////////////////////////////////////////
 /////////////////// Canonical class/object operations ////////////////
 //////////////////////////////////////////////////////////////////////
@@ -279,10 +281,17 @@ C785::addToChain(CVMUSB& controller,
    -highwater       MEBDepth*3/4  (3/4 full event buffer).
    -fastclear       0
    -supressrange    true
+   -supressover     unused  - this can override -supressrange for the overflows.
+   -supressunder    unused  - this can override -supressrange for under
    -timescale       600 (ns).  (775 only)
    -commonstop      false      (775 only)
    -iped            180        (QDC's only).
 \endverbatim
+
+   A note about suppressover|under - this is a tristate value with:
+   *  unused - does not override -supressrange.
+   *  true | false - overrides the specific  part of -supressrange.
+
 
    All others have no default values.   If, during initialization one of those
    is fetched an string exception of the sort:
@@ -324,6 +333,10 @@ C785::onAttach(CReadoutModule& configuration)
 				 &fcRange, "0");
   m_pConfiguration->addParameter("-supressrange", CConfigurableObject::isBool,
 				 NULL, "true");
+  m_pConfiguration->addEnumParameter("-supressover", tristate, "unused");
+  m_pConfiguration->addEnumParameter("-suppressunder", tristate, "unused");
+  
+  
   m_pConfiguration->addParameter("-timescale", CConfigurableObject::isInteger,
 				 &tsRange, "600");
 
@@ -436,14 +449,19 @@ C785::Initialize(CVMUSB& controller)
 
   // Set the supression.
 
+  
   bool supressed = getBoolParameter("-supressrange");
   if (!supressed) {		// Set means disable checks.
-    controller.vmeWrite16(base+BSet2, initamod, (uint16_t)0x38);
+    controller.vmeWrite16(base+BSet2, initamod, (uint16_t)0x18);
   }
   else {
-    controller.vmeWrite16(base+BClear2, initamod, (uint16_t)0x38);
+    controller.vmeWrite16(base+BClear2, initamod, (uint16_t)0x18);
   }
-
+  // Override the generic if appropriate:  We'll assume that unused is first
+  
+  applyTristate(controller, "-supressover", 0x8);
+  applyTristate(controller, "-supressunder", 0x10);
+  
   // If the user chooses to require data even if the module
   // is 'empty' take care of that too:
 
@@ -626,4 +644,35 @@ C785::getModuleType(CVMUSB& controller, uint32_t base)
 
  return (basel | (basem << 8) | (baseh << 16));
 
+}
+/**
+ * applyTriState
+ *
+ *    Apply a tristate override to the -suppressrange option.
+ *
+ * @param controller - vmusb controller object.
+ * @param optioun    - the option string.
+ * @param bitMask    - Mask to either set or clear in the bitset/clear2
+ *                     register
+ *
+ *  @note - True clears the bit and false sets it while unused does nothing.
+ */
+void
+C785::applyTristate(CVMUSB& controller, std::string option, uint16_t bitMask)
+{
+  int value = m_pConfiguration->getEnumParameter(option, tristate);
+  //
+  // 0 - unused.
+  // 1 - true.
+  // 2 - false.
+  //
+  if (value != 0) {
+    uint32_t reg = m_pConfiguration->getUnsignedParameter("-base");
+    if (value == 1) {
+      reg += BClear2;
+    } else {
+      reg += BSet2;
+    }
+    controller.vmeWrite16(reg, initamod, bitMask);
+  }
 }
