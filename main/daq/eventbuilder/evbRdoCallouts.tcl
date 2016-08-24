@@ -17,6 +17,7 @@
 # @brief Readout Callouts for event builder/ReadoutGUI.
 # @author Ron Fox (fox@nscl.msu.edu)
 
+#++ REMOVE
 package provide evbcallouts 1.0
 package require snit
 package require portAllocator
@@ -27,7 +28,6 @@ package require StateManager
 package require Thread
 package require ringsourcemgr
 package require EndrunMon
-
 
 namespace eval ::EVBC {
     variable registered 0;            # nonzero if the event bundle is registered.
@@ -42,7 +42,8 @@ namespace eval ::EVBC {
     #  ::EVBC::daqtop    - canonicalized top level directory of DAQ installation.
     #
     variable scriptdir [file dirname [info script]]
-    variable daqtop    [file normalize [file join $scriptdir .. ..]]
+
+    variable daqtop    [file join [file normalize $scriptdir] .. ..]
     
     #
     #  Application options passed to initialize:
@@ -96,11 +97,12 @@ namespace eval ::EVBC {
 #    * -glomtspolicy - Timestamp policy for glom.
 #    * -destring  - Final destination ring of glom's output.
 #                   defaults to the users's name.
+#    * -glomid    - Source id to assign to built physics events
 snit::type EVBC::StartOptions {
     option -teering
     option -glombuild false
-    option -glomdt 1
-    option -glomid 0
+    option -glomdt -default 1
+    option -glomid -default 0
     option -glomtspolicy -configuremethod checkTsPolicy -default earliest
     option -destring $::tcl_platform(user)
     
@@ -241,6 +243,7 @@ proc EVBC::start args {
     if {![$options cget -glombuild]} {
         append glom " --nobuild "
     }
+    append glom " --sourceid=[$options cget -glomid]"
     append glom " --timestamp-policy=[$options cget -glomtspolicy] "
     append pipecommand " | $glom"
     #
@@ -584,6 +587,7 @@ proc EVBC::onBegin {} {
             -teering   $teering   \
             -glombuild [$EVBC::applicationOptions cget -glombuild] \
             -glomdt    [$EVBC::applicationOptions cget -glomdt]    \
+            -glomid    [$EVBC::applicationOptions cget -glomid]    \
             -glomtspolicy [$EVBC::applicationOptions cget -glomtspolicy] \
             -destring  $destring
         
