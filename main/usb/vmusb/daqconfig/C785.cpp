@@ -651,7 +651,7 @@ C785::getModuleType(CVMUSB& controller, uint32_t base)
  *    Apply a tristate override to the -suppressrange option.
  *
  * @param controller - vmusb controller object.
- * @param optioun    - the option string.
+ * @param option    - the option string.
  * @param bitMask    - Mask to either set or clear in the bitset/clear2
  *                     register
  *
