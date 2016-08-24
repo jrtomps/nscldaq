@@ -202,6 +202,7 @@ CMTDC32::onAttach(CReadoutModule& configuration)
     // register values for these.
     
     m_pConfiguration->addIntegerParameter("-base");
+    m_pConfiguration->addIntegerParameter("-initdelay", 0, 0xff, MADCDELAY);
     m_pConfiguration->addIntegerParameter("-id", 0,255, 0);
     m_pConfiguration->addIntegerParameter("-ipl", 0,7,0);
     m_pConfiguration->addIntegerParameter("-vector", 0,255, 0);
@@ -258,12 +259,10 @@ CMTDC32::onAttach(CReadoutModule& configuration)
     m_pConfiguration->addIntegerParameter("-tsdivisor", 1, 65535, 1);  // avoid 65536 special case.
     
     m_pConfiguration->addBooleanParameter("-tstamp");
-
     m_pConfiguration->addIntegerParameter("-multlow0", 0, 255, 0);
     m_pConfiguration->addIntegerParameter("-multhi0", 0, 255, 255);
     m_pConfiguration->addIntegerParameter("-multlow1", 0, 255, 0);
     m_pConfiguration->addIntegerParameter("-multhi1", 0, 255, 255);
-
 }
 /**
  * Initialize
@@ -586,9 +585,10 @@ CMTDC32::clone() const {
 void
 CMTDC32::addWrite(CVMUSBReadoutList& list, uint32_t address, uint16_t value)
 {
+  int delay = m_pConfiguration->getIntegerParameter("-initdelay");
   //  std::cerr << (address & 0xffff) << " " << value << std::endl;
     list.addWrite16(address, initamod, value);
-    list.addDelay(MADCDELAY);
+    list.addDelay(delay);
 }
 /**
  * computeMultiEventRegister
@@ -630,3 +630,4 @@ CMTDC32::getTermination()
     
     return result;
 }
+

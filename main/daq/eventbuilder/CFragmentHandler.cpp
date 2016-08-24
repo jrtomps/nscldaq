@@ -26,6 +26,7 @@
 #include <functional>
 #include <cstdint>
 #include <time.h>
+#include "COutputThread.h"
 
 using std::uint32_t;
 using std::uint64_t;
@@ -44,7 +45,7 @@ static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
 static const time_t DefaultStartupTimeout(4); // default seconds to accumulate data before ordering.
 static time_t timeOfFirstSubmission(UINT64_MAX); //
 static const  size_t defaultXonLimit(150*Mega);     // Default total fragment storage at which we can xon
-static const  size_t defaultXoffLimit(200*Mega);    // Default total fragment storage at which we xoff.
+static const  size_t defaultXoffLimit(2*Mega);    // Default total fragment storage at which we xoff.
 
 /*---------------------------------------------------------------------
  * Debugging
@@ -86,9 +87,11 @@ static void dumpFragment(EVB::pFragment p) {
  *     default values -- they should not be left that way.
  *   - m_pInstance -> this.
  */
-CFragmentHandler::CFragmentHandler()
+CFragmentHandler::CFragmentHandler() :
+  m_outputThread(*(new COutputThread()))
 
 {
+    m_outputThread.start();
     m_nBuildWindow = DefaultBuildWindow;
     m_nStartupTimeout = DefaultStartupTimeout;
     m_pInstance = this;
@@ -212,7 +215,9 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
     }
 
-
+    if (inFlightFragmentCount() > m_nXoffLimit && (!m_fXoffed)) {
+        Xoff();
+    }
 }
 /**
  * setBuildWindow
@@ -306,7 +311,7 @@ CFragmentHandler::setXoffThreshold(size_t nBytes) {
 void
 CFragmentHandler::addObserver(::CFragmentHandler::Observer* pObserver)
 {
-    m_OutputObservers.push_back(pObserver);
+    m_outputThread.addObserver(pObserver);
 }
 /**
  * removeObserver:
@@ -319,11 +324,12 @@ CFragmentHandler::addObserver(::CFragmentHandler::Observer* pObserver)
 void
 CFragmentHandler::removeObserver(::CFragmentHandler::Observer* pObserver)
 {
-    std::list<Observer*>::iterator p = find(
-        m_OutputObservers.begin(), m_OutputObservers.end(), pObserver);
-    if (p != m_OutputObservers.end()) {
-        m_OutputObservers.erase(p);
-    }
+  try {
+    m_outputThread.removeObserver(pObserver);
+  }
+  catch (...) {
+    // Its a no-op to remove a nonexistent observer at this level.
+  }
 }
 /**
  * addDataLateObserver
@@ -709,7 +715,7 @@ CFragmentHandler::markSourceFailed(uint32_t id)
   if(m_fBarrierPending) {
     if (countPresentBarriers() == m_liveSources.size()) {	
       std::cerr << "markSourceFailed -- generating barrier on source dead\n";
-      std::vector<EVB::pFragment> sortedFragments;
+      std::vector<EVB::pFragment>& sortedFragments(*(new std::vector<EVB::pFragment>));
       generateMalformedBarrier(sortedFragments);
       observe(sortedFragments);
     }
@@ -860,7 +866,7 @@ CFragmentHandler::flushQueues(bool completely)
   // Ensure there's at least one fragment available:
 
 
-  std::vector<EVB::pFragment> sortedFragments;
+  std::vector<EVB::pFragment>& sortedFragments(*(new std::vector<EVB::pFragment>));
   while (noEmptyQueue() // || (m_nNow - m_nOldestReceived > m_nBuildWindow)
 	  || completely ) {
     if (queuesEmpty()) break;	// Done if there are no more frags.
@@ -871,7 +877,7 @@ CFragmentHandler::flushQueues(bool completely)
       } else {
 	m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
       }
-      m_nTotalFragmentSize -= p->second->s_header.s_size;
+      m_nTotalFragmentSize--;
       sortedFragments.push_back(p->second);
       delete p;
     } else {
@@ -898,7 +904,7 @@ CFragmentHandler::flushQueues(bool completely)
         } else {
           m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
         }
-        m_nTotalFragmentSize -= p->second->s_header.s_size;
+        m_nTotalFragmentSize--;
         sortedFragments.push_back(p->second);
         delete p;
       } else {
@@ -923,7 +929,7 @@ CFragmentHandler::flushQueues(bool completely)
   
   // If XOFed and below the low water mark, XON:
   
-  if ((m_nTotalFragmentSize < m_nXonLimit) && m_fXoffed) {
+  if ((inFlightFragmentCount() < m_nXonLimit) && m_fXoffed) {
     Xon();
   }
   
@@ -1036,19 +1042,9 @@ CFragmentHandler::popOldest()
  *         to copy them.
  */
 void
-CFragmentHandler::observe(const std::vector<EVB::pFragment>& event)
+CFragmentHandler::observe(std::vector<EVB::pFragment>& event)
 {
-    std::list<Observer*>::iterator p = m_OutputObservers.begin();
-    while(p != m_OutputObservers.end()) {
-        Observer* pObserver = *p;
-        (*pObserver)(event);
-        p++;
-    }
-    // Delete the fragments in the vector as we're done with them now:
-
-    for(int i =0; i < event.size(); i++) {
-      freeFragment(event[i]);
-    }
+    m_outputThread.queueFragments(&event);
 }
 /**
  * dataLate
@@ -1207,10 +1203,8 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
 #endif
     // Tally the fragment size and Xoff if the high water mark was hit:
     
-    m_nTotalFragmentSize += pHeader->s_size;
-    if (m_nTotalFragmentSize > m_nXoffLimit && (!m_fXoffed)) {
-        Xoff();
-    }
+    m_nTotalFragmentSize++;
+
 
 }
 /**
@@ -1566,7 +1560,7 @@ CFragmentHandler::getSourceQueue(uint32_t id)
 void
 CFragmentHandler::checkBarrier(bool completeFlush)
 {
-  std::vector<EVB::pFragment> outputList;
+  std::vector<EVB::pFragment>& outputList(*(new std::vector<EVB::pFragment>));
   m_nNow = time(NULL);		// Update the time.
   size_t nBarriers = countPresentBarriers();
 
@@ -1669,4 +1663,13 @@ CFragmentHandler::IdlePoll(ClientData data)
   // reschedule
 
   pHandler->m_timer = Tcl_CreateTimerHandler(1000*IdlePollInterval,  &CFragmentHandler::IdlePoll, pHandler);
+}
+/**
+ * inflightFragmentCont
+ *    @return size_t number of fragments in flight.
+ */
+size_t
+CFragmentHandler::inFlightFragmentCount()
+{
+  return m_nTotalFragmentSize + m_outputThread.getInflightCount();
 }

@@ -214,8 +214,9 @@ CAcquisitionThread::operator()()
   m_Running = false;		// Exiting.
   if (errorMessage != "") {
     reportErrorToMainThread(errorMessage);
+    usleep(1*1000*1000);   // Let the error get processed.
   }
-
+  exit(EXIT_FAILURE);  
 }
 
 

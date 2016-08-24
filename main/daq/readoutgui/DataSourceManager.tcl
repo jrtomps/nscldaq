@@ -344,6 +344,8 @@ snit::type DataSourceManager {
                 dict set paramDict sourceid $id
                 if {[catch {::${providerType}::start $paramDict} msg]} {
                     incr failures
+                    set msg [string map [list \" \\\"] $msg]
+                    puts "Failure: $msg"
                     lappend errors [join $msg " "]
                 }
             }
@@ -715,8 +717,7 @@ snit::type DataSourcemanagerSingleton {
 #  Bundle declaration:
 #
 namespace eval ::DataSourceMgr {
-    namespace export leave enter attach onExit
-
+    namespace export leave enter attach
 }
 
 ##
@@ -788,19 +789,6 @@ proc ::DataSourceMgr::leave {from to} {
     $mgr destroy
 }
 ##
-
-# DataSourceMgr::onExit
-#   Bundle callback when exiting:
-#   Stop all the data sources
-#
-proc ::DataSourceMgr::onExit {} {
-    set mgr [DataSourcemanagerSingleton %AUTO%]
-    catch {$mgr stopAll};              # Could be in NotReady state.
-    $mgr destroy 
-}
-
-##
-
 # ::DataSourceMgr::register
 #    Register our bundle with the state machine singleton.
 #
@@ -818,5 +806,6 @@ proc ::DataSourceMgr::unregister {} {
     $mgr removeCalloutBundle DataSourceMgr
     $mgr destroy    
 }
+
 
 

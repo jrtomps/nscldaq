@@ -11,10 +11,35 @@ problems.  If you are sure your TCLLIBPATH is safe to use with ReadoutGUI also d
 
 }
 
+# This is a hack to get around problems with Tk's command line option interpreter
+set argv_tmp $argv
+set argv [list]
+package require Tk
+
+package require cmdline
+
+set options {
+	{-settingsfile.arg ".settings.tcl" "name of settings file in stagearea"}
+}
+
+set usage " ?--settingsfile value?"
+
+if {("-help" in $argv_tmp) || ("-?" in $argv_tmp)} {
+	puts [cmdline::usage $options $usage]
+	exit
+}
+
+set res [catch {array set ::params [::cmdline::getoptions argv_tmp $::options]} msg]
+if {$res == 1} {
+	puts $msg
+	exit
+}
+
+
 set here [file dirname [info script]]
 set tcllibs [file normalize [file join $here ../TclLibs]]
 set auto_path [concat $tcllibs $auto_path]
 
 package require ReadoutGui
 
-ReadoutGuiApp r
+ReadoutGuiApp r {*}[array get ::params]

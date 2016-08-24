@@ -20,8 +20,8 @@
 class TclFlowTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TclFlowTest);
   CPPUNIT_TEST(establish);
-  CPPUNIT_TEST(foffcalled);
-  CPPUNIT_TEST(foncalled);
+//  CPPUNIT_TEST(foffcalled);
+//  CPPUNIT_TEST(foncalled);
   CPPUNIT_TEST(remove);
   CPPUNIT_TEST(removenosuch);
   CPPUNIT_TEST_SUITE_END();

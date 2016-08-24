@@ -63,6 +63,10 @@ cmdline.h: commandline.ggo
 
 
 EXTRA_DIST=commandline.ggo vmusbReadout_user.xml vmusbReadout_man.xml \
-	vmusbReadout_man1.xml
+	vmusbReadout_man1.xml s800trigger.jpg
 
 
+
+install-exec-local:
+	$(mkinstalldirs) @prefix@/share/html
+	$(INSTALL_DATA) @srcdir@/s800trigger.jpg @prefix@/share/html

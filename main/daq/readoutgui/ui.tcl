@@ -1,4 +1,4 @@
-
+#
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2013.
 #
@@ -23,7 +23,6 @@ package require RunstateMachine
 package require StateManager
 package require DataSourceUI
 package require img::png
-package require dialogWrapper
 
 package provide ui   1.0
 package provide ReadoutGUIPanel 1.0
@@ -659,6 +658,7 @@ snit::widgetadaptor RunControl {
             grid forget $win.slavemode
             $self _layoutWidgets
             $self _changePauseVisibility -pauseable $options(-pauseable)
+            $self _updateAppearance
         }
         
     }
@@ -744,7 +744,6 @@ snit::widgetadaptor RunControl {
 
       $stateMachine transition Starting
 
-
       $stateMachine destroy 
     }
     ##
@@ -770,7 +769,7 @@ snit::widgetadaptor RunControl {
         } elseif {$state in [list Paused Active]} {
           end
         } else {
-            error "ERROR: begin/end button clicked when state is $state which should not happen"
+          error "ERROR: begin/end button clicked when state is $state which should not happen"
         }
 
     }
@@ -788,13 +787,14 @@ snit::widgetadaptor RunControl {
         $stateMachine destroy
 
         RunControlSingleton::updateStateBundleOrder
+
         if {$state eq "Paused"} {
           resume
         } elseif {$state eq "Active"} {
           pause
         } else {
-            error "ERROR: pause/resume button clicked when state is $state which should not happen"
-	}
+          error "ERROR: pause/resume button clicked when state is $state which should not happen"
+        }
     }
     
     #---------------------------------------------------------------------------
@@ -849,7 +849,6 @@ snit::widgetadaptor RunControl {
         }
     }
 }
-
 
 ## A callout bundles to disable the control widget state
 #
@@ -987,7 +986,6 @@ namespace eval RunControlEnable {
 }
 
 
-
 ##
 #   The functions/namespace below implement the run control singleton pattern.
 #
@@ -995,7 +993,6 @@ namespace eval ::RunControlSingleton {
     variable theInstance ""
     namespace export attach enter leave
 }
-
 
 ##
 # Register (or reregister) the RunControlEnable/Disable bundles 
@@ -1012,7 +1009,6 @@ proc ::RunControlSingleton::updateStateBundleOrder {} {
   RunControlDisable::register
 
 }
-
 ##
 #  ::RunControlSingleton::getInstance
 #
@@ -1027,7 +1023,6 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
 
        RunControlSingleton::updateStateBundleOrder
 
-
     } elseif {[llength $args] > 0} {
         $::RunControlSingleton::theInstance configure {*}$args
     }
@@ -1040,7 +1035,6 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
 # @param state - the current machine state.
 # 
 proc ::RunControlSingleton::attach {state} {
-
 }
 ##
 # enter
@@ -1052,16 +1046,13 @@ proc ::RunControlSingleton::attach {state} {
 # @param to   - Current state
 #
 proc ::RunControlSingleton::enter {from to} {
-
 }
 ##
 #  leave
 #   Called whenn the state machine leaves a state (unused)
 #
-
 proc ::RunControlSingleton::leave {from to} {
 }
-
 
 ##
 #  API elements for all this fun:
@@ -1134,8 +1125,10 @@ snit::type Stopwatch {
     #                values are lists of commands called when that time is hit.
     #
     variable elapsedTimeMs 0
+    variable startMs       0;    # When we start counting.
     variable afterId    -1
     variable alarms -array [list]
+    variable calledAlarms -array [list]
     
     variable timerResolution 250;   # Ms per tick.
     
@@ -1159,6 +1152,8 @@ snit::type Stopwatch {
     method start {} {
         if {![$self isRunning] } {
             $self _startTimer
+            set startMs [clock milliseconds]
+            array set calledAlarms [list]
         } else {
             error "Timer is already running!"
         }
@@ -1182,6 +1177,9 @@ snit::type Stopwatch {
     #
     method reset {} {
         set elapsedTimeMs 0
+        set startMs [clock milliseconds]
+        array unset calledAlarms 
+        array set calledAlarms [list]
     }
     ##
     #  addAlarm
@@ -1275,7 +1273,9 @@ snit::type Stopwatch {
     #    called when timer tick must be counted.
     #
     method _tick {} {
-        incr elapsedTimeMs $timerResolution
+        set now [clock milliseconds]
+        set elapsedTimeMs  [expr {$now - $startMs}]
+
         $self _startTimer;     # schedules the next one.
         $self _callScripts;    # this order gives a more stable time.
     }
@@ -1284,6 +1284,20 @@ snit::type Stopwatch {
     #    Invokes all the scripts set for this elapsed time.
     #
     method _callScripts {} {
+
+        foreach name [array names alarms] {
+            if {$name ni [array names calledAlarms]} {
+                if {$elapsedTimeMs > $name} {
+                    foreach script $alarms($name) {
+                        uplevel #0 $script
+                    }
+                    set calledAlarms($name) 1
+                }
+            }
+        }
+        return
+    
+    
         if {[array names alarms $elapsedTimeMs] ne ""} {
             foreach script $alarms($elapsedTimeMs) {
                 uplevel #0 $script
@@ -1449,8 +1463,6 @@ proc ::ElapsedTime::enter  {from to} {
         $timer start
     } elseif {($from eq "Paused") && ($to eq "Active")} {
         $timer start
-    } elseif {$from  eq "Active"} {
-        $timer stop
     }
 }
 ##
@@ -1460,7 +1472,15 @@ proc ::ElapsedTime::enter  {from to} {
 #
 # @param from - state being left.
 # @param to   - State we are going to enter.
-proc ::ElapsedTime::leave  {from to} {}
+proc ::ElapsedTime::leave  {from to} {
+  
+    set timer [::ElapsedTime::getInstance]
+    if {$from  eq "Active"} {
+        $timer stop
+    } elseif {$to eq "NotReady"} {
+      catch {$timer stop; $timer reset }
+    }
+}
 
 
 
@@ -3096,11 +3116,11 @@ snit::widgetadaptor ReadoutGUI {
             -title {Choose script file}             \
             -filetypes [list                        \
                 [list {Tcl Scripts} {.tcl}]         \
-                [list {Tk Scripts}  {.tk}]         \
+                [list {Tk Scripts}  {.tk"}]         \
                 [list {All Files}    *]             \
             ]]
         #
-        #  The dialog returns an empty string if cancel is clicked
+        #  The dialog returns "" if cancel is clicked
         #
         if {$scriptPath ne ""} {
             uplevel #0 source $scriptPath
@@ -3171,7 +3191,6 @@ snit::widgetadaptor ReadoutGUI {
             set sm [RunstateMachineSingleton %AUTO%]
             if {[$sm getState] ne "NotReady"} {
                 $sm transition NotReady
-
             }
             $sm destroy;                # though there's not much point to this:
             #

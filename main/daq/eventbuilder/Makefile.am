@@ -8,6 +8,7 @@ COMPILATION_FLAGS =  \
 	-I@top_srcdir@/base/tcpip        \
 	-I@top_srcdir@/servers/portmanager \
 	-I@top_srcdir@/base/os \
+	-I@top_srcdir@/base/thread \
 	@LIBTCLPLUS_CFLAGS@ \
 	@THREADCXX_FLAGS@ @TCL_FLAGS@
 
@@ -25,7 +26,7 @@ libEventBuilder_la_SOURCES = OrdererPackage.cpp CFragmentHandlerCommand.cpp CFra
 	CCompleteBarrierCallback.cpp CBarrierTraceCommand.cpp CPartialBarrierCallback.cpp \
 	CSourceCommand.cpp CDeadSourceCommand.cpp CReviveSocketCommand.cpp \
 	CFlushCommand.cpp CResetCommand.cpp CConfigure.cpp CDuplicateTimeStatCommand.cpp \
-	COutOfOrderTraceCommand.cpp CXonXOffCallbackCommand.cpp 
+	COutOfOrderTraceCommand.cpp CXonXOffCallbackCommand.cpp COutputThread.cpp
 
 libEventBuilder_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
@@ -58,7 +59,7 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h  \
 	CBarrierTraceCommand.h CPartialBarrierCallback.h CSourceCommand.h CDeadSourceCommand.h \
 	CReviveSocketCommand.h CFragReader.h CFragWriter.h CFlushCommand.h CResetCommand.h \
 	CConfigure.h fragio.h CDuplicateTimeStatCommand.h CXonXOffCallbackCommand.h \
-	COutOfOrderTraceCommand.h
+	COutOfOrderTraceCommand.h COutputThread.h
 
 
 
@@ -67,9 +68,10 @@ libEventBuilderClient_la_LIBADD = @top_builddir@/base/tcpip/libTcp.la \
 	@top_builddir@/servers/portmanager/libPortManager.la   \
 	@top_builddir@/base/tcpip/libTcp.la	\
 	@top_builddir@/base/os/libdaqshm.la		\
-	@LIBTCLPLUS_LDFLAGS@
+	@LIBTCLPLUS_LDFLAGS@ 
 
 libEventBuilder_la_LIBADD = @LIBTCLPLUS_LDFLAGS@	\
+	@top_builddir@/base/thread/libdaqthreads.la 	\
 	@top_builddir@/base/os/libdaqshm.la    \
 	@TCL_LDFLAGS@ @THREADLD_FLAGS@
 
@@ -139,10 +141,11 @@ unittests_DEPENDENCIES = cmdline.o cmdline.h
 ordertests_SOURCES = TestRunner.cpp orderTests.cpp duptscmdtest.cpp \
 	configcmdtests.cpp tclflowtest.cpp \
 	CFragmentHandler.cpp fragment.c CDuplicateTimeStatCommand.cpp \
-	CConfigure.cpp CXonXOffCallbackCommand.cpp
+	CConfigure.cpp CXonXOffCallbackCommand.cpp COutputThread.cpp
 
 
-ordertests_LDADD = 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
+ordertests_LDADD = 	@top_builddir@/base/thread/libdaqthreads.la 	\
+	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
 ordertests_CXXFLAGS=$(COMPILATION_FLAGS) @TCL_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@
 

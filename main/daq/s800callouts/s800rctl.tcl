@@ -46,9 +46,9 @@ snit::type s800rctl {
   variable requestReplyReceived 0; # flags when complete reply has been received
   variable requestReply "";   # reply received from the slave after request
 
-  variable listenSocket "";		# Listens for connections from the slave 
-  variable replySocket "";		# Socket that can respond to requests from the slave
-  variable replyReply "";     # Incoming message from slave
+  typevariable listenSocket "";		# Listens for connections from the slave 
+  #  variable replySocket "";	# channel local.	# Socket that can respond to requests from the slave
+  typevariable replyReply -array [list];     # Incoming message from slave
 
   variable ACK "OK"
   variable NAK "FAIL"
@@ -73,9 +73,10 @@ snit::type s800rctl {
   constructor args {
     $self configurelist $args
 
-    set port [$self _getPortForService s800rctl]
-    set listenSocket [socket -server [mymethod _onConnection] $port]
-
+    if {$listenSocket eq ""} {
+      set port [$self _getPortForService s800rctl]
+      set listenSocket [socket -server [mytypemethod _onConnection] $port]
+    }
     $self Connect
   }
 
@@ -89,25 +90,13 @@ snit::type s800rctl {
   #  The catch is in case we're being destroyed because we lost
   #  our connection.
   #
+
     set stat [catch {
       if {$socket ne ""} {
-        #catch {$self setMaster} ;  # can fail but still want to close  socket
-        #chan event $socket readable {}
         close $socket
       }
     } msg]
-    catch {
-      # close the server
-      close $listenSocket
-    } msg
-    catch {
-      # close any connection to the server that may have been made
-      if {$replySocket ne ""} {
-        chan event $replySocket readable {}
-        close $replySocket
-        set replySocket ""
-      }
-    }
+    
   }
 
 
@@ -130,6 +119,7 @@ snit::type s800rctl {
     }
 
     # we did not find a preallocated port, so allocate one.
+    
     set port [$allocator allocatePort s800rctl]
     $allocator destroy
     return $port
@@ -511,7 +501,7 @@ snit::type s800rctl {
   #             - element 2 the data read
   # @retval "" - eof of file condition
   #
-  method _onReadable {fd} {
+  typemethod _onReadable {fd} {
     if {[eof $fd]} {
       # close the channel
       catch {close $fd}
@@ -535,17 +525,28 @@ snit::type s800rctl {
   # 
   # @returns ""
   #
-  method _onReplyReadable {} {
+  typemethod _onReplyReadable {replySocket} {
 
     # read what can be read from the channel
-    set readInfo [$self _onReadable $replySocket]
-    
+    set readInfo [$type _onReadable $replySocket]
+    if {$readInfo in {0 1}} {
+      return;             # EOF on input... hopefully someone else discovers problems.
+    }
     # append what was read to what was previously read
-    append replyReply [lindex $readInfo 1]
+    append replyReply($replySocket) [lindex $readInfo 1]
 
     # if the read was complete, handle the received message
-    if {![lindex $readInfo 0]} {
+    #
+    #  Quick notes on readInfo:
+    #     Could be a command word.
+    #     On eof from the peer it can be either:
+    #       -   0 - The close succeeded.
+    #       -   1 - the close failed but what are you going to do so we ignore
+    #               the result.
+    if {![lindex $readInfo 0] && ($readInfo != 1)} {
 
+      
+    
       # we have to reset the string replyReply but at the same time
       # use the result in _handleCommand. The issue is that someone could
       # remotely be inciting a transition to NotReady in the _handleCommand
@@ -555,21 +556,25 @@ snit::type s800rctl {
       # causes a tcl error because the namespace for replyReply no longer 
       # exists. So we have to copy it into a temporary variable that we 
       # use later in the method. Shoot.
-      set command $replyReply
-      set replyReply ""
+      set command $replyReply($replySocket)
+      set replyReply($replySocket) ""
 
       # only evaluate the command if it was valid
-      if {[ $self _isValidCommand [lindex $command 0]]} {
-      # if we had a valid command, then send the response immediately.
-      # Executing the command the peer sent may require further
-      # communication and at the moment the peer is waiting for a response
-      # in blocking mode. Don't let it continue to block! 
-        $self _sendResponse $replySocket "OK"
-        set result [$self _handleCommand $command]
-      } else {
-        $self _sendResponse $replySocket "FAIL invalid command \"$command\""
-      }
+      
 
+      if {$command ne ""}  {
+        
+        if {[ $type _isValidCommand [lindex $command 0]]} {
+        # if we had a valid command, then send the response immediately.
+        # Executing the command the peer sent may require further
+        # communication and at the moment the peer is waiting for a response
+        # in blocking mode. Don't let it continue to block! 
+          $type _sendResponse $replySocket "OK"
+          set result [$type _handleCommand $command]
+        } else {
+          $type _sendResponse $replySocket "FAIL invalid command \"$command\""
+        }
+      }
     }
   }
 
@@ -582,7 +587,7 @@ snit::type s800rctl {
   method _onRequestReadable {} {
 
     # read what can be read 
-    set readInfo [$self _onReadable $socket]
+    set readInfo [$type _onReadable $socket]
     
     # append the new data to what has previously been read
     append requestReply [lindex $readInfo 1]
@@ -601,7 +606,7 @@ snit::type s800rctl {
   # @returns boolean
   # @retval 0 - not valid
   # @retval 1 - valid
-  method _isValidCommand {verb} {
+  typemethod _isValidCommand {verb} {
     set acceptedVerbs [list end transitionTo]
     return [expr {$verb in $acceptedVerbs}]
   }
@@ -611,7 +616,7 @@ snit::type s800rctl {
   # @param script   the command to execute
   #
   # @returns string containing status and command result
-  method _handleCommand {script} {
+  typemethod _handleCommand {script} {
 
     # evaluate the script
     set res [catch {uplevel #0 eval $script} msg]
@@ -635,7 +640,7 @@ snit::type s800rctl {
   # @param response message to send 
   #
   # @throws error if no channel provided
-  method _sendResponse {fd response} {
+  typemethod _sendResponse {fd response} {
     if {$fd eq ""} {
     # just in case the socket blew away after reading the message
       set msg "ReadoutGUIRemoteControl::_sendResponse Cannot send response "
@@ -658,13 +663,12 @@ snit::type s800rctl {
   # @param clientaddr - IP address of client.
   # @param clientport - Remote Port address.
   #
-  method _onConnection {client clientaddr clientport} {
-    if {$replySocket != ""} {
-      close $client
-    } else {
+  typemethod _onConnection {client clientaddr clientport} {
+    
       chan configure $client -buffering line
       set replySocket $client
-      chan event $replySocket readable [mymethod _onReplyReadable]
-    }
+      chan event $replySocket readable [mytypemethod _onReplyReadable $replySocket]
+      
+      set replyReply($replySocket) ""
   }
 }

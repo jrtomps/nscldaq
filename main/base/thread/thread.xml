@@ -333,7 +333,6 @@ std::cerr &lt;&lt; "someCounter = " &lt;&lt; someCounter.get() &lt;&lt; std::end
                 endterm='manpage.csynchronizedthread.title' />
             for reference information on this class.
         </para>
-
     </section>
     <section>
         <title>Incorporating the library into an application.</title>
@@ -673,6 +672,7 @@ while(1) {
 </chapter>
 
 <!-- /chapter -->
+
 <!-- manpage 3daq -->
     <refentry id="manpage.thread">
       <refentryinfo>
@@ -696,7 +696,12 @@ while(1) {
       </refnamediv>
       
       <refsynopsisdiv>
-	<synopsis>
+         <programlisting>
+#include &lt;Thread.h&gt;
+         </programlisting>
+         <synopsis>
+            class <ooclass><classname>Thread</classname></ooclass>
+{
             <constructorsynopsis>
                 <methodname>Thread()</methodname>
                 <void />
@@ -739,12 +744,10 @@ while(1) {
             <methodsynopsis>
                 <modifier>virtual</modifier> <type>void</type>
                                              <methodname>run</methodname>
-                                             <void /> <modifier>= 0</modifier>
+                                             <void /> 
             </methodsynopsis>
-
-  };
-  </synopsis>
-
+}
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -875,18 +878,22 @@ while(1) {
             <type>std::string</type> <methodname>getName</methodname>
                                      <void /><modifier>const</modifier>
         </methodsynopsis>
+        <para>
+            Returns the name of the thread.
+        </para>
         <methodsynopsis>
             <modifier>virtual</modifier> <type>void</type>
                                          <methodname>run</methodname>
-                                         <void /> <modifier>= 0</modifier>
+                                         <void />
         </methodsynopsis>
         <para>
-            You must implement this function to provide a concrete
+            You must implement this pure virtual function to provide a concrete
+            <classname>Thread</classname>
+            run-time behavior.
         </para>
       </refsect1>
 
    </refentry>
-
     <refentry id="manpage.csynchronizedthread">
       <refentryinfo>
         <author>
@@ -1044,7 +1051,6 @@ while(1) {
       </refsect1>
        
     </refentry>     
-
     <refentry id="manpage.synchronizable">
       <refmeta>
          <refentrytitle>Synchronizable</refentrytitle>
@@ -2453,7 +2459,7 @@ CMutex guard;
 
        <ooclass><classname>
         class CBufferQueue : public CGaurdedObject        
-       </classname></ooclass> {
+       </classname></ooclass>
       <constructorsynopsis>
      <methodname>CBufferQueue</methodname>
      <methodparam>
@@ -2507,9 +2513,7 @@ CMutex guard;
           <modifier></modifier>
           <type>void</type>
           <methodname>wait</methodname>
-          <methodparam>
-            <type>int</type> <parameter>timeout</parameter><initializer>-1</initializer>
-          </methodparam>
+          <void />
           <exceptionname></exceptionname>
           <modifier></modifier>
       </methodsynopsis>
@@ -2520,8 +2524,7 @@ CMutex guard;
           <void />
           <exceptionname></exceptionname>
           <modifier></modifier>
-      </methodsynopsis>
-      };
+      </methodsynopsis>  
    </synopsis>
   </refsynopsisdiv>
   <refsect1>
@@ -2670,7 +2673,7 @@ CMutex guard;
             </term>
             <listitem>
                 <para>
-                    Changes the queue wake <parameter>level</parameter>.
+                    Changes the queeu wake <parameter>level</parameter>.
                     For a discussion  of the meaning of the queue
                     wake level see the description of the constructor
                     above.
@@ -2683,20 +2686,18 @@ CMutex guard;
                     <modifier></modifier>
                     <type>void</type>
                     <methodname>wait</methodname>
-                    <methodparam>    
-                        <type>int</type> <parameter>timeout</parameter><initializer>-1</initializer>
-                    </methodparam>
+                    <void />
+                    <exceptionname></exceptionname>
                     <modifier></modifier>
                 </methodsynopsis>
             </term>
             <listitem>
                 <para>
-                    Waits for the next wake-up on the queue.  The
-                    <parameter>timeout</parameter> parameter specifies a maximum
-                    number of milliseconds to wait for the queue to be signalled
-                    as not empty.  If <parameter>timeout</parameter> is
-                    <literal>-1</literal> (the default), there is limit to the time
-                    the caller can block.
+                    Waits for the next wake-up on the queue.  While this
+                    is a public interface, normal applications don't need
+                    to explicitly call this entry as the
+                    <methodname>get</methodname> method
+                    automatically calls it.
                 </para>
             </listitem>
         </varlistentry>
@@ -2727,5 +2728,8 @@ CMutex guard;
         </varlistentry>
      </variablelist>
   </refsect1>
-</refentry>     
+</refentry>
+
+
+
 <!-- /manpage -->

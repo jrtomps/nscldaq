@@ -381,12 +381,18 @@ proc ::S800::_getConnectionObject {id} {
 # @param  id - the id of the data source.
 #
 proc ::S800::_failed id {
+
     ::S800::_checkId $id
-    
+    #
+    #  Evidently there are code paths that can call this twice so:
+
     set connection [::S800::_getConnectionObject $id]
-    $connection destroy
-    ::S800::_setConnectionObject $id [list]
-    ::S800::_setState $id halted
+
+    if {$connection ne ""} {
+        $connection destroy
+        ::S800::_setConnectionObject $id [list]
+        ::S800::_setState $id halted
+    }
 }
 ##
 # _errorIfDead

@@ -217,7 +217,7 @@ CGlomParameters::toString() const
     if (tsPolicy >= sizeof(policyNames)/sizeof(char*)) {
         tsPolicy = sizeof(policyNames)/sizeof(char*) - 1;
     }
-    out << "TimestampPolicy : policyNames[tsPolicy]\n";
+    out << "TimestampPolicy : " << policyNames[tsPolicy] << std::endl;
     
     
     return out.str();

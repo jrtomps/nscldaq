@@ -98,19 +98,20 @@ proc ::RemoteGUI::check id {
 #
 proc ::RemoteGUI::stop id {
     variable outputMonitor
-    
     # If still alive and necessary stop the run.
     set rctl [::S800::_getConnectionObject $id]
     set state [::S800::_getState $id]
     set status [::S800::check $id]
-    if {($state ne "halted") && $status} {
+
+    if {($state ni {"halted"}) && $status} {
         
         set status [$rctl getState]
-        if {$status eq "active"} {
+        if {$status ne "NotReady"} {
             $rctl masterTransition NotReady
         }
         # Regardless, _failed will run down the rest of this.
         
+
         ::S800::_failed $id;    # Will do all the right stuff.
                                 # including destroying the connection object
         

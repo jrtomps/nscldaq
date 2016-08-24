@@ -42,7 +42,7 @@
 #endif
 #endif
 
-
+#include <CMutex.h>
 
 /**
  * @class COutputStatsObserver
@@ -71,8 +71,10 @@ public:
 private:
   typedef std::map<uint32_t, uint64_t> PerSourceStats, *pPerSourceStats;
 private:
-
+ 
   uint64_t                     m_nTotalFragments;
+  
+  CMutex                       m_perSourceStatGuard;
   PerSourceStats               m_perSourceStatistics;
 
   // Public type definitions:
