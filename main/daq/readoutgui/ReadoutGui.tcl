@@ -641,7 +641,7 @@ snit::type ReadoutGuiApp {
     #
     method _addProvider {} {
         if {[$stateMachine getState] ni [list NotReady Halted]} {
-            Diagnostics::Error "You can only add data sources when no run is ongoing"
+            Diagnostics::Info "You can only add data sources when no run is ongoing"
             return
         }
         
@@ -696,7 +696,7 @@ snit::type ReadoutGuiApp {
     #
     method _deleteProvider {} {
         if {[$stateMachine getState] ni [list NotReady Halted]} {
-            Diagnostics::Error "You can only remove data sources when no run is ongoing"
+            Diagnostics::Info "You can only remove data sources when no run is ongoing"
             return
         }
 
@@ -718,7 +718,7 @@ snit::type ReadoutGuiApp {
     
     method _initProviders {} {
       if {[$stateMachine getState] ne "Halted"} {
-        Diagnostics::Error "You can only init providers when in the Halted state."
+        Diagnostics::Info "You can only init providers when in the Halted state."
         return
       }
 
