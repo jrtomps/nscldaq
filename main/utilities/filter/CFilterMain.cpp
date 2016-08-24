@@ -93,14 +93,6 @@ CFilterMain::CFilterMain(int argc, char** argv)
     throw CFatalException();
   }
   catch (...) {
-    std::cerr << "Unanticipated exception caught. \n";
-    throw CFatalException();
-  }
-  catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
-    throw CFatalException();
-  }
-  catch (...) {
     std::cout << "Unanticipated exception type\n";
     throw CFatalException();
   }
