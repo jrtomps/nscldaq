@@ -1101,3 +1101,5 @@ Work on 11.0-rc11 begins
 	option.
 	* Bug#4834 - Fix bad dialog choice for data source editing.
 	* Bug #4384 - Unclear labels for prompt when adding data sources during a run
+	* Bug# 6133 - Threading the output stage of the event builder
+	caused flow control to deadlock.
