@@ -409,6 +409,8 @@ private:
 
   static void IdlePoll(ClientData obj);
   size_t inFlightFragmentCount();
+  void checkXoff();
+  void checkXon();
 };
 
 

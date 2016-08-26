@@ -51,6 +51,7 @@ COutputThread::run()
 {
     while (1) {
         std::vector<EVB::pFragment>* pFrags = getFragments();
+	m_nInflightCount -= (pFrags->size());
         {
             CriticalSection c(m_observerGuard);
             for (auto p = m_observers.begin(); p != m_observers.end(); p++) {
@@ -58,7 +59,6 @@ COutputThread::run()
                 (*pO)(*pFrags);
             }
         }
-        m_nInflightCount -= (pFrags->size());
         freeFragments(pFrags); 
     }
 }
@@ -109,8 +109,8 @@ COutputThread::removeObserver(CFragmentHandler::Observer* o)
 void
 COutputThread::queueFragments(std::vector<EVB::pFragment>* pFrags)
 {
-    m_inputQueue.queue(pFrags);
     m_nInflightCount += pFrags->size();
+    m_inputQueue.queue(pFrags);
 }
 /**
  * getInflightCount

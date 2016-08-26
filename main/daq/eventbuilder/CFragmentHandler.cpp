@@ -41,11 +41,11 @@ CFragmentHandler* CFragmentHandler::m_pInstance(0);
 static const size_t Mega(1024*1024);
 
 static const time_t DefaultBuildWindow(20); // default seconds to accumulate data before ordering.
-static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
+static const uint32_t IdlePollInterval(1);  // Seconds between idle polls.
 static const time_t DefaultStartupTimeout(4); // default seconds to accumulate data before ordering.
 static time_t timeOfFirstSubmission(UINT64_MAX); //
-static const  size_t defaultXonLimit(150*Mega);     // Default total fragment storage at which we can xon
-static const  size_t defaultXoffLimit(2*Mega);    // Default total fragment storage at which we xoff.
+static const  size_t defaultXonLimit(9*Mega);     // Default total fragment storage at which we can xon
+static const  size_t defaultXoffLimit(10*Mega);    // Default total fragment storage at which we xoff.
 
 /*---------------------------------------------------------------------
  * Debugging
@@ -214,10 +214,7 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       // establish themselves
       flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
     }
-
-    if (inFlightFragmentCount() > m_nXoffLimit && (!m_fXoffed)) {
-        Xoff();
-    }
+    checkXoff();
 }
 /**
  * setBuildWindow
@@ -929,9 +926,8 @@ CFragmentHandler::flushQueues(bool completely)
   
   // If XOFed and below the low water mark, XON:
   
-  if ((inFlightFragmentCount() < m_nXonLimit) && m_fXoffed) {
-    Xon();
-  }
+  checkXon();
+
   
   // If a barrier is pending check it and, if the flush was complete,
   // tail call to continue building:
@@ -1366,10 +1362,9 @@ CFragmentHandler::generateBarrier(std::vector<EVB::pFragment>& outputList)
 	result.s_typesPresent.push_back(
             std::pair<uint32_t, uint32_t>(p->first, uint32_t(pFront->s_header.s_barrier))
         );
-        m_nTotalFragmentSize -= pFront->s_header.s_size;
-        if ((m_nTotalFragmentSize < m_nXonLimit)  && m_fXoffed) {
-            Xon();
-        }
+        m_nTotalFragmentSize--;
+	checkXon();
+
       } else {
 
 	result.s_missingSources.push_back(p->first);
@@ -1659,6 +1654,13 @@ CFragmentHandler::IdlePoll(ClientData data)
   } else {
     pHandler->m_nFragmentsLastPeriod = 0;
   }
+  // Since it's possible that fragments have been output from
+  // the buffer queue to the output thread while we've been
+  // Xoffed -- and hence can't exactly receive data, this
+  // allows that to accept data again:
+
+  pHandler->checkXon();
+
 
   // reschedule
 
@@ -1672,4 +1674,27 @@ size_t
 CFragmentHandler::inFlightFragmentCount()
 {
   return m_nTotalFragmentSize + m_outputThread.getInflightCount();
+}
+/**
+ *  checkXoff
+ *    If appropriate, Xoff the senders:
+ */
+void
+CFragmentHandler::checkXoff()
+{
+  if ((inFlightFragmentCount() > m_nXoffLimit) && (!m_fXoffed)) {
+    Xoff();
+  }
+}
+/**
+ * checkXon
+ *    If appropriate, Xon the senders.
+ */
+  
+ void
+ CFragmentHandler::checkXon()
+{
+  if ((inFlightFragmentCount() < m_nXonLimit) && m_fXoffed) {
+    Xon();
+  }
 }
