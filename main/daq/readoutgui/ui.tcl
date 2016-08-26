@@ -764,7 +764,12 @@ snit::widgetadaptor RunControl {
         RunControlSingleton::updateStateBundleOrder
 
         if {$state eq "Halted"} {
-          begin
+          set responses [$stateMachine willTransitionFail]
+	  if {[llength $response] == 0} {
+          	begin
+	  } else {
+		$self reportTransitionFailures $responses
+          }
         } elseif {$state in [list Paused Active]} {
           end
         } else {
@@ -772,6 +777,11 @@ snit::widgetadaptor RunControl {
         }
 
     }
+
+
+    method reportTransitionFailures {responses} {
+    }
+
     ##
     # _pauseresume
     #
