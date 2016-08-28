@@ -915,6 +915,11 @@ proc ::multilogger::leave {from to} {
 }
 
 ##
+proc ::multilogger::precheckTransitionForErrors {from to} {
+	return [list]
+}
+
+##
 # enter
 #   Called as a state is entered:
 #   If entering Haltd from either Active or Paused, stop all loggers.

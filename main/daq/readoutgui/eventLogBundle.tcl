@@ -762,6 +762,11 @@ proc ::EventLog::runEnding {} {
 proc ::EventLog::attach {state} {
     
 }
+
+proc ::EventLog::precheckTransitionForErrors {from to} {
+
+	return [list]
+}
 ##
 # ::EventLog::enter
 #

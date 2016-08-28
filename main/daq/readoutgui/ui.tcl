@@ -764,7 +764,7 @@ snit::widgetadaptor RunControl {
         RunControlSingleton::updateStateBundleOrder
 
         if {$state eq "Halted"} {
-          set responses [$stateMachine willTransitionFail]
+          set responses [$stateMachine precheckTransitionForErrors Active]
 	  if {[llength $response] == 0} {
           	begin
 	  } else {
@@ -1045,6 +1045,10 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
 # 
 proc ::RunControlSingleton::attach {state} {
 }
+proc ::RunControlSingleton::precheckTransitionForErrors {from to} {
+	return [list]
+}
+
 ##
 # enter
 #    Called when the state machine enters a new state. 
@@ -1056,6 +1060,7 @@ proc ::RunControlSingleton::attach {state} {
 #
 proc ::RunControlSingleton::enter {from to} {
 }
+
 ##
 #  leave
 #   Called whenn the state machine leaves a state (unused)
@@ -1454,6 +1459,10 @@ proc ::ElapsedTime::attach {state} {
         $timer start
     }
 }
+
+proc ::ElapsedTime::precheckTransitionForErrors {from to} {
+	return [list]
+}
 ##
 # ::ElapsedTime::enter
 #
@@ -1764,6 +1773,11 @@ proc ::TimedRun::attach {state} {
     }
     $w configure -state $state
 }
+
+proc ::TimedRun::precheckTransitionForErrors {from to} {
+	return [list]
+}
+
 ##
 # ::TimedRun::leave
 #    Called when a state is left (not used).
@@ -2664,6 +2678,9 @@ proc Output::getInstance { {win {}} args} {
 proc ::Output::attach {state} {
     set w [::Output::getInstance]
     $w log debug "Attached to state machine state is: $state"
+}
+proc ::Output::precheckTransitionForErrors {from to} {
+	return [list]
 }
 ##
 # ::Output::enter

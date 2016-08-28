@@ -155,6 +155,11 @@ proc ::DataSourceMonitor::_checkSources ms {
 #   Called when the bundle is registered with the state manager.
 #   not used.
 proc ::DataSourceMonitor::attach {state} {}
+
+proc ::DataSourceMonitor::precheckTransitionForErrors {from to} {
+	return [list]
+}
+
 ##
 # ::DataSourceMonitor::leave
 #

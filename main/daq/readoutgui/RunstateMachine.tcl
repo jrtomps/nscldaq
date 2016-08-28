@@ -238,6 +238,17 @@ snit::type RunstateMachine {
             error "The transtion from $state to $to is not allowed"
         }
     }
+
+    method precheckTransitionForErrors {to} {
+	set errors [list]
+        foreach cb $callouts {
+            set error [$cb precheckTransitionForErrors $state $to]
+	    if {$error ne {}} {
+		lappend errors [list $cb $error]
+	    }
+        }
+	return $errors
+    }
     
     #--------------------------------------------------------------------------
     #
@@ -267,6 +278,8 @@ snit::type RunstateMachine {
         }
     }
     
+    method _precheckTransitionForErrors {from to} {
+    }
     ##
     # _checkRequiredExports
     #

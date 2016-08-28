@@ -865,6 +865,10 @@ namespace eval ::ReadoutGUIStateManagement {
 proc ::ReadoutGUIStateManagement::attach {state} {
     
 }
+
+proc ::ReadoutGUIStateManagement::precheckTransitionForErrors {from to} {
+	return [list]
+}
 ##
 # ::ReadoutGUIStateManagement::leave
 #   No up but required bundle proc.

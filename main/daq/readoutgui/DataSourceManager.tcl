@@ -729,6 +729,11 @@ namespace eval ::DataSourceMgr {
 # @param state - the current state machine state.
 #
 proc ::DataSourceMgr::attach {state} {}
+
+proc ::DataSourceMgr::precheckTransitionForErrors {from to} {
+	return [list]
+}
+
 ##
 # ::DataSourceMgr::enter
 #
