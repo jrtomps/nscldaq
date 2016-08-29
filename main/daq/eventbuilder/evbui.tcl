@@ -148,7 +148,8 @@ snit::widgetadaptor ::EVBC::tsselector {
 #
 snit::widgetadaptor ::EVBC::buildparams {
     option -build -default true  -configuremethod _config10
-    option -dt    -default 1     -type [list snit::integer -min 1]
+    option -dt    -default 1     -type [list snit::integer -min 1] \
+            -configuremethod _configdt
     option -command -default [list]
     option -state -default normal -configuremethod _configState
     
@@ -157,10 +158,12 @@ snit::widgetadaptor ::EVBC::buildparams {
         
         ttk::checkbutton $win.build -text Build \
             -variable [myvar options(-build)] -onvalue 1 -offvalue 0  \
-            -command _onChanged
-        ttk::spinbox $win.dt -text  -command _spinChanged     \
-            -validatecommand _validateSpin -validate all        \
-            -from 1 -to 100000
+            -command [mymethod _onChanged]
+        ttk::spinbox $win.dt -text {coincidence interval} \
+            -command [mymethod _spinChanged ] \
+            -validatecommand [mymethod _validateSpin %P] -validate all          \
+            -from 1 -to 100000 -width 5
+        $win.dt set 1
      
         grid $win.build $win.dt -sticky w   
     }
@@ -185,6 +188,18 @@ snit::widgetadaptor ::EVBC::buildparams {
         set options($optname) $value
     }
     ##
+    # _configdt
+    #   Process changes in the -dt configuration.  Type checking has ensured
+    #   that the new value is ok but we need to update the widget contents:
+    #
+    # @param optname - name of the option modified.
+    # @param value   - new value.
+    #
+    method _configdt {optname value} {
+        set $options($optname) $value
+        $win.dt set $value
+    }
+    ##
     # _configState
     #    Validate that the state is either normal or disabled and
     #    set the widgets to the proper state:
@@ -193,6 +208,61 @@ snit::widgetadaptor ::EVBC::buildparams {
     # @param value   - Proposed value.
     #
     method _configState {optname value} {
-        
+        if {$optname ni {normal disabled} } {
+            error "$optname's value must be normal or disabled, was $value"
+        }
+        for win [list build dt] {
+            $win.$win configure -state $value
+        }
+        set options($optname) $value
     }
+    #--------------------------------------------------------------------------
+    # Action handlers
+    
+    ##
+    # _onChanged
+    #   Notifies the user of a change in the user interface values.
+    #
+    method _onChanged {} {
+        set cmd $options(-command)
+        if {$cmd ne ""} {
+            set cmd [string map [list %B $options(-build) %T $options(-dt)] $cmd]
+            uplevel #0 $cmd
+        }
+    }
+    ##
+    # _spinChanged
+    #    Let the user know the spinbox changed value.
+    #    Update the options(-dt) from the spinbox current value
+    #    and dispatch to _onChanged.
+    #    the validation handler has already ensured the value is legal.
+    #
+    method _spinChanged {} {
+        set options(-dt) [$win.dt get]
+        $self _onChanged
+    }
+    #---------------------------------------------------------------------------
+    #  Validation handlers:
+    
+    ##
+    #  _validateSpin
+    #
+    #    Ensures the spin box has a valid integers (1 or more).
+    #
+    # @param proposed - the new proposed value.
+    # @return boolean - true if proposed is an integer >=1.
+    #
+    method _validateSpin proposed {
+        if {![string is integer -strict $proposed]} {
+            bell
+            return 0
+        }
+        if {$proposed < 1} {
+            bell
+            return 0
+        }
+        return 1
+    
+    }
+    
 }
