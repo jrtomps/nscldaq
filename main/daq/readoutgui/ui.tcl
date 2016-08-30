@@ -757,18 +757,17 @@ snit::widgetadaptor RunControl {
     #       to change the appearance of the button itself.
     # 
     method _beginend {} {
-        set stateMachine [RunstateMachineSingleton %AUTO%]
-        set state [$stateMachine getState]
-        $stateMachine destroy
+      set stateMachine [RunstateMachineSingleton %AUTO%]
+      set state [$stateMachine getState]
 
-        RunControlSingleton::updateStateBundleOrder
+      RunControlSingleton::updateStateBundleOrder
 
-        if {$state eq "Halted"} {
-          set responses [$stateMachine precheckTransitionForErrors Active]
-	  if {[llength $response] == 0} {
-          	begin
-	  } else {
-		$self reportTransitionFailures $responses
+      if {$state eq "Halted"} {
+        set responses [$stateMachine precheckTransitionForErrors Active]
+        if {[llength $response] == 0} {
+          begin
+        } else {
+          $self reportTransitionFailures $responses
           }
         } elseif {$state in [list Paused Active]} {
           end
@@ -776,6 +775,7 @@ snit::widgetadaptor RunControl {
           error "ERROR: begin/end button clicked when state is $state which should not happen"
         }
 
+      $stateMachine destroy
     }
 
 
