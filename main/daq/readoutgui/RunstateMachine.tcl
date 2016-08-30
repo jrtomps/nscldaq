@@ -239,10 +239,38 @@ snit::type RunstateMachine {
         }
     }
 
+    ##
+    # Run a precheck to detect innevitable errors for a transition
+    #
+    # If a callout bundle implements this method, then there is the possibility
+    # for the bundle to report an impending error for an upcoming transition.
+    # This method does nothing more than produce a list of all the errors that 
+    # have been detected as a list of lists. Each element of the list is a 
+    # list with the first element being the name of the callout bundle and the 
+    # second element being the error message. In other words, if two callout
+    # bundles, e.g. bundle0 and bundle1, report errors the result might be:
+    #  
+    #  [list bundle0 {error found in bundle0} [list bundle1 {error for bundle1}]]
+    #
+    # Callout bundles that do not use implement this bundle are simply ignored. On
+    # the other handle, a callout bundle that implements this must provide a proc
+    # in its namespace that has the following signature:
+    #
+    # @code
+    # proc ::BundleName::precheckTransitionForErrors {from to} {
+    #   # code for bundle
+    # }
+    # @endcode
+    #
+    # @param to   state to transition to
+    # @returns list of detected problems.
+    #
     method precheckTransitionForErrors {to} {
       set errors [list]
       foreach cb $callouts {
+        # skip bundles that do not implement the precheckTransitionForErrors
         if {[llength [info procs ::${cb}::precheckTransitionForErrors]] != 0} {
+
           set error [::${cb}::precheckTransitionForErrors $state $to]
           if {$error ne {}} {
             lappend errors [list $cb $error]
