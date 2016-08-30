@@ -730,10 +730,6 @@ namespace eval ::DataSourceMgr {
 #
 proc ::DataSourceMgr::attach {state} {}
 
-proc ::DataSourceMgr::precheckTransitionForErrors {from to} {
-	return [list]
-}
-
 ##
 # ::DataSourceMgr::enter
 #

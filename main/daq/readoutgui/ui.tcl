@@ -1045,9 +1045,6 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
 # 
 proc ::RunControlSingleton::attach {state} {
 }
-proc ::RunControlSingleton::precheckTransitionForErrors {from to} {
-	return [list]
-}
 
 ##
 # enter
@@ -1460,9 +1457,6 @@ proc ::ElapsedTime::attach {state} {
     }
 }
 
-proc ::ElapsedTime::precheckTransitionForErrors {from to} {
-	return [list]
-}
 ##
 # ::ElapsedTime::enter
 #
@@ -1772,10 +1766,6 @@ proc ::TimedRun::attach {state} {
         set state normal
     }
     $w configure -state $state
-}
-
-proc ::TimedRun::precheckTransitionForErrors {from to} {
-	return [list]
 }
 
 ##
@@ -2678,9 +2668,6 @@ proc Output::getInstance { {win {}} args} {
 proc ::Output::attach {state} {
     set w [::Output::getInstance]
     $w log debug "Attached to state machine state is: $state"
-}
-proc ::Output::precheckTransitionForErrors {from to} {
-	return [list]
 }
 ##
 # ::Output::enter

@@ -67,9 +67,6 @@ proc ::rdoCallouts::attach {state} {
     
 }
 
-proc ::rdoCallouts::precheckTransitionForErrors {from to} {
-	return [list]
-}
 ##
 # ::rdoCallouts::enter
 #
