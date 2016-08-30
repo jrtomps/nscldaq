@@ -763,9 +763,22 @@ proc ::EventLog::attach {state} {
     
 }
 
+## 
+# ::EventLog::precheckTransitionForErrors
+#
+# IF we are transitioning to Active from halted, make sure that we don't have
+# any detectable problems (@see ::StageareaValidation::correctAndValidate)
+#
+# @param from   state before transition
+# @param to     state after transition
+#
 proc ::EventLog::precheckTransitionForErrors {from to} {
-
-	return [list]
+  set msg {}
+  if {$from eq "Halted" && $to eq "Active"} {
+    ::StageareaValidation::correctFixableProblems;         # Some things can be fixed :-)
+    set msg [::StageareaValidation::listIdentifiableProblems]
+  }
+  return $msg
 }
 ##
 # ::EventLog::enter

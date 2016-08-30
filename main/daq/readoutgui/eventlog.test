@@ -315,8 +315,28 @@ tcltest::test leave-0 {::EventLog::leave Halted to Active with identified errors
   $rm transition Active
 } -returnCodes 1 -result {{StageareaValidation error: the experiment/current directory contains run segments and needs to be cleaned.}}
 
+tcltest::test precheckTransitionForErrors-0 {
+::EventLog::precheck returns error if detected dirty current dir
+} -setup {
+  set stagearea [tcltest::makeDirectory dumbystagearea]
+  tcltest::makeDirectory dumbystagearea/experiment
+  tcltest::makeDirectory dumbystagearea/experiment/current
+  tcltest::makeFile {} file.evt dumbystagearea/experiment/current
 
-
+  Configuration::Set StageArea $stagearea
+  set rm [RunstateMachineSingleton %AUTO%]
+  EventLog::register
+} -cleanup {
+  EventLog::unregister
+  $rm destroy
+  tcltest::removeFile file.evt dumbystagearea/experiment/current
+  tcltest::removeDirectory dumbystagearea/experiment/current
+  tcltest::removeDirectory dumbystagearea/experiment
+  tcltest::removeDirectory dumbystagearea
+} -body {
+  # this should have detected only one error.
+  llength [::EventLog::precheckTransitionForErrors Halted Active]
+} -result 1
 
 #------------------------------------------------------------------------------
 #  Report test results.
