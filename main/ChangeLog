@@ -1103,3 +1103,6 @@ Work on 11.0-rc11 begins
 	* Bug #4384 - Unclear labels for prompt when adding data sources during a run
 	* Bug# 6133 - Threading the output stage of the event builder
 	caused flow control to deadlock.
+	* Adds a precheckForTransitionErrors to callout bundles. This allows for 
+	  for checking a transition doomed for failure because of some detectable
+		condition prior to transitioning. 
