@@ -164,8 +164,9 @@ snit::widgetadaptor ::EVBC::buildparams {
             -validatecommand [mymethod _validateSpin %P] -validate all          \
             -from 1 -to 100000 -width 5
         $win.dt set 1
+	ttk::label $win.dtlabel -text {Coincidence interval}
      
-        grid $win.build $win.dt -sticky w   
+        grid $win.build $win.dt $win.dtlabel -sticky w   
     }
     #---------------------------------------------------------------------------
     # Configuration handlers:
@@ -265,4 +266,209 @@ snit::widgetadaptor ::EVBC::buildparams {
     
     }
     
+}
+##
+# ::EVBC::glomparams
+#     label frame that contains the UI elements for the glom parameters.
+#     this is essentially a vertical stack of tssselector and buildparams
+#
+#     options get delegated and -command gets delegated to a unique handler.
+#     We also expose the -title option of the labeled frame and =relief.
+#
+snit::widgetadaptor ::EVBC::glomparams {
+    component tsselector
+    component buildparams
+
+    option -state -default normal;      # handle this ourself.
+
+    delegate option -policy to tsselector
+    delegate option -tscommand to tsselector as -command
+
+    delegate option -build to buildparams
+    delegate option -dt    to buildparams
+    delegate option -buildcommand to buildparams as -command
+
+    delegate option -title to hull as -text
+    delegate option -relief to hull
+
+    constructor args {
+	installhull using ttk::labelframe 
+
+	install tsselector using ::EVBC::tsselector $win.tsselector
+	install buildparams using ::EVBC::buildparams $win.buildparams
+
+	puts "$tsselector $buildparams"
+
+	grid $tsselector -sticky w
+	grid $buildparams -sticky ew
+
+	$self configurelist $args
+    }
+
+}
+
+##
+# ::EVBC::intermedRing
+#
+#  Provide the intermediate ring parameters:
+#
+# OPTIONS:
+#   -tee   - boolean/checkbox enable teeing of output ring.
+#   -ring  - Name of the ring to which the tee'd ordered fragments will
+#            go.
+#   -command - something changed.
+#              %W  - widget.
+#   -state - widget state
+#
+#   -title - Title string of ttk::lableframe.
+#   -relief - Relief of ttk::labelframe.
+snit::widgetadaptor ::EVBC::intermedRing {
+    option -tee -default 0 -configuremethod _configTee
+    option -ring -default ""
+    option -command [list]
+    option -state -default normal -configuremethod _configState
+
+    delegate option -title to hull as -text
+    delegate option -relief to hull
+
+    constructor args {
+	installhull using ttk::labelframe
+
+	ttk::checkbutton $win.tee -variable [myvar options(-tee)] \
+	    -onvalue 1 -offvalue 0 -text {Tee output to this ring} \
+	    -command [mymethod _onCheckbox]
+	ttk::label    $win.rlabel -text {Ring Name}
+	ttk::entry     $win.ring -textvariable [myvar options(-ring)] \
+	    -state disabled
+	
+	# Layout:
+
+	grid $win.tee -sticky w
+	grid $win.rlabel $win.ring -sticky w
+
+	bind $win.ring <FocusOut> [mymethod _onRingChange]
+	bind $win.ring <Return>   [mymethod _onRingChange]
+    }
+    #-----------------------------------------------------------------
+    # Configuration methods:
+
+    ##
+    # _configTee
+    #
+    #    - proposed value must be boolean. The entry
+    #    - The ring text entry is only enabled if the value is true.
+    # 
+    # @param optname - name of the option that's being configured (-tee).
+    # @param value   - proposed value.
+    #
+    method _configTee {optname value} {
+	if {$value ni [list 0 1]} {
+	    error "$optname value must be in {0,1} was $value"
+	}
+	set options($optname) $value
+
+	# Handle the state of the entry widget:
+
+	if {$value} {
+	    set state normal
+	} else {
+	    set state disabled
+	}
+	#  We can only change the state of the 
+	#  entry if we ourselves are enabled:
+
+	if {$options(-state)  eq "normal"} {
+	    $win.ring configure -state $state
+
+	}
+    }
+    ##
+    # _configState
+    #    Process changes to -state:
+    #    -   must be normal or disabled.
+    #    -   If disabled, all input controls are disabled.
+    #    -   If normal, the tee checkbox is enabled.
+    #    -   If -tee is true, the ring entry is enbled too.
+    #
+    # @param optname - name of the option being modified.
+    # @param value   - proposed new value.
+    #
+    method _configState {optname value} {
+	if {$value ni [list disabled normal]} {
+	    error "$optname value must be one of {disabled, normal} was $value"
+	}
+	set options($optname) $value
+
+	if {$value eq "disabled"} {
+	    foreach w  [list tee ring] {
+		$win.$w config -state disabled
+	    }
+	} else {
+	    $win.tee config -state normal
+	    if {$options(-tee)} {
+		$win.ring config -state normal
+	    } else {
+		$win.ring config -state disabled;   # we don't ask prior state.
+	    }
+	}
+    }
+    #-------------------------------------------------------------------
+    #  Action handlers:
+
+    ##
+    # _onCheckbox
+    #    Called when the tee checkbox was changed.  We need to
+    #    -  Configure -state so that the enable/disable is normal
+    #    -  invoke the _command method.
+    #
+    method _onCheckbox {} {
+	#
+	#  This looks a bit funky but it's right --- trust me.
+	#  because changing the checkbutton does not invoke the
+	#  configuration handler since Tk has no way to know
+	#  the variable's semantics
+
+	$self  _configTee -tee $options(-tee)
+
+	$self _command
+    }
+    ##
+    # _onRingChange
+    #   Called when the text entry reflects a committed change to the
+    #   ring name entry.   Invoke the _command method.  At present we don't
+    #   have a configuration handler for the -ring option so we don't need
+    #   to invoke it.
+    #
+    method _onRingChange {} {
+	$self _command
+    }
+    ##
+    # _command
+    #   dispatch the -command script along with the substitutions it uses.
+    #
+    method _command {} {
+	set cmd $options(-command)
+	if {$cmd ne ""} {
+	    set cmd [string map [list %W $win] $cmd]
+	    uplevel #0 $cmd
+	}
+    }
+}
+##
+# ::EVBC::destring
+#    Prompt for information about the destination ring.  A text entry
+#    and a checkbutton which indicates whether or not data from that
+#    ring should be recorded.
+#
+# OPTIONS
+#    -state - normal|disabled - state of widgets.
+#    -command - Widget was changed. %W is substituted to be the widget.
+#    -ring    - Name of ringbuffer.
+#    -record  - 1|0  If the ring should have its data recorded.
+#    -title   - The -text of the hull which is a ttk::labelframe
+#    -relief  - The -relief of the hull which is a ttk::labelframe.
+#
+snit::widgetadaptor ::EVBC::destring {
+    option -state -default normal -configurecommand _configState
+
 }
