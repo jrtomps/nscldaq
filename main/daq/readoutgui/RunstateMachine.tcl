@@ -240,14 +240,16 @@ snit::type RunstateMachine {
     }
 
     method precheckTransitionForErrors {to} {
-	set errors [list]
-        foreach cb $callouts {
-            set error [$cb precheckTransitionForErrors $state $to]
-	    if {$error ne {}} {
-		lappend errors [list $cb $error]
-	    }
+      set errors [list]
+      foreach cb $callouts {
+        if {[llength [info procs ::${cb}::precheckTransitionForErrors]] != 0} {
+          set error [::${cb}::precheckTransitionForErrors $state $to]
+          if {$error ne {}} {
+            lappend errors [list $cb $error]
+          }
         }
-	return $errors
+      }
+      return $errors
     }
     
     #--------------------------------------------------------------------------

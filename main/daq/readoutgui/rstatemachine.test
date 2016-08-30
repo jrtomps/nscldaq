@@ -635,6 +635,71 @@ tcltest::test convenience-resume {Check that resume sets the state to Active
 } \
 -result [list enter Paused Active]
 
+tcltest::test precheckTransitionErrors-0 {
+  Check that a bundle without precheck support is not a failure
+} -setup {
+  set s [RunstateMachineSingleton %AUTO%]
+  $s _setState Halted
+  namespace eval testBundle {
+    variable action ""
+      proc enter {old new} {
+        variable action
+          set action [list enter $old $new]
+      }
+    proc leave {old new} {
+      variable action
+#  set action [list left $old $new]
+    }
+    proc attach {current} {
+      variable action
+# set action [list attach $current]
+    }
+    namespace export enter leave attach
+  }
+  $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+  catch {$s precheckTransitionForErrors Active} msg
+} -returnCodes 0 -result 0
+
+
+tcltest::test precheckTransitionErrors-1 {
+  Check that a bundle with precheck support gets called
+} -setup {
+  set s [RunstateMachineSingleton %AUTO%]
+  $s _setState Halted
+  namespace eval testBundle {
+    variable action ""
+    proc enter {old new} {
+    }
+    proc leave {old new} {
+    }
+    proc attach {current} {
+    }
+    proc precheckTransitionForErrors {from to} {
+    variable action
+      set action "$from $to"
+      return {some message}
+    }
+    
+    namespace export enter leave attach
+  }
+  $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+  set msg [$s precheckTransitionForErrors Active]
+  list $msg $::testBundle::action
+} -returnCodes {0} -result [list [list [list "testBundle" "some message"]] "Halted Active"]
+
+
 #  Report test results.
 
 tcltest::cleanupTests
