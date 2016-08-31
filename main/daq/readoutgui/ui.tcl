@@ -516,6 +516,82 @@ proc ::ReadoutGUIPanel::incrRun {} {
     ::ReadoutGUIPanel::setRun $now
 }
 
+##
+# ErrorReporter widget
+#
+# A dialog that will take a list of errors associated with each callout bundle
+# and organize them into a treeview. The error list is passed in as an option
+# called -errorlist. For example, an error list might look like:
+#
+# @code
+# [list [list bundle1 [list "bundle1 error #0" "bundle1 error #1"]] [list bundle2 [list "bundle2 error"]]]
+# @endcode
+#
+# When a begin transition is attempted, the transition is prechecked for detectable 
+# error conditions and if any are found, this dialog displays the error conditions.
+#
+# This is not a modal dialog because that allows the user to investigate without 
+# being blocked.
+#
+snit::widget ErrorReporter {
+  hulltype toplevel
+
+  option -errorlist -default [list]
+
+
+  constructor {args} {
+
+    $self configurelist $args 
+
+    $self _buildWidget
+  }
+
+  ## Assemble the megawidget
+  method _buildWidget {} {
+
+    wm title ${win} "Detected Errors"
+
+      set msg "The errors listed below have been found. Please correct \nthese before attempting a transition."
+      ttk::label ${win}.info -text $msg
+
+      scrollbar ${win}.xscroll -orient horizontal
+      ttk::treeview ${win}.msg -xscrollcommand "${win}.xscroll set"
+      ${win}.xscroll configure -command "${win}.msg xview"
+
+      foreach entry $options(-errorlist) {
+        set bundleName [lindex $entry 0]
+        set errors [lindex $entry 1]
+        set id [${win}.msg insert {} end -text $bundleName -open true]
+
+
+        foreach msg $errors {
+          ${win}.msg insert $id end -text $msg
+        }
+      }
+
+      ${win}.msg column #0 -minwidth 1000 -stretch true
+
+      ttk::frame ${win}.buttons
+      ttk::button ${win}.buttons.dismiss -text "Dismiss" -command [mymethod _close]
+      grid ${win}.buttons.dismiss -sticky e
+
+      grid ${win}.info -padx 9 -pady 9 -sticky new
+      grid ${win}.msg -padx 9 -pady 9 -sticky nsew
+      grid ${win}.xscroll -sticky new
+      grid ${win}.buttons -padx 9 -pady 9 -sticky sew 
+
+      grid columnconfigure ${win} all -weight 1
+      grid rowconfigure ${win} {1} -weight 1
+
+  }
+
+  ## Callback for the dismiss button to close the dialog
+  method _close {} {
+    destroy ${win}
+  }
+}
+
+
 #-----------------------------------------------------------------------------
 #
 #  The next widget and API are involved in providing a UI for the run
@@ -764,7 +840,7 @@ snit::widgetadaptor RunControl {
 
       if {$state eq "Halted"} {
         set responses [$stateMachine precheckTransitionForErrors Active]
-        if {[llength $response] == 0} {
+        if {[llength $responses] == 0} {
           begin
         } else {
           $self reportTransitionFailures $responses
@@ -780,6 +856,11 @@ snit::widgetadaptor RunControl {
 
 
     method reportTransitionFailures {responses} {
+      
+      #toplevel .errors
+      #ErrorReporter .errors.dialog -errorlist $responses
+      #pack .errors.dialog -expand 1 -fill both
+      ErrorReporter .errors -errorlist $responses
     }
 
     ##

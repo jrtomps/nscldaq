@@ -775,7 +775,7 @@ proc ::EventLog::attach {state} {
 proc ::EventLog::precheckTransitionForErrors {from to} {
   set msg {}
   if {$from eq "Halted" && $to eq "Active"} {
-    if {[::ReadoutGUIPanel::isRecording]} {
+    if {[::ReadoutGUIPanel::recordData]} {
       ::StageareaValidation::correctFixableProblems;         # Some things can be fixed :-)
       set msg [::StageareaValidation::listIdentifiableProblems]
     }
