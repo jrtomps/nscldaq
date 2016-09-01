@@ -72,7 +72,7 @@ snit::widgetadaptor ::EVBC::tsselector {
             grid $win.$policy -row 0 -column $c -sticky w
             incr c
         }
-        $self $configurelist $args
+        $self configurelist $args
     }
     #---------------------------------------------------------------------------
     #  Configuration handling methods.
@@ -298,7 +298,6 @@ snit::widgetadaptor ::EVBC::glomparams {
 	install tsselector using ::EVBC::tsselector $win.tsselector
 	install buildparams using ::EVBC::buildparams $win.buildparams
 
-	puts "$tsselector $buildparams"
 
 	grid $tsselector -sticky w
 	grid $buildparams -sticky ew
@@ -621,7 +620,7 @@ snit::widgetadaptor EVBC::eventbuildercp {
     constructor args {
 	installhull using ttk::frame
 
-	install glomparams using ::EVBC::buildparams $win.build \
+	install glomparams using ::EVBC::glomparams $win.build \
 	    -title {Ordered Fragment Ring} -relief groove
 	install tee using ::EVBC::intermedRing $win.tee \
 	    -title {Ordered Fragment Ring} -relief groove
