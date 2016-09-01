@@ -57,7 +57,7 @@ BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
 
 ## SWIG Wrapper containing cvmusb::CCCUSB 
 libCCCUSB_la_LIBADD = \
-			libCCUSB.la \
+			@builddir@/libCCUSB.la \
 			@top_builddir@/base/os/libdaqshm.la \
 			@top_builddir@/base/thread/libdaqthreads.la \
 			@top_builddir@/base/tcpip/libTcp.la         \
@@ -69,7 +69,7 @@ libCCCUSB_la_LIBADD = \
 
 ## SWIG Wrapper containing cvmusbreadoutlist::CCCUSBReadoutList
 libCCCUSBReadoutList_la_LIBADD = \
-			libCCUSB.la \
+			@builddir@/libCCUSB.la \
 			@top_builddir@/base/os/libdaqshm.la \
 			@THREADLD_FLAGS@ 
 
@@ -112,8 +112,8 @@ tests_LDFLAGS =  @top_builddir@/base/thread/libdaqthreads.la        \
 ## Manual test program for CCCUSBRemote
 remotetests_SOURCES = TestRunner.cpp \
 			remoteRegTests.cpp
-remotetests_LDADD = $(CPPUNIT_LDFLAGS) \
-			@builddir@/libCCUSB.la                      \
+remotetests_LDADD = @builddir@/libCCUSB.la        \
+ 		  $(CPPUNIT_LDFLAGS) 													\
 			@top_builddir@/base/tcpip/libTcp.la         \
 			@top_builddir@/base/thread/libdaqthreads.la \
 			@LIBTCLPLUS_LDFLAGS@                        \
@@ -131,10 +131,10 @@ remotetests_LDFLAGS = @top_builddir@/base/thread/libdaqthreads.la \
 unittests_SOURCES  = TestRunner.cpp rdolistTests.cpp \
 			 loggingrdolistTests.cpp \
 			 mockccusbTests.cpp
-unittests_LDADD    = $(CPPUNIT_LDFLAGS)                             \
+unittests_LDADD    = @builddir@/libCCUSB.la        \
+			$(CPPUNIT_LDFLAGS)                          \
 			@top_builddir@/base/tcpip/libTcp.la         \
 			@top_builddir@/base/thread/libdaqthreads.la \
-			-L@libdir@ -lCCUSB                          \
 			@TCL_LDFLAGS@                               \
 			@LIBTCLPLUS_LDFLAGS@
 
