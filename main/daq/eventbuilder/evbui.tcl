@@ -21,8 +21,7 @@ exec tclsh "$0" ${1+"$@"}
 
 
 ##
-# @file evbui.tcl
-# @brief Provide an event builder user interface (e.g.glom parameters()).
+# @file evbui.tcl# @brief Provide an event builder user interface (e.g.glom parameters()).
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 
@@ -73,7 +72,7 @@ snit::widgetadaptor ::EVBC::tsselector {
             grid $win.$policy -row 0 -column $c -sticky w
             incr c
         }
-        #$self $configurelist $args
+        $self $configurelist $args
     }
     #---------------------------------------------------------------------------
     #  Configuration handling methods.
@@ -167,6 +166,8 @@ snit::widgetadaptor ::EVBC::buildparams {
 	ttk::label $win.dtlabel -text {Coincidence interval}
      
         grid $win.build $win.dt $win.dtlabel -sticky w   
+	
+	$self configurelist $args
     }
     #---------------------------------------------------------------------------
     # Configuration handlers:
@@ -348,6 +349,8 @@ snit::widgetadaptor ::EVBC::intermedRing {
 
 	bind $win.ring <FocusOut> [mymethod _onRingChange]
 	bind $win.ring <Return>   [mymethod _onRingChange]
+	
+	$self configurelist $args
     }
     #-----------------------------------------------------------------
     # Configuration methods:
@@ -469,6 +472,185 @@ snit::widgetadaptor ::EVBC::intermedRing {
 #    -relief  - The -relief of the hull which is a ttk::labelframe.
 #
 snit::widgetadaptor ::EVBC::destring {
-    option -state -default normal -configurecommand _configState
+    option -state -default normal -configuremethod _configState
+    option -command [list]
+    option -ring 
+    option -record -default 0 -configuremethod _configRecord
 
+    delegate option -title  to hull as -text
+    delegate option -relief to hull
+    
+    constructor args {
+	installhull using ttk::labelframe
+
+	ttk::checkbutton $win.record -text Record -onvalue 1 -offvalue 0 \
+	    -variable [myvar options(-record)] -command [mymethod _onCommand]
+	ttk::label       $win.ringlabel -text {Output Ring}
+	ttk::entry       $win.ring      -textvariable [myvar options(-ring)]
+
+	bind $win.ring <Return> [mymethod _onCommand]
+	bind $win.ring <FocusOut> [mymethod _onCommand]
+
+	# Layout the widgets:
+
+	
+
+	grid $win.ringlabel $win.ring -sticky w
+	grid $win.record              -sticky w
+
+	#  Process any construction configuration options:
+
+	$self configurelist $args
+
+
+    }
+    #------------------------------------------------------------------
+    #  Configuration handlers.
+
+    ##
+    # _configState 
+    #       process -state configuration:
+    #       - Ensure the value is one of {normal, disabled}
+    #       - Propagate the new state down to the control widgets.
+    #
+    #  @param optname - Name of option being configured.
+    #  @param value   - New proposed value.
+    #
+    method _configState {optname value} {
+	if {$value ni [list normal disabled]} {
+	    error "The value of $optname must be in {normal, disabled} was $value"
+	}
+	foreach w [list record ring] {
+	    $win.$w configure -state $value
+	}
+	set options($optname) $value
+    }
+    ##
+    # _configRecord
+    #    Ensure the value for record is in 0,1.
+    #
+    #   @param optname - name of the option being configured (-record).
+    #   @param value   - proposed new value.
+    #
+    method _configRecord {optname value} {
+	if {$value ni [list 1 0]} {
+	    error "Value for $optname should be in {1, 0} was $value"
+	}
+	set options($optname) $value
+    }
+    #--------------------------------------------------------------
+    #   Option handlers.
+    #
+
+    ##
+    # _onCommand
+    #   Dispatch to the command handler since the
+    #   widget control contents changed.
+    #
+    method _onCommand {} {
+	set cmd $options(-command)
+	if {$cmd ne ""} {
+	    set cmd [string map [list %W $win] $cmd]
+	    uplevel #0 $cmd
+	}
+    }
+
+}
+##
+#  ::EVB::eventbuildercp
+#    Full event builder control panel.  Each of the megawidgets above
+#    is gridded side-by-side with reasonalbe titles and we
+#    delegate options to them in a reasonable way.
+#    all of these are in a ttk::frame as a hull.
+#
+#  OPTIONS:
+#    -tspolicy  - Timestamp policy.
+#    -tscommand - Called if Ts policy changed.#
+#    -glomtitle - Title for the glom control panel.
+#    -build    - True if event building is requested.
+#    -dt       - Coincidence interval in timestamp ticks if buildingh.
+#    -glomcmd  - Called if these glom parameters change.
+#
+#   -teetitle  - Title for the tee out control panel
+#   -tee       - True if we want to see the raw evb output in a ring.
+#   -teering   - name of the ring if -tee.
+#   -teecommand- called if the tee parameters above changed.
+#  
+#   -outtitle - TItle of the output control panel.
+#   -oring    - Output ring.
+#   -record   - record from the output ring?
+#   -oringcommand - Records -oputputing.
+#
+#   -state    - state of the entire widget.
+#   -relief   - relief of the outer frame.
+#
+snit::widgetadaptor EVBC::eventbuildercp {
+    component glomparams
+    component tee
+    component outring
+
+
+    option -state -default normal -configuremethod _configState
+
+    delegate option -relief to hull
+
+
+
+    delegate option -glomtitle to glomparams as -title
+    delegate option -build     to glomparams
+    delegate option -dt        to glomparams
+    delegate option -glomcmd   to glomparams as -buildcommand
+    delegate option -policy    to glomparams
+    delegate option -tscommand to glomparams
+    delegate option -tspolicy  to glommparams as -policy
+
+
+    delegate option -teetitle   to tee as -title
+    delegate option -tee        to tee
+    delegate option -teering    to tee as -ring
+    delegate option -teecommand to tee as -command
+
+    delegate option -outring    to outring as -ring
+    delegate option -record     to outring
+    delegate option -oringcommand to outring as -command
+
+    ##
+    # constructor - assemble the megawidget.
+    #
+
+    constructor args {
+	installhull using ttk::frame
+
+	install glomparams using ::EVBC::buildparams $win.build \
+	    -title {Ordered Fragment Ring} -relief groove
+	install tee using ::EVBC::intermedRing $win.tee \
+	    -title {Ordered Fragment Ring} -relief groove
+	install outring using ::EVBC::destring $win.oring \
+	    -title {Destination ring} -relief groove
+
+	grid $glomparams $tee $outring
+
+	$self configurelist $args
+    }
+    #-------------------------------------------------------
+    #  Configuration processors.
+
+    ##
+    # _configState
+    #    Configure -state option.  We must ensure the proposed
+    #    value is legal and then propagate it to all to widgets.
+    #
+    # @param optname  - name of option being configured.
+    # @param value    - Proposed new value.
+    #
+    method _configState {optnane value} {
+	if {$value ni [list normal disabled]} {
+	    error "$optname value must be one of {norma, disabled} was $value"
+	}
+	for w in [list glomparams tee outring] {
+	    $win.$w configure -state $value
+	}
+	set options($optname) $value
+    }
+    
 }
