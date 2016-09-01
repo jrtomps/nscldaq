@@ -102,46 +102,68 @@ proc OnStart {} {
     </para>
 
     <para>
-      The next thing that you need to do register clients
+      The next thing that you need to do is register clients
       to the event builder, more specifically the event orderer. Assuming that
       the data being committed to the event builder are ring items, the client
       will be the ringFragmentSource. There is a convenience API call
       provided to assist in registering the ringFragmentSource called
-      EVBC::registerRingSource. We will make use of it. However first a
-      timestamp extractor librrary must be created for the ringFragmentSource.
-      This library contains a function that will define how to extract a
+      EVBC::registerRingSource. We will make use of it. The first consideration we have to make concerns the timestamps on the data we submit to the event builder. If the data that the ringFragmentSource is reading in already has a timestamp in its body header, then there is nothing to do. Otherwise, a
+      timestamp extractor library must be created to instruct the program on how to extract timestamp from the data.
+      A timestamp extractor library contains a function that will define how to extract a
       timestamp from the body of a PHYSICS_EVENT item. You can find an example
       of how to create one at the <link
         linkend="sec_ringfragsrc">ringFragmentSource documentation</link>.
     </para>
     <para>
-      The registerRingSource proc has the form:
+      The EVBC::registerRingSource proc has the form:
     </para>
     <programlisting>
-::EVBC::registerRingSource sourceURI tstamplib id info
+::EVBC::registerRingSource sourceURI tstamplib ids info ?expectHeaders? ?oneshot? ?timeout? ?timeoffset?
     </programlisting>
 
     <para>
       where <literal>sourceURI</literal> is the full URI specifying the ring
       buffer to read data from, <literal>tstamplib</literal> is the path to the
-      compiled timestamp extractor library, <literal>id</literal> is the source
-      id for the data, and <literal>info</literal> is a string that describes To
-      illustrate how this works, consider an experiment in which the data
-      produced by some silicon detectors are read out by a single Readout
-      program in the system. The outputted data from this Readout are put into
-      the "sidet0" ring buffer on localhost, and a timestamp can be properly
-      extracted from each datum by the timestamp function recently compiled into
-      the libtstamp.so shared library. Being the first client registered, we
-      choose to label this stream of data with source id 0. We also want to
-      associate a human readable description of ?Si Dets? with it. In this
-      scenario, the line that would be added to the ReadoutCallouts.tcl would be
-      <programlisting>
-::EVBC::registerRingSource tcp://localhost/sidet0 /path/to/libtstamp.so 0 "Si Dets"
+      compiled timestamp extractor library, <literal>ids</literal> is the list
+      of acceptable source, <literal>info</literal> is a string that describes
+      the data stream, <literal>expectHeaders</literal> is a boolean value that
+      tells the ringFragmentSource to allow for an absent timestamp extractor
+      library because all ring items will have a timestamp already,
+      <literal>oneshot</literal> is a boolean that when causes the
+      ringFragmentSource to exit after it processes a complete run,
+      <literal>timeout</literal> is the number of seconds to wait after the
+      first ringFragmentSource has observed an end run item, and
+      <literal>timeoffset</literal> is a value the user can provide to add to
+      the timestamp to compensate for synchronization offsets. One very
+      important timesaver is to set the <literal>expectHeaders</literal> option
+      to true and then pass an empty string to <literal>tstamplib</literal> if
+      you know that the Readout program you are using has already provided a
+      timestamp to your data.  To illustrate how this works, consider an
+      experiment in which the data produced by some silicon detectors are read
+      out by a single Readout program in the system. The outputted data from
+      this Readout are put into the "sidet0" ring buffer on localhost, and all
+      of the data are already timestamped upstream. Being the first client
+      registered, we choose to label this stream of data with source id 0. We
+      also want to associate a human readable description of ?Si Dets? with it.
+      In this scenario, the line that would be added to the ReadoutCallouts.tcl
+      would be 
+
+      <programlisting> 
+        ::EVBC::registerRingSource tcp://localhost/sidet0 {} 0 "Si Dets" 1 1 20 0 
       </programlisting>
+
+      If instead, the data were not already labeled with a timestamp and a
+      timestamp extractor function was defined in the libtstamp.so shared
+      library, the invocation would be. 
+ 
+      <programlisting>
+        ::EVBC::registerRingSource tcp://localhost/sidet0 /path/to/libtstamp.so 0 "Si Dets" 0 1 20 0
+      </programlisting>
+ 
     </para>
 
     <para>
-      Putting this all together you would have a ReadoutCallouts.tcl that looks
+      Putting this all together you would have a ReadoutCallouts.tcl that might look
       like this:
     </para>
 
@@ -154,7 +176,7 @@ proc OnStart {} {
   ::EVBC::initialize -restart false -glombuild true -glomdt 123
 }
 
-EVBC::registerRingSource tcp://localhost/sidet0 /path/to/libtstamp.so 0 "Si Dets"
+EVBC::registerRingSource tcp://localhost/sidet0 {} 0 "Si Dets" 1 1 20 0
     </programlisting>
 
     <para>
