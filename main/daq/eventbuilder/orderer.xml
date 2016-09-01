@@ -410,6 +410,186 @@ EBC::flush
 
       </refentry>
 
+      <refentry id="evb3_registerringsource">
+        <refentryinfo>
+          <author>
+                  <personname>
+                    <firstname>Jeromy</firstname>
+                    <surname>Tompkins</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='evb3_registerringsource_title'>EVBC::registerRingSource</refentrytitle>
+           <manvolnum>3evb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>EVBC::registerRingSource</refname>
+           <refpurpose>Register a ring fragment source to the RingSourceManager.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+EVBC::registerRingSource <replaceable>source-uri extractor-lib source-ids info expectBodyHeaders oneshot timeout timeoffset</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+             The registerRingSource proc registers information to the
+             RingSourceManager to launch a ringFragmentSource when
+             transitioning to the Active state from Halted. This is the
+             preferred mechanism for associating ringFragmentSources with the
+             event builder and should be used in place of EVBC::startRingSource
+             or EVBC::startS800Source. Once the registration is completed, the
+             RingSourceManager will launch a rignFragmentSource with the
+             appropriate command line options when needed.
+           </para>
+           <para>
+            See <literal>PARAMETERS</literal> below for a brief explanation of
+            the command line parameters, as well as the reference cited above.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              PARAMETERS
+           </title>
+            <variablelist>
+                <varlistentry>
+                    <term><replaceable>source-uri</replaceable></term>
+                    <listitem>
+                        <para>
+                            The URI of the ring buffer from which the data
+                            will be taken.  If the ring is local to the
+                            system that ReadoutGUI is running in, you should
+                            specify <filename>tcp://localhost/ring-name</filename>
+                            where <replaceable>ring-name</replaceable> is the name
+                            of the ring buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>extractor-lib</replaceable></term>
+                    <listitem>
+                        <para>
+                            Specifies the file system path to the shared object
+                            that contains code to extract the timestamp
+                            from the incoming ring data.
+                            <link linkend='sec_tsextractors'
+                              endterm='sec_tsextractors_title' /> describes how
+                            to write timestamp extractors and how to build them
+                            into shared libraries. 
+                          </para>
+                          <para>
+                            The timestamp extractor library is only useful if
+                            the data to be read by the ringFragmentSource has
+                            no timestamp (i.e. no body header) already, because
+                            the timestamp extractor function is only ever
+                            called if a timestamp is missing. If all of
+                            the ring items are already labeled with timestamps,
+                            simply pass an empty string for this argument and
+                            then pass a true value to the expectBodyHeaders
+                            argument. Doing so will not change the behavior and
+                            will save you the effort of creating the timestamp
+                            extractor library.  If you are dying to do the
+                            extra work of creating the library, you can still
+                            do so but know that it will not be called by
+                            the ringFragmentSource.                         
+                          </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>source-ids</replaceable></term>
+                    <listitem>
+                        <para>
+                            A list of source ids to be associated with the ring buffer.
+                            The ringFragmentSource is sensitive to what source ids it
+                            observes and will exit if a source id is observed that it 
+                            was not told to expect by this argument.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>info</replaceable></term>
+                    <listitem>
+                        <para>
+                            This parameter is arbitrary text that is used to
+                            label the data source client in the event builder
+                            GUI connection list window.  It is intended to allow
+                            humans to better understand what each source
+                            represents.  It is not used by the event builder
+                            itself other than to label sources.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>expectBodyHeaders</replaceable></term>
+                    <listitem>
+                      <para>
+                        This argument takes a boolean value to allow the
+                        omission of the <literal>tstamplib</literal> argument.
+                        The default value is <literal>false</literal>.
+                      </para>
+                      <para>
+                        If <literal>true</literal>, the user can pass an empty
+                        string for the <literal>tstamplib</literal>.  Doing so
+                        however is equivalent to making a promise to the
+                        ringFragmentSource that all ring items will contain a
+                        timestamp (i.e. a body If passed <literal>true</literal>
+                        and a ring items arrives without a timestamp, the
+                        ringFragmentSource will exit when an empty string was
+                        passed for the <literal>tstamplib</literal> argument.  In
+                        the same scenario, only a warning will be printed if a
+                        valid timestamp extractor library was passed. 
+                      </para> 
+                      <para> If this is <literal>false</literal>, the
+                        user must provide a valid timestamp extractor library
+                        for the <literal>tstamplib</literal> argument.  
+                      </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>oneshot</replaceable></term>
+                    <listitem>
+                      <para>
+                        This is a boolean value specifying whether the
+                        ringFragmentSource should exit after a symmetric number
+                        of begin and end run items have been observed. Default
+                        value is <literal>false</literal>.
+                      </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>timeout</replaceable></term>
+                    <listitem>
+                      <para>
+                        The <literal>timeout</literal> parameter is an integer
+                        parameter that dictates how many seconds to wait before
+                        shutting down after the first end run item is observed
+                        by any ringFragmentSource registered to the event
+                        builder.
+                      </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>timeoffset</replaceable></term>
+                    <listitem>
+                      <para>
+                        The <literal>timeoffset</literal> specifies a signed
+                        integer to add to any timestamp observed by the
+                        ringFragmentSource.
+                      </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+
       <refentry id="evb3_startringsource">
         <refentryinfo>
           <author>
@@ -442,7 +622,10 @@ EVBC::startRingSource <replaceable>source-uri extractor-lib source-id info</repl
         <refsect1>
            <title>DESCRIPTION</title>
            <para>
-            Starts a fragment source that gets is data from a ring buffer.  For
+             Please use the <link linkend='evb3_registerringsource' endterm='evb3_registerringsource_title'/> instead of this proc.
+           </para>
+           <para>
+            Starts a fragment source that gets its data from a ring buffer.  For
             more on ring fragment sources see:
             <link linkend='sec_ringfragsrc' endterm='sec_ringfragsrc_title' />
             elsewhere in the documentation.  That discussion will provide more
@@ -554,7 +737,11 @@ EVBC::startS800Source <replaceable>ring-uri source-id ?info?</replaceable>
 
         </refsynopsisdiv>
         <refsect1>
-           <title>DESCRIPTION</title>
+          <title>DESCRIPTION</title>
+          <para>
+            Please use the <link linkend='evb3_registerringsource'
+              endterm='evb3_registerringsource_title'/> instead of this proc.
+          </para>
            <para>
             This is actually a wrapper for a call to
             <command>EVBC::startRingSource</command> using a timestamp
@@ -655,6 +842,80 @@ EVBC::initialize <replaceable>options</replaceable>
                         </para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term><option>-glombuild</option> <replaceable>yes | no</replaceable></term>
+                    <listitem>
+                        <para>
+                            If <option>-glombuild</option> is
+                            <literal>yes</literal>, the fragments will be
+                            correlated into build physics events.  That means
+                            that more than one fragment may be stuck into the
+                            body of a ring item of type PHYSICS_EVENT. The
+                            correlation parameter is provided by the
+                            <option>-glomdt</option> parameter. If the value is
+                            <literal>no</literal>, then there will only be one
+                            fragment stuffed into the body of the built physics
+                            events outputted by the event builder. The value is
+                            provided as a default value and the user can
+                            override it using the event builder gui controls.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-glomdt</option> <replaceable>value</replaceable></term>
+                    <listitem>
+                        <para>
+                          This specifies the number of "ticks" that define a
+                          correlation window. Fragments whose timestamps differ
+                          by less than this value will be correlated together.
+                          The value should be considered a default value
+                          because the user can override this value through the
+                          event builder gui controls. The default value is 1.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-glomid</option> <replaceable>value</replaceable></term>
+                    <listitem>
+                        <para>
+                          Built physics events are labeled with an integer
+                          source id equal to the value passed for the
+                          <option>-glomid</option> option. The default value is 0.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-glomtimestamppolicy</option> <replaceable>earliest | latest | average</replaceable></term>
+                    <listitem>
+                        <para>
+                          The timestamp assigned to the built physics event
+                          outputted from the event builder can be either the
+                          <literal>earlier</literal>,
+                          <literal>latest</literal>, or
+                          <literal>average</literal> value of the correlated
+                          timestamps.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-destring</option> <replaceable>ring_name</replaceable></term>
+                    <listitem>
+                        <para>
+                          The value passed to <option>-destring</option> is the
+                          name of a ring buffer that the event builder will
+                          output its data to. The default value is the user's account name.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-setdestringasevtlogsource</option> <replaceable>yes | no</replaceable></term>
+                    <listitem>
+                        <para>
+                          If the value passed is <literal>yes</literal>, then the eventlog program
+                          will use the output ring of the event builder as its data source. Default value is <literal>false</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect1>
         <refsect1>
@@ -679,7 +940,7 @@ EVBC::initialize -glombuild yes -glomdt 200 -destring built -restart yes -gui of
             </para>
             <informalexample>
                 <programlisting>
-EVBC::initialize -glombuild yes -glomdt 200 -destrign built -restart yes -gui on
+EVBC::initialize -glombuild yes -glomdt 200 -destring built -restart yes -gui on
                 </programlisting>
             </informalexample>
             
