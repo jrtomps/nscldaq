@@ -146,7 +146,7 @@ snit::widgetadaptor ::EVBC::tsselector {
 #                 - %T - coincidence interval.
 #
 snit::widgetadaptor ::EVBC::buildparams {
-    option -build -default true  -configuremethod _config10
+    option -build -default 1  -configuremethod _config10
     option -dt    -default 1     -type [list snit::integer -min 1] \
             -configuremethod _configdt
     option -command -default [list]
@@ -226,12 +226,12 @@ snit::widgetadaptor ::EVBC::buildparams {
     # @param value   - Proposed value.
     #
     method _configState {optname value} {
-        if {$optname ni {normal disabled} } {
+        if {$value ni {normal disabled} } {
             error "$optname's value must be normal or disabled, was $value"
         }
         set options($optname) $value
-        for win [list build dt] {
-            $win.$win configure -state $value
+        foreach w [list build dt] {
+            $win.$w configure -state $value
             
             #  This adjusts the state of the det widget sothat it's going to be
             #   off if build is disabled.
@@ -315,7 +315,7 @@ snit::widgetadaptor ::EVBC::glomparams {
     component tsselector
     component buildparams
 
-    option -state -default normal;      # handle this ourself.
+    option -state -default normal -configuremethod _configState;      # handle this ourself.
 
     delegate option -policy to tsselector
     delegate option -tscommand to tsselector as -command
@@ -338,6 +338,25 @@ snit::widgetadaptor ::EVBC::glomparams {
 	grid $buildparams -sticky ew
 
 	$self configurelist $args
+    }
+    
+    ##
+    # _configState
+    #    Ensure that -state is one of normal or disabled.
+    #     propagate that on to the subwidgets.
+    #
+    # @param optname - name of the option being configured.
+    # @param value   - proposed value.
+    #
+    method _configState {optname value} {
+        if {$value ni [list normal disabled]} {
+            error "$optname must have a value in {normal, disabled} was $value"
+        }
+        foreach w [list $tsselector $buildparams] {
+
+            $w configure -state $value
+        }
+        set options($optname) $value
     }
 
 }
@@ -677,12 +696,12 @@ snit::widgetadaptor EVBC::eventbuildercp {
     # @param optname  - name of option being configured.
     # @param value    - Proposed new value.
     #
-    method _configState {optnane value} {
+    method _configState {optname value} {
 	if {$value ni [list normal disabled]} {
 	    error "$optname value must be one of {norma, disabled} was $value"
 	}
-	for w in [list glomparams tee outring] {
-	    $win.$w configure -state $value
+	foreach w [list $glomparams $tee $outring] {
+	    $w configure -state $value
 	}
 	set options($optname) $value
     }
