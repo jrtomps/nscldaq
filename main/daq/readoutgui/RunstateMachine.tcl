@@ -304,7 +304,6 @@ snit::type RunstateMachine {
     #
     method _callback {method args} {
         foreach cb $callouts {
-          puts "$cb $method $args"
             $cb $method {*}$args
         }
     }
@@ -571,8 +570,8 @@ snit::type RunstateMachineSingleton {
 #
 proc start {} {
 
-  set machine [RunstateMachineSingleton %AUTO%]
 
+  set machine [RunstateMachineSingleton %AUTO%]
   # Transition NotReady -> Starting
   if { [catch { $machine transition Starting } msg] } {
     forceFailure
@@ -580,14 +579,19 @@ proc start {} {
     error "start failed with message : $msg"
   }
 
+  $machine destroy
+  
   # Transition Starting -> Halted
-  if {[catch {$machine transition Halted} msg]} {
-    forceFailure
+  after idle {
+    set machine [RunstateMachineSingleton %AUTO%]
+    if {[catch {$machine transition Halted} msg]} {
+      forceFailure
+      $machine destroy
+      error "transition to halted failed with message : $msg"
+    }
     $machine destroy
-    error "transition to halted failed with message : $msg"
   }
 
-  $machine destroy
 }
 
 proc begin {} {
