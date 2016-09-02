@@ -78,8 +78,8 @@ namespace eval ::EVBC {
     variable destRing             $::tcl_platform(user)
     variable priorDestRing        $::tcl_platform(user)
     
-    variable setsEvtlogSource    0
-    variable priorSetsEvtlogSource 0
+    variable setsEvtlogSource    1
+    variable priorSetsEvtlogSource 1
     
     variable glomTsPolicy        earliest
     variable priorGlomTsPolicy   earliest
@@ -884,6 +884,7 @@ proc EVBC::_ValidateOptions options  {
 #  @return boolean  true if the proposed change should be backed out.
 #
 proc ::EVBC::_checkWarnRestart {} {
+    
     if {(![::EVBC::_paramsChanged]) && (![$::EVBC::applicationOptions cget -restart]) } {
         set result [tk_messageBox                   \
             -title {EVB Restart needed}             \
@@ -964,6 +965,29 @@ proc ::EVBC::_onTeeChange w {
     }
 }
 ##
+# ::EVBC::_onDestRingChanged
+#    Called when the output ring controls have changed.  After potentially
+#    asking the user if it's ok to make the changes, the changes get made.
+#
+# @param w - An ::EVBC::destring widget that contains the controls.
+#
+proc ::EVBC::_onDestRingChanged w {
+    if {![::EVBC::_checkWarnRestart]} {
+        set ::EVBC::destRing         [$w cget -ring]
+        set ::EVBC::setsEvtlogSource [$w cget -record]
+        $::EVBC::applicationOptions configure -destring $::EVBC::destRing
+        $::EVBC::applicationOptions configure \
+            -setdestringasevtlogsource $::EVBC::setsEvtlogSource
+        if {[$EVBC::applicationOptions cget -setdestringasevtlogsource] } {
+            ::Configuration::Set EventLoggerRing "tcp://localhost/$EVBC::destRing"
+        }
+    } else {
+        $w configure -ring $::EVBC::destRing
+        $w configure -record $::EVBC::setsEvtlogSource
+    }
+}
+
+##
 # @fn EVBC::_StartGui
 #
 #  Create the event builder GUI and glue it into the ReadoutGUI frame.
@@ -977,6 +1001,7 @@ proc ::EVBC::_onTeeChange w {
 #   *  An entry for the name of that ring.
 #
 proc EVBC::_StartGui {} {
+    set EVBC::destRing [$EVBC::applicationOptions cget -destring]
     ::EVBC::_updatePriorParams
     
     ::EVBC::eventbuildercp .evbcp
@@ -997,6 +1022,12 @@ proc EVBC::_StartGui {} {
     .evbcp configure -tee     $::EVBC::intermediateRing
     .evbcp configure -teering $::EVBC::intermediateRingName
     .evbcp configure -teecommand [list ::EVBC::_onTeeChange %W]
+    
+    # Connect the output ring controls and set the UI's initial values.
+    
+    .evbcp configure -oring  $::EVBC::destRing
+    .evbcp configure -record $::EVBC::setsEvtlogSource
+    .evbcp configure -oringcommand [list ::EVBC::_onDestRingChanged %W]
     
     #---------------------------------------------------------------------------
     #  Old GUI - cut it out when the new gui works.
@@ -1077,11 +1108,11 @@ proc EVBC::_StartGui {} {
                         -padding 6]
     ttk::label $destringWin.ringlbl -text {Name}
     ttk::entry $destringWin.ringname -textvariable EVBC::destRing -width 15
-    trace add variable  EVBC::destRing  write \
+    #trace add variable  EVBC::destRing  write \
         [list EVBC::_ChangeDestRing]
     ttk::checkbutton $destringWin.change -variable EVBC::setsEvtlogSource \
                      -onvalue true -offvalue false -text {Use for recording}
-    trace add variable EVBC::setsEvtlogSource write EVBC::_ChangeSetsEvtlogSource
+    #trace add variable EVBC::setsEvtlogSource write EVBC::_ChangeSetsEvtlogSource
     
     grid $destringWin.ringlbl -row 0 -column 0 -sticky e -padx 5 -pady 3 
     grid $destringWin.ringname -row 0 -column 1 -sticky w -padx 5 -pady 3
