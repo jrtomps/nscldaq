@@ -663,7 +663,7 @@ snit::widgetadaptor EVBC::eventbuildercp {
     delegate option -teering    to tee as -ring
     delegate option -teecommand to tee as -command
 
-    delegate option -outring    to outring as -ring
+    delegate option -oring    to outring as -ring
     delegate option -record     to outring
     delegate option -oringcommand to outring as -command
 
