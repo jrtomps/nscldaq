@@ -157,11 +157,11 @@ snit::widgetadaptor ::EVBC::buildparams {
         
         ttk::checkbutton $win.build -text Build \
             -variable [myvar options(-build)] -onvalue 1 -offvalue 0  \
-            -command [mymethod _onChanged]
+            -command [mymethod _onCheckChanged]
         ttk::spinbox $win.dt -text {coincidence interval} \
             -command [mymethod _spinChanged ] \
             -validatecommand [mymethod _validateSpin %P] -validate all          \
-            -from 1 -to 100000 -width 5
+            -from 1 -to 100000 -width 5 -state disabled
         $win.dt set 1
 	ttk::label $win.dtlabel -text {Coincidence interval}
      
@@ -187,6 +187,23 @@ snit::widgetadaptor ::EVBC::buildparams {
         if {$value ni [list 0 1]} {
             error "$optname must be either 1 or 0 was $value"
         }
+        ##
+        #  If we're not building, dt can't be set -- even if the state is normal
+        #
+        
+        if {$options(-state) eq "normal"} {
+            puts "Normal $value"
+            if {$value} {
+                set state normal
+            } else {
+                set state disabled
+            }            
+        } else {
+            set state disabled
+        }
+        $win.dt configure -state $state
+
+        
         set options($optname) $value
     }
     ##
@@ -213,10 +230,17 @@ snit::widgetadaptor ::EVBC::buildparams {
         if {$optname ni {normal disabled} } {
             error "$optname's value must be normal or disabled, was $value"
         }
+        set options($optname) $value
         for win [list build dt] {
             $win.$win configure -state $value
+            
+            #  This adjusts the state of the det widget sothat it's going to be
+            #   off if build is disabled.
+            
+            if {$value eq "normal"} {
+                $self _config10 -build $options(-build);   # Adjust
+            }
         }
-        set options($optname) $value
     }
     #--------------------------------------------------------------------------
     # Action handlers
@@ -232,6 +256,18 @@ snit::widgetadaptor ::EVBC::buildparams {
             uplevel #0 $cmd
         }
     }
+    ##
+    # _onCheckChanged
+    #
+    #    Called when the checkbutton changes state
+    #    - Get dt in the correct -state
+    #    - Call the user's command handler.
+    #
+    method _onCheckChanged {} {
+      $win configure -build $options(-build);    # To change state of dt.
+      $self  _onChanged
+    }
+
     ##
     # _spinChanged
     #    Let the user know the spinbox changed value.
@@ -556,7 +592,7 @@ snit::widgetadaptor ::EVBC::destring {
 
 }
 ##
-#  ::EVB::eventbuildercp
+#  ::EVBC::eventbuildercp
 #    Full event builder control panel.  Each of the megawidgets above
 #    is gridded side-by-side with reasonalbe titles and we
 #    delegate options to them in a reasonable way.
@@ -601,7 +637,7 @@ snit::widgetadaptor EVBC::eventbuildercp {
     delegate option -glomcmd   to glomparams as -buildcommand
     delegate option -policy    to glomparams
     delegate option -tscommand to glomparams
-    delegate option -tspolicy  to glommparams as -policy
+    delegate option -tspolicy  to glomparams as -policy
 
 
     delegate option -teetitle   to tee as -title
@@ -621,7 +657,7 @@ snit::widgetadaptor EVBC::eventbuildercp {
 	installhull using ttk::frame
 
 	install glomparams using ::EVBC::glomparams $win.build \
-	    -title {Ordered Fragment Ring} -relief groove
+	    -title {Event building parameters (vsn 11)} -relief groove
 	install tee using ::EVBC::intermedRing $win.tee \
 	    -title {Ordered Fragment Ring} -relief groove
 	install outring using ::EVBC::destring $win.oring \
