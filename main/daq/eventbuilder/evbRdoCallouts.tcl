@@ -936,7 +936,33 @@ proc ::EVBC::_onGlomParamsChanged {w build dt} {
         $w configure -dt    [$::EVBC::applicationOptions cget -glomdt]
     }
 }
-
+##
+#  ::EVBC::_onTeeChange
+#
+#    Called when there's been a change to the parameters controlling the use
+#    of an intermediate ring.  An intermediate ring allows users to snoop on the
+#    event builder ordered fragments before they hit glom.
+#
+# @param w  - The ::EVBC::intermedRing widget that is managing those parameters.
+#
+# @note EVBC::_checkWarnRestart is used to potentially veto the change.
+#
+proc ::EVBC::_onTeeChange w {
+    if {![::EVBC::_checkWarnRestart]} {
+        set ::EVBC::intermediateRing [$w cget -tee]
+        set ::EVBC::intermediateRingName [$w cget -ring]
+        
+        if {$::EVBC::intermediateRing } {
+            $::EVBC::applicationOptions configure -teering $::EVBC::intermediateRingName
+        } else {
+            $::EVBC::applicationOptions configure -teering ""
+        }
+        
+    } else {
+        $w confiure -tee $::EVBC::intermediateRing
+        $w configure -ring $::EVBC::intermediateRingName
+    }
+}
 ##
 # @fn EVBC::_StartGui
 #
@@ -965,6 +991,12 @@ proc EVBC::_StartGui {} {
     
     .evbcp configure -tscommand [list ::EVBC::_onTsPolicyChanged .evbcp %P] 
     .evbcp configure -glomcmd   [list ::EVBC::_onGlomParamsChanged .evbcp %B %T]
+    
+    #  Connect the tee ring controls and set initial values of the UI:
+    
+    .evbcp configure -tee     $::EVBC::intermediateRing
+    .evbcp configure -teering $::EVBC::intermediateRingName
+    .evbcp configure -teecommand [list ::EVBC::_onTeeChange %W]
     
     #---------------------------------------------------------------------------
     #  Old GUI - cut it out when the new gui works.

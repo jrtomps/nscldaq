@@ -379,7 +379,7 @@ snit::widgetadaptor ::EVBC::intermedRing {
 	
 	# Layout:
 
-	grid $win.tee -sticky w
+	grid $win.tee -sticky w -columnspan 2
 	grid $win.rlabel $win.ring -sticky w
 
 	bind $win.ring <FocusOut> [mymethod _onRingChange]
