@@ -81,7 +81,7 @@ libEventBuilder_la_LDFLAGS=@LIBTCLPLUS_LDFLAGS@
 TCL_PACKAGE_FILES=ConnectionManager.tcl callbackManager.tcl eventOrderer.tcl \
 	connectionList.tcl observer.tcl barriers.tcl GUI.tcl inputStatistics.tcl \
 	late.tcl outputStatistics.tcl utility.tcl latePopup.tcl \
-	DuplicateTimestamp.tcl OutOfOrderUI.tcl
+	DuplicateTimestamp.tcl OutOfOrderUI.tcl evbui.tcl
 
 
 TCL_EVB_PACKAGE_FILES=evbRdoCallouts.tcl evbRdoCallouts10.tcl EVBStateCallouts.tcl \
