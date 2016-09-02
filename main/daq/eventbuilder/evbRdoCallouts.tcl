@@ -750,26 +750,34 @@ proc EVBC::isRunning {} {
 #
 proc EVBC::_paramsChanged {} {
     if {$::EVBC::buildEvents != $::EVBC::priorBuildEvents} {
+        #puts "BuildEvents $::EVBC::buildEvents  $::EVBC::priorBuildEvents"
         return true
     }
     if {$::EVBC::intermediateRing != $::EVBC::priorIntermediateRing} {
+        #puts "intermed ring $::EVBC::intermediateRing  $::EVBC::priorIntermediateRing"
         return true
     }
     if {$::EVBC::intermediateRingName != $::EVBC::priorIntermediateRingName} {
+        #puts "intermedringname $::EVBC::intermediateRingName  $::EVBC::priorIntermediateRingName"
         return true
     }
     if {$::EVBC::destRing != $::EVBC::priorDestRing} {
+        #puts "destring $::EVBC::destRing != $::EVBC::priorDestRing"
         return true
     }
     if {$::EVBC::setsEvtlogSource != $::EVBC::priorSetsEvtlogSource} {
+        #puts "evtlogsource $::EVBC::setsEvtlogSource != $::EVBC::priorSetsEvtlogSource"
         return true
     }
     if {$::EVBC::glomTsPolicy != $::EVBC::priorGlomTsPolicy} {
+        #puts "tspolicy $::EVBC::glomTsPolicy != $::EVBC::priorGlomTsPolicy"
         return true
     }
     if {$::EVBC::priorGlomDt != [$::EVBC::applicationOptions cget -glomdt]} {
+        #puts "dt $::EVBC::priorGlomDt != [$::EVBC::applicationOptions cget -glomdt]"
         return true
     }
+    #puts "No changes"
     return false    
 }
 ##
@@ -785,6 +793,7 @@ proc EVBC::_paramsChanged {} {
 proc EVBC::_updatePriorParams {} {
     set ::EVBC::priorBuildEvents        $::EVBC::buildEvents
     set ::EVBC::priorIntermediateRing   $::EVBC::intermediateRing
+    set ::EVBC::priorIntermediateRingName $::EVBC::intermediateRingName
     set ::EVBC::priorDestRing           $::EVBC::destRing
     set ::EVBC::priorSetsEvtlogSource   $::EVBC::setsEvtlogSource
     set ::EVBC::priorGlomTsPolicy       $::EVBC::glomTsPolicy
@@ -912,7 +921,7 @@ proc ::EVBC::_checkWarnRestart {} {
 proc ::EVBC::_onTsPolicyChanged {w policy} {
     if {![::EVBC::_checkWarnRestart]} {
         set ::EVBC::glomTsPolicy $policy
-        $::EVBC::applicationOptions configure -tspolicy $policy
+        $::EVBC::applicationOptions configure -glomtspolicy $policy
     } else {
         $w configure -tspolicy $::EVBC::glomTsPolicy; # Restore the UI
     }
@@ -1029,109 +1038,7 @@ proc EVBC::_StartGui {} {
     .evbcp configure -record $::EVBC::setsEvtlogSource
     .evbcp configure -oringcommand [list ::EVBC::_onDestRingChanged %W]
     
-    #---------------------------------------------------------------------------
-    #  Old GUI - cut it out when the new gui works.
-    
-    # TODO: window should be a frame in readout GUI and
-    #       gridded into the bottom  most row.
-    
-    
-    set window [frame .evbgui]
-    
-    # The Glom control frame:
-    
-    # Glom building or not and coincidence window.
-    
-    
-    set glom [ttk::labelframe  $window.glom -text {Event Building parameters (vsn 11)} \
-                      -padding 6]
-    
-    ttk::checkbutton $glom.build -text {Build} -onvalue true -offvalue false \
-        -command [list EVBC::_GlomEnableDisable $glom.build $glom.dt] \
-        -variable EVBC::buildEvents
-    
-    spinbox $glom.dt -from 0 -to 1000000 -increment 1 \
-        -command [list EVBC::_GlomDtChanged $glom.dt] -width 8
 
-    # We need to bind the enter key to invoke _GlomChanged as well
-    # since no keystrokes fire the -command.
-
-    bind $glom.dt <Key-Return> [list EVBC::_GlomDtChanged %W]
-    bind $glom.dt <Key-Tab>    [list EVBC::_GlomDtChanged %W]
- 
-    ttk::label $glom.dtlabel -text "Coincidence interval"
-
-    
-    grid $glom.build $glom.dt $glom.dtlabel
-    
-    # Glom timestamp policy:
-    
-    set policies [$::EVBC::applicationOptions getGlomTsPolicies]
-    ttk::label $glom.plabel -text "Ts is: "
-    grid $glom.plabel -row 1 -column 0 -padx 5 -pady 3
-    set col 1
-    foreach policy $policies {
-        radiobutton $glom.$policy \
-            -variable ::EVBC::glomTsPolicy -value $policy -text $policy \
-            -command [list $EVBC::applicationOptions configure -glomtspolicy $policy]
-        grid $glom.$policy -row 1 -column $col -pady 3
-        
-        incr col
-    }
-    
-    grid $glom -row 0 -column 0 -sticky nsew
-    
-    #  Enable/disable intermediate ring and which ring it is:
-    
-    set intermediate [ttk::labelframe $window.intermediate -text {Ordered Fragment Ring} \
-                          -padding 6]
-    ttk::checkbutton $intermediate.enable -text {Tee output to this ring}\
-        -onvalue true -offvalue false \
-        -command [list EVBC::_IntermediateEnableDisable $intermediate.enable $intermediate.ringname] \
-        -variable EVBC::intermediateRing
-    ttk::entry  $intermediate.ringname -width 15 \
-        -textvariable EVBC::intermediateRingName
-    ttk::label  $intermediate.ringlbl -text "Ring Name"
-    
-
-    trace add variable EVBC::intermediateRingName write EVBC::_IntermediateRingChanged
-    
-    
-    EVBC::_IntermediateEnableDisable $intermediate.enable $intermediate.ringname
-    
-    grid $intermediate.enable -columnspan 2 -sticky w -padx 5 -pady 3
-    grid $intermediate.ringlbl $intermediate.ringname -padx 5 -pady 3
-    grid $intermediate -row 0 -column 1 -sticky nsew
-    
-    
-    set destringWin [ttk::labelframe $window.dest -text {Destination Ring} \
-                        -padding 6]
-    ttk::label $destringWin.ringlbl -text {Name}
-    ttk::entry $destringWin.ringname -textvariable EVBC::destRing -width 15
-    #trace add variable  EVBC::destRing  write \
-        [list EVBC::_ChangeDestRing]
-    ttk::checkbutton $destringWin.change -variable EVBC::setsEvtlogSource \
-                     -onvalue true -offvalue false -text {Use for recording}
-    #trace add variable EVBC::setsEvtlogSource write EVBC::_ChangeSetsEvtlogSource
-    
-    grid $destringWin.ringlbl -row 0 -column 0 -sticky e -padx 5 -pady 3 
-    grid $destringWin.ringname -row 0 -column 1 -sticky w -padx 5 -pady 3
-    grid $destringWin.change -columnspan 2  -padx 5 -pady 3
-    grid $destringWin -row 0 -column 2 -sticky nsew
-    
-
-    # Figure out where to grid the GUI:
-    
-    set dimensions [grid size .]
-    set rows       [lindex $dimensions 1]
-    set cols       [lindex $dimensions 0]
-    incr rows
-    grid $window  -row $rows -column 0 
-    
-    set EVBC::guiFrame $window
-    
-    ::EVBC::updateGuiFromOptions
-    
 }
 ##
 # updateGuiFromOptions
@@ -1147,16 +1054,6 @@ proc ::EVBC::updateGuiFromOptions {} {
     } else {
         set ::EVBC::buildEvents 0
     }
-
-    $::EVBC::guiFrame.glom.dt config -state normal
-    $::EVBC::guiFrame.glom.dt delete 0 end
-    $::EVBC::guiFrame.glom.dt  insert 0 [$EVBC::applicationOptions cget -glomdt]
-    
-    
-    ::EVBC::_GlomEnableDisable \
-        $::EVBC::guiFrame.glom.build \
-        $::EVBC::guiFrame.glom.dt;     # Set initial enable/disable of spinbox.    
-
     
     set teering [$EVBC::applicationOptions cget -teering]
     set EVBC::intermediateRingName $teering
@@ -1171,70 +1068,6 @@ proc ::EVBC::updateGuiFromOptions {} {
 
     EVBC::_updatePriorParams
 }
-#-----------------------------------------------------------------------------
-##
-# @fn EVBC::_GlomEnableDisable
-#
-#   Called when the glom enable/disable checkbox changed.  If the checkbox is
-#   unchecked we need to disable the spinbox and vica versa.
-#
-#
-# @param checkbox  - Checkbox widget path.
-# @param dt        - Path to dt spinner.
-#
-proc EVBC::_GlomEnableDisable {checkbox dt} {
-    if {$EVBC::buildEvents} {
-        $dt configure -state normal
-    } else {
-        $dt configure -state disabled
-    }
-    $EVBC::applicationOptions configure -glombuild $EVBC::buildEvents
-}
-#-------------------------------------------------------------------------------
-##
-# @fn EVBC::_GlomDtChanged
-#
-#  Called when the build time for glom changed.  Get the new value
-#  and update the configuration.
-#
-# @param dt - Widget that has the spinbox.
-#
-proc EVBC::_GlomDtChanged {dt} {
-    $EVBC::applicationOptions configure -glomdt [$dt get]
-}
-#------------------------------------------------------------------------------
-##
-# @fn EVBC::_IntermediateEnableDisable
-#
-#  Called when the intermediate ring enable checkbox changes state.
-#  This is bound to EVBC::intermediateRing so the state is reflected there.
-#
-# @param enable - Widget of the enable checkbutton.
-# @param ring   - Widget that has the ring name.
-#
-proc EVBC::_IntermediateEnableDisable {enable ring} {
-    if {$EVBC::intermediateRing} {
-        $ring config -state normal
-        $EVBC::applicationOptions configure -teering $EVBC::intermediateRingName
-    } else {
-        $ring config -state disabled
-        $EVBC::applicationOptions configure -teering ""
-    }
-}
-#------------------------------------------------------------------------------
-##
-# @fn EVBC::_IntermediateRingChanged
-#
-#  Trace called when the intermediate ring name has changed.
-#  EVBC::intermedateRingName has the new value
-#
-#  This is a variable trace handler.
-#
-proc EVBC::_IntermediateRingChanged {name index op} {
-    $EVBC::applicationOptions configure -teering $EVBC::intermediateRingName   
-}
-#------------------------------------------------------------------------------
-##
 # @fn EVBC::_EnableGUI
 #
 #  Enbable the gui.
@@ -1245,15 +1078,6 @@ proc EVBC::_IntermediateRingChanged {name index op} {
 #
 proc EVBC::_EnableGUI {} {
     .evbcp configure -state normal
-    
-    #  Old code.
-    
-    EVBC::_SetGuiState $EVBC::guiFrame normal
-    
-    EVBC::_GlomEnableDisable $EVBC::guiFrame.glom.build $EVBC::guiFrame.glom.dt
-    EVBC::_IntermediateEnableDisable \
-        $EVBC::guiFrame.intermediate.enable \
-        $EVBC::guiFrame.intermediate.ringname
 }
 #-----------------------------------------------------------------------------
 ##
@@ -1265,54 +1089,6 @@ proc EVBC::_EnableGUI {} {
 #
 proc EVBC::_DisableGUI {} {
     .evbcp configure -state disabled
-    
-    # old code.
-    
-    EVBC::_SetGuiState $EVBC::guiFrame disabled
-}
-#-----------------------------------------------------------------------------
-##
-# @fn EVBC::_SetGuiState state
-#
-#  Set the state of all terminal widgets of the GUI widget tree to the requested
-#  state.
-#
-# @param widget  top level of the hierarchy to affect.
-# @param desired state
-#
-proc EVBC::_SetGuiState {widget state} {
-    foreach w [winfo children $widget] {
-        if {[llength [winfo children $w]] > 0} {
-            EVBC::_SetGuiState $w $state
-        } else {
-            $w configure -state $state
-        }
-    }
-}
-#----------------------------------------------------------------------------
-##
-# @fn EVBC::_ChangeDestRing
-#
-#  Called when the name of the destination ring changes.
-#
-#  This is a variable trace handler.
-#
-proc EVBC::_ChangeDestRing {name index op} {
-    $EVBC::applicationOptions configure -destring $EVBC::destRing
-    if {[$EVBC::applicationOptions cget -setdestringasevtlogsource] } {
-      ::Configuration::Set EventLoggerRing "tcp://localhost/$EVBC::destRing"
-    }
-}
-
-proc EVBC::_ChangeSetsEvtlogSource {name index op} {
-    set oldring [::Configuration::get EventLoggerRing]
-    $EVBC::applicationOptions configure -setdestringasevtlogsource $EVBC::setsEvtlogSource 
-    if { [ $EVBC::applicationOptions cget -setdestringasevtlogsource ] } {
-
-        ::Configuration::Set EventLoggerRing "tcp://localhost/$EVBC::destRing"
-    }
-    set newring [::Configuration::get EventLoggerRing]
-    ReadoutGUIPanel::Log EVB log "Eventlog source changed $oldring --> $newring"
 }
 
 #------------------------------------------------------------------------------
