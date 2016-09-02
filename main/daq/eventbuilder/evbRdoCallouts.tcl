@@ -66,11 +66,11 @@ namespace eval ::EVBC {
     
     
     
-    variable buildEvents          ""
-    variable priorBuildEvents     ""
+    variable buildEvents          0
+    variable priorBuildEvents     0
     
-    variable intermediateRing     ""
-    variable priorIntermediateRing ""
+    variable intermediateRing     0
+    variable priorIntermediateRing 0
     
     variable intermediateRingName ""
     variable priorIntermediateRingName ""
@@ -78,8 +78,8 @@ namespace eval ::EVBC {
     variable destRing             $::tcl_platform(user)
     variable priorDestRing        $::tcl_platform(user)
     
-    variable setsEvtlogSource    false
-    variable priorSetsEvtlogSource false
+    variable setsEvtlogSource    0
+    variable priorSetsEvtlogSource 0
     
     variable glomTsPolicy        earliest
     variable priorGlomTsPolicy   earliest
@@ -126,8 +126,8 @@ namespace eval ::EVBC {
 #                   defaults to the users's name.
 #    * -glomid    - Source id to assign to built physics events
 snit::type EVBC::StartOptions {
-    option -teering
-    option -glombuild false
+    option -teering   0
+    option -glombuild 0
     option -glomdt
     option -glomid -default 0
     option -glomtspolicy -configuremethod checkTsPolicy -default earliest
@@ -187,7 +187,7 @@ snit::type EVBC::AppOptions {
     
     option -gui     true
     option -restart true
-    option -setdestringasevtlogsource false
+    option -setdestringasevtlogsource 0
 
     delegate option * to startOptions
     delegate method * to startOptions
@@ -749,14 +749,24 @@ proc EVBC::isRunning {} {
 #  This can be used to see if an event builder restart is required.
 #
 proc EVBC::_paramsChanged {} {
-    if {$::EVBC::buildEvents != $::EVBC::priorBuildEvents} { return true }
-    if {$::EVBC::intermediateRing != $::EVBC::priorIntermediateRing} { return true }
+    if {$::EVBC::buildEvents != $::EVBC::priorBuildEvents} {
+        return true
+    }
+    if {$::EVBC::intermediateRing != $::EVBC::priorIntermediateRing} {
+        return true
+    }
     if {$::EVBC::intermediateRingName != $::EVBC::priorIntermediateRingName} {
         return true
     }
-    if {$::EVBC::destRing != $::EVBC::priorDestRing} { return true }
-    if {$::EVBC::setsEvtlogSource != $::EVBC::priorSetsEvtlogSource} {return true }
-    if {$::EVBC::glomTsPolicy != $::EVBC::priorGlomTsPolicy} { return true}
+    if {$::EVBC::destRing != $::EVBC::priorDestRing} {
+        return true
+    }
+    if {$::EVBC::setsEvtlogSource != $::EVBC::priorSetsEvtlogSource} {
+        return true
+    }
+    if {$::EVBC::glomTsPolicy != $::EVBC::priorGlomTsPolicy} {
+        return true
+    }
     if {$::EVBC::priorGlomDt != [$::EVBC::applicationOptions cget -glomdt]} {
         return true
     }
@@ -862,6 +872,71 @@ proc EVBC::_ValidateOptions options  {
     
 }
 #-------------------------------------------------------------------------
+#   Code for the event builder control panel.
+
+##
+# ::EVBC::_checkWarnRestart
+#    Determines if the user needs to be warned about an event builder restart.
+#    *   A warning dialog is popped up if there's not been a change yet
+#        (indicating the proposed change is the first), and the event builder
+#        -restart option is not set.
+#
+#  @return boolean  true if the proposed change should be backed out.
+#
+proc ::EVBC::_checkWarnRestart {} {
+    if {(![::EVBC::_paramsChanged]) && (![$::EVBC::applicationOptions cget -restart]) } {
+        set result [tk_messageBox                   \
+            -title {EVB Restart needed}             \
+            -message {A change to event builder parameters will require the
+ event builder be restarted at the next begin run.  Are you sure you want to do
+ this?}                                              \
+            -type yesno                              \
+            -icon warning
+        ]
+        
+        return [expr {$result eq "no" ? 1 : 0}]
+    }
+    return false
+}
+##
+# ::EVBC::_onTsPolicyChanged
+#    Called when the user attempts to change the timestamp policy.
+#    This change is only done if:
+#    *   The event builder is in -restart mode.
+#    *   If the event builder is not in -restart mode, and the user says its ok
+#        to restart it.
+#  @param w      - The control panel widget.
+#  @param policy - the new policy.
+#
+proc ::EVBC::_onTsPolicyChanged {w policy} {
+    if {![::EVBC::_checkWarnRestart]} {
+        set ::EVBC::glomTsPolicy $policy
+        $::EVBC::applicationOptions configure -tspolicy $policy
+    } else {
+        $w configure -tspolicy $::EVBC::glomTsPolicy; # Restore the UI
+    }
+}
+##
+# ::EVBC::_onGlomParamsChanged
+#    Called whenever the user changes a glom parameter.  The glom parameters
+#    that can be modified are the build/no build and the coincidence time window.
+#
+#    See ::EVBC::_onTsPolicyChanged for when we accept the user's change.
+# @param w - widget that is the control panel.
+# @param build - Boolean indicating if event building should be done.
+# @param dt    - Coincidence window for the build.
+#
+proc ::EVBC::_onGlomParamsChanged {w build dt} {
+    if {![::EVBC::_checkWarnRestart]} {
+        set ::EVBC::buildEvents $build
+        $::EVBC::applicationOptions configure -glomdt $dt
+        $::EVBC::applicationOptions configure -glombuild $build
+    } else {
+        $w configure -build $::EVBC::buildEvents
+        $w configure -dt    [$::EVBC::applicationOptions cget -glomdt]
+    }
+}
+
 ##
 # @fn EVBC::_StartGui
 #
@@ -876,6 +951,23 @@ proc EVBC::_ValidateOptions options  {
 #   *  An entry for the name of that ring.
 #
 proc EVBC::_StartGui {} {
+    ::EVBC::_updatePriorParams
+    
+    ::EVBC::eventbuildercp .evbcp
+    grid .evbcp -sticky nsew
+    
+    #  Connect .evbcp to the glom parameters, and set the initial values
+    #  of the UI:
+    
+    .evbcp configure -tspolicy $::EVBC::glomTsPolicy
+    .evbcp configure -build    $::EVBC::buildEvents
+    .evbcp configure -dt       [$::EVBC::applicationOptions cget -glomdt]
+    
+    .evbcp configure -tscommand [list ::EVBC::_onTsPolicyChanged .evbcp %P] 
+    .evbcp configure -glomcmd   [list ::EVBC::_onGlomParamsChanged .evbcp %B %T]
+    
+    #---------------------------------------------------------------------------
+    #  Old GUI - cut it out when the new gui works.
     
     # TODO: window should be a frame in readout GUI and
     #       gridded into the bottom  most row.
@@ -940,7 +1032,7 @@ proc EVBC::_StartGui {} {
     
 
     trace add variable EVBC::intermediateRingName write EVBC::_IntermediateRingChanged
-    set EVBC::intermediateRing false
+    
     
     EVBC::_IntermediateEnableDisable $intermediate.enable $intermediate.ringname
     
@@ -987,11 +1079,11 @@ proc EVBC::_StartGui {} {
 proc ::EVBC::updateGuiFromOptions {} {
     
     if {[$EVBC::applicationOptions cget -glombuild]} {
-        set ::EVBC::buildEvents true
+        set ::EVBC::buildEvents 1
+        
     } else {
-        set ::EVBC::buildEvents false
+        set ::EVBC::buildEvents 0
     }
-
 
     $::EVBC::guiFrame.glom.dt config -state normal
     $::EVBC::guiFrame.glom.dt delete 0 end
@@ -1007,13 +1099,14 @@ proc ::EVBC::updateGuiFromOptions {} {
     set EVBC::intermediateRingName $teering
 
     if {$teering eq ""} {
-        set EVBC::intermediateRing false
+        set EVBC::intermediateRing 0
     } else {
-        set EVBC::intermediateRing true
+        set EVBC::intermediateRing 1
     }
     
     set EVBC::destRing [$EVBC::applicationOptions cget -destring]
 
+    EVBC::_updatePriorParams
 }
 #-----------------------------------------------------------------------------
 ##
