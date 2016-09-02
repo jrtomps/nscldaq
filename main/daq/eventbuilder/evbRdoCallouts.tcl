@@ -28,12 +28,15 @@ package require StateManager
 package require Thread
 package require ringsourcemgr
 package require EndrunMon
+package require evbui;               # So we can use the megawidgets.
 
 namespace eval ::EVBC {
     variable registered 0;            # nonzero if the event bundle is registered.
     variable initialized 0
     variable pipefd    "";            # Holds the fd to the pipe to the evbpipeline
     variable evbpids   [list];        # Holds list of PIDS that are the event builder.
+    
+    variable InitialDt 1;             # Initial/default glom dt value.
     
     # Figure out where we are and hence the root of the daq system:
     # We assume we are in one directory below TclLibs in computing this:
@@ -54,14 +57,36 @@ namespace eval ::EVBC {
     
     variable guiFrame             ""
 
+    #  These are parameters for the event builder.  Each one has a 'prior'
+    #  one as well.  If the event builder is persistent, and prior differs
+    #  from the values shown below, the event builder pipeline will nonetheless
+    #  be restarted (and prior updated from current).
+    #  Otherwise it's not possible to make changes to event builder parameters
+    #  for persistent event builders.
+    
+    
+    
     variable buildEvents          ""
+    variable priorBuildEvents     ""
+    
     variable intermediateRing     ""
+    variable priorIntermediateRing ""
+    
     variable intermediateRingName ""
+    variable priorIntermediateRingName ""
+    
     variable destRing             $::tcl_platform(user)
-
+    variable priorDestRing        $::tcl_platform(user)
+    
     variable setsEvtlogSource    false
+    variable priorSetsEvtlogSource false
     
     variable glomTsPolicy        earliest
+    variable priorGlomTsPolicy   earliest
+
+    #  glom's dt parameters is held as an option.
+    
+    variable priorGlomDt          $::EVBC::InitialDt
     
     # Communicating with the output ring monitoring thread:
     
@@ -76,6 +101,8 @@ namespace eval ::EVBC {
     # Configuration parameters for the event builder:
     
     variable window             ""
+    
+    
     variable XoffThreshold      ""
     variable XonThreshold       ""
 }
@@ -92,7 +119,7 @@ namespace eval ::EVBC {
 #    * -teering   - if present provides the name of an intermediate ring that
 #                   gets the ordered fragments.
 #    * -glombuild - If true glom will build events.
-#    * -glomdt    - ticks in the coincidence interval used to build events.
+#    * -glom     - ticks in the coincidence interval used to build events.
 #                   required if -glombuild is true.
 #    * -glomtspolicy - Timestamp policy for glom.
 #    * -destring  - Final destination ring of glom's output.
@@ -101,12 +128,24 @@ namespace eval ::EVBC {
 snit::type EVBC::StartOptions {
     option -teering
     option -glombuild false
-    option -glomdt -default 1
+    option -glomdt
     option -glomid -default 0
     option -glomtspolicy -configuremethod checkTsPolicy -default earliest
     option -destring $::tcl_platform(user)
     
     variable policyValues [list earliest latest average]
+    
+    ##
+    # constructor
+    #   For reasons I'm not clear on snit won't let me -default
+    #   an option value to a global or namespaced variable
+    #  Therefore we use a constructor to set the initial value of
+    #  -glomdt to its default value which is external to allow for some DRYness
+    #
+    constructor args {
+        set options(-glomdt) $::EVBC::InitialDt
+        $self configurelist $args
+    }
     ##
     # checkTsPolicy
     #    must be one of earliest, latest, or average
@@ -560,7 +599,7 @@ proc EVBC::onBegin {} {
     if {$EVBC::applicationOptions eq ""} {
         error "OnStart has not initialized the event builder package."
     }
-    if {[$EVBC::applicationOptions cget -restart] && ($EVBC::pipefd ne "")} {
+    if {([$EVBC::applicationOptions cget -restart] || [_paramsChanged]) && ($EVBC::pipefd ne "")} {
         EVBC::stop
         # reset the sources so that we don't skip them.
         ::RingSourceMgr::resetSources
@@ -613,6 +652,7 @@ proc EVBC::onBegin {} {
     } else {
 	EVBC::reset
     }
+    _updatePriorParams
     
 }
 #------------------------------------------------------------------------------
@@ -700,6 +740,46 @@ proc EVBC::isRunning {} {
 #
 ###############################################################################
 
+##
+# EVBC::_paramsChanged
+#
+#  @return bool - true if the event builder parameters have changed
+#                 since the last time around (priors different from current).
+#
+#  This can be used to see if an event builder restart is required.
+#
+proc EVBC::_paramsChanged {} {
+    if {$::EVBC::buildEvents != $::EVBC::priorBuildEvents} { return true }
+    if {$::EVBC::intermediateRing != $::EVBC::priorIntermediateRing} { return true }
+    if {$::EVBC::intermediateRingName != $::EVBC::priorIntermediateRingName} {
+        return true
+    }
+    if {$::EVBC::destRing != $::EVBC::priorDestRing} { return true }
+    if {$::EVBC::setsEvtlogSource != $::EVBC::priorSetsEvtlogSource} {return true }
+    if {$::EVBC::glomTsPolicy != $::EVBC::priorGlomTsPolicy} { return true}
+    if {$::EVBC::priorGlomDt != [$::EVBC::applicationOptions cget -glomdt]} {
+        return true
+    }
+    return false    
+}
+##
+# EVBC::_updatePriorParams
+#
+#    Updates all the prior values from the current values.  This is book keeping
+#    that is used to determine when a persistent event builder must be restarted
+#    in order to incorporate changes in the desired event builder parameters.
+#    Restarts are required, in that case because many of the parameters are
+#    static parameters of the pipeline elements gotten via command line switches
+#    and there's no mechanism to change them once they've started.
+#
+proc EVBC::_updatePriorParams {} {
+    set ::EVBC::priorBuildEvents        $::EVBC::buildEvents
+    set ::EVBC::priorIntermediateRing   $::EVBC::intermediateRing
+    set ::EVBC::priorDestRing           $::EVBC::destRing
+    set ::EVBC::priorSetsEvtlogSource   $::EVBC::setsEvtlogSource
+    set ::EVBC::priorGlomTsPolicy       $::EVBC::glomTsPolicy
+    set ::EVBC::priorGlomDt             [$::EVBC::applicationOptions cget -glomdt]
+}
 
 #------------------------------------------------------------------------------
 ##
