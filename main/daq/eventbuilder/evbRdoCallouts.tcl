@@ -955,7 +955,7 @@ proc ::EVBC::_onTeeChange w {
         if {$::EVBC::intermediateRing } {
             $::EVBC::applicationOptions configure -teering $::EVBC::intermediateRingName
         } else {
-            $::EVBC::applicationOptions configure -teering ""
+            $::EVBC::applicationOptions configure -teering 0
         }
         
     } else {
@@ -1213,6 +1213,10 @@ proc EVBC::_IntermediateRingChanged {name index op} {
 #
 #
 proc EVBC::_EnableGUI {} {
+    .evbcp configure -state normal
+    
+    #  Old code.
+    
     EVBC::_SetGuiState $EVBC::guiFrame normal
     
     EVBC::_GlomEnableDisable $EVBC::guiFrame.glom.build $EVBC::guiFrame.glom.dt
@@ -1229,6 +1233,10 @@ proc EVBC::_EnableGUI {} {
 #  widgets to disabled:
 #
 proc EVBC::_DisableGUI {} {
+    .evbcp configure -state disabled
+    
+    # old code.
+    
     EVBC::_SetGuiState $EVBC::guiFrame disabled
 }
 #-----------------------------------------------------------------------------
