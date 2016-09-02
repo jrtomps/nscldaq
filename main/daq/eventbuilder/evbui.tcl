@@ -192,7 +192,6 @@ snit::widgetadaptor ::EVBC::buildparams {
         #
         
         if {$options(-state) eq "normal"} {
-            puts "Normal $value"
             if {$value} {
                 set state normal
             } else {
