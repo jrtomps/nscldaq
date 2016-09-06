@@ -42,7 +42,7 @@ Server_Accept(ClientData cd, Tcl_Channel client, char* pHostname,
   Tcl_Interp* pInterp     = (Tcl_Interp*)cd;
 
 
-  if (strcmp(pHostname, "127.0.0.1")) {
+  if (strcmp(pHostname, "127.0.0.1")!=0 && strcmp(pHostname, "::1")!=0) {
     printf(">>Rejected unauthorized connection from %s on port %d\n",
 	   pHostname, nHostport);
     Tcl_Close(pInterp, client);
