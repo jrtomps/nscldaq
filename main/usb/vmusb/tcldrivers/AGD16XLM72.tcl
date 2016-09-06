@@ -59,16 +59,16 @@ itcl::body AGD16XLM72::ReadDelayWidth {ch} {
 
   set retValue [Read fpga $offset]
 
+
   # parse the results
   set delay [ expr 0xff & $retValue ]
   set width [ expr ($retValue>>8) & 0xff ]
+  
+  set result [list $delay $width]
 
-  return [list $delay $width]
+  return $result
 }
 
-itcl::body AGD16XLM72::ReadDelayWidth {ch} {
-  set offset [expr $ch*4] 
-}
 itcl::body AGD16XLM72::WriteBypass {by} {
   return [Write fpga 68 $by]
 }
