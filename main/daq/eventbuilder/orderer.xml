@@ -84,7 +84,7 @@ package require evbcallouts                   <co id='evbbundle.require' />
 EVBC::useEventBuilder                    <co id='evbbundle.register' />
 
 proc OnStart {} {                            <co id='evbbundle.onstart' />
-    EVBC::initialize -gui 1 -destring foxy -glombuild 1 -glomdt 10 <co id='evbbundle.initialize'/>
+    EVBC::configure -gui 1 -destring foxy -glombuild 1 -glomdt 10 <co id='evbbundle.initialize'/>
 }
 
 EVBC::registerRingSource tcp://localhost/fox1 stampextractor.so 1 {Source 1} 0 1 <co id='evbbundle.registerringsource1' />
@@ -115,9 +115,9 @@ EVBC::registerRingSource tcp://localhost/fox2 {} 2 {Source 2} 1 1 <co id='evbbun
                     <literal>NotReady</literal>.  
                   </para>
             </callout>
-            <callout arearefs='evbbundle.initialize'>
+            <callout arearefs='evbbundle.configure'>
                 <para>
-                    Initializes the event builder to enable its user interface,
+                     ys the event builder to enable its user interface,
                     place the output of the last stage of the building pipeline
                     in the local ring named <literal>foxy</literal>, enable
                     event building by the glom stage of the pipeline with a
@@ -1115,9 +1115,14 @@ EVBC::configure <replaceable>option value ...</replaceable>
             manpage are supported.
            </para>
            <para>
-            The <function>startEVBSources</function> proc is one that you should
-            write to start the event sources.  It will be called as needed
-            by the callback bundle.
+             The <function>startEVBSources</function> proc is hook that you can
+             use to start your event sources using
+             <function>EVBC::startRingSource</function>. It will be called as
+             needed by the callback bundle. HOWEVER, it is _NOT_ the preferred
+             way to start your ring sources. Rather, you should use <link
+               linkend='evb3_registerringsource'
+               endterm='evb3_registerringsource_title'/> to create the ring
+             sources.
            </para>
         </refsect1>
 
