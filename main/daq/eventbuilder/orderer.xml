@@ -1,44 +1,48 @@
 <!-- chapter frameworks -->
 <chapter id="chapter.evbcallouts-dev">
     <title>Event builder Readout Callouts</title>
-    <para>
+    <section>
+      <title>Introduction</title>
+      <para>
         Event builder readout callouts allow you to integrate the event builder
         with the Readout GUI.   There are three layers of callouts;
         <itemizedlist>
-            <listitem>
-                <para>
-                    An API layer provides the highest level of flexbility by
-                    providing you witha set of Tcl procs you can use from inside
-                    your ReadoutCallouts Extensions to manage the event builder
-                    and its pipeline.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    An EZBuilder layer provides a set of simple calls you can
-                    make from your ReadoutGUI <filename>ReadoutCallous.tcl</filename>
-                    script.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    A ReadoutGUI state machine callout bundle that allows you
-                    to register and configure the event builder and to let the
-                    state machine callbacks take care of everything for you.
-                    This is the preferred way to integrate the event builder
-                    into your experiment
-                </para>
-            </listitem>
+          <listitem>
+            <para>
+              An API layer provides the highest level of flexbility by
+              providing you witha set of Tcl procs you can use from inside
+              your ReadoutCallouts Extensions to manage the event builder
+              and its pipeline.
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              A ReadoutGUI state machine callout bundle that allows you
+              to register and configure the event builder and to let the
+              state machine callbacks take care of everything for you.
+              <emphasis>This is the preferred way to integrate the event builder
+                into your experiment.</emphasis>
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              An EZBuilder layer provides a set of simple calls you can
+              make from your ReadoutGUI <filename>ReadoutCallous.tcl</filename>
+              script. Unless you have special needs, there is no reason
+              to use this over the state machine callout bundle.
+            </para>
+          </listitem>
         </itemizedlist>
-    </para>
-    <para>
-        All of these layres are part of the Tcl package
+      </para>
+      <para>
+        All of these layers are part of the Tcl package
         <literal>evbcallouts</literal>
-    </para>
+      </para>
+    </section>
     <section>
-        <title>API layer</title>
+      <title>API layer</title>
         <para>
-            The API layer of the readout callouts library provides low level
+            The API layer of the readout callouts library provides low-level
             calls that let you start and stop the event builder as well as to
             reset its timestamp knowledge.
         </para>
@@ -54,44 +58,37 @@
         </para>
     </section>
     <section>
-        <title>EZBuilder</title>
-        <para>
-            The EZBuilder procs provide directly usable functionality for
-            initializing the package, starting a run and ending a run.
-            Use of the EZBuilder API is significantly simpler that direct use of
-            the API layer.
-        </para>
-        <para>
-            See the 3evb manpage section for EZBuilder information as well.
-        </para>
-    </section>
-    <section>
         <title>EVBC state manager callback bundle.</title>
         <para>
-            This provides the simplest way to incorporate the event builder into
-            your experiment.  While the 3evb manpage provides reference information,
+            This provides the simplest and preferred way to incorporate the event builder into
+            your experiment.  The callback bundle works with the ReadoutGUI's state machine
+            and thus makes the most sense to use in the context of the ReadoutGUI. In this context,
+            you should rely on the RingSourceMgr to manage your ringFragmentSources rather than
+            explicitly calling procs like startRingSource. Together, the event builder and RingSourceMgr
+            callback bundles provide robust error recovery in a way that requires no extra effort from
+            the user. i
+          </para>
+          <para>
+            While the 3evb manpage provides reference information,
             a short example is provided below for using this mechanism with an
-            event builder for which building is enabled, with a time tolerance of
-            10 clock ticks, and output ring named <literal>fox</literal> and
+            event builder for which building is enabled, with a correlation window 
+            10 clock ticks wide, and output ring named <literal>fox</literal> and
             Two ring data sources from rings <literal>fox1</literal> and
-            <literal>fox2</literal>.
+            <literal>fox2</literal>. 
         </para>
         <example>
             <title>Using the EVBC state manager callback bundle</title>
             <programlisting>
 package require evbcallouts                   <co id='evbbundle.require' />
 
+EVBC::useEventBuilder                    <co id='evbbundle.register' />
 
 proc OnStart {} {                            <co id='evbbundle.onstart' />
-
-    EVBC::useEventBuilder                    <co id='evbbundle.register' />
-
-    EVBC::configure -gui 1 -destring foxy -glombuild 1 -glomdt 10 <co id='evbbundle.configure'/>
+    EVBC::configure -gui 1 -destring foxy -glombuild 1 -glomdt 10 <co id='evbbundle.initialize'/>
 }
-proc startEVBSources {} {                    <co id='evbbundle.startsources' />
-    EVBC::startRingSource tcp://localhost/fox1 stampextractor.so 1 {Source 1} <co id='evbbundle.startringsource' />
-    EVBC::startRingSource tcp://localhost/fox2 stampextractor.so 2 {Source 2}
-}
+
+EVBC::registerRingSource tcp://localhost/fox1 stampextractor.so 1 {Source 1} 0 1 <co id='evbbundle.registerringsource1' />
+EVBC::registerRingSource tcp://localhost/fox2 {} 2 {Source 2} 1 1 <co id='evbbundle.registerringsource2' />
             </programlisting>
         </example>
         <calloutlist>
@@ -101,52 +98,70 @@ proc startEVBSources {} {                    <co id='evbbundle.startsources' />
                     all three APIs visible and accessible from your script.
                 </para>
             </callout>
-            <callout arearefs='evbbundle.onstart'>
-                <para>
-                    The <function>OnStart</function> is called from the
-                    ReadoutGUI when it makes a transition to the
-                    <literal>Halted</literal> state from
-                    <literal>NotReady</literal>.  The registration and configuration
-                    code are done at that time to ensure that the ReadoutGUI's
-                    GUI has been fully built before building the event builder's
-                    GUI so that it can be properly placed at the bottom of the
-                    user interface.
-                </para>
-            </callout>
             <callout arearefs='evbbundle.register'>
                 <para>
                     Informs the state manager that you will be using the
                     event builder.  This call registers the event builder with
                     the state manager which calls the event builder bundle's
-                    initializatiuon entry.
+                    initializatiuon entry. It also registers the RingSourceMgr
+                    callback bundle.
                 </para>
+            </callout>
+            <callout arearefs='evbbundle.onstart'>
+                <para>
+                    The <function>OnStart</function> proc is called from the
+                    ReadoutGUI when it makes a transition to the
+                    <literal>Halted</literal> state from
+                    <literal>NotReady</literal>.  
+                  </para>
             </callout>
             <callout arearefs='evbbundle.configure'>
                 <para>
-                    Configures the event builder to enable its user interface,
+                     ys the event builder to enable its user interface,
                     place the output of the last stage of the building pipeline
-                    in the local ring named <literal>foxy</literal>,
-                    enable event building by the glom stage of the pipeline with
-                    a time tolerance of <literal>10</literal> clock ticks.
+                    in the local ring named <literal>foxy</literal>, enable
+                    event building by the glom stage of the pipeline with a
+                    correlation window of <literal>10</literal> clock ticks.
                 </para>
             </callout>
-            <callout arearefs='evbbundle.startsources'>
+            <callout arearefs='evbbundle.registerringsource1'>
                 <para>
-                    When the event builder is started, if you define a proc named
-                    <function>startEVBSources</function>, the bundle will call that
-                    proc when the event builder has been started.  The purpose of
-                    that proc is to set up event sources to transmit data to the
-                    event builder.
+                    This line adds an event sources using the convenience
+                    function <function>EVBC::registerRingSource</function> to
+                    start a ring data source. This ring data source is provided
+                    a timestamp extractor library to deal with data that is not
+                    already labeled with timestamps. The fifth and sixth
+                    positional parameters dictate that data may arrive without
+                    timestamps and that the ring source should exit after it
+                    has observed a symmetric number of begin and end run items.
                 </para>
             </callout>
-            <callout arearefs='evbbundle.startringsource'>
+            <callout arearefs='evbbundle.registerringsource2'>
                 <para>
-                    This line and the next set up a pair of event sources using
-                    the convenience function <function>EVBC::startRingSource</function>
-                    to start a ring data source.
+                    This line adds an event sources using the convenience
+                    function <function>EVBC::registerRingSource</function>.
+                    The ring data source is passed an empty string for the
+                    timestamp extractor argument because all of the ring items
+                    are expected to already be labeled with timestamps. The
+                    fifth and sixth positional parameters dictate that data
+                    must arrive with timestamps and that the ring source should
+                    exit after it has observed a symmetric number of begin and
+                    end run items.
                 </para>
             </callout>
         </calloutlist>
+    </section>
+    <section>
+        <title>EZBuilder</title>
+        <para>
+            The EZBuilder procs provide directly usable functionality for
+            initializing the package, starting a run and ending a run.  Use of
+            the EZBuilder API is significantly simpler than direct use of the
+            API layer.
+        </para>
+        <para>
+            See the 3evb manpage section for EZBuilder information as well.
+        </para>
     </section>
 
 </chapter>
@@ -410,6 +425,188 @@ EBC::flush
 
       </refentry>
 
+      <refentry id="evb3_registerringsource">
+        <refentryinfo>
+          <author>
+                  <personname>
+                    <firstname>Jeromy</firstname>
+                    <surname>Tompkins</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='evb3_registerringsource_title'>EVBC::registerRingSource</refentrytitle>
+           <manvolnum>3evb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>EVBC::registerRingSource</refname>
+           <refpurpose>Register a ring fragment source to the RingSourceMgr.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+EVBC::registerRingSource <replaceable>source-uri extractor-lib source-ids info expectBodyHeaders oneshot timeout timeoffset</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+             The registerRingSource proc registers information to the
+             <link linkend='evb3_ringsourcemanager' endterm='evb3_ringsourcemanager_title'/>
+             to launch a ringFragmentSource when
+             transitioning to the Active state from Halted. This is the
+             preferred mechanism for associating ringFragmentSources with the
+             event builder and should be used in place of EVBC::startRingSource
+             or EVBC::startS800Source. Once the registration is completed, the
+             RingSourceMgr will launch a rignFragmentSource with the
+             appropriate command line options when needed.
+           </para>
+           <para>
+            See <literal>PARAMETERS</literal> below for a brief explanation of
+            the command line parameters, as well as the reference cited above.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              PARAMETERS
+           </title>
+            <variablelist>
+                <varlistentry>
+                    <term><replaceable>source-uri</replaceable></term>
+                    <listitem>
+                        <para>
+                            The URI of the ring buffer from which the data
+                            will be taken.  If the ring is local to the
+                            system that ReadoutGUI is running in, you should
+                            specify <filename>tcp://localhost/ring-name</filename>
+                            where <replaceable>ring-name</replaceable> is the name
+                            of the ring buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>extractor-lib</replaceable></term>
+                    <listitem>
+                        <para>
+                            Specifies the file system path to the shared object
+                            that contains code to extract the timestamp
+                            from the incoming ring data.
+                            <link linkend='sec_tsextractors'
+                              endterm='sec_tsextractors_title' /> describes how
+                            to write timestamp extractors and how to build them
+                            into shared libraries. 
+                          </para>
+                          <para>
+                            The timestamp extractor library is only useful if
+                            the data to be read by the ringFragmentSource has
+                            no timestamp (i.e. no body header) already, because
+                            the timestamp extractor function is only ever
+                            called if a timestamp is missing. If all of
+                            the ring items are already labeled with timestamps,
+                            simply pass an empty string for this argument and
+                            then pass a true value to the expectBodyHeaders
+                            argument. Doing so will not change the behavior and
+                            will save you the effort of creating the timestamp
+                            extractor library.  If you are dying to do the
+                            extra work of creating the library, you can still
+                            do so but know that it will not be called by
+                            the ringFragmentSource.                         
+                          </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>source-ids</replaceable></term>
+                    <listitem>
+                        <para>
+                            A list of source ids to be associated with the ring buffer.
+                            The ringFragmentSource is sensitive to what source ids it
+                            observes and will exit if a source id is observed that it 
+                            was not told to expect by this argument.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>info</replaceable></term>
+                    <listitem>
+                        <para>
+                            This parameter is arbitrary text that is used to
+                            label the data source client in the event builder
+                            GUI connection list window.  It is intended to allow
+                            humans to better understand what each source
+                            represents.  It is not used by the event builder
+                            itself other than to label sources.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>expectBodyHeaders</replaceable></term>
+                    <listitem>
+                      <para>
+                        This argument takes a boolean value to allow the
+                        omission of the <literal>tstamplib</literal> argument.
+                        The default value is <literal>false</literal>.
+                      </para>
+                      <para>
+                        If <literal>true</literal>, the user can pass an empty
+                        string for the <literal>tstamplib</literal>.  Doing so
+                        however is equivalent to making a promise to the
+                        ringFragmentSource that all ring items will contain a
+                        timestamp (i.e. a body If passed <literal>true</literal>
+                        and a ring items arrives without a timestamp, the
+                        ringFragmentSource will exit when an empty string was
+                        passed for the <literal>tstamplib</literal> argument.  In
+                        the same scenario, only a warning will be printed if a
+                        valid timestamp extractor library was passed. 
+                      </para> 
+                      <para> If this is <literal>false</literal>, the
+                        user must provide a valid timestamp extractor library
+                        for the <literal>tstamplib</literal> argument.  
+                      </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>oneshot</replaceable></term>
+                    <listitem>
+                      <para>
+                        This is a boolean value specifying whether the
+                        ringFragmentSource should exit after a symmetric number
+                        of begin and end run items have been observed. Default
+                        value is <literal>false</literal>.
+                      </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>timeout</replaceable></term>
+                    <listitem>
+                      <para>
+                        The <literal>timeout</literal> parameter is an integer
+                        parameter that dictates how many seconds to wait before
+                        shutting down after the first end run item is observed
+                        by any ringFragmentSource registered to the event
+                        builder.
+                      </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>timeoffset</replaceable></term>
+                    <listitem>
+                      <para>
+                        The <literal>timeoffset</literal> specifies a signed
+                        integer to add to any timestamp observed by the
+                        ringFragmentSource.
+                      </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+      </refentry>
+
       <refentry id="evb3_startringsource">
         <refentryinfo>
           <author>
@@ -442,7 +639,10 @@ EVBC::startRingSource <replaceable>source-uri extractor-lib source-id info</repl
         <refsect1>
            <title>DESCRIPTION</title>
            <para>
-            Starts a fragment source that gets is data from a ring buffer.  For
+             Please use the <link linkend='evb3_registerringsource' endterm='evb3_registerringsource_title'/> instead of this proc.
+           </para>
+           <para>
+            Starts a fragment source that gets its data from a ring buffer.  For
             more on ring fragment sources see:
             <link linkend='sec_ringfragsrc' endterm='sec_ringfragsrc_title' />
             elsewhere in the documentation.  That discussion will provide more
@@ -554,7 +754,11 @@ EVBC::startS800Source <replaceable>ring-uri source-id ?info?</replaceable>
 
         </refsynopsisdiv>
         <refsect1>
-           <title>DESCRIPTION</title>
+          <title>DESCRIPTION</title>
+          <para>
+            Please use the <link linkend='evb3_registerringsource'
+              endterm='evb3_registerringsource_title'/> instead of this proc.
+          </para>
            <para>
             This is actually a wrapper for a call to
             <command>EVBC::startRingSource</command> using a timestamp
@@ -655,6 +859,80 @@ EVBC::initialize <replaceable>options</replaceable>
                         </para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term><option>-glombuild</option> <replaceable>yes | no</replaceable></term>
+                    <listitem>
+                        <para>
+                            If <option>-glombuild</option> is
+                            <literal>yes</literal>, the fragments will be
+                            correlated into build physics events.  That means
+                            that more than one fragment may be stuck into the
+                            body of a ring item of type PHYSICS_EVENT. The
+                            correlation parameter is provided by the
+                            <option>-glomdt</option> parameter. If the value is
+                            <literal>no</literal>, then there will only be one
+                            fragment stuffed into the body of the built physics
+                            events outputted by the event builder. The value is
+                            provided as a default value and the user can
+                            override it using the event builder gui controls.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-glomdt</option> <replaceable>value</replaceable></term>
+                    <listitem>
+                        <para>
+                          This specifies the number of "ticks" that define a
+                          correlation window. Fragments whose timestamps differ
+                          by less than this value will be correlated together.
+                          The value should be considered a default value
+                          because the user can override this value through the
+                          event builder gui controls. The default value is 1.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-glomid</option> <replaceable>value</replaceable></term>
+                    <listitem>
+                        <para>
+                          Built physics events are labeled with an integer
+                          source id equal to the value passed for the
+                          <option>-glomid</option> option. The default value is 0.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-glomtimestamppolicy</option> <replaceable>earliest | latest | average</replaceable></term>
+                    <listitem>
+                        <para>
+                          The timestamp assigned to the built physics event
+                          outputted from the event builder can be either the
+                          <literal>earlier</literal>,
+                          <literal>latest</literal>, or
+                          <literal>average</literal> value of the correlated
+                          timestamps.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-destring</option> <replaceable>ring_name</replaceable></term>
+                    <listitem>
+                        <para>
+                          The value passed to <option>-destring</option> is the
+                          name of a ring buffer that the event builder will
+                          output its data to. The default value is the user's account name.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-setdestringasevtlogsource</option> <replaceable>yes | no</replaceable></term>
+                    <listitem>
+                        <para>
+                          If the value passed is <literal>yes</literal>, then the eventlog program
+                          will use the output ring of the event builder as its data source. Default value is <literal>false</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect1>
         <refsect1>
@@ -679,7 +957,7 @@ EVBC::initialize -glombuild yes -glomdt 200 -destring built -restart yes -gui of
             </para>
             <informalexample>
                 <programlisting>
-EVBC::initialize -glombuild yes -glomdt 200 -destrign built -restart yes -gui on
+EVBC::initialize -glombuild yes -glomdt 200 -destring built -restart yes -gui on
                 </programlisting>
             </informalexample>
             
@@ -837,9 +1115,14 @@ EVBC::configure <replaceable>option value ...</replaceable>
             manpage are supported.
            </para>
            <para>
-            The <function>startEVBSources</function> proc is one that you should
-            write to start the event sources.  It will be called as needed
-            by the callback bundle.
+             The <function>startEVBSources</function> proc is hook that you can
+             use to start your event sources using
+             <function>EVBC::startRingSource</function>. It will be called as
+             needed by the callback bundle. HOWEVER, it is _NOT_ the preferred
+             way to start your ring sources. Rather, you should use <link
+               linkend='evb3_registerringsource'
+               endterm='evb3_registerringsource_title'/> to create the ring
+             sources.
            </para>
         </refsect1>
 
@@ -950,6 +1233,260 @@ EVBC::configure <replaceable>option value ...</replaceable>
           
 
            </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
+      <refentry id="evb3_ringsourcemanager">
+        <refentryinfo>
+          <author>
+            <personname>
+              <firstname>Jeromy</firstname>
+              <surname>Tompkins</surname>
+            </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+          <refentrytitle id='evb3_ringsourcemanager_title'>RingSourceMgr</refentrytitle>
+          <manvolnum>3evb</manvolnum>
+          <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+          <refname>RingSourceMgr</refname>
+          <refpurpose>A callout bundle that spawns ringFragmentSource processes.</refpurpose>
+        </refnamediv>
+
+        <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+             The RingSourceMgr is an improved means for launching the
+             ringFragmentSource processes that feed data to the event builder.
+             In the past, users had to explicitly call EVBC::startRingSource,
+             which merely launched an instance whose information was transient.
+             The RingSourceMgr changes this by storing all of the
+             information about the various ringFragmentSources that will feed
+             the event builder. In doing so, the program has better knowledge
+             about the processes that are running in the data stream. In the
+             future there is also the possibility of adding graphical control
+             over the information stored in the RingSourceMgr.
+           </para>
+
+           <para>
+             The RingSourceMgr is also a callout bundle for the ReadoutGUI state
+             machine. Unless you need some special implementation of the 
+             RingSourceMgr's utlities, the most you will need to do with the
+             API of the RingSourceMgr is to call the <literal>RingSourceMgr::register</literal> and 
+             <literal>RingSourceMgr::addSource</literal> procs. Doing so will 
+             cause the ReadoutGUI's state machine to invoke the desired functionality
+             during state transitions of importance. The state transitions of 
+             interest and the logic executed is described here.
+           </para>
+
+           <para>
+             <emphasis>Entering NotReady state from any other state:
+             </emphasis> All knowledge of ringFragmentSource processes
+             discarded.
+           </para>
+
+
+           <para>
+             <emphasis>Leaving Halted state for Active state: </emphasis> There is
+             a waiting period during which the RingSourceMgr checks for the
+             presence of the event builder to start. Once an event builder has
+             been established, ringFragmentSource processes are launched for all
+             sources that are currently registered.
+           </para>
+
+        </refsect1>
+
+        <refsect1>
+          <title>NAMESPACE PROCS</title>
+  
+          <variablelist>
+            <varlistentry>
+              <term>RingSourceMgr::register <replaceable>bundleName</replaceable></term>
+              <listitem>
+                <para>
+                  Adds the <literal>RingSourceMgr</literal> callout bundle to the
+                  ReadoutGUI's state machine before the bundle <option>bundleName</option>.
+                  The <option>bundleName</option> must have already been added
+                  to the state machine.
+                </para>            
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>RingSourceMgr::addSource <replaceable>sourceUrl tstampLibPath ids info expectBodyHeaders oneshot timeout offset</replaceable></term>
+
+              <listitem>
+                <variablelist>
+                  <varlistentry>
+                    <term>sourceUrl</term>
+                    <para>
+                      The <option>sourceUrl</option> is the URL of the data source.
+                      This should the url of a ring buffer (e.g. tcp://someHost/ringName).
+                    </para>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term>tstampLibPath</term>
+                    <para>
+                      The <option>tstampLibPath</option> is the path to the user's timestamp extractor library.
+                      This is allowed to be left as an empty string if the <option>expectBodyHeaders</option> 
+                      argument is passed a true value.
+                    </para>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term>ids</term>
+                    <para>The <option>ids</option> argument is a list of
+                      acceptable source ids. If the ringFragmentSource sees a ring
+                      item with a source id different than what is provided here,
+                      then the process with exit. If there was no body header on
+                      the ring item, the ringFragmentSource will add a body header
+                      with a source id that is the same as the first element of the
+                      list passed to this argument.
+                    </para>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term>info</term>
+                    <para>
+                      The <option>info</option> is a generic string that is
+                      used to label the data source in the event builder GUI.
+                    </para>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><replaceable>expectBodyHeaders</replaceable></term>
+                    <para>
+                      The optional <option>expectBodyHeaders</option> argument is
+                      defaulted to false and specifies whether all data passing
+                      into the ringFragmentSource can be expected to have body
+                      headers, in other words, a source id and timestamp. If the
+                      ringFragmentSource is told to expect body headers, it allows
+                      the caller to omit a valid timestamp extractor library path.
+                      This however causes the ringFragmentSource to exit in failure
+                      if data arrives wihout a body header. When the
+                      <option>expectBodyHeaders</option> argument is set to
+                      false, then the user must provide a valid timestamp extractor
+                      library to assign a timestamp to the ring item. Be aware that
+                      if the data arrives with body headers already, the user's
+                      timestamp extractor will be ignored while the timestamp in
+                      the body header will be used.  
+                    </para>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><replaceable>oneshot</replaceable></term>
+                    <para>
+                      The optional <option>oneshot</option> argument specifies whether the 
+                      ringFragmentSource should exit after a symmetric number of begin and
+                      end runs have been observed. By default it is set to false.
+                    </para>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><replaceable>timeout</replaceable></term>
+                    <para>
+                      The optional <option>timeout</option> argument specifies the number
+                      of seconds that the ringFragmentSource will wait since the first end
+                      run arrives before shutting down. By default this is set to 20 seconds.
+                    </para>
+                  </varlistentry>
+
+
+                  <varlistentry>
+                    <term><replaceable>offset</replaceable></term>
+
+                    <para>
+                      The optional <option>offset</option> argument is used to define
+                      a integer value to add to the timestamp. One can use this to 
+                      compensate for a known, stable synchronization offset between data
+                      streams passing through the event builder.
+                    </para>
+                  </varlistentry>
+
+                </variablelist>
+
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>RingSourceMgr::getOrdererPort</term>
+
+              <para>
+                Retrieves the port that the event builder is listening for connections on. 
+                This works with the DAQPortManager to obtain the port so it is necessary that
+                the the port manager is running. If the port cannot be found, an exceptional
+                return occurs with an error code. 
+              </para>
+            </varlistentry>
+
+
+            <varlistentry>
+              <term>RingSourceMgr::clearSources</term>
+
+              <para>
+                Deletes all knowledge of the sources that had been registered previously. 
+              </para>
+            </varlistentry>
+
+            <varlistentry>
+              <term>RingSourceMgr::resetSources</term>
+
+              <para>
+                Deletes all knowledge of running ringFragmentSource processes.
+              </para>
+            </varlistentry>
+
+            <varlistentry>
+              <term>RingSourceMgr::startSource <replaceable>sourceUrl tstampLibPath ids info expectHeaders oneshot timeout offset</replaceable></term>
+
+              <para>
+                Launches a ringFragmentSource process directly. The parameters have the same semantics and default
+                values as the RingSourceMgr::addSource proc.
+              </para>
+            </varlistentry>
+
+            <varlistentry>
+              <term>RingSourceMgr::onBegin</term>
+
+              <para>
+                This essentially just calls <literal>RingSourceMgr::startSource</literal> for each of the
+                registered ring sources.
+              </para>
+            </varlistentry>
+
+
+            <varlistentry>
+              <term>RingSourceMgr::attach <replaceable>state</replaceable></term>
+
+              <para>
+                This is a no-op.
+              </para>
+            </varlistentry>
+
+            <varlistentry>
+              <term>RingSourceMgr::enter <replaceable>from to</replaceable></term>
+
+              <para>
+                When <option>to</option> is "NotReady" it calls <literal>::RingSourceMgr::resetSources</literal>.
+              </para>
+            </varlistentry>
+
+            <varlistentry>
+              <term>RingSourceMgr::leave <replaceable>from to</replaceable></term>
+
+              <para>
+                When <option>from</option> is "Halted" and <option>to</option> is "Active", the event builder 
+                is waited on to become available and then <literal>::RingSourceMgr::onBegin</literal> is called.
+              </para>
+            </varlistentry>
+          </variablelist>
         </refsect1>
 
       </refentry>
@@ -1590,5 +2127,4 @@ EVB::reset
         </refsect1>
 
       </refentry>
-
 <!-- /manpage -->

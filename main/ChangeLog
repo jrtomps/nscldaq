@@ -1109,3 +1109,5 @@ Work on 11.0-rc11 begins
 	* Bug #6151 Slow controls server of CCUSBReadout and VMUSBReadout now
 	  accept connections from IPv6 loopback address (i.e. ::1) in addition
 		to the IPv4 loopback address (i.e. 127.0.0.1).
+	* Bug #5777 - Documentation added for RingSourceMgr and also documentation
+	  updated that pertains to the event builder.
