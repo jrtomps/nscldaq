@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS=-I m4
-
+AUTOMAKE_OPTIONS=subdir-objects
 if BUILD_SBS_DRIVER
   SBSDIRS=sbs
 endif
