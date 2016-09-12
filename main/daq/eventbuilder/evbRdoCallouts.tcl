@@ -18,7 +18,7 @@
 # @author Ron Fox (fox@nscl.msu.edu)
 
 #++ REMOVE
-package provide evbcallouts 1.0
+package provide evbcallouts 2.0
 package require snit
 package require portAllocator
 package require ReadoutGUIPanel
@@ -552,29 +552,36 @@ proc EVBC::startS800Source {ringUrl id {desc {S800 USB data}}} {
 # @param args - Optional configuration options.
 #
 proc EVBC::initialize args {
+	puts "initialize"
     #
     # Create and optionally configure the application objects.
     #
     if {!$EVBC::initialized} {
+	puts "0"
         set EVBC::initialized true
         set EVBC::applicationOptions [EVBC::AppOptions %AUTO%]
         
+	puts "1"
         if {[llength $args] > 0} {
             $EVBC::applicationOptions configure {*}$args
         }
+	puts "2"
         EVBC::_ValidateOptions $EVBC::applicationOptions
         
+	puts "3"
         # if -gui is true, start it and paste it:
         
         if {[$EVBC::applicationOptions cget -gui] && [$EVBC::applicationOptions cget -restart]} {
             EVBC::_StartGui
         }
 
+	puts "4"
         # if -gui is true, start it
         if {[$EVBC::applicationOptions cget -gui] && ($EVBC::guiFrame eq "")} {
             EVBC::_StartGui
         }
 
+	puts "5"
          
     }
     #
@@ -1013,7 +1020,7 @@ proc EVBC::_StartGui {} {
     set EVBC::destRing [$EVBC::applicationOptions cget -destring]
     ::EVBC::_updatePriorParams
     
-    ::EVBC::eventbuildercp .evbcp
+    set ::EVBC::guiFrame [::EVBC::eventbuildercp .evbcp]
     grid .evbcp -sticky nsew
     
     #  Connect .evbcp to the glom parameters, and set the initial values
