@@ -536,7 +536,7 @@ snit::widgetadaptor ::EVBC::destring {
     constructor args {
 	installhull using ttk::labelframe
 
-	ttk::checkbutton $win.record -text Record -onvalue 1 -offvalue 0 \
+	ttk::checkbutton $win.record -text {Use for recording} -onvalue 1 -offvalue 0 \
 	    -variable [myvar options(-record)] -command [mymethod _onCommand]
 	ttk::label       $win.ringlabel -text {Output Ring}
 	ttk::entry       $win.ring      -textvariable [myvar options(-ring)]
@@ -673,6 +673,8 @@ snit::widgetadaptor EVBC::eventbuildercp {
 
     constructor args {
 	installhull using ttk::frame
+  ttk::frame $win.leftStretch
+  ttk::frame $win.rightStretch
 
 	install glomparams using ::EVBC::glomparams $win.build \
 	    -title {Event building parameters (vsn 11)} -relief groove
@@ -681,7 +683,13 @@ snit::widgetadaptor EVBC::eventbuildercp {
 	install outring using ::EVBC::destring $win.oring \
 	    -title {Destination ring} -relief groove
 
-	grid $glomparams $tee $outring
+	grid $glomparams -column 0 -row 0 -sticky w -pady 3 -pady 3
+  grid $win.leftStretch -column 1 -row 0  -sticky nsew
+	grid $tee -column 2 -row 0 -sticky ew -pady 3 -pady 3
+  grid $win.rightStretch -column 3 -row 0  -sticky nsew
+	grid $outring -column 4 -row 0 -sticky e -pady 3 -pady 3
+
+  grid columnconfigure $win {1 3} -weight 1
 
 	$self configurelist $args
     }

@@ -53,9 +53,6 @@ namespace eval ::EVBC {
     #
     variable applicationOptions ""
     
-    # GUI things
-    
-    variable guiFrame             ""
 
     #  These are parameters for the event builder.  Each one has a 'prior'
     #  one as well.  If the event builder is persistent, and prior differs
@@ -577,7 +574,7 @@ proc EVBC::initialize args {
 
 	puts "4"
         # if -gui is true, start it
-        if {[$EVBC::applicationOptions cget -gui] && ($EVBC::guiFrame eq "")} {
+        if {[$EVBC::applicationOptions cget -gui] && ![::EVBC::_guiExists]} {
             EVBC::_StartGui
         }
 
@@ -638,7 +635,7 @@ proc EVBC::onBegin {} {
             -destring  $destring
         
         
-        if {$EVBC::guiFrame ne ""} {
+        if {[::EVBC::_guiExists]} {
             EVBC::_DisableGUI 
         }
             
@@ -676,7 +673,7 @@ proc EVBC::onEnd {} {
     
     
     
-    if {$EVBC::guiFrame ne ""} {
+    if {[::EVBC::_guiExists]} {
             EVBC::_EnableGUI
     }
 }
@@ -976,7 +973,7 @@ proc ::EVBC::_onTeeChange w {
         }
         
     } else {
-        $w confiure -tee $::EVBC::intermediateRing
+        $w configure -tee $::EVBC::intermediateRing
         $w configure -ring $::EVBC::intermediateRingName
     }
 }
@@ -1020,9 +1017,10 @@ proc EVBC::_StartGui {} {
     set EVBC::destRing [$EVBC::applicationOptions cget -destring]
     ::EVBC::_updatePriorParams
     
-    set ::EVBC::guiFrame [::EVBC::eventbuildercp .evbcp]
-    grid .evbcp -sticky nsew
-    
+    ::EVBC::eventbuildercp .evbcp
+    grid .evbcp -sticky nsew -padx 9 -pady 9 
+    grid anchor . center
+
     #  Connect .evbcp to the glom parameters, and set the initial values
     #  of the UI:
     
@@ -1090,7 +1088,7 @@ proc EVBC::_EnableGUI {} {
 ##
 # @fn EVBC::_DisableGui
 #
-#  Disables the GUI that is rooted in $EVBC::guiFrame
+#  Disables the GUI.
 #  This is pretty easy.. we just need to set the state of all terminal
 #  widgets to disabled:
 #
@@ -1223,6 +1221,13 @@ proc EVBC::useEventBuilder {} {
 }
 
 ##
+# @brief Checks to see if the standard window for evb controls exists
+#
+proc ::EVBC::_guiExists {} {
+  return [winfo exists .evbcp]
+}
+
+##
 #  configure
 #     Configure the event builder options.
 #
@@ -1241,17 +1246,16 @@ proc ::EVBC::configure args {
     # Now see what we need to do with the GUI (start/stop leave alone).
     
     set gui [$::EVBC::applicationOptions cget -gui]
-    if {$gui && ($::EVBC::guiFrame eq "")} {
+    if {$gui && ![::EVBC::_guiExists]} {
         ::EVBC::_StartGui
     }
     
-    if {(!$gui) && ($::EVBC::guiFrame ne "")} {
-        destroy $::EVBC::guiFrame
-        set ::EVBC::guiFrame ""
+    if {(!$gui) && [::EVBC::_guiExists]} {
+        destroy .evbcp 
     }
     # If the GUI is active we must update its elements
     
-    if {$::EVBC::guiFrame ne ""} {
+    if {[::EVBC::_guiExists]} {
         ::EVBC::updateGuiFromOptions
     }
 }
