@@ -212,8 +212,8 @@ CAcquisitionThread::operator()()
   if (errorMessage != "") {
     reportErrorToMainThread(errorMessage);
     usleep(1*1000*1000);   // Let the error get processed.
+    exit(EXIT_FAILURE);
   }
-  exit(EXIT_FAILURE);  
 }
 
 
