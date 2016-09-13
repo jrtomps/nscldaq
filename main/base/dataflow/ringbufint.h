@@ -72,6 +72,8 @@ typedef struct __RingHeader {
 typedef struct __ClientInformation {
   volatile off_t      s_offset;          /* Put/get offset into the buffer for consumer. */
   volatile pid_t      s_pid;		/* Process Id of the client.                    */
+  volatile uint64_t   s_transfers;      /* Number of put/get operations since attach    */
+  volatile uint64_t   s_bytes;          /* Number of bytes put/gotten since attach      */
 } ClientInformation, *pClientInformation;
 
 /*
