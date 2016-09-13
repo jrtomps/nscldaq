@@ -1111,3 +1111,8 @@ Work on 11.0-rc11 begins
 		to the IPv4 loopback address (i.e. 127.0.0.1).
 	* Bug #5777 - Documentation added for RingSourceMgr and also documentation
 	  updated that pertains to the event builder.
+	* EVB gui is replaced with a new megawidget for better code organization.
+11.1-008
+	* Bug #6206 Fixes bug introduced in 11.1-007 concerning megawidget
+	introduction that caused failures during EVBC::initialize.
+
