@@ -13,7 +13,7 @@ COMPILATION_FLAGS =  \
 	@THREADCXX_FLAGS@ @TCL_FLAGS@
 
 
-lib_LTLIBRARIES=libEventBuilder.la  libEventBuilderClient.la 
+lib_LTLIBRARIES=libEventBuilder.la libEventBuilderClient.la 
 
 
 
@@ -122,6 +122,7 @@ install-exec-hook:
 
 noinst_PROGRAMS = unittests ordertests
 
+unittests_DEPENDENCIES = libEventBuilderClient.la
 unittests_SOURCES = TestRunner.cpp lookupTest.cpp  \
 	connectTest.cpp  
 nodist_unittests_SOURCES = cmdline.c cmdline.h
