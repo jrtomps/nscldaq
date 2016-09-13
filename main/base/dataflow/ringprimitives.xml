@@ -492,6 +492,10 @@ int main(int argc, char** argv)
         <methodparam>
             <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
         </methodparam>
+	<methodparam>
+	  <type>size_t></type><parameter>nItems</parameter>
+	  <initializer>1</initializer>
+	</methodparam>
       </methodsynopsis>
       <methodsynopsis>
         <type>size_t</type> <methodname>get</methodname>
@@ -522,6 +526,13 @@ int main(int argc, char** argv)
         <methodparam>
             <type>size_t</type> <parameter>nBytes</parameter>
         </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+	<type>void</type><methodname>incrTransferCount</methodname>
+	<methodparam>
+	  <type>size_t</type><parameter>nItem</parameter>
+	  <initializer>1</initializer>
+	</methodparam>
       </methodsynopsis>
       <methodsynopsis>
         <type>unsigned long</type> <methodname>setPollInterval</methodname>
@@ -934,6 +945,10 @@ int main(int argc, char** argv)
         <methodparam>
             <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
         </methodparam>
+	<methodparam>
+	  <type>size_t</type><parameter>nItems</parameter>
+	  <initializer>1</initializer>
+	</methodparam>
       </methodsynopsis>
       <para>
             Puts data into the ring buffer.  The object must hold a producer
@@ -971,6 +986,18 @@ int main(int argc, char** argv)
                 </para>
             </listitem>
         </varlistentry>
+	<varlistentry>
+	  <term><type>size_t</type> <parameter>nItems</parameter></term>
+	  <listitem><para>
+	    The number of formatted items being inserted into the 
+	    ringbuffer.  This value (defaults to 1) is added to the
+	    statistics counter that maintains the number of items that have
+	    been inserted into the ring.   It is intended for the case when
+	    there is a higher level structure on top of the ring buffer byte
+	    stream, and the put is known to be inserting more than one
+	    of those items.
+	  </para></listitem>
+	</varlistentry>
       </variablelist>
       <para>
         The return value is the number of bytes actually written. This should
@@ -1096,6 +1123,20 @@ int main(int argc, char** argv)
         at the front of the available data could determine the size and type of
         a message.  The message could then either be read with <methodname>get</methodname>,
         or skipped over with <methodname>skip</methodname>.
+      </para>
+      <methodsynopsis>
+	<type>void</type><methodname>incrTransferCount</methodname>
+	<methodparam>
+	  <type>size_t</type> <parameter>nItems</parameter>
+	  <initializer>1</initializer>
+	</methodparam>
+      </methodsynopsis>
+      <para>
+	Adds <parameter>nItems</parameter> to the statistics counter that
+	keeps track of the number of formatted items put or gotten to/from
+	the ringbuffer.  This is normally used after doing a 
+	<methodname>get</methodname> operation when it has been determined
+	that the data gotten contains more than a single formatted item.
       </para>
       <methodsynopsis>
         <type>unsigned long</type> <methodname>setPollInterval</methodname>
