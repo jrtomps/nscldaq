@@ -134,12 +134,13 @@ private:
   // Manipulations on the ring buffer:
 public:
 
-  virtual size_t put(const void* pBuffer, size_t nBytes, unsigned long timeout=ULONG_MAX);
+  virtual size_t put(const void* pBuffer, size_t nBytes, unsigned long timeout=ULONG_MAX, size_t nItems = 1);
   virtual size_t get(void* pBuffer, size_t maxBytes, size_t minBytes = 1, 
 	     unsigned long timeout=ULONG_MAX);
   virtual size_t peek(void* pBuffer, size_t maxbytes);
   virtual void   skip(size_t nBytes);
 
+  virtual void incrTransferCount(size_t nItems = 1);
 
   unsigned long setPollInterval(unsigned long newValue);
   unsigned long getPollInterval();

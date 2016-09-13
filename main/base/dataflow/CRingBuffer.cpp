@@ -472,6 +472,11 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
       if (m_pRing->s_producer.s_pid == -1) {
 	m_pClientInfo         = &(m_pRing->s_producer);
 	m_pClientInfo->s_pid  = getpid(); // leave the offset where it was.
+	// On success - clear the statistics for this client:
+	
+	m_pClientInfo->s_transfers = 0;
+	m_pClientInfo->s_bytes     = 0;
+	
 	__sync_synchronize();		  // And flush to shm.
 
       }
@@ -561,6 +566,9 @@ CRingBuffer::~CRingBuffer()
 		     is ULONG_MAX which works out to approximately 136 years.. which is
 		     close enough to infinite that it can be treated as infinite.
 		     A value of 0 will not block.
+   \param  nItems    Number of items put into the ring.  For formatted
+                     data this is the number of formatted itesm inserted.
+
 
     \return size_t
     \retval nBytes  - The buffer was written to the ring buffer, all of it.
@@ -572,7 +580,7 @@ CRingBuffer::~CRingBuffer()
 */
 
 size_t
-CRingBuffer::put(const void* pBuffer, size_t nBytes, unsigned long timeout)
+CRingBuffer::put(const void* pBuffer, size_t nBytes, unsigned long timeout, size_t nItems)
 {
   // Require that we are the producer:
 
@@ -631,6 +639,11 @@ CRingBuffer::put(const void* pBuffer, size_t nBytes, unsigned long timeout)
 
   }
   Skip(nBytes);
+
+  // Count the items and bytes put:
+
+  m_pClientInfo->s_transfers += nItems;
+  m_pClientInfo->s_bytes;
 
   // If we got this far success... issue a memory barrier to ensure this all is
   // written to the shm:
@@ -710,10 +723,15 @@ CRingBuffer::get(void*        pBuffer,
     transferSize = maxBytes;
   }
 
+  // Count the statistics: 1 item removed and transferSize bytes.
+
+  m_pClientInfo->s_transfers++;
+  m_pClientInfo->s_bytes += transferSize;
+
   peek(pBuffer, transferSize);
   Skip(transferSize);
 
-
+  __sync_synchronize();		// Force out to memory (barrier).
 
   return transferSize;
   
@@ -815,6 +833,23 @@ CRingBuffer:: skip(size_t nBytes)
 
   }
   Skip(nBytes);
+}
+
+/**
+ * incrTransferCount
+ *   Increment the transfer count associated with a ring.  This is
+ *   mostly intended for consumers which may analyze the results
+ *   of a get operation and discover that there's more than one
+ *   actual item in the stuff gotten.
+ *
+ * @param nItems - Number of items to increment the transfer count
+ *                 by.
+ *
+ */
+void
+CRingBuffer::incrTransferCount(size_t nItems)
+{
+  m_pClientInfo->s_transfers += nItems;
 }
 /////////////////////////////////////////////////////////////////////////////////
 // Manage the blocking latencies.
@@ -1170,6 +1205,11 @@ CRingBuffer::allocateConsumer()
 
       p->s_pid = getpid();	   // now unstall any free space computations
       m_pClientInfo = p;
+      // On success - clear the statistics for this client:
+      
+      m_pClientInfo->s_transfers = 0;
+      m_pClientInfo->s_bytes     = 0;
+
       __sync_synchronize();	// Flush to shm as well.
       return;
     }
