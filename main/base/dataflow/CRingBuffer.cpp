@@ -643,7 +643,7 @@ CRingBuffer::put(const void* pBuffer, size_t nBytes, unsigned long timeout, size
   // Count the items and bytes put:
 
   m_pClientInfo->s_transfers += nItems;
-  m_pClientInfo->s_bytes;
+  m_pClientInfo->s_bytes     += nBytes;
 
   // If we got this far success... issue a memory barrier to ensure this all is
   // written to the shm:

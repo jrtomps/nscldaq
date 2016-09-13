@@ -52,7 +52,13 @@ static std::string ringName("statistics");
 
 class StatisticsTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(StatisticsTests);
+  CPPUNIT_TEST(initiallyClear);
+  CPPUNIT_TEST(putCounts);
+  CPPUNIT_TEST(multiItemPutCounts);
 
+  CPPUNIT_TEST(getCounts);
+
+  CPPUNIT_TEST(incrTest);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -63,7 +69,16 @@ public:
   void tearDown();
 
 protected:
+  void initiallyClear();
+  void putCounts();
+  void multiItemPutCounts();
+
+  void getCounts();
+
+  void incrTest();
 };
+
+CPPUNIT_TEST_SUITE_REGISTRATION(StatisticsTests);
 
 /**
  *  Set up the tests:
@@ -87,4 +102,68 @@ void StatisticsTests::tearDown()
   delete m_pProducer;
   delete m_pConsumer;
   CRingBuffer::remove(ringName);
+}
+
+// Test that the counters are initially zeroed
+
+void
+StatisticsTests::initiallyClear()
+{
+  EQ(uint64_t(0),  uint64_t(m_pProducer->m_pClientInfo->s_transfers));
+  EQ(uint64_t(0),  uint64_t(m_pProducer->m_pClientInfo->s_bytes));
+
+  EQ(uint64_t(0), uint64_t(m_pConsumer->m_pClientInfo->s_transfers));
+  EQ(uint64_t(0), uint64_t(m_pConsumer->m_pClientInfo->s_bytes));
+}
+
+
+// Put increments the counters.
+
+void
+StatisticsTests::putCounts()
+{
+  char buffer[1000];		// Just some randomized bytes.
+  m_pProducer->put(buffer, 1000);
+
+  EQ(uint64_t(1), uint64_t(m_pProducer->m_pClientInfo->s_transfers));
+  EQ(uint64_t(1000), uint64_t(m_pProducer->m_pClientInfo->s_bytes));
+}
+
+// Put with explicit item count is correct too:
+
+void
+StatisticsTests::multiItemPutCounts()
+{
+  char buffer[1000];;
+  m_pProducer->put(buffer, 1000, 100, 256);
+  EQ(uint64_t(256),  uint64_t(m_pProducer->m_pClientInfo->s_transfers));
+}
+
+// Get counts statistics
+
+void
+StatisticsTests::getCounts()
+{
+  char buffer[1000];
+
+  m_pProducer->put(buffer, 1000);
+  m_pConsumer->get(buffer, 100);
+
+  EQ(uint64_t(1), uint64_t(m_pConsumer->m_pClientInfo->s_transfers));
+  EQ(uint64_t(100), uint64_t(m_pConsumer->m_pClientInfo->s_bytes));
+
+  m_pConsumer->get(buffer, 200);
+  EQ(uint64_t(2), uint64_t(m_pConsumer->m_pClientInfo->s_transfers));
+  EQ(uint64_t(300), uint64_t(m_pConsumer->m_pClientInfo->s_bytes));
+
+}
+
+// Incr works.
+
+void
+StatisticsTests::incrTest()
+{
+  m_pConsumer->incrTransferCount(100);
+
+  EQ(uint64_t(100), uint64_t(m_pConsumer->m_pClientInfo->s_transfers));
 }
