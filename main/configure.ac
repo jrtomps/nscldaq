@@ -129,7 +129,7 @@ AC_FUNC_STAT
 
 # Automake:
 
-AM_INIT_AUTOMAKE([foreign parallel-tests])
+AM_INIT_AUTOMAKE([foreign parallel-tests subdir-objects])
 
 
 # Makefile exports:
