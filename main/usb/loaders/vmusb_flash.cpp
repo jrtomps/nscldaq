@@ -26,7 +26,7 @@ int main(int argc, char** argv)
     
     if ((argc < 2) || (argc > 3)) {
         printf("\nUsage:\n");
-        printf("    vmusloader  firmware-file [serial-string]\n");
+        printf("    vmusbloader  firmware-file [serial-string]\n");
         printf("Where:\n");
         printf("     firmware-file - is a Xilinx .bit or .bin formatted firmware file\n");
         printf("     serial-string - if present is the serial number of the VM-USB to flash\n");
