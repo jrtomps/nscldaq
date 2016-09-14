@@ -2,5 +2,6 @@
 <!-- Komodo Project File - DO NOT EDIT -->
 <project id="b3e0baec-601d-4e52-af1b-bcdbf3a5b5f5" kpf_version="5" name="nscldaq-varmgr.komodoproject">
 <preference-set idref="b3e0baec-601d-4e52-af1b-bcdbf3a5b5f5" id="project" preftype="project">
+  <long id="prefs_version">1</long>
 </preference-set>
 </project>
