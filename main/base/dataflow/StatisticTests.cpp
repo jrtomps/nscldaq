@@ -59,6 +59,8 @@ class StatisticsTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(getCounts);
 
   CPPUNIT_TEST(incrTest);
+
+  CPPUNIT_TEST(expandedUsageInfo);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -76,6 +78,8 @@ protected:
   void getCounts();
 
   void incrTest();
+
+  void expandedUsageInfo();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StatisticsTests);
@@ -166,4 +170,31 @@ StatisticsTests::incrTest()
   m_pConsumer->incrTransferCount(100);
 
   EQ(uint64_t(100), uint64_t(m_pConsumer->m_pClientInfo->s_transfers));
+}
+
+// Usage information now includes the transfer stats:
+
+void 
+StatisticsTests::expandedUsageInfo()
+{
+  getCounts();    // Cause it does a known number of prod/consumer transfers.
+  pid_t mypid = getpid();
+
+  CRingBuffer::Usage usage = m_pProducer->getUsage();
+
+  // Producer stats:
+
+  EQ(mypid, usage.s_producerStats.s_pid);
+  EQ(size_t(1), usage.s_producerStats.s_transfers);
+  EQ(size_t(1000), usage.s_producerStats.s_bytes);
+
+  // Consumer stats - one consumer:
+
+  EQ(size_t(1), usage.s_consumerStats.size());
+  
+  CRingBuffer::clientStatistics cstats = usage.s_consumerStats[0];
+
+  EQ(mypid, cstats.s_pid);
+  EQ(size_t(2), cstats.s_transfers);
+  EQ(size_t(300), cstats.s_bytes);
 }
