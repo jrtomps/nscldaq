@@ -1293,6 +1293,50 @@ int main(int argc, char** argv)
                  </varlistentry>
             </variablelist>
          </refsect2>
+	 <refsect2>
+	   <title>CRingBuffer::clientStatistics</title>
+	   <para>
+	     This is a struct that contains statistics for a client
+	     of the ring buffer.  It is part of the 
+	     <type>CRingBuffer::Usage</type> struct documented
+	     below.
+	   </para>
+	   <para>
+	     This struct has the following fields:
+	   </para>
+	   <variablelist>
+	     <varlistentry>
+	       <term><type>pid_t</type> <structfield>s_pid</structfield></term>
+	       <listitem>
+		 <para>
+		   The process id of the process whose statistics
+		   are being descsribed by this struct.
+		 </para>
+	       </listitem>
+	     </varlistentry>
+	     <varlistentry>
+	       <term><type>uint64_t</type> <structfield>s_transfers</structfield></term>
+	       <listitem>
+		 <para>
+		   Contains the total number of put/get operations 
+		   by the client on the ringbuffer.  For the 
+		   producer this will be the put count while for
+		   consumers, the get count.
+		 </para>
+	       </listitem>
+	     </varlistentry>
+	     <varlistentry>
+	       <term><type>uint64_t</type> <structfield>s_bytes</structfield></term>
+	       <listitem>
+		 <para>
+		   Contains the total number of bytes transferred
+		   into (producer) or out of (consumers) the
+		   ring buffer.
+		 </para>
+	       </listitem>
+	     </varlistentry>
+	   </variablelist>
+	 </refsect2>
          <refsect2>
             <title>CRingBuffer::Usage</title>
             <para>
@@ -1367,6 +1411,29 @@ int main(int argc, char** argv)
                         </para>
                     </listitem>
                 </varlistentry>
+		<varlistentry>
+		  <term><type>clientStatistics</type> <structfield>s_producerStats</structfield></term>
+		  <listitem>
+		    <para>
+		      Contains the statistics for the producder since
+		      it attached to the ring.  See
+		      <type>CRingBuffer::clientStatistics</type>
+		      for information about the contents of this
+		      strucxt.
+		    </para>
+		  </listitem>
+		</varlistentry>
+		<varlistentry>
+		  <term><type>std::vector&lt;clientStatistics&gt;</type> <structfield>s_consumerStats</structfield></term>
+		  <listitem>
+		    <para>
+		      Vector containing the statistics for the
+		      attached consumers.  There will not be
+		      elements for consumer headers that don't
+		      correspond to attached  clients.
+		    </para>
+		  </listitem>
+		</varlistentry>
             </variablelist>
          </refsect2>
          <refsect2>

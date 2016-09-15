@@ -267,6 +267,29 @@ ringbuffer list
                             </para>
                         </listitem>
                     </varlistentry>
+		    <varlistentry>
+		      <term><varname>Producer statistics</varname></term>
+		      <listitem>
+			<para>
+			  A two element list that contains the number of puts and
+			  number of bytes put by the most recent producer.  Note that
+			  if the producer pid above is <literal>-1</literal> there
+			  is no producer and these numbers are useless.
+			</para>
+		      </listitem>
+		    </varlistentry>
+		    <varlistentry>
+		      <term><varname>Consumer statistics</varname></term>
+		      <listitem>
+			<para>
+			  A list of consumer statistics.  There is one three element
+			  list for each active consumer containing in order;
+			  the consumer's PID, the number of gets done by the
+			  consumer and the number of bytes gotten by the
+			  consumer.
+			</para>
+		      </listitem>
+		    </varlistentry>
                 </variablelist>
                 <para>
                     If the <parameter>name</parameter> is not provided, the

@@ -527,6 +527,8 @@ CRingCommand::usage(CTCLInterpreter&    interp,
 	    // note that if there is no producer, the transfer stats are
 	    // meaningless.
 
+	    // producer:
+
 	    CTCLObject producerStats;
 	    producerStats.Bind(interp);
 
@@ -535,7 +537,23 @@ CRingCommand::usage(CTCLInterpreter&    interp,
 
 	    Result += producerStats;
 
-          
+	    // Consumer stats:
+
+	    CTCLObject consumerStats;
+	    consumerStats.Bind(interp);
+	    for (int i = 0; i < usageInfo.s_consumerStats.size(); i++ ) {
+	      CRingBuffer::clientStatistics c = usageInfo.s_consumerStats[i];
+	      CTCLObject aConsumer;
+	      aConsumer.Bind(interp);
+	      aConsumer += (int)c.s_pid;
+	      aConsumer += (int)c.s_transfers;
+	      aConsumer += (int)c.s_bytes;
+
+	      consumerStats += aConsumer;
+	    }
+	    Result += consumerStats;
+
+
             interp.setResult(Result);
     } else {
         // Want the data from all rings:
