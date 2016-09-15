@@ -523,6 +523,18 @@ CRingCommand::usage(CTCLInterpreter&    interp,
               consumerList += consumerEntry;
             }
             Result += consumerList;
+	    // As of 12.0 we also provide transfer statistics.
+	    // note that if there is no producer, the transfer stats are
+	    // meaningless.
+
+	    CTCLObject producerStats;
+	    producerStats.Bind(interp);
+
+	    producerStats += (int)usageInfo.s_producerStats.s_transfers;
+	    producerStats += (int)usageInfo.s_producerStats.s_bytes;
+
+	    Result += producerStats;
+
           
             interp.setResult(Result);
     } else {
