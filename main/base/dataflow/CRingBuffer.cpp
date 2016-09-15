@@ -962,6 +962,12 @@ CRingBuffer::getUsage()
   result.s_putSpace    = availablePutSpace();
   result.s_maxConsumers= pHead->s_maxConsumer;
   result.s_producer    = pProducer->s_pid;
+  
+  // Producer statistics:
+  
+  result.s_producerStats.s_pid       = pProducer->s_pid;
+  result.s_producerStats.s_transfers = pProducer->s_transfers;
+  result.s_producerStats.s_bytes     = pProducer->s_bytes;
 
   // Get information about all the consumers:
 
@@ -971,6 +977,12 @@ CRingBuffer::getUsage()
       info.first  = pConsumers->s_pid;
       info.second = difference(*pProducer, *pConsumers);
       result.s_consumers.push_back(info);
+      
+      // Statistics too:
+      
+      clientStatistics stats = {pConsumers->s_pid, pConsumers->s_transfers, pConsumers->s_bytes};
+      result.s_consumerStats.push_back(stats);
+      
     }
     pConsumers++;
   }

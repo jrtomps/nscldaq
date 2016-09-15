@@ -70,6 +70,11 @@ public:
     manager
   } ClientMode;
 
+  struct clientStatistics {
+    pid_t       s_pid;                       // Process id of client.
+    uint64_t    s_transfers;                 // Number of puts/gets.
+    uint64_t    s_bytes;                     // Number of bytes.
+  };
   struct Usage {
     size_t                                 s_bufferSpace;
     size_t                                 s_putSpace;
@@ -78,6 +83,9 @@ public:
     size_t                                 s_maxGetSpace;
     size_t                                 s_minGetSpace;
     std::vector<std::pair<pid_t, size_t> > s_consumers;
+    clientStatistics                       s_producerStats;
+    std::vector<clientStatistics>          s_consumerStats;
+    
   };
 
   class CRingBufferPredicate {

@@ -31,4 +31,4 @@ unittests_LDFLAGS =  -Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib"
 
 TESTS = @builddir@/unittests 
 
-EXTRA_DIST=TestRunner.cpp $(TESTS) Asserts.h
+EXTRA_DIST=TestRunner.cpp  Asserts.h
