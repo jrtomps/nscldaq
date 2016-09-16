@@ -40,7 +40,7 @@ libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la \
 			@top_builddir@/base/os/libdaqshm.la	\
 				$(USB_LIBS)  
 
-INCLUDES		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
+AM_CPPFLAGS		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
 			-I@top_srcdir@/base/tcpip \
 			-I@top_srcdir@/base/os \
 			  @TCL_FLAGS@

@@ -124,7 +124,7 @@ AC_FUNC_STAT
 
 # Automake:
 
-AM_INIT_AUTOMAKE([foreign subdir-objects no-dependencies])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 # Makefile exports:
 
