@@ -2,20 +2,18 @@ bin_PROGRAMS	=	dumper
 
 
 dumper_SOURCES	=	BufdumpMain.cpp		\
-			@srcdir@/../StringsToIntegers.cpp	\
 			dumper.cpp 
 
 nodist_dumper_SOURCES= dumperargs.c dumperargs.h
 
 
-noinst_HEADERS	=	BufdumpMain.h		\
-			@srcdir@/../StringsToIntegers.h
+noinst_HEADERS	=	BufdumpMain.h
 
 BUILT_SOURCES	=	dumperargs.c dumperargs.h
 
 
 
-dumper_CPPFLAGS =	-I@srcdir@/.. 				\
+dumper_CPPFLAGS =	-I@top_srcdir@/utilities/common 				\
 				-I.. 					\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/uri			\
@@ -25,7 +23,7 @@ dumper_CPPFLAGS =	-I@srcdir@/.. 				\
                                 -I@top_srcdir@/utilities/IO		\
                                 -I@top_srcdir@/base/os
 
-dumper_LDADD		=		\
+dumper_LDADD		=	@top_builddir@/utilities/common/libUtilCommon.la	\
 				@top_builddir@/base/uri/liburl.la			\
                                 @top_builddir@/utilities/IO/libdaqio.la			\
 				@top_builddir@/daq/format/libdataformat.la	\

@@ -8,7 +8,6 @@ EXTRA_DIST = CamacSlotLimits.h \
 							CNAF.cpp \
 							CCamacBranchDriver.h \
 							CCamacBranchException.h \
-							CCamacBranchException.cpp \
 							CCamacCrate.h \
 							CCamacCrate.hpp \
 							CCamacReadoutList.h \
@@ -26,3 +25,5 @@ EXTRA_DIST = CamacSlotLimits.h \
 							CTypeA1Commands.h \
 							CULMTrigger.h \
 							CULMTrigger.hpp
+
+#			CCamacBranchException.cpp 

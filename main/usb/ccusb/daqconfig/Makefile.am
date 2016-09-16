@@ -15,7 +15,6 @@ libCCUSBDaqConfig_la_SOURCES	= \
 				CUserCommand.cpp	\
 				CAddTclDriver.cpp 	\
 				CMarkerCommand.cpp	\
-				@top_srcdir@/usb/common/devices/CCamacBranchException.cpp	 \
 			 	CConfigurableObject.cpp	\
 				CReadoutModule.cpp	\
 				CReadoutHardware.cpp	\

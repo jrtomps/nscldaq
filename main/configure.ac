@@ -7,7 +7,7 @@ AC_INIT(nscldaq, 12.0-001, fox@nscl.msu.edu,[], [http://www.sourceforge.net/proj
 
 
 
-AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
+AC_CONFIG_SRCDIR([/base/CopyrightTools/CopyrightNotice.cpp])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -428,6 +428,7 @@ AC_CONFIG_FILES([Makefile
 		 servers/tclserver/Makefile
                  servers/portmanager/Makefile
 		 utilities/Makefile
+		utilities/common/Makefile
 		 utilities/Buffer/Makefile
                  utilities/daqstart/Makefile
                  utilities/dvdburn/Makefile

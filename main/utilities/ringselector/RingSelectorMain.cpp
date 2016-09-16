@@ -19,7 +19,7 @@
 #include <CRingSelectionPredicate.h>
 #include <CAllButPredicate.h>
 #include <CDesiredTypesPredicate.h>
-#include "../StringsToIntegers.h"
+#include <StringsToIntegers.h>
 #include <CRemoteAccess.h>
 #include <CRingItem.h>
 #include <DataFormat.h>

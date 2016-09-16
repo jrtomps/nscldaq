@@ -56,7 +56,6 @@ libVMUSBDaqConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CXLMFERA.cpp \
 				CXLMTimestamp.cpp \
 				CLeCroy2551.cpp \
-				@top_srcdir@/usb/common/devices/CCamacBranchException.cpp \
 				CMQDC32StackBuilder.cpp \
 				CMQDC32RdoHdwr.cpp	\
 				CDeviceCommand.cpp Globals.cpp
@@ -112,7 +111,6 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				CDelay.h \
 				CDeviceCommand.h \
 				CCBD8210CamacBranchDriver.h \
-				@top_srcdir@/usb/common/devices/CCrateController.h \
 				CCBD8210CrateController.h \
 				CCBD8210ReadoutList.h \
 				CCBDCamacBranch.h \
@@ -121,7 +119,6 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				@top_srcdir@/usb/common/devices/CNAF.h \
 				CXLMFERA.h \
 				CXLMTimestamp.h \
-				@top_srcdir@/usb/common/devices/CCamacBranchException.h  \
 				CMQDC32StackBuilder.h \
 				CMQDC32RdoHdwr.h \
 				MQDC32Registers.h Globals.h
