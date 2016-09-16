@@ -129,7 +129,7 @@ AC_FUNC_STAT
 
 # Automake:
 
-AM_INIT_AUTOMAKE([foreign parallel-tests subdir-objects no-dependencies])
+AM_INIT_AUTOMAKE([foreign parallel-tests subdir-objects])
 
 
 # Makefile exports:
@@ -232,7 +232,7 @@ else
   	then
       AC_MSG_RESULT([Need to build local tagged copy])
       AC_CHECK_FILE([${srcdir}/libtcl/configure], [havelibtcldir="yes"], [havelibtcldir="no"])
-		  (cd ${srcdir}/libtcl; ./configure --prefix=${prefix} --disable-dependency-tracking; make clean install)
+		  (cd ${srcdir}/libtcl; ./configure --prefix=${prefix} ; make clean install)
 	  else
 		  AC_MSG_ERROR([I seem to be missing libtcl, please use tcl++incorp.sh to fill it with a tagged release of libtclplus])
 	  fi
@@ -492,14 +492,15 @@ AC_CONFIG_FILES([Makefile
 		 daq/readoutgui/ReadoutShell.tcl
 		 daq/s800callouts/Makefile
 		 daq/eventbuilder/Makefile daq/eventbuilder/Makefile_Skeleton
-		 daq/eventbuilder/ringsource/Makefile
-		 daq/eventbuilder/teering/Makefile
-		 daq/eventbuilder/glom/Makefile
-		 daq/eventbuilder/unglom/Makefile
 		 daq/eventbuilder/startOrderer
+		 daq/evbtools/Makefile
+		 daq/evbtools/ringsource/Makefile
+		 daq/evbtools/teering/Makefile
+		 daq/evbtools/glom/Makefile
+		 daq/evbtools/unglom/Makefile
+		 daq/evbtools/offlineorderer/Makefile
+     		 daq/evbtools/offlineorderer/figures/Makefile
 		 daq/actions/Makefile
-		 daq/eventbuilder/offlineorderer/Makefile
-     		 daq/eventbuilder/offlineorderer/figures/Makefile
 		simplesetups/Makefile
     		simplesetups/v775/Makefile
     		simplesetups/v785/Makefile
