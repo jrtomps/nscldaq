@@ -7,7 +7,7 @@ ringselector_SOURCES 	= 	ringselector.cpp RingSelectorMain.cpp \
 nodist_ringselector_SOURCES=parser.c parser.h
 
 
-noinst_HEADERS		=	 @top_srcdir@/utilities/common/StringsToIntegers.h RingSelectorMain.h \
+noinst_HEADERS		=	RingSelectorMain.h \
 				RingBufferQueue.h COutputter.h
 
 
