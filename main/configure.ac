@@ -445,15 +445,17 @@ AC_CONFIG_FILES([Makefile
     daq/readoutgui/InstallRoot.tcl
     daq/readoutgui/ReadoutShell.tcl
     daq/s800callouts/Makefile
-    daq/eventbuilder/Makefile daq/eventbuilder/Makefile_Skeleton
-    daq/eventbuilder/ringsource/Makefile
-    daq/eventbuilder/teering/Makefile
-    daq/eventbuilder/glom/Makefile
-    daq/eventbuilder/unglom/Makefile
+    daq/eventbuilder/Makefile
+    daq/eventbuilder/Makefile_Skeleton
     daq/eventbuilder/startOrderer
+    daq/evbtools/Makefile
+    daq/evbtools/ringsource/Makefile
+    daq/evbtools/teering/Makefile
+    daq/evbtools/glom/Makefile
+    daq/evbtools/unglom/Makefile
+    daq/evbtools/offlineorderer/Makefile
+    daq/evbtools/offlineorderer/figures/Makefile
     daq/actions/Makefile
-    daq/eventbuilder/offlineorderer/Makefile
-    daq/eventbuilder/offlineorderer/figures/Makefile
     simplesetups/Makefile
     simplesetups/v775/Makefile
     simplesetups/v785/Makefile
