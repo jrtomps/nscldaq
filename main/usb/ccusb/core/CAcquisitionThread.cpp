@@ -244,10 +244,11 @@ CAcquisitionThread::mainLoop()
 	} 
 	else {
 	  if (errno != ETIMEDOUT) {
-	    cerr << "Bad status from usbread: " << strerror(errno) << endl;
-	    cerr << "Ending the run .. check CAMAC crate.  If it tripped off ";
-	    cerr << " you'll need to restart this program\n";
-	    throw (int)1;
+      std::stringstream err;
+	    err << "Bad status from usbread: " << strerror(errno) << endl;
+	    err << "Ending the run .. check CAMAC crate.  If it tripped off ";
+	    err << " you'll need to restart this program\n";
+      throw err.str();
 	  }
 	}
       // Commands from our command queue.
