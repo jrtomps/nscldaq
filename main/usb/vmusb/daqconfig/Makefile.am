@@ -56,7 +56,6 @@ libVMUSBDaqConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CXLMFERA.cpp \
 				CXLMTimestamp.cpp \
 				CLeCroy2551.cpp \
-				@top_srcdir@/usb/common/devices/CCamacBranchException.cpp \
 				CMQDC32StackBuilder.cpp \
 				CMQDC32RdoHdwr.cpp	\
 				CDeviceCommand.cpp
@@ -121,7 +120,6 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				@top_srcdir@/usb/common/devices/CNAF.h \
 				CXLMFERA.h \
 				CXLMTimestamp.h \
-				@top_srcdir@/usb/common/devices/CCamacBranchException.h  \
 				CMQDC32StackBuilder.h \
 				CMQDC32RdoHdwr.h \
 				MQDC32Registers.h
@@ -129,7 +127,7 @@ noinst_HEADERS		=	CADCCommand.h  		\
 
 libVMUSBDaqConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
 
-libVMUSBDaqConfig_la_CPPFLAGS = \
+libVMUSBDaqConfig_la_CPPFLAGS = -I@top_srcdir@/usb/common/devices		\
 				-I@top_srcdir@/usb/common/configurableobject \
 				-I@top_srcdir@/usb/vmusb			\
 				-I@top_srcdir@/usb/vmusb/vmusb			\
