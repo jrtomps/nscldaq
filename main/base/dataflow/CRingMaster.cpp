@@ -41,7 +41,7 @@
 using namespace std;
 
 static const string localhost("127.0.0.1");
-static const string ringMasterAppName("RingMaster");
+static const string ringMasterAppName("RingMaster12");
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Constructors and implemented canonicals:

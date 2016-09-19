@@ -599,7 +599,7 @@ proc onConnection {channel clientaddr clientport} {
 set allocator [portAllocator new]
 
 while {1} {
-    if {[catch {set listenPort [$allocator allocatePort "RingMaster"]}] == 0} {
+    if {[catch {set listenPort [$allocator allocatePort "RingMaster12"]}] == 0} {
 	break
     }
     after 1000;			# Retry connection in a second.
