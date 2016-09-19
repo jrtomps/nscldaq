@@ -29,6 +29,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <iterator>
 
 #include <pthread.h>
 
@@ -81,33 +82,23 @@ void print_stack(const char* beg, const char* end, size_t unitWidth)
   cout << "Stack dump:" << endl;
   auto it = beg;
   size_t datum=0;
-  while (it != end) {
-    size_t dist = distance(beg,it);
-    size_t remainder = (dist % unitWidth);
-    if ( remainder==0 && it != beg) {
-      cout << dec << setfill(' ') << setw(3) << dist/unitWidth;
-      cout << " : 0x";
-      cout << hex << setfill('0') << setw(2*unitWidth) << datum << endl;
+  while (it < end) {
+    std::copy(it, it+unitWidth, reinterpret_cast<char*>(&datum));
+    cout << dec << setfill(' ') << setw(3) << distance(beg, it)/unitWidth;
+    cout << " : 0x";
+    cout << hex << setfill('0') << setw(2*unitWidth) << datum << endl;
 
-      //reset value
-      datum = 0;
-    }
-    datum = datum | ((*it)<<remainder);
-    it++;
+    //reset value
+    datum = 0;
+    advance(it, unitWidth);
   }
 
   // dump any remainder
-  size_t dist = distance(beg,it);
-  size_t remainder = (dist % unitWidth);
-  cout << dec << setfill(' ') << setw(3) << dist/unitWidth;
-  cout << " : 0x";
-  cout << hex << setfill('0') << setw(2*unitWidth) << datum << endl;
-
 
   cout << dec << setfill(' ');
   cout << "--------" << std::endl;
 }
-
+ 
 /////////////////////////////////////////////////////////////////////
 /*!
   Enumerate the Wiener/JTec VM-USB devices.
@@ -288,7 +279,7 @@ void CVMUSBusb::writeActionRegister(uint16_t data)
     throw "usb_bulk_write wrote different size than expected";
   }
 
-  print_stack(outPacket, outPacket+outSize, sizeof(uint16_t));
+  //print_stack(outPacket, outPacket+outSize, sizeof(uint16_t));
 
 }
 
@@ -482,8 +473,8 @@ CVMUSBusb::transaction(void* writePacket, size_t writeSize,
   char buf[26700];
   
   
-  print_stack(reinterpret_cast<char*>(writePacket), 
-      reinterpret_cast<char*>(writePacket)+writeSize, sizeof(uint16_t));
+  //print_stack(reinterpret_cast<char*>(writePacket), 
+  //    reinterpret_cast<char*>(writePacket)+writeSize, sizeof(uint16_t));
 
     CriticalSection s(*m_pMutex);
     int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
