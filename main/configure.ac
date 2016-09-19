@@ -3,10 +3,10 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(nscldaq,11.1-008, [scientificsoftware@nscl.msu.edu],[], [http://www.sourceforge.net/projects/nscldaq])
+AC_INIT(nscldaq,11.1-009, [scientificsoftware@nscl.msu.edu],[], [http://www.sourceforge.net/projects/nscldaq])
 
 
-AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
+AC_CONFIG_SRCDIR([/base/dataflow/CRingBuffer.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -124,7 +124,7 @@ AC_FUNC_STAT
 
 # Automake:
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 # Makefile exports:
 
@@ -405,6 +405,7 @@ AC_CONFIG_FILES([Makefile
     servers/tclserver/Makefile
     servers/portmanager/Makefile
     utilities/Makefile
+    utilities/common/Makefile
     utilities/Buffer/Makefile
     utilities/daqstart/Makefile
     utilities/dvdburn/Makefile
@@ -445,15 +446,17 @@ AC_CONFIG_FILES([Makefile
     daq/readoutgui/InstallRoot.tcl
     daq/readoutgui/ReadoutShell.tcl
     daq/s800callouts/Makefile
-    daq/eventbuilder/Makefile daq/eventbuilder/Makefile_Skeleton
-    daq/eventbuilder/ringsource/Makefile
-    daq/eventbuilder/teering/Makefile
-    daq/eventbuilder/glom/Makefile
-    daq/eventbuilder/unglom/Makefile
+    daq/eventbuilder/Makefile
+    daq/eventbuilder/Makefile_Skeleton
     daq/eventbuilder/startOrderer
+    daq/evbtools/Makefile
+    daq/evbtools/ringsource/Makefile
+    daq/evbtools/teering/Makefile
+    daq/evbtools/glom/Makefile
+    daq/evbtools/unglom/Makefile
+    daq/evbtools/offlineorderer/Makefile
+    daq/evbtools/offlineorderer/figures/Makefile
     daq/actions/Makefile
-    daq/eventbuilder/offlineorderer/Makefile
-    daq/eventbuilder/offlineorderer/figures/Makefile
     simplesetups/Makefile
     simplesetups/v775/Makefile
     simplesetups/v785/Makefile

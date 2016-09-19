@@ -1,6 +1,6 @@
 bin_PROGRAMS = teering
 
-teering_SOURCES = teering.cpp @srcdir@/tcmdline.c ../fragment.c
+teering_SOURCES = teering.cpp @srcdir@/tcmdline.c 
 
 BUILT_SOURCES=@srcdir@/tcmdline.c
 

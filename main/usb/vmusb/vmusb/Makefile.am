@@ -40,7 +40,7 @@ libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la \
 			@top_builddir@/base/os/libdaqshm.la	\
 				$(USB_LIBS)  
 
-INCLUDES		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
+AM_CPPFLAGS		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
 			-I@top_srcdir@/base/tcpip \
 			-I@top_srcdir@/base/os \
 			  @TCL_FLAGS@
@@ -57,8 +57,11 @@ libVMUSBRemote_la_LIBADD = @builddir@/libVMUSB.la \
 bin_PROGRAMS = tests
 
 tests_SOURCES = @srcdir@/TestRunner.cpp \
-								@srcdir@/regTests.cpp \
-								@srcdir@/vmeTests.cpp 
+		@srcdir@/regTests.cpp \
+		@srcdir@/vmeTests.cpp \
+		@srcdir@/Asserts.h
+
+
 tests_CPPFLAGS = -std=c++11 -g -I@prefix@/include -I@top_srcdir@/base/thread \
 		$(CPPUNIT_INCLUDES)
 tests_LDADD = @top_builddir@/base/thread/libdaqthreads.la \

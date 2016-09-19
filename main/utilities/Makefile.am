@@ -1,7 +1,8 @@
 
 
 
-SUBDIRS = 				daqstart \
+SUBDIRS = 				common	\
+					daqstart \
 					dvdburn \
 					sequencer \
                                         Buffer \

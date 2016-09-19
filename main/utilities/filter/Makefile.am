@@ -13,7 +13,6 @@ libfilter_la_SOURCES = CFilterMain.cpp \
                        COneShotException.cpp \
                        CMediatorException.cpp \
                        CAbnormalEndRunFilterHandler.cpp \
-                       @srcdir@/../StringsToIntegers.cpp \
 			CRunStatistics.cpp  \
 			 SatisfyTclPlus.cpp 
 
@@ -22,8 +21,6 @@ nodist_libfilter_la_SOURCES=filterargs.c filterargs.h
 #                       COneShotMediator.cpp 
 
 BUILT_SOURCES = filterargs.c filterargs.h
-
-noinst_HEADERS = @srcdir@/../StringsToIntegers.h 
 
 
 include_HEADERS	=  CFilterMain.h \
@@ -46,7 +43,7 @@ include_HEADERS	=  CFilterMain.h \
 
 #                   COneShotMediator.h 
 
-libfilter_la_CPPFLAGS	= -I@top_srcdir@/utilities \
+libfilter_la_CPPFLAGS	= -I@top_srcdir@/utilities/common \
 		-I@top_srcdir@/utilities/IO \
 		@LIBTCLPLUS_CFLAGS@	\
 		-I@top_srcdir@/base/uri		\
@@ -58,7 +55,7 @@ libfilter_la_LDFLAGS	= -version-info $(SOVERSION)	\
 				-Wl,"-rpath-link=$(libdir)" -lrt \
 				$(THREADLD_FLAGS)
 
-libfilter_la_LIBADD	= \
+libfilter_la_LIBADD	= @top_builddir@/utilities/common/libUtilCommon.la \
 			@top_builddir@/utilities/IO/libdaqio.la \
 			@top_builddir@/daq/format/libdataformat.la \
 			@top_builddir@/base/dataflow/libDataFlow.la \
