@@ -215,7 +215,7 @@ proc getRingUsage host {
     foreach item $ports {
 	set port [lindex $item 0]
 	set app  [lindex $item 1]
-	if {$app eq "RingMaster"} {
+	if {$app eq "RingMaster12"} {
 	    set port $port
 	    break
 	}
