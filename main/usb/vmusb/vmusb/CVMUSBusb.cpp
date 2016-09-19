@@ -26,9 +26,14 @@
 #include <string>
 #include <unistd.h>
 #include <stdio.h>
+#include <iostream>
+#include <iomanip>
+#include <algorithm>
 
 #include <pthread.h>
 
+#include <thread>
+#include <chrono>
 using namespace std;
 
 // Constants:
@@ -68,6 +73,40 @@ static const uint16_t TAVcsID12SHIFT(4);
 //   The following flag determines if enumerate needs to init the libusb:
 
 static bool usbInitialized(false);
+
+void print_stack(const char* beg, const char* end, size_t unitWidth)
+{
+  using namespace std;
+
+  cout << "Stack dump:" << endl;
+  auto it = beg;
+  size_t datum=0;
+  while (it != end) {
+    size_t dist = distance(beg,it);
+    size_t remainder = (dist % unitWidth);
+    if ( remainder==0 && it != beg) {
+      cout << dec << setfill(' ') << setw(3) << dist/unitWidth;
+      cout << " : 0x";
+      cout << hex << setfill('0') << setw(2*unitWidth) << datum << endl;
+
+      //reset value
+      datum = 0;
+    }
+    datum = datum | ((*it)<<remainder);
+    it++;
+  }
+
+  // dump any remainder
+  size_t dist = distance(beg,it);
+  size_t remainder = (dist % unitWidth);
+  cout << dec << setfill(' ') << setw(3) << dist/unitWidth;
+  cout << " : 0x";
+  cout << hex << setfill('0') << setw(2*unitWidth) << datum << endl;
+
+
+  cout << dec << setfill(' ');
+  cout << "--------" << std::endl;
+}
 
 /////////////////////////////////////////////////////////////////////
 /*!
@@ -248,6 +287,8 @@ void CVMUSBusb::writeActionRegister(uint16_t data)
   if (status != outSize) {
     throw "usb_bulk_write wrote different size than expected";
   }
+
+  print_stack(outPacket, outPacket+outSize, sizeof(uint16_t));
 
 }
 
@@ -438,19 +479,31 @@ int
 CVMUSBusb::transaction(void* writePacket, size_t writeSize,
 		    void* readPacket,  size_t readSize)
 {
+  char buf[26700];
+  
+  
+  print_stack(reinterpret_cast<char*>(writePacket), 
+      reinterpret_cast<char*>(writePacket)+writeSize, sizeof(uint16_t));
+
     CriticalSection s(*m_pMutex);
     int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
 				static_cast<char*>(writePacket), writeSize, 
-				m_timeout);
+        m_timeout);
     if (status < 0) {
-	errno = -status;
-	return -1;		// Write failed!!
+      errno = -status;
+      return -1;		// Write failed!!
+    } else if (status > 0) {
+      readSize = sizeof(buf);
     }
     status    = usb_bulk_read(m_handle, ENDPOINT_IN,
-			      static_cast<char*>(readPacket), readSize, m_timeout);
+                  			      buf, readSize, m_timeout);
     if (status < 0) {
-	errno = -status;
-	return -2;
+      errno = -status;
+      return -2;
+    } else {
+      std::copy(buf, 
+                buf + std::min(size_t(status),readSize), 
+                reinterpret_cast<char*>(readPacket));
     }
     return status;
 }
@@ -580,11 +633,10 @@ CVMUSBusb::openVMUsb()
       msg += strerror(-status);
       throw msg;
     }
-    usb_clear_halt(m_handle, ENDPOINT_IN);
-    usb_clear_halt(m_handle, ENDPOINT_OUT);
 
-    Os::usleep(100);
-    
+    // reset the module
+    writeActionRegister(ActionRegister::clear);
+
     // Turn off DAQ mode and flush any data that might be trapped in the VMUSB
     // FIFOS.  To write the action register may require at least one read of the FIFO.
     //
