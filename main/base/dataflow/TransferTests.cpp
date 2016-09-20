@@ -85,7 +85,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(XferTests);
 void XferTests::simpleput() {
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
 
   // Check the initial format of the put 'pointer'
@@ -131,7 +131,7 @@ void XferTests::wrapput()
 {
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(fullName(mapRingBuffer(SHM_TESTFILE).c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
 
 
@@ -185,7 +185,7 @@ void XferTests::edgewrap()
 {
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fullName(SHM_TESTFILE).c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pRingHeader pHeader = &(pBuffer->s_header);
 
@@ -234,7 +234,7 @@ void XferTests::simpleget()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer gring(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fullName(SHM_TESTFILE).c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pRingHeader pHeader = &(pBuffer->s_header);
 
@@ -281,7 +281,7 @@ void XferTests::wrapget()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer gring(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pRingHeader pHeader = &(pBuffer->s_header);
 
@@ -324,7 +324,7 @@ void XferTests::edgewrapget()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer cring(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pClientInformation pGet    =  pBuffer->s_consumers;
   pRingHeader pHeader = &(pBuffer->s_header);
