@@ -140,7 +140,7 @@ CRingBuffer::create(std::string name,
   ssize_t existingSize = CDAQShm::size(memoryName);
   
   if (existingSize < 0) {
-    if(CDAQShm::create(shmName(memoryName), shmSize, 
+    if(CDAQShm::create(memoryName, shmSize, 
                        CDAQShm::GroupRead | CDAQShm::GroupWrite | CDAQShm::OtherRead | CDAQShm::OtherWrite)) {
       throw CErrnoException("Shared memory creation failed");
     }
@@ -245,7 +245,7 @@ CRingBuffer::remove(string name)
   // If _I_ don't own the ring don't allow deletion (unless I'm root).
   
   struct stat shmInfo;
-  int status = CDAQShm::stat(name, &shmInfo);
+  int status = CDAQShm::stat(shmName(name), &shmInfo);
   if (status == -1) {
     throw CErrnoException("CRingBuffer::remove - Getting info about shared memory");
   }
@@ -297,8 +297,15 @@ CRingBuffer::format(std::string name,
   // need the memory size for initialization.
 
   string fullName = shmName(name);
-  size_t memSize = CDAQShm::size(fullName);
-
+  ssize_t memSize = CDAQShm::size(fullName);
+  if (memSize == -1) {
+    if (CDAQShm::lastError() == CDAQShm::CheckOSError) {
+      throw CErrnoException("CRingBuffer::format - sizing the shared memory");
+    } else {
+      throw CDAQShm::errorMessage(CDAQShm::lastError());
+    }
+  }
+  
   // Now map the ring:
 
   pRingBuffer      pRing      = reinterpret_cast<pRingBuffer>(CDAQShm::attach(fullName));
@@ -1151,12 +1158,16 @@ CRingBuffer::availableData(ClientInformation* pInfo)
 /*******************************************************************/
 /*  Construct the full device special file for a shared memory     */
 /*  segment given the 'simple' name. This just prepends a '/' to   */
-/*  the simple name                                                */
+/*  the simple name. and appends _12                               */
 /*******************************************************************/
 string
 CRingBuffer::shmName(string rawName)
 {
-  return string("/") + rawName;
+  string fullname = "/";
+  fullname       += rawName;
+  fullname       += "_12";
+  
+  return fullname;
 }
 
 /*******************************************************************/

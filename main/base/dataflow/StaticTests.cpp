@@ -24,13 +24,20 @@ static std::string SHM_TESTFILE;
 
 // Default name of shared memory special file:
 
+static string getFilename(std::string name)
+{
+  std::string result = name;
+  result += "_12";
+  return result;
+}
 
 
 static string getFullName()
 {
   string fullname(SHM_DIRECTORY);
 
-  fullname += SHM_TESTFILE;
+  fullname += getFilename(SHM_TESTFILE);
+
   return fullname;
 }
 
@@ -156,7 +163,7 @@ void StaticRingTest::format()
 
   // independently map and check the header...
 
-  void* map = mapRingBuffer(SHM_TESTFILE.c_str());
+  void* map = mapRingBuffer(getFilename(SHM_TESTFILE).c_str());
   
   pRingBuffer        pRing         = reinterpret_cast<pRingBuffer>(map);
   pRingHeader        pHeader       = &(pRing->s_header);
@@ -225,8 +232,8 @@ StaticRingTest::isring()
   ASSERT(CRingBuffer::isRing(string(SHM_TESTFILE)));
   CRingBuffer::remove(string(SHM_TESTFILE));
 
-  string full = "/";
-  full       += SHM_TESTFILE;
+  std::string full = getFilename(SHM_TESTFILE);
+
   int fd = shm_open(full.c_str(), O_RDWR | O_CREAT, 0666);
   ASSERT(fd != -1);
   int stat = ftruncate(fd, 100);

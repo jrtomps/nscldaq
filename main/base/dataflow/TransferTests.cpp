@@ -25,11 +25,18 @@ using namespace std;
 
 static std::string SHM_TESTFILE;
 
+static string fileName(std::string name)
+{
+  std::string result = name;
+  result += "_12";
+  return result;
+}
+
 static string getFullName()
 {
   string fullname(SHM_DIRECTORY);
   fullname += "/";
-  fullname += SHM_TESTFILE;
+  fullname += fileName(SHM_TESTFILE);
   return fullname;
 }
 
@@ -124,7 +131,7 @@ void XferTests::wrapput()
 {
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(fullName(mapRingBuffer(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
 
 
@@ -178,7 +185,7 @@ void XferTests::edgewrap()
 {
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fullName(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pRingHeader pHeader = &(pBuffer->s_header);
 
@@ -227,7 +234,7 @@ void XferTests::simpleget()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer gring(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fullName(SHM_TESTFILE).c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pRingHeader pHeader = &(pBuffer->s_header);
 
