@@ -311,6 +311,7 @@ void rmasterTests::existsAndIsRing()
     std::string ringName("isaring");
     std::string shmName("/");
     shmName += ringName;
+    shmName += "_12";
     
     CDAQShm::remove(shmName);                 // Just in case
     

@@ -18,6 +18,13 @@
 
 using namespace std;
 
+std::string
+fileName(std::string ring)
+{
+  ring += "_12";
+  return ring;
+}
+
 
 class InfoTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(InfoTests);
@@ -75,7 +82,7 @@ void InfoTests::usageempty()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer::Usage use = ring.getUsage();
 
-  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   RingHeader& header(pRing->s_header);
 
   size_t bufferSpace = header.s_dataBytes;
@@ -103,7 +110,7 @@ void InfoTests::usage1consumer()
 {
   CRingBuffer cons(SHM_TESTFILE);
   CRingBuffer prod(SHM_TESTFILE, CRingBuffer::producer);
-  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   RingHeader& header(pRing->s_header);
 
   char msg[100];		// contents don' matter for this test...
@@ -137,7 +144,7 @@ void InfoTests::usageconsumers()
   prod.put(msg, sizeof(msg));
 
 
-  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
   RingHeader& header(pRing->s_header);
 
   // Get different amounts from each of the consumers:

@@ -16,6 +16,14 @@
 
 using namespace std;
 
+static std::string 
+fileName(std::string ringName)
+{
+  ringName += "_12";
+  return ringName;
+}
+
+
 // Default name of shared memory special file:
 
 
@@ -50,7 +58,7 @@ public:
     m_pProducer = new CRingBuffer(string(SHM_TESTFILE), CRingBuffer::producer);
     m_pConsumer = new CRingBuffer(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-    m_pRing   = (pRingBuffer)mapRingBuffer(SHM_TESTFILE.c_str());
+    m_pRing   = (pRingBuffer)mapRingBuffer(fileName(SHM_TESTFILE).c_str());
     m_pHeader = reinterpret_cast<pRingHeader>(m_pRing);
     m_pPut    = &(m_pRing->s_producer);
     m_pGet    = m_pRing->s_consumers;
