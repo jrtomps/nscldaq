@@ -23,6 +23,12 @@
 
 using namespace std;
 
+static std::string
+fullName(std::string ring)
+{
+  ring += "_12";
+  return ring;
+}
 
 class rmasterTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(rmasterTests);
@@ -280,13 +286,13 @@ void rmasterTests::existsAndIsNotRing()
     
     // Delete without checking status in case it already exists:
     
-    CDAQShm::remove(shmName);
+    CDAQShm::remove(fullName(shmName));
     
     // Create a non ring buffer shared memory
     
     long minsize = sysconf(_SC_PAGESIZE);
     ASSERT(!CDAQShm::create(
-        shmName, minsize,
+	fullName(shmName), minsize,
         CDAQShm::GroupRead | CDAQShm::GroupWrite |
         CDAQShm::OtherRead | CDAQShm::OtherWrite));
     
@@ -300,7 +306,7 @@ void rmasterTests::existsAndIsNotRing()
     
     // Cleanup by getting rid of that shared memory region.
     
-    ASSERT(!CDAQShm::remove(shmName));
+    ASSERT(!CDAQShm::remove(fullName(shmName)));
     
 }
 // If the shared memory exists and is a ring but not known to the
