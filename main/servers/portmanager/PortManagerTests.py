@@ -135,12 +135,13 @@ class PortManagerTests(unittest.TestCase):
         ports = pm.listPorts()
         self.assertEquals(1, len(ports))
         rm = ports[0]
-        self.assertEquals('RingMaster', rm['service'])
+        self.assertEquals('RingMaster12', rm['service'])
     
     ##
     # test_list_afew
     #   Not content with ensuring this all works for a single port I'll create
     #   a few and ensure the all are listed.
+    #   - This test assumes the ring master is running.
     #
     def test_list_afew(self):
         pm     = PortManager.PortManager('localhost', 30000)
@@ -157,7 +158,7 @@ class PortManagerTests(unittest.TestCase):
     
         # RingMaster is present:
         
-        self.assertTrue('RingMaster' in keyedData.keys())
+        self.assertTrue('RingMaster12' in keyedData.keys())
         
         # myport is present and has the right stuff:
         
