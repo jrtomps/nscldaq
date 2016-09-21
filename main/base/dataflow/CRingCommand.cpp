@@ -532,8 +532,8 @@ CRingCommand::usage(CTCLInterpreter&    interp,
 	    CTCLObject producerStats;
 	    producerStats.Bind(interp);
 
-	    producerStats += (int)usageInfo.s_producerStats.s_transfers;
-	    producerStats += (int)usageInfo.s_producerStats.s_bytes;
+	    producerStats += (double)usageInfo.s_producerStats.s_transfers;
+	    producerStats += (double)usageInfo.s_producerStats.s_bytes;
 
 	    Result += producerStats;
 
@@ -546,8 +546,8 @@ CRingCommand::usage(CTCLInterpreter&    interp,
 	      CTCLObject aConsumer;
 	      aConsumer.Bind(interp);
 	      aConsumer += (int)c.s_pid;
-	      aConsumer += (int)c.s_transfers;
-	      aConsumer += (int)c.s_bytes;
+	      aConsumer += (double)c.s_transfers;
+	      aConsumer += (double)c.s_bytes;
 
 	      consumerStats += aConsumer;
 	    }
