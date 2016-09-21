@@ -76,7 +76,7 @@ snit::type OfflineEVBHoistPipeParams {
   #
   method validateSourceRing {errors_} {
     upvar $errors_ errors
-    if {! [file exists [file join /dev shm $options(-sourcering)]]} {
+      if {! [file exists [file join /dev shm ${options(-sourcering)}_12]]} {
        lappend errors "Ring $options(-sourcering) does not exist on localhost."
     }
   }

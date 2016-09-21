@@ -116,7 +116,7 @@ snit::type OfflineEVBInputPipeParams {
   method validateInputRing {errors_} {
     upvar $errors_ errors
 
-    if {! [file exists [file join /dev shm $options(-inputring)]]} {
+      if {! [file exists [file join /dev shm ${options(-inputring)}_12]]} {
       set msg "Ring does not exist on localhost. User has provided "
       append msg "$options(-inputring)"
       lappend errors $msg

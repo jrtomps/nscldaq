@@ -104,7 +104,7 @@ snit::type OfflineEVBOutputPipeParams {
       }
 
       set ring [string trimleft $ring "/"]
-      if {![file exists [file join /dev shm $ring]]} {
+	if {![file exists [file join /dev shm ${ring}_12]]} {
         lappend errors "Ring \"$ring\" does not exist on localhost." 
       }
     } else {
