@@ -95,7 +95,7 @@ proc usage {} {
     puts stderr " ringbuffer format ?--maxconsumers=n?                  name"
     puts stderr " ringbuffer delete                                     name"
     puts stderr " ringbuffer status ?--host=hostname? ?--all? ?--user=user1,..?  ?name?"
-
+    puts stderr " ringbuffer statistics ?--interval=seconds"
     puts stderr " ringbuffer list   ?--host=hostname?"
 
 }
@@ -479,6 +479,157 @@ proc listRings tail {
 	puts [lindex $ring 0]
     }
 }
+##
+# ringStatistics
+#
+#   Periodically display the ring statistics.   If the output device is a
+#   terminal like device (has -mode), then the unix clear command
+#   is execd before each output.
+#
+#  @param tail - remaining args... the --interval option sets the
+#                update interval, defaults to 1 second.
+#
+#  @note this proc runs until the user ^C's us.
+#
+proc ringStatistics tail {
+    set escape "\33"
+    set options [list          \
+		 --interval=1  \
+		 --host=localhost
+    ]
+    array set parse [decodeArgs $tail $options]
+    set interval $parse(--interval)
+    set host     $parse(--host)
+    array set lastStatistics [list]
+    
+    set tty [dict exists [fconfigure stdout] -mode]
+    while {1} {
+	
+	#
+	#  Clear screen if a terminal (ANSI clear/home sequence
+	#  since exec clear does not work :-( ).
+	#
+	if {$tty} {
+	   puts -nonewline "${escape}\[2J${escape}\[H"
+	}
+	#  Accumulate the current statistics:
+	
+	array set statistics [list]
+	array unset statistics
+	
+	set stats  [getRingUsage $host]
+
+	foreach ring $stats {
+	    set name [lindex $ring 0]
+	    set info [lindex $ring 1]
+	    set ppid [lindex $info 3]
+	    set pitems [lindex [lindex $info 7] 0]
+	    set pbytes [lindex [lindex $info 7] 1]
+	    set consumers [lindex $info 8]
+	    set backlogs  [lindex $info 6]
+	    set consumerdict [dict create]
+	    foreach cinfo $consumers binfo $backlogs {
+		set pid [lindex $cinfo 0]
+		set items [lindex $cinfo 1]
+		set bytes [lindex $cinfo 2]
+		set backlog [lindex $binfo 1]
+		dict append consumerdict $pid [list $items $bytes $backlog]
+	    }
+	    set statistics($name) [list $ppid $pitems $pbytes $consumerdict]
+	}
+	::struct::matrix reportData
+	reportData add     columns 7
+	reportData insert  row 0 [list Ring Client items bytes items/sec bytes/sec Backlog]
+	
+	
+	
+	# Add the data to the report sorted by ring name.  Producer on the same
+	# line of the ring and consumers on lines by themselves. We use
+	# lastStatistics to compute rates if those are available or put in *
+	# if not yet.
+	
+	foreach ringName [lsort -increasing [array names statistics]] {
+	    set ringData $statistics($ringName);     # current stats
+	    
+	    # last stats are either an element from last Statistics or [list]
+	    
+	    if {[array names lastStatistics $ringName] eq ""} {
+		set last [list]
+	    } else {
+		set last $lastStatistics($ringName)
+	    }
+	    
+	    # Producer line
+	    
+	    set ppid [lindex $ringData 0]
+	    set pitems [lindex $ringData 1]
+	    set pbytes [lindex $ringData 2]
+	    
+	    set row $ringName
+	    
+	    if {$ppid != -1} {
+		lappend row $ppid $pitems $pbytes
+		
+		# Rates if possible:
+		
+		if {$last ne [list]} {
+		    set itemRate [expr {($pitems - [lindex $last 1])/$interval}]
+		    set byteRate [expr {($pbytes - [lindex $last 2])/$interval}]
+		    
+		} else {
+		    set itemRate *
+		    set byteRate *
+		}
+		lappend row $itemRate $byteRate N/A;    # No backlog for producer
+	    } else {
+		lappend row * * * * * N/A
+	    }
+	    reportData insert row end $row
+	    
+	    
+	    #  Compute the consumer lines and add them:
+	    
+	    set lastConsumerInfo [lindex $last 3]
+	    set consumerDict [lindex $ringData 3]
+	    dict for {pid stats} $consumerDict {
+		set items [lindex $stats 0]
+		set bytes  [lindex $stats 1]
+		set backlog [lindex $stats 2]
+		
+		set row [list "" $pid $items $bytes]
+		if {[dict exists $lastConsumerInfo $pid]} {
+		    set consumerLast [dict get $lastConsumerInfo $pid]
+		    set itemRate [expr {($items - [lindex $consumerLast 0])/$interval}]
+		    set byteRate [expr {($bytes - [lindex $consumerLast 1])/$interval}]
+		    
+		} else {
+		    set itemRate *
+		    set byteRate *
+		}
+		lappend row $itemRate $byteRate $backlog
+		
+		#  If possible figure out the rates too:
+		
+		
+		
+		reportData insert row end $row
+	    }
+	    
+	    #
+	    
+	    
+	}
+	array unset lastStatistics
+	array set lastStatistics [array get statistics] 
+	
+	::report::report r 7 style captionedtable 1
+	puts [r printmatrix reportData]
+	
+	reportData destroy
+	r destroy
+	after [expr {1000*$interval}];               # delay  until next update.
+    }
+}
 #--------------------------------------------------------------------------
 # Entry point.
 # 
@@ -510,6 +661,8 @@ if       {$subcommand eq "create"} {
     displayStatus $argv
 } elseif {$subcommand eq "list"} {
     listRings $argv
+} elseif {$subcommand eq "statistics"} {
+    ringStatistics $argv
 } else {
     usage 
     exit -1

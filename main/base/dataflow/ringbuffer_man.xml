@@ -48,7 +48,11 @@ ringbuffer status <replaceable>?--host=hostname?  ?--all? ?--user=user1?,...?? ?
 ringbuffer list   <replaceable>?--host=hostname?</replaceable>
         </command>
     </cmdsynopsis>
-
+    <cmdsynopsis>
+      <command>
+ringbuffer statistics <replaceable>?--host=hostname? ?--interval=seconds?</replaceable>
+      </command>
+    </cmdsynopsis>
 
   </refsynopsisdiv>
   <refsect1>
@@ -223,6 +227,96 @@ ringbuffer status --user=`whoami`,root
                 </para>
             </listitem>
         </varlistentry>
+	<varlistentry>
+	    <term><command>ringbuffer statistics <replaceable>?--host=hostname? ?--interval=seconds?</replaceable></command></term>
+	    <listitem>
+		<para>
+		  Repeatedly shows the data flow statistics for all ring buffers
+		  in a host.  The <option>--host</option> and <option>--interval</option>
+		  options are both optional.  <option>--host</option> defaults
+		  to <literal>localhost</literal> and is the system for which
+		  ring buffer statistics are shown. <option>--interval</option>
+		  defaults to <literal>1</literal> and is the refresh rate
+		  of the display in seconds.
+		</para>
+		<para>
+		  The display creates and maintains a table with the following
+		  rows:
+		  <variablelist>
+		    <varlistentry>
+			<term><literal>ring</literal></term>
+			<listitem>
+			    <para>
+			      The name of the ring for which statistics
+			      are shown  The information can be spread over
+			      several lines.  The first line will display
+			      producer statistics, if there is a producer.
+			      subsequent lines will display consumer
+			      statistics.
+			    </para>
+			</listitem>
+		    </varlistentry>
+		    <varlistentry>
+			<term><literal>pid</literal></term>
+			<listitem>
+			    <para>
+			      The process Id of the process for which statistics
+			      are being displayed.
+			    </para>
+			</listitem>
+		    </varlistentry>
+		    <varlistentry>
+			<term><literal>items</literal></term>
+			<listitem>
+			    <para>
+			      The number of ring items that have been
+			      put (for the producer) or gotten (for
+			      consumers).
+			    </para>
+			</listitem>
+		    </varlistentry>
+		    <varlistentry>
+			<term><literal>bytes</literal></term>
+			<listitem>
+			    <para>
+			      The number of bytes that have been
+			      put (for the producer) or gotten (for
+			      consumers).
+			    </para>
+			</listitem>
+		    </varlistentry>
+		    <varlistentry>
+			<term><literal>items/sec</literal></term>
+			<listitem>
+			    <para>
+			      The put or get rate in ring items per second.
+			    </para>
+			</listitem>
+		    </varlistentry>
+		    <varlistentry>
+			<term><literal>bytes/sec</literal></term>
+			<listitem>
+			    <para>
+			      The put or get rate in bytes/sec.
+			    </para>
+			</listitem>
+		    </varlistentry>
+		    <varlistentry>
+			<term><literal>Backlog</literal></term>
+			<listitem>
+			    <para>
+			      The number of bytes of data that are queued for a
+			      consumer.   For producers, this is
+			      <literal>N/A</literal>.  This statistic allows you
+			      to localize which consumer is causing flow control
+			      if the system has been forced into flow control.
+			    </para>
+			</listitem>
+		    </varlistentry>
+		  </variablelist>
+		</para>
+	    </listitem>
+	</varlistentry>
      </variablelist>
   </refsect1>
   <refsect1>
