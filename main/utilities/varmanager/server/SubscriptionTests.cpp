@@ -485,6 +485,12 @@ public:
     void reset() {
         notified = false;
     }
+    void dumpmsg(std::ostream& o) {
+      o << "Message -------------------\n";
+      o << "path: " << m_message.s_path << std::endl;
+      o << "op  : " << m_message.s_operation << std::endl;
+      o << "data: " << m_message.s_data << std::endl;
+    }
 };
 
 void SubTests::notifier()
@@ -634,11 +640,15 @@ void SubTests::rejectMultiple()
     
     m_pApi->set("/test/atest", "666");            // Match/reject.
     sub();
+    if (sub.notified) {
+      sub.dumpmsg(std::cout);
+    }
     ASSERT(!sub.notified);
     sub.reset();
     
     m_pApi->set("/test/ctest", "777");         // Match reject
     sub();
+    if (sub.notified) sub.dumpmsg(std::cout);
     ASSERT(!sub.notified);
     sub.reset();
 }
