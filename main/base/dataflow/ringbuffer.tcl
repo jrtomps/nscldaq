@@ -341,7 +341,7 @@ proc filterRingStats {ringList opts}  {
     foreach item $ringList {
 	if {$filter} {
 	    set ringName [lindex $item 0]
-	    set ringFile [file join /dev/shm $ringName] ; #linux specific
+	    set ringFile [file join /dev/shm ${ringName}_12] ; #linux specific
 	    set owner [file attributes $ringFile -owner]
 	    if {$owner in $userList} {
 		lappend result $item
