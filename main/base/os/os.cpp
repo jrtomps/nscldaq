@@ -14,16 +14,20 @@
 	     East Lansing, MI 48824-1321
 */
 #include "os.h"
+#include "io.h"
 #include <ErrnoException.h>
 #include <pwd.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <time.h>
 #include <signal.h>
 #include <stdexcept>
 #include <netdb.h>
+#include <sstream>
 
 
 static const unsigned NSEC_PER_SEC(1000000000); // nanoseconds/second.
@@ -188,4 +192,64 @@ Os::getfqdn(const char* host)
     throw std::string(hstrerror(errorCode));
   }
   return result.h_name;
+}
+/**
+ * getProcesssCommand
+ *    Get the command words that make up a process.  Specifically this
+ *    reads /proc/pid/cmdline and breaks up each null terminated string into
+ *    an element of the returned vector.
+ *
+ *   @param pid - pid to look up.
+ *   @return std::vector<std::string> the words of the command line.
+ *   @throw CErrnoException - if the cmdline proc 'file' can't be opened.
+ */
+std::vector<std::string>
+Os::getProcessCommand(pid_t pid)
+{
+  
+  // We're going to gulp in the entire file.  This requires we know the length
+  // of the longest command line so we can allocate an appropriately sized
+  // buffer.  Note that since spaces on the command line get replaced with
+  // nulls, the value from sysconf(ARG_MAX). is sufficient:
+  
+  long cmdMax = sysconf(_SC_ARG_MAX);
+  char* words = new char[cmdMax];   // throws on allocation failure.
+  std::vector<std::string> result;
+  
+  // The remainder of the code is in a try block so the words get deleted
+  // in case of error.
+  
+  
+  try {
+    // Encode the name of the file we want to open:
+    
+    std::ostringstream os;
+    os << "/proc/" << pid << "/cmdline";
+    std::string path = os.str();
+    
+    int fd = open(path.c_str(), O_RDONLY);
+    if (fd == -1) {
+      throw CErrnoException("Opening proc special file element");
+    }
+    size_t n = io::readData(fd, words, cmdMax);
+    
+    // Now marshall the data into the std::vector<std::string>
+    // words should be a pile of null terminated strings with an addtional
+    // null at the end:
+    
+    const char* p = words;
+    while (*p) {
+      std::string aWord = p;
+      result.push_back(aWord);
+      p += strlen(p) + 1;                  // next string starts here.
+    }
+    
+  }
+  catch (...) {
+    delete []words;
+    throw;
+  }
+  delete []words;
+  return result;
+
 }

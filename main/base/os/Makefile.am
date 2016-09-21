@@ -19,8 +19,8 @@ EXTRA_DIST=shm.xml
 # Tests:
 
 noinst_PROGRAMS    = unittests
-unittests_SOURCES = TestRunner.cpp createTests.cpp removeTests.cpp attachTests.cpp \
-        detachTests.cpp timeoutTests.cpp
+unittests_SOURCES = TestRunner.cpp createTests.cpp removeTests.cpp \
+	attachTests.cpp detachTests.cpp timeoutTests.cpp pidCmdTests.cpp
 
 
 unittests_CPPFLAGS=$(COMPILATION_FLAGS)

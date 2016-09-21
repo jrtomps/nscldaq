@@ -504,7 +504,23 @@ g++ -o myprogram obj1.o obj2.o obj3.o -L$DAQHOME/lib -ldaqshm \
             <modifier></modifier><type>int </type>
                 <parameter>returnCode</parameter>
         </methodparam>
-    </methodsynopsis>  
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier>
+        <type>std::string</type>
+        <methodname>getfqdn</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type><parameter>host</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier>
+        <type>std::vector&lt;std::string&gt</type>
+        <methodname>getProcessCommand</methodname>
+        <methodparam>
+            <type>pid_t</type><parameter>pid</parameter>
+        </methodparam>
+    </methodsynopsis>
   
 };
    </synopsis>
@@ -664,8 +680,52 @@ g++ -o myprogram obj1.o obj2.o obj3.o -L$DAQHOME/lib -ldaqshm \
                 </para>
             </listitem>
         </varlistentry>
-                
-                
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static</modifier>
+                    <type>std::string</type>
+                    <methodname>getfqdn</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type><parameter>host</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Given a <parameter>host</parameter> returns the preferred
+                    fully qualified host name for that node.  Note that
+                    preferred means that the output may not have much to do
+                    with the input, although it will refer to the same node,
+                    for example at the nscl, <literal>nsclgw1</literal> as input
+                    will return <literal>turquoise.nscl.msu.edu</literal>.  This
+                    is because DNS allows a host to have aliases.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static</modifier>
+                    <type>std::vector&lt;std::string&gt</type>
+                    <methodname>getProcessCommand</methodname>
+                    <methodparam>
+                        <type>pid_t</type><parameter>pid</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Given the <parameter>pid</parameter> of a valid process,
+                    returns a vector that is made up of the words of the
+                    process's command line.  For example if the process is
+                    <literal>sleep 3</literal>, the first element of the vector
+                    will be <literal>sleep</literal> and the second
+                    <literal>3</literal> (a string not an integer).
+                </para>
+            </listitem>
+        </varlistentry>
+
                     
      </variablelist>
   </refsect1>
