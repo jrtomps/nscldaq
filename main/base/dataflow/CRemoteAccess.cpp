@@ -189,6 +189,28 @@ CRingAccess::getTimeout()
 {
   return m_Timeout;
 }
+
+/**
+ * computeLocalRingName
+ *    Determines the name of the proxy ring given a local ring name:
+ *
+ *  @param ring - name of the ring in the remote host.
+ *  @param host - host name.
+ *  @return std::string - ring@fdqn(host)  where fdqn is the fully qualified
+ *                        version of host.  Note that the caller is responsible
+ *                        for squashing local rings, we'll quite happily return
+ *                        ringname@localhost if that's what's fed us.
+ */
+std::string
+CRingAccess::computeLocalRingName(const char* ring, const char* host)
+{
+  std::string result = ring;
+  result += "@";
+  result += Os::getfqdn(host);
+		      
+  return result;  
+		      
+}
 /*!
   This is the flagship entry of the class.  Connects to a ring buffer either local or remote,
   the ring buffer is designated by a URI of the form:
@@ -233,12 +255,11 @@ CRingAccess::daqConsumeFrom(string uri)
   if (local(host)) {
     return new CRingBuffer(ring, CRingBuffer::consumer);
   }
-  host = Os::getfqdn(host.c_str());
-  // If the proxy ring exists..and has a feeder... we can just connect to it:
 
-  string proxyRingName(host);
-  proxyRingName += ".";
-  proxyRingName += ring;
+  std::string proxyRingName = computeLocalRingName(ring.c_str(), host.c_str());
+  
+  // If the ring exists, just use it, if necessary re-starting the feeder.
+  
   if (CRingBuffer::isRing(proxyRingName)) {
     CRingBuffer* pRingBuffer =  new CRingBuffer(proxyRingName, CRingBuffer::consumer);
     CRingBuffer::Usage usage = pRingBuffer->getUsage();
@@ -251,6 +272,8 @@ CRingAccess::daqConsumeFrom(string uri)
     }
   }
 
+  // Make a new proxy ring.
+  
   CRingBuffer::create(proxyRingName, m_proxyRingSize, m_proxyMaxConsumers, true);
   startPipeline(host, ring,  proxyRingName);
 

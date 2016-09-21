@@ -19,6 +19,7 @@ class RemoteTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(timeoutTest);
   CPPUNIT_TEST(urllocal);
   CPPUNIT_TEST(urlremote);
+  CPPUNIT_TEST(proxyName);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -38,6 +39,7 @@ protected:
   void timeoutTest();
   void urllocal();
   void urlremote();
+  void proxyName();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RemoteTests);
@@ -210,4 +212,20 @@ RemoteTests::urlremote()
 
   ASSERT(!caught);
   delete pConsumer;		// Destroy the proxy ring.
+}
+
+// Test that the right proxy ring names get created.
+
+
+void
+RemoteTests::proxyName()
+{
+  
+  // Since this could run outside the nscl
+  // 1. hand in a fdqn
+  // 2. hand  in an existing known publicly visible node.
+  //
+  std::string proxy = CRingAccess::computeLocalRingName("aring", "www.nscl.msu.edu");
+  
+  EQ(std::string("aring@www.nscl.msu.edu"), proxy);
 }

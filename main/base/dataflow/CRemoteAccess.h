@@ -81,6 +81,7 @@ public:
 
 
   static CRingBuffer* daqConsumeFrom(std::string uri);
+  static std::string  computeLocalRingName(const char* ring, const char* host);
   
 
   // Utilities
