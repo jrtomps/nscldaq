@@ -29,6 +29,8 @@
 #include <netdb.h>
 #include <sstream>
 
+#include <iostream>
+#include <errno.h>
 
 static const unsigned NSEC_PER_SEC(1000000000); // nanoseconds/second.
 
@@ -213,7 +215,15 @@ Os::getProcessCommand(pid_t pid)
   // nulls, the value from sysconf(ARG_MAX). is sufficient:
   
   long cmdMax = sysconf(_SC_ARG_MAX);
-  char* words = new char[cmdMax];   // throws on allocation failure.
+  char* words;
+  try {
+    words = new char[cmdMax];   // throws on allocation failure.
+  }
+  catch (std::bad_alloc) {
+    words = new char[20480]; // Probably still good.
+    cmdMax = 20480;
+  }
+
   std::vector<std::string> result;
   
   // The remainder of the code is in a try block so the words get deleted
@@ -232,7 +242,6 @@ Os::getProcessCommand(pid_t pid)
       throw CErrnoException("Opening proc special file element");
     }
     size_t n = io::readData(fd, words, cmdMax);
-    
     // Now marshall the data into the std::vector<std::string>
     // words should be a pile of null terminated strings with an addtional
     // null at the end:
