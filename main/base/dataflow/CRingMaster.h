@@ -17,12 +17,8 @@
 */
 
 
-#ifndef __STL_STRING
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
+#include <vector>
 
 // Forward class definitions.
 
@@ -44,6 +40,13 @@ class CRingBuffer;
 */
 class CRingMaster
 {
+  // Public data:
+
+  typdef std::vector<std::string> commandWords
+  typedef struct _ClientCommands {
+    commandWords              s_producer;
+    std::vector<commandWords> s_consumers;
+  } ClientCommands;
   // Instance data:
 private:
   int      m_socket;		// Socket connected to the server.
@@ -73,7 +76,7 @@ public:
   void notifyDestroy(std::string ringname);
   int  requestData(std::string ringname);
   std::string requestUsage();
-  
+  ClientCommands listClients(std::string ringname);
   // Utilities:
 
 private:
