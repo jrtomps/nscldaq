@@ -26,9 +26,9 @@ private:
   int m_a;
 public:
   CInvalidA(int a) : CCamacBranchException(), m_a(a) {}
-  ~CInvalidA() {}
+  virtual ~CInvalidA() {}
   virtual const char* what() const {
-    std::stringstream msg;
+    static std::stringstream msg; /* for scope issues. */
     msg << m_a << " is an invalid A value";
 
     return msg.str().c_str();

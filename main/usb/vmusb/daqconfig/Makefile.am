@@ -47,6 +47,7 @@ libVMUSBDaqConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CCBD8210CrateController.cpp \
 				CCBD8210ReadoutList.cpp \
 				CCBDCamacBranch.cpp \
+				@top_srcdir@/usb/common/devices/CCamacBranchException.h \
 				@top_srcdir@/usb/common/devices/CBCNAF.cpp \
 				@top_srcdir@/usb/common/devices/CCNAF.cpp \
 				@top_srcdir@/usb/common/devices/CNAF.cpp \

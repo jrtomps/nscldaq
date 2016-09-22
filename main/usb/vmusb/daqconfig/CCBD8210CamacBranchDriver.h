@@ -53,5 +53,7 @@ class CCBD8210CamacBranchDriver : public CCamacBranchDriver
     private:
     static bool isValidBCNAF(int b, int c, int n, int a, int f);
 };
+// Required to get the vtable emitted:
+
 
 #endif
