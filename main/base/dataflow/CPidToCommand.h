@@ -42,8 +42,8 @@ public:
   CPidToCommand(CTCLInterpreter& interp, const char* pCommand="pidToCommand");
   virtual ~CPidToCommand();
 
-  virtual operator()(CTCLInterpreter& interp, std::vector<CTCLObject&> objv);
+  virtual int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 
-}
+};
 
 #endif
