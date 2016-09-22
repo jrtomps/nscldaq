@@ -113,12 +113,13 @@ set knownRings  [list];			# Registered rings.
 # If the host translates we'll assume this is a proxy.
 #
 proc isRemoteProxy name {
-    set host [file rootname $name]
-    set ring [file extension $name]
+    set nameList [split $name @]
+    set host     [lindex $nameList 1]
+    set ring     [lindex $nameList 0]
 
     # Must have a non-blank extension:
 
-    if {$ring eq ""} {
+    if {$host eq ""} {
 	return "false"
     }
 
@@ -141,7 +142,7 @@ proc isRemoteProxy name {
 # The rings are enuemrated into the global variable ::knownRings above.
 #
 proc enumerateRings {} {
-    set files [glob -nocomplain [file join $::shmDirectory *]]
+    set files [glob -nocomplain [file join $::shmDirectory *_12]]
     set ::knownRings [list]
 
     puts "Initial file list: $files"
@@ -151,6 +152,7 @@ proc enumerateRings {} {
 	if {[file type $file] eq "file"} {
 	    puts "Is ordinary"
 	    set shmname [file tail $file]
+	    set shmname [string range $shmname 0 end-3]
 	    puts "ring name: $shmname"
 	    if {[catch {ringbuffer usage $shmname} data] == 0} {
 		puts "Is a ring"
@@ -505,7 +507,54 @@ proc List {socket client message} {
     puts $socket "OK"
     puts $socket $result
 }
+##
+# listClients
+#   Lists the clients of a specified ring.  The ring must exist.
+#
+# @param socket  - the socket to which the reply will be written.
+# @param client  - Clients IP address.
+# @param ring    - Name of the ring buffer we're asking about.
+# 
+# Returns to the user a two element list.  The first element is 
+# the list of words in the producer command.  This is an empty list if
+# there is no producer.  The second list is a list of the
+# words in the consumer commands.  This is, of course empty if there
+# are no consumers.  Only rings in the local host can be listed...
+# though they can be listed from anywhere.
+#
+proc listClients {socket client ring} {
+    set status [catch {ringbuffer usage $ring} usage]
+    if {$status} {
+	puts $socket "ERROR - no such ring: $ring"
+    }
+    
+    set result [list]
 
+    # the producer process:
+
+    set producerPid [lindex $usage 3]
+    if {$producerPid != -1} {
+	lappend result [pidToCommand $producerPid]
+    } else {
+	lappend result ""
+    }
+    
+    # The consumer:
+    
+    set consumers [lindex $usage 6]
+    puts "'$consumers'"
+    set consumerCommands [list]
+    foreach consumer $consumers {
+	set pid [lindex $consumer 0]
+	puts "Pid: $pid"
+	lappend consumerCommands [pidToCommand $pid]
+    }
+    lappend result $consumerCommands
+    puts $socket  "OK"
+    puts $socket $result
+
+    
+}
 
 #---------------------------------------------------------------------------------
 #
@@ -554,6 +603,9 @@ proc onMessage {socket client} {
 	# Enable/disable debug logging.
 	set state [lindex $message 1]
 	::log::lvSuppress debug  $state
+    } elseif {$command eq "CLIENTS"} {
+	set ring [lindex $message 1]
+	listClients $socket $client $ring
     } else {
 	# Bad command means close the socket:
 

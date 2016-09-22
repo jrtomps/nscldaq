@@ -19,6 +19,8 @@
 #include <TCLInterpreter.h>
 
 #include "CRingCommand.h"
+#include "CPidToCommand.h"
+
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -39,7 +41,7 @@ extern "C" {
 
     CTCLInterpreter& interp(*(new CTCLInterpreter(pInterp)));
     CRingCommand* pAddedCommand = new CRingCommand(interp, "ringbuffer");
-
+    new CPidToCommand(interp);
     return TCL_OK;
 
  
