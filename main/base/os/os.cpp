@@ -223,6 +223,7 @@ Os::getProcessCommand(pid_t pid)
     words = new char[20480]; // Probably still good.
     cmdMax = 20480;
   }
+  memset(words, 0, cmdMax);
 
   std::vector<std::string> result;
   

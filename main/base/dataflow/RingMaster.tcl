@@ -542,11 +542,9 @@ proc listClients {socket client ring} {
     # The consumer:
     
     set consumers [lindex $usage 6]
-    puts "'$consumers'"
     set consumerCommands [list]
     foreach consumer $consumers {
 	set pid [lindex $consumer 0]
-	puts "Pid: $pid"
 	lappend consumerCommands [pidToCommand $pid]
     }
     lappend result $consumerCommands

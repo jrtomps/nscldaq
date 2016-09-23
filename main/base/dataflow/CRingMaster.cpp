@@ -541,7 +541,7 @@ CRingMaster::ipAddress(string host)
   int             e;
   if (!gethostbyname_r(host.c_str(), 
 		       &entry, buffer, sizeof(buffer),
-		       &pEntry, &e)) {
+		       &pEntry, &e) && pEntry) {
     // pEntry->h_addr_list[0] has a longword IP address in network byte order:
     //
  

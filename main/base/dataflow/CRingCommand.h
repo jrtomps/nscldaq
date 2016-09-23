@@ -17,12 +17,12 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __TCLOBJECTPROCESSOR_H
+
 #include <TCLObjectProcessor.h>
-#endif
+#include <TCLObject.h>
+#include <string>
 
 class CTCLInterpreter;
-class CTCLObject;
 
 /*!
    Provides access to ring buffers from Tcl. The specific command ensemble supported are:
@@ -34,6 +34,7 @@ class CTCLObject;
    ringbuffer disconnect consumer name index
    ringbuffer usage name
    ringbuffer remove name
+   ringbuffer clients
 \endverbatim
 
   The meaning of these should be reasonably obvious...though the actual data returned by the
@@ -85,10 +86,12 @@ protected:
 	     std::vector<CTCLObject>& objv);
   int list(CTCLInterpreter& interp,
 	   std::vector<CTCLObject>& objv);
-
+  int clients(CTCLInterpreter& interp,
+              std::vector<CTCLObject>& objv);
   // private utilities:
 private:
   std::string CommandUsage();
+  CTCLObject stringVectorToList(CTCLInterpreter& interp, std::vector<std::string> stringVec);
 };
 
 #endif

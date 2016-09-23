@@ -108,6 +108,8 @@ CRingCommand::operator()(CTCLInterpreter&    interp,
     return remove(interp,objv);
   } else if (subCommand == string("list")) {
     return list(interp, objv);
+  } else if (subCommand == "clients") {
+    return clients(interp, objv);
   } else {
     string result;
     result += "Invalid subCommand keyword: ";
@@ -756,7 +758,75 @@ CRingCommand::remove(CTCLInterpreter&    interp,
   return TCL_OK;
 
 }
-
+/**
+ * clients
+ *    The result will be the set of clients that are connected to the specified
+ *    ring.  The command takes a mandatory ring name and an optional hostname
+ *    (defaults to localhost).  The result, if successful, is a two element list
+ *    The first element is a list of the command words in the producer or
+ *    an empty list if there is no consumer.  The second element is a list of
+ *    sublists, one for each consumer.   The elements of that list are themselves
+ *    lists of command words for each consumer.
+ *
+ * @param interp - reference to the interpeter that's running the command.
+ * @param objv   - Command words.
+ * @return int   - TCL_OK on success, TCL_ERROR with an error string in the result if not.
+ */
+int
+CRingCommand::clients(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+  bindAll(interp, objv);                    // Bind all words to the interpreter.
+  try {
+    requireAtLeast(objv, 3);               // need the ring name.
+    requireAtMost(objv, 4);                // could also have the hostname.
+    std::string ring = objv[2];
+    std::string host = "localhost";
+    if (objv.size() == 4) {
+      host = std::string(objv[3]);
+    }
+    CRingMaster master(host);
+    CRingMaster::ClientCommands clients = master.listClients(ring);
+    
+    // Marshall all the vectors of strings into the appropriate lists
+    
+    CTCLObject producer = stringVectorToList(interp, clients.s_producer);
+    CTCLObject consumers;
+    consumers.Bind(interp);
+    for (int i = 0; i < clients.s_consumers.size(); i++) {
+      CTCLObject consumer = stringVectorToList(interp, clients.s_consumers[i]);
+      consumers += consumer;
+    }
+    // now produce the result:
+    
+    CTCLObject result;
+    result.Bind(interp);
+    result += producer;
+    result += consumers;
+    interp.setResult(result);
+    
+  }
+  catch (CException& e) {
+    interp.setResult(e.ReasonText());
+    return TCL_ERROR;
+  }
+  catch (std::exception& e) {
+    interp.setResult(e.what());
+    return TCL_ERROR;
+  }
+  catch (std::string msg) {
+    interp.setResult(msg);
+    return TCL_ERROR;
+  }
+  catch (const char* msg) {
+    interp.setResult(msg);
+    return TCL_ERROR;
+  }
+  catch(...) {
+    interp.setResult("Unanticipated exception type");
+    return TCL_ERROR;
+  }
+  return TCL_OK;
+}
 ////////////////////////////////////////////////////////////////////////////
 // Private utility functions.
 
@@ -776,6 +846,7 @@ CRingCommand::CommandUsage()
   usage += "  ringbuffer usage ?name?\n";
   usage += "  ringbuffer list\n";
   usage += "  ringbuffer remove name\n";
+  usage += "  ringbuffer clients name ?host?";
   usage += "Where\n";
   usage += "  name         - Is the name of a ring buffer\n";
   usage += "  size         - Is the number of data bytes a ring buffer can have\n";
@@ -785,4 +856,30 @@ CRingCommand::CommandUsage()
 
 
   return usage;
+}
+/**
+ * stringVectorToList
+ *    Convererts an std::vector<std::string> into a CTCLObject that has a list
+ *    with one vector element per list element.
+ *
+ *   @param interp - references the interpreter that should be bound to all
+ *                   CTCLIntermediate objects and the returned object.
+ *   @param stringVec -the vector to convert.
+ *   @return CTCLObject - containing the list and bound to interp.
+ */
+CTCLObject
+CRingCommand::stringVectorToList(CTCLInterpreter& interp,
+  std::vector<std::string> stringVec
+)
+{
+  CTCLObject result;
+  result.Bind(interp);
+  
+  for (int i = 0; i < stringVec.size(); i++) {
+    CTCLObject element;
+    element.Bind(interp);
+    element = stringVec[i];
+    result += element;
+  }
+  return result;
 }
