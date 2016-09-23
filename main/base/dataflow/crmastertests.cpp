@@ -18,6 +18,10 @@
 #include <iostream>
 #include "testcommon.h"
 #include "CErrnoException.h"
+#include <os.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 
 #include <daqshm.h>
 
@@ -42,6 +46,10 @@ class rmasterTests : public CppUnit::TestFixture {
   
   CPPUNIT_TEST(existsAndIsRing);
   CPPUNIT_TEST(existsAndIsNotRing);
+
+  // Tests for client information.
+  
+  CPPUNIT_TEST(clientInfo);
   
   CPPUNIT_TEST_SUITE_END();
 
@@ -63,6 +71,7 @@ protected:
   void existsAndIsRing();
   void existsAndIsNotRing();
 
+  void clientInfo();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(rmasterTests);
@@ -337,4 +346,53 @@ void rmasterTests::existsAndIsRing()
     
     CDAQShm::remove(shmName);             // In case test failed.
     
+}
+
+/**
+ *  Check that we can get the client info from the ring master.
+ *  -  Get our process information (via the OS package).
+ *  -  Create a ring.
+ *  -  Attach as consumer.
+ *  -  Attach as producer.
+ *  -  Ask for client information and make sure it's correct.
+ * @note - in order to be sure the ring disappears, we do most of the work inside
+ *         a try/catch block.
+ */
+void rmasterTests::clientInfo()
+{
+  std::string ringname = "clientInfoRing";
+  // in case this ring is hanging around:
+  
+  try { CRingBuffer::remove(ringname); } catch (...) {}
+  
+  CRingBuffer::create(ringname);
+  try {
+    pid_t mypid = getpid();
+    std::vector<std::string> me = Os::getProcessCommand(mypid);
+    
+    CRingBuffer producer(ringname, CRingBuffer::producer);
+    CRingBuffer consumer(ringname, CRingBuffer::consumer);
+    
+    CRingMaster master("localhost");
+    CRingMaster::ClientCommands clients = master.listClients(ringname);
+    
+    EQ(me.size(), clients.s_producer.size());
+    for (int i = 0; i < me.size(); i++) {
+      EQ(me[i], clients.s_producer[i]);
+    }
+    
+    EQ(size_t(1), clients.s_consumers.size());
+    EQ(me.size(), clients.s_consumers[0].size());
+    for (int i =0; i < me.size(); i++) {
+      EQ(me[i], clients.s_consumers[0][i]);
+    }
+    
+  }
+  catch (...) {
+    // this also makes use of the fact that test fails are exceptions:
+    
+    CRingBuffer::remove(ringname);
+    throw;
+  }
+  CRingBuffer::remove(ringname);
 }

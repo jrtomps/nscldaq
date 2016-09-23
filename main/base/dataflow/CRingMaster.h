@@ -41,7 +41,7 @@ class CRingBuffer;
 class CRingMaster
 {
   // Public data:
-
+public:
   typedef std::vector<std::string> commandWords;
   typedef struct _ClientCommands {
     commandWords              s_producer;

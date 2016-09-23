@@ -352,6 +352,7 @@ CRingMaster::listClients(std::string ring)
   
   std::string request = "CLIENTS ";
   request += ring;
+  request += "\n";
   sendLine(request);
   
   // Make sure we got an OK returned:
