@@ -7,8 +7,7 @@ EXTRA_DIST = CamacSlotLimits.h \
 							CNAF.h \
 							CNAF.cpp \
 							CCamacBranchDriver.h \
-							CCamacBranchException.h 
-
+							CCamacBranchException.h  \
 							CCamacCrate.h \
 							CCamacCrate.hpp \
 							CCamacReadoutList.h \
