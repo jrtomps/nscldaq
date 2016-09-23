@@ -35,6 +35,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <TCLInterpreter.h>
+#include <TCLList.h>
 
 #include <iostream>
 
@@ -326,6 +328,70 @@ CRingMaster::requestUsage()
     std::string reply = getLine();                   // Usage list.
     return reply;
 }
+/**
+ *  listClients
+ *     Given the name of a ring gets information about the clients of that ring.
+ *     The clients are all programs attached to the ring, producer and consumers.
+ *     we do this by using the CLIENTS command to the ringmaster.  That will return
+ *     a 2 element Tcl list.  The first list element will be the list of producer
+ *     command words or empty if there is no producer.  The second element will be
+ *     a list of sublists, each sublist containing the command words for a
+ *     consumer.
+ *
+ *  @param ring - name of the ring to interrogate.
+ *  @return CRingMaster::ClientCommands - the decoded stuff from the
+ *          ring master's reply.
+ *  @throws std::string - the error retrun if the ring master returned an ERROR.
+ */
+CRingMaster::ClientCommands
+CRingMaster::listClients(std::string ring)
+{
+  transactionOk();                       // Ensure we can perform a transaction.
+  
+  // Build the request string and send it:
+  
+  std::string request = "CLIENTS ";
+  request += ring;
+  sendLine(request);
+  
+  // Make sure we got an OK returned:
+  
+  std::string ok = getLine();
+  if(ok != "OK\r\n") {
+    std::string message = request;
+    message += " request did not return OK but: ";
+    message += ok;
+    throw message;
+  }
+  // Since we have an OK return, check get the data:
+  
+  std::string response = getLine();
+  
+  // We're going to let TCL parse the list, as that's easier:
+  
+  ClientCommands  result;
+  CTCLInterpreter interp;
+  CTCLList        topList(&interp, response.c_str());
+  
+  
+  // Marshall the producer:
+  
+  StringArray     clients;
+  topList.Split(clients);           // Two elements - producer/consumers.
+  std::string producerString = clients[0];   // producer string
+  result.s_producer          = stringListToVector(producerString);
+  
+  CTCLList clientList(&interp, clients[1]);
+  StringArray clientArray;
+  clientList.Split(clientArray);
+  for (int i = 0; i < clientArray.size(); i++) {
+    std::vector<std::string> client = stringListToVector(clientArray[i]);
+    result.s_consumers.push_back(client);
+  }
+  
+  return result;
+}
+
 /****************************************************************************************/
 /* Locate the ring Master's port.                                                       */
 /****************************************************************************************/
@@ -550,3 +616,22 @@ CRingMaster::formatDisconnection(string ringname, const char* type)
   delete [] line;
   return message;
 }
+/**
+ * stringListToVector
+ *   Turns a TclList of strings into a vector of strings.
+ *
+ *  @param value - the value to split.
+ *  @return std::vector<std::string>  - the resulting vector of list elements.
+ */
+std::vector<std::string>
+CRingMaster::stringListToVector(const std::string& value)
+{
+  CTCLInterpreter interp;
+  CTCLList        stringList(&interp, value);
+  StringArray result;
+  stringList.Split(result);
+  
+  return result;
+}
+
+void*  gpTCLApplication(0);              // In case that's needed.

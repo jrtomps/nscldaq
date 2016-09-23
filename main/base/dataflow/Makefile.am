@@ -20,8 +20,10 @@ COMPILATION_FLAGS =  -I@top_srcdir@/base/headers 	\
 		$(TCL_FLAGS)		\
 	-DBINDIR='"@prefix@/bin"'
 
-libDataFlow_la_LDFLAGS =  -version-info $(SOVERSION) \
-	                  -Wl,"-rpath-link=$(libdir)" 	\
+libDataFlow_la_LDFLAGS =  @LIBTCLPLUS_LDFLAGS@		\
+			@TCL_LDFLAGS@			\
+			-version-info $(SOVERSION) 	\
+	                -Wl,"-rpath-link=$(libdir)" 	\
 			-lrt $(THREADLD_FLAGS)
 
 libDataFlow_la_LIBADD  = @top_builddir@/servers/portmanager/libPortManager.la \
@@ -76,8 +78,8 @@ stdintoringsw.h: stdintoringsw.ggo
 		--output-dir=@builddir@ --file=stdintoringsw --unamed-opts
 
 ringtostdout_LDADD	=  @builddir@/libDataFlow.la \
-			@LIBEXCEPTION_LDFLAGS@	\
 			@top_builddir@/base/os/libdaqshm.la	\
+			@LIBTCLPLUS_LDFLAGS@  @TCL_LDFLAGS@	\
 			$(THREADLD_FLAGS) -lrt
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
@@ -92,7 +94,7 @@ stdintoring_DEPENDENCIES = libDataFlow.la
 
 stdintoring_LDADD	=  @builddir@/libDataFlow.la	\
 			@top_builddir@/base/os/libdaqshm.la	\
-			@LIBEXCEPTION_LDFLAGS@ \
+			@LIBTCLPLUS_LDFLAGS@  @TCL_LDFLAGS@	\
 			$(THREADLD_FLAGS) -lrt
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
@@ -115,7 +117,7 @@ unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) \
 			-lrt
 
 
-unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
+unittests_LDFLAGS = @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@ -Wl,"-rpath-link=$(libdir)"
 
 unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
@@ -123,7 +125,7 @@ producer_SOURCES	=	producer.cpp
 
 producer_LDADD    = -L@prefix@/lib @builddir@/libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
 
-producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
+producer_LDFLAGS  = @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@ -Wl,"-rpath-link=$(libdir)"
 
 producer_CPPFLAGS=$(COMPILATION_FLAGS)
 
@@ -132,7 +134,7 @@ consumer_SOURCES	=	consumer.cpp
 consumer_LDADD    = -L@prefix@/lib @builddir@/libDataFlow.la @top_builddir@/base/os/libdaqshm.la @LIBEXCEPTION_LDFLAGS@ -lrt
 
 
-consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
+consumer_LDFLAGS  = @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@ -Wl,"-rpath-link=$(libdir)"
 
 consuerm_CPPFLAGS=$(COMPILATION_FLAGS)
 

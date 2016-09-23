@@ -42,7 +42,7 @@ class CRingMaster
 {
   // Public data:
 
-  typdef std::vector<std::string> commandWords
+  typedef std::vector<std::string> commandWords;
   typedef struct _ClientCommands {
     commandWords              s_producer;
     std::vector<commandWords> s_consumers;
@@ -90,6 +90,7 @@ private:
   static bool badErrno();
   static std::string formatConnection(std::string ringname, const char* type, std::string comment);
   static std::string formatDisconnection(std::string ringname, const char* type);
+  std::vector<std::string> stringListToVector(const std::string& value);
 };
 
 
