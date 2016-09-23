@@ -26,44 +26,14 @@
 //%}
 //#endif
 
-#ifndef __CVMUSB_H
-#define __CVMUSB_H
+#ifndef CVMUSB_H
+#define CVMUSB_H
 
-#ifndef __STL_VECTOR
 #include <vector>
-#ifndef __STL_VECTOR
-#define __STL_VECTOR
-#endif
-#endif
-
-#ifndef __STL_STRING
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
-
-#ifndef __CRT_STDINT_H
 #include <stdint.h>
-#ifndef __CRT_STDINT_H
-#define __CRT_STDINT_H
-#endif
-#endif
-
-#ifndef __CRT_SYS_TYPES_H
 #include <sys/types.h>
-#ifndef __CRT_SYS_TYPES_H
-#define __CRT_SYS_TYPES_H
-#endif
-#endif
-
-
-#ifndef __CVMUSBREADOUTLIST_H
 #include <CVMUSBReadoutList.h>
-#ifndef __CVMUSBREADOUTLIST_H
-#define __CVMUSBREADOUTLIST_H
-#endif
-#endif
 
 //  The structures below are defined in <usb.h> which is included
 //  by the implementation and can be treated as opaque by any of our

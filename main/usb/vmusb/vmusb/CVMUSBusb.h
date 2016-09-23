@@ -17,42 +17,15 @@
 
 
 
-#ifndef __CVMUSBUSB_H
-#define __CVMUSBUSB_H
+#ifndef CVMUSBUSB_H
+#define CVMUSBUSB_H
 
-#ifndef __CVMUSB_H
 #include "CVMUSB.h"
-#endif
 
-#ifndef __STL_VECTOR
 #include <vector>
-#ifndef __STL_VECTOR
-#define __STL_VECTOR
-#endif
-#endif
-
-#ifndef __STL_STRING
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
-
-#ifndef __CRT_STDINT_H
 #include <stdint.h>
-#ifndef __CRT_STDINT_H
-#define __CRT_STDINT_H
-#endif
-#endif
-
-#ifndef __CRT_SYS_TYPES_H
 #include <sys/types.h>
-#ifndef __CRT_SYS_TYPES_H
-#define __CRT_SYS_TYPES_H
-#endif
-#endif
-
-
 #include <CMutex.h>
 
 //  The structures below are defined in <usb.h> which is included

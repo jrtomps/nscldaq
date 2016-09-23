@@ -15,44 +15,15 @@
 */
 
 
-#ifndef __CVMUSBREMOTE_H
-#define __CVMUSBREMOTE_H
+#ifndef CVMUSBREMOTE_H
+#define CVMUSBREMOTE_H
 
-#ifndef __STL_VECTOR
 #include <CVMUSB.h> 
-#ifndef __STL_VECTOR
-#define __STL_VECTOR
-#endif
-#endif
 
-#ifndef __STL_VECTOR
 #include <vector>
-#ifndef __STL_VECTOR
-#define __STL_VECTOR
-#endif
-#endif
-
-#ifndef __CRT_STDINT_H
 #include <stdint.h>
-#ifndef __CRT_STDINT_H
-#define __CRT_STDINT_H
-#endif
-#endif
-
-#ifndef __CRT_SYS_TYPES_H
 #include <sys/types.h>
-#ifndef __CRT_SYS_TYPES_H
-#define __CRT_SYS_TYPES_H
-#endif
-#endif
-
-
-#ifndef __STL_STRING
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
 
 // Forward Class definitions:
 
