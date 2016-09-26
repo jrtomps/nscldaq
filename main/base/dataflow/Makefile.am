@@ -1,7 +1,8 @@
 #--------------- The ring library....
 
 lib_LTLIBRARIES = libDataFlow.la \
-		libRingBuffer.la
+		libRingBuffer.la \
+		libRingPy.la
 
 
 libDataFlow_la_SOURCES = CRingBuffer.cpp CTestRingBuffer.cpp CRemoteAccess.cpp CRingMaster.cpp \
@@ -49,7 +50,12 @@ libRingBuffer_la_CXXFLAGS	=	-I@top_srcdir@/base/os \
 					$(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
 
+#  Python bindings to CRingMaster entries that are useful.
 
+libRingPy_la_SOURCES  = PyRingMaster.cpp
+libRingPy_la_CPPFLAGS = @PYTHON_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
+libRingPy_la_LDFLAGS  =  @PYTHON_LDFLAGS@ @builddir@/libDataFlow.la \
+	@LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
 #---------------- Compiled programs. 
 
@@ -152,4 +158,6 @@ install-exec-local:
 	$(INSTALL_SCRIPT) @builddir@/.libs/libRingBuffer.* @prefix@/TclLibs
 	echo "pkg_mkIndex -verbose @prefix@/TclLibs *.so" | $(TCLSH_CMD)
 	$(INSTALL_SCRIPT) @srcdir@/ringbuffer.tcl @bindir@/ringbuffer
-
+	$(mkinstalldirs)  @prefix@/pythonLibs/nscldaq/ringbuffer
+	$(INSTALL_PROGRAM) @libdir@/libRingPy.so @prefix@/pythonLibs/nscldaq/ringbuffer/ringmaster.so
+	touch              @prefix@/pythonLibs/nscldaq/ringbuffer/__init__.py
