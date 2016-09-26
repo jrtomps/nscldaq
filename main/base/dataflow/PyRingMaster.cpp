@@ -182,6 +182,50 @@ usageToDict(std::string usageString)
     
     return result;
 }
+/**
+ * describeClient
+ *   Returns the description of a single client command string.
+ *
+ * @param command - A single client's command words.
+ * @return PyObject* - A tuple containing the command words.
+ */
+static PyObject*
+describeClient(CRingMaster::commandWords& command)
+{
+    PyObject* result = PyTuple_New(command.size());
+    for (auto i = 0; i < command.size(); i++) {
+        PyTuple_SetItem(result, i, PyString_FromString(command[i].c_str()) );
+    }
+    return result;
+}
+/**
+ * describeClients
+ *    Describes the clients in a Python object.  See ringmaster_clients
+ *    for information about what's returned.
+ *
+ *  @param clients - information from CRingMaster::clients.
+ *  @return PyObject* - Dict as described by ringmaster_clients.
+ */
+static PyObject*
+describeClients(CRingMaster::ClientCommands& info)
+{
+    PyObject* result = PyDict_New();
+    
+    // Producer is simple.
+    
+    PyDict_SetItemString(result, "producer", describeClient(info.s_producer));
+    
+    // Consumer is a tuple of tuples.
+    
+    PyObject* consumers = PyTuple_New(info.s_consumers.size());
+    for (auto i = 0; i < info.s_consumers.size(); i++) {
+        PyTuple_SetItem(consumers, i, describeClient(info.s_consumers[i]));
+    }
+    
+    PyDict_SetItemString(result, "consumers", consumers);
+    return result;
+    
+}
 /**--------------------------------------------------------------------------
  * Object cannonicals
  */
@@ -270,6 +314,7 @@ RingMaster_delete (RingMasterObject* self)
     self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
+
 /*-----------------------------------------------------------------------------
  * Public object methods for the RingMaster type:
  */
@@ -335,12 +380,72 @@ ringmaster_usage(PyObject* self, PyObject* args)
     }
     
 }
+/**
+ * ringmaster_clients
+ *    Returns an object that describes the clients of a ringbuffer.
+ *
+ *   @param self - pointer to the object on which this method is being invoked.
+ *   @param args - The positional arguments.  There must be exactly 1, the name
+ *                  of the ringbuffer.
+ *   @return PyObject*  - a Dict with the following keys:
+ *              - 'producer' - Producer specification.
+ *              - 'consumers' - tuple of consumer specifications.
+ *              Each specification (producer, or consumer) is a tuple of command
+ *              words that describe the full command that is the client.
+ */
+static PyObject*
+ringmaster_clients(PyObject* self, PyObject* args)
+{
+    const char* ringName;
+    if (!PyArg_ParseTuple(args, "s", &ringName)) {
+        PyErr_SetString(exception, "ringmaster.client method requires a ringname");
+        return NULL;
+    }
+    // Get our ring master object:
+    
+    CRingMaster* rMaster = getRingMaster(self);
+    
+    // The remainder is done in a try/catch block to turn C++ exceptions into
+    // Python exceptions:
+    
+    try {
+        
+        CRingMaster::ClientCommands clients =rMaster->listClients(std::string(ringName));
+        return describeClients(clients);
+    }
+    catch(CException& e) {
+        PyErr_SetString(exception, e.ReasonText());
+        return NULL;
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (std::string msg) {
+        PyErr_SetString(exception, msg.c_str());
+        return NULL;
+    }
+    catch (const char* msg) {
+        PyErr_SetString(exception, msg);
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ exception type");
+        return NULL;
+    }
+    // Should not get here:
+    
+    Py_RETURN_NONE;
+}
 
 // Type Dispatch table for the ringmaster type:
 
 static PyMethodDef RingMasterObjectMethods [] {
     {"usage", ringmaster_usage, METH_VARARGS,
         "Obtain ring buffer usage"
+    },
+    {"clients", ringmaster_clients, METH_VARARGS,
+        "List the clients of a ringbuffer."
     },
     {NULL, NULL, 0, NULL}
 };
