@@ -81,11 +81,13 @@ describeConsumers(CTCLInterpreter& interp, CTCLObject& cinfo, CTCLObject& cstats
     for (auto i = 0; i < cinfo.llength(); i++) {
         PyObject* consumer = PyDict_New();
         CTCLObject info    = cinfo.lindex(i);      // PID and backlog.
-        CTCLObject stats   = cinfo.lindex(i);      // gets and bytes.
+        info.Bind(interp);
+        CTCLObject stats   = cstats.lindex(i);      // gets and bytes.
+        stats.Bind(interp);
         PyDict_SetItemString(consumer, "pid", PyInt_FromLong((int)(info.lindex(0))));
         PyDict_SetItemString(consumer, "backlog", PyInt_FromLong((int)(info.lindex(1))));
-        PyDict_SetItemString(consumer, "gets", PyFloat_FromDouble((double)(stats.lindex(0))));
-        PyDict_SetItemString(consumer, "bytes", PyFloat_FromDouble((double)(stats.lindex(1))));
+        PyDict_SetItemString(consumer, "gets", PyFloat_FromDouble((double)(stats.lindex(1))));
+        PyDict_SetItemString(consumer, "bytes", PyFloat_FromDouble((double)(stats.lindex(2))));
         
         PyTuple_SetItem(result, i, consumer);
     }
@@ -138,6 +140,7 @@ addRingDescription(PyObject* result, CTCLInterpreter& interp, CTCLObject& ring)
     PyDict_SetItemString(ringDict, "size", PyInt_FromLong(size));
     PyDict_SetItemString(ringDict, "free", PyInt_FromLong(nFree));
     PyDict_SetItemString(ringDict, "maxconsumers", PyInt_FromLong(maxConsumers));
+    PyDict_SetItemString(ringDict, "producer",     PyInt_FromLong(producer));
     PyDict_SetItemString(ringDict, "maxavail",  PyInt_FromLong(maxavail));
     PyDict_SetItemString(ringDict, "minavail",  PyInt_FromLong(minavail));
     PyDict_SetItemString(ringDict, "puts",  PyFloat_FromDouble(nputs));
@@ -177,7 +180,7 @@ usageToDict(std::string usageString)
         addRingDescription(result, interp, ringInfo);
     }
     
-    result;
+    return result;
 }
 /**--------------------------------------------------------------------------
  * Object cannonicals
