@@ -354,10 +354,10 @@ int main(int argc, char** argv)
     return (status);
   }
 
-  // There should be exactly one parameter, that is not a switch,
-  // the ring name:
+  // There must be at least one parameter.  Others are allowed and ignored
+  // to document what we're doing.
 
-  if (parsed.inputs_num != 1) {
+  if (parsed.inputs_num < 1) {
     cmdline_parser_print_help();
     exit (EXIT_FAILURE);
   }

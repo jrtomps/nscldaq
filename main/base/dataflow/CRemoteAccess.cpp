@@ -310,7 +310,7 @@ CRingAccess::startPipeline(string hostName, string remoteRingname, string localR
   // We have a socket on which data will be sent.
 
 
-  startFeeder(localRingname, socket); // do this now so the feeder doesn't inherit the
+  startFeeder(localRingname, socket, hostName); // do this now so the feeder doesn't inherit the
   close(socket);		// But don't shutdown.
 
 }
@@ -323,7 +323,7 @@ CRingAccess::startPipeline(string hostName, string remoteRingname, string localR
 /* - exec stdintoring (which lives in BINDIR) as appropriate.               */
 /****************************************************************************/
 void
-CRingAccess::startFeeder(string proxyName, int socket)
+CRingAccess::startFeeder(string proxyName, int socket, std::string remoteHost)
 {
   if (fork()) {
     return;
@@ -364,7 +364,7 @@ CRingAccess::startFeeder(string proxyName, int socket)
   char* const argv[10]  = {const_cast<char*>(program.c_str()), 
 			   mindataSw, 
 			   timeoutSw, 
-			   const_cast<char*>(proxyName.c_str()), 
+			   const_cast<char*>(proxyName.c_str(), remoteHost.c_str()), 
 			 NULL};
   char* const env[1]  = {NULL};
 

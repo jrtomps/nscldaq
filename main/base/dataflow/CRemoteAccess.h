@@ -86,7 +86,7 @@ public:
 
   // Utilities
 private:
-  static void startFeeder(std::string proxyName, int socket);
+  static void startFeeder(std::string proxyName, int socket, std::string remoteHost);
   static void startPipeline(std::string hostName, 
 			    std::string remoteRingname, 
 			    std::string localRingname);
