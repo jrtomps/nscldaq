@@ -54,9 +54,17 @@ private:
   CRingMaster*  m_pRingMaster;
 public:
   CConnectivity(const char *pHost);
+  virtual ~CConnectivity();
   
   std::vector<std::string> getProducers();
   std::vector<std::string> getConsumers();
+  
+  // Utilities:
+  
+  std::vector<std::string> usageToRings(std::string rawUsage);
+  std::vector<std::string> proxyRingNames(const std::vector<std::string>& rings);
+  std::vector<std::string> ringToStdinProducers(const std::vector<std::string>& rings);
+  std::vector<std::string>  proxyRingsToHostnames(const std::vector<std::string>& rings);
 };
 
 #endif
