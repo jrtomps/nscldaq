@@ -4,6 +4,7 @@
 #include <cppunit/Asserter.h>
 #include <stdio.h> 		// popen is so convenient...
 #include <unistd.h>
+#include <stdlib.h>
 #include "Asserts.h"
 #include "CRingBuffer.h"
 #include "CConnectivity.h"
@@ -11,10 +12,20 @@
 
 class ConnectivityTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(ConnectivityTest);
+
+  // Tests for getProducers.
+
   CPPUNIT_TEST(noProducer1);
   CPPUNIT_TEST(noProducer2);
   CPPUNIT_TEST(noProducer3);
   CPPUNIT_TEST(fakeProducer);
+
+  // Tests for getConsumers:
+
+  CPPUNIT_TEST(noConsumer1);
+  CPPUNIT_TEST(noConsumer2);
+  CPPUNIT_TEST(noConsumer3);
+  CPPUNIT_TEST(consumer);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -33,11 +44,17 @@ protected:
   void noProducer2();
   void noProducer3();
   void fakeProducer();
+
+  void noConsumer1();
+  void noConsumer2();
+  void noConsumer3();
+  void consumer();
 private:
   std::string makeFakeProxy(const char* ring, const char* host);
   std::string ringToHost(std::string ring);
   std::string makeStdinCommand(std::string ring);
   FILE*       startFakeProducer(std::string ring);
+  void        createConsumer(std::string cmdline);
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ConnectivityTest);
@@ -113,7 +130,23 @@ ConnectivityTest::startFakeProducer(std::string ring)
   std::string command = makeStdinCommand(ring);
 return popen(command.c_str(), "w");
 }
-
+/**
+ * createConsumer
+ *   Really just fork/exec's a consumer program.
+ *   the BINDIR symbol is assumed to be where the consumer lives:
+ *
+ * @param commands - command line string.
+ */
+void
+ConnectivityTest::createConsumer(std::string consumer)
+{
+  std::string program = BINDIR;
+  program            += "/";
+  program            += consumer;
+  popen(program.c_str(), "r");
+  sleep(1);			// Give the consumer start time.
+  
+}
 /*----------------------------------------------------------
  * Tests:
  */
@@ -185,4 +218,65 @@ ConnectivityTest::fakeProducer()
   }
   CRingBuffer::remove(ring);	// Should get stdintoring to exit via kill.
   if (inPipe) pclose(inPipe);
+}
+//  No rings means no consumers hoisting data out of the host:
+
+void
+ConnectivityTest::noConsumer1()
+{
+  std::vector<std::string> result = m_pConnectivity->getConsumers();
+
+  EQ(size_t(0), result.size());
+}
+
+//  Rings with no consumers also don't return any:
+
+void
+ConnectivityTest::noConsumer2()
+{
+  CRingBuffer::create("ron");
+  try {
+    std::vector<std::string> result = m_pConnectivity->getConsumers();
+    EQ(size_t(0), result.size());
+  }
+  catch (...) {
+    CRingBuffer::remove("ron");
+    throw;
+  }
+  CRingBuffer::remove("ron");
+}
+//  Consumer's exist but they are not the right type:
+
+void
+ConnectivityTest::noConsumer3()
+{
+  CRingBuffer::create("ron");
+  try {
+    createConsumer("ringselector --formatted ron"); // Has enough params.
+    std::vector<std::string> c = m_pConnectivity->getConsumers();
+    EQ(size_t(0), c.size());
+  }
+  catch (...) {
+    CRingBuffer::remove("ron");
+    throw;
+  } 
+  CRingBuffer::remove("ron");
+}
+//  try with anactual consumer:
+
+void 
+ConnectivityTest::consumer()
+{
+  CRingBuffer::create("ron");
+  try {
+    createConsumer("ringtostdout  ron spdaq19.nscl.msu.edu"); // Has enough params.
+    std::vector<std::string> c = m_pConnectivity->getConsumers();
+    EQ(size_t(1), c.size());
+    EQ(std::string("spdaq19.nscl.msu.edu"), c[0]);
+  }
+  catch (...) {
+    CRingBuffer::remove("ron");
+    throw;
+  } 
+  CRingBuffer::remove("ron");
 }

@@ -24,6 +24,7 @@
 #include "CRingMaster.h"
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
+#include <set>
 
 /**
  *  Static utilities:
@@ -95,8 +96,55 @@ CConnectivity::getProducers()
     
     return proxyRingsToHostnames(rings);
 }
+/**
+ * getConsumers
+ *   Gets the names of hosts that consume data from us.  This is done by 
+ *   looking at the consumers for all rings and finding those with
+ *   consumers of the form ..../ringtostdout   hostname
+ *   The hostname on the back end of ringtostdout... those are
+ *   The hosts to which data are being sent.
+ *
+ *  @return std::vector<std::string> - The (possibly empty) list
+ *        of consumer nodes.
+ */
+std::vector<std::string>
+CConnectivity::getConsumers()
+{
+  std::string rawUsage = m_pRingMaster->requestUsage();
+  std::vector<std::string> rings = usageToRings(rawUsage);
+  
+  // The loop below makes a vector of all consumers of all rings.
+  // for now we don't really care which ring is actually
+  // supplying the remote guys.
 
-/*----------------------------------------------------------------------------
+  std::vector<CRingMaster::commandWords> consumers;
+  for (size_t i = 0; i < rings.size(); i++) {
+    CRingMaster::ClientCommands clients = m_pRingMaster->listClients(rings[i]);
+    consumers.insert(
+        consumers.end(), 
+        clients.s_consumers.begin(), clients.s_consumers.end());
+  }
+  // Filter that by clients that are ringtostdout.
+
+  consumers = listRing2Stdout(consumers);
+  std::vector<std::string> hosts = extractHosts(consumers);
+
+  //  Now use a set to uniquify the hosts and then extract
+  // those back out into a vector of hosts
+
+  std::set<std::string> uniqueHosts;
+  for(int i = 0; i < hosts.size(); i++) {
+    uniqueHosts.insert(hosts[i]);
+  }
+  // Pull the set keys back out into the result vector:
+
+  std::vector<std::string> result;
+  for (auto p = uniqueHosts.begin(); p != uniqueHosts.end(); p++) {
+    result.push_back(*p);
+  }
+  return result;
+}
+/*---------------------------------------------------------------------------
  * private utilities.
  */
 
@@ -227,4 +275,52 @@ CConnectivity::proxyRingsToHostnames(const std::vector<std::string>& rings)
     }
     
     return result;
+}
+/**
+ * listRing2Stdout
+ *   List the consumers that are ring2stdout.  This the same
+ *   As returning the list of consumers whose first word has the 
+ *   tail ringtostdout
+ *
+ *  @param consumers - Vector of consumers.
+ *  @return std::vector<CRingMaster::commandWords> -
+ *          Vector of commands that are ringtostdout commands.
+ */
+std::vector<CRingMaster::commandWords>
+CConnectivity::listRing2Stdout(
+    const std::vector<CRingMaster::commandWords>& consumers
+)
+{
+  std::vector<CRingMaster::commandWords> result;
+  for (int i = 0; i < consumers.size(); i++) {
+    CRingMaster::commandWords c = consumers[i];
+    if (tailIs(c[0], "ringtostdout")) {
+      result.push_back(c);
+    }
+  }
+  return result;
+}
+/**
+ * extractHosts
+ *   The host of a ringtostdout command is the final element of
+ *   the command line which must have at least three elements: 
+ *   command, ringname, hostname.
+ *
+ * @param consumers - vector of consumer command word vectors.
+ * @return std::vector<std::string> host that were encountered.
+ * @note - duplicates are not removed.
+ */
+std::vector<std::string>
+CConnectivity::extractHosts(
+    const std::vector<CRingMaster::commandWords>& consumers
+)
+{
+  std::vector<std::string> result;
+  for (size_t i = 0; i < consumers.size(); i++) {
+    std::vector<std::string> command = consumers[i];
+    if (command.size() >= 3) {
+      result.push_back(command[command.size()-1]);
+    }
+    return result;
+  }
 }

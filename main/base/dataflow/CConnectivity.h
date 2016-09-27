@@ -26,8 +26,7 @@
 
 #include <vector>
 #include <string>
-
-class  CRingMaster;
+#include <CRingMaster.h>
 
 /**
  * CConnectivity
@@ -65,6 +64,13 @@ public:
   std::vector<std::string> proxyRingNames(const std::vector<std::string>& rings);
   std::vector<std::string> ringToStdinProducers(const std::vector<std::string>& rings);
   std::vector<std::string>  proxyRingsToHostnames(const std::vector<std::string>& rings);
+
+  std::vector<CRingMaster::commandWords> listRing2Stdout(
+      const std::vector<CRingMaster::commandWords>& consumers);
+  std::vector<std::string> extractHosts(
+      const std::vector<CRingMaster::commandWords>& consumers); 
+
 };
+
 
 #endif
