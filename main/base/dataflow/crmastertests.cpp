@@ -375,7 +375,7 @@ void rmasterTests::clientInfo()
     
     CRingMaster master("localhost");
     CRingMaster::ClientCommands clients = master.listClients(ringname);
-    
+
     EQ(me.size(), clients.s_producer.size());
     for (int i = 0; i < me.size(); i++) {
       EQ(me[i], clients.s_producer[i]);
