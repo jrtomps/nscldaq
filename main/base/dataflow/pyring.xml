@@ -1,0 +1,358 @@
+<!-- manpage 3python -->
+<refentry id="python3_ringmaster">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_ringmaster_title'>nscldaq.ringbuffer.ringmaster.ringmaster</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>nscldaq.ringbuffer.ringmaster.ringmaster</refname>
+     <refpurpose>Provide access to some methods in the <classname>CRingBuffer</classname> C++ API.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nscldaq.ringbuffer import ringmaster
+
+<replaceable>obj</replaceable> = ringmaster.ringmaster(<replaceable>hostname</replaceable>)
+<replaceable>adict</replaceable> = obj.usage()
+<replaceable>adict</replaceable> = obj.clients(<replaceable>ringname</replaceable>)
+
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class provides Python access to the query methods of the
+        <classname>CRingMaster</classname> class.  By using this class,
+        python scripts can know the usage and statistics of all rings in
+        the system as well as the command lines for the clients of the ring.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <replaceable>obj</replaceable> = ringmaster.ringmaster(<replaceable>hostname</replaceable>)                        
+            </term>
+            <listitem>
+                <para>
+                    Constructs  ringmaster object that is connected to the
+                    ring master server in <parameter>hostname</parameter>.
+                    Once constructed information can be retrieved from that
+                    ring master.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <replaceable>adict</replaceable> = obj.usage()
+            </term>
+            <listitem>
+                <para>
+                    Returns a dictionary that describes the rings and usage of
+                    those rings in the host on which the object was
+                    constructed.
+                </para>
+                <para>
+                    The result is a dict whose keys are the names of the
+                    ringbuffers that are defined in this node.  Note that
+                    proxy rings <emphasis>will</emphasis> be included in
+                    the keys.
+                </para>
+                <para>
+                    Each key contais a dict with the following key/values:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><literal>size</literal></term>
+                        <listitem>
+                            <para>
+                                Number of byte of data the ringbuffer can
+                                hold.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>free</literal></term>
+                        <listitem>
+                            <para>
+                                The number of free bytes in the ring buffer.
+                                This is the ringbuffer distance between the
+                                put pointer and least caught up get pointer.
+                                If one attempts to insert more than this number
+                                of bytes the inserting program will block until
+                                space becomes available.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>maxconsumers</literal></term>
+                        <listitem>
+                            <para>
+                                The maximum number of consumers that can
+                                simlutaneously attach to this ringbuffer. A
+                                ringbuffer consists of a header and data section.
+                                The header is fixed size and contains an array
+                                of structures for each consumer.  This value
+                                is the size of that array.  
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>producer</literal></term>
+                        <listitem>
+                            <para>
+                                The process Id of the producer for the ring.
+                                Each ringbuffer can have at most one producer.
+                                The producer is the program that places data into
+                                the ringbuffer.  If there is not a current producer
+                                process, the value of this key is <literal>-1</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>maxavail</literal></term>
+                        <listitem>
+                            <para>
+                                This is the largest amount of data available
+                                in the ring buffer over all consumers.  It is
+                                distance between the furthest behind get pointer
+                                and the put pointer.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>minavail</literal></term>
+                        <listitem>
+                            <para>
+                                This is the minimum amount of data available in
+                                the ring buffer over all consumers.  It is the
+                                distance between the most cauth up get pointer
+                                and the put pointer.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>puts</literal></term>
+                        <listitem>
+                            <para>
+                                The number of put operations performed by the
+                                producer.  This only has meaning if there is
+                                a current producer.  This value is cleared
+                                when a producer attaches to the ring.
+                            </para>
+                            <para>
+                                Since each ringitem is placed in the ringbuffer
+                                with a single put, this value describes the number
+                                of ring items that have been put in the buffer.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>bytes</literal></term>
+                        <listitem>
+                            <para>
+                                The number of bytes put into the ring buffer by
+                                the consumer.  This only has meaning if there is
+                                a current producer.  This value is cleared
+                                when a producer attaches to the ring.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>consumers</literal></term>
+                        <listitem>
+                            <para>
+                                This key contains a tuple that has one element
+                                for each consumer currently attached to the ring.
+                                Each tuple element is a dictionary with the
+                                following keys:
+                            </para>
+                            <variablelist>
+                                <varlistentry>
+                                    <term><literal>pid</literal></term>
+                                    <listitem>
+                                        <para>
+                                            The process Id of the consumer.
+                                        </para>
+                                    </listitem>
+                                </varlistentry>
+                                <varlistentry>
+                                    <term><literal>backlog</literal></term>
+                                    <listitem>
+                                        <para>
+                                            The number of bytes that could
+                                            be gotten by this consumer if it
+                                            drained the ringbuffer now.
+                                        </para>
+                                    </listitem>
+                                </varlistentry>
+                                <varlistentry>
+                                    <term><literal>gets</literal></term>
+                                    <listitem>
+                                        <para>
+                                            The number of get operations done
+                                            by the consumer.   Since each
+                                            ring item is pulled from the ring
+                                            with a single get operation, this
+                                            value is the number of ring items
+                                            the consumer has removed from the ring.
+                                        </para>
+                                    </listitem>
+                                </varlistentry>
+                                <varlistentry>
+                                    <term><literal>bytes</literal></term>
+                                    <listitem>
+                                        <para>
+                                            The number of bytes of data the
+                                            consumer has pulled from the
+                                            ringbuffer.
+                                        </para>
+                                    </listitem>
+                                </varlistentry>
+                            </variablelist>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <replaceable>adict</replaceable> = obj.clients(<replaceable>ringname</replaceable>)
+            </term>
+            <listitem>
+                <para>
+                    This method returns information about the commands running
+                    each client attached to the ring <parameter>ringname</parameter>.
+                    The result is a dict with two keys; <literal>prodcuer</literal>
+                    and <literal>consumers</literal>.
+                </para>
+                <para>
+                    The producers key contains a tuple whose elements are the
+                    command words for the command that is attached to the ring
+                    as a producer.  If no producer is currently attached, this
+                    tuple is empty.   For example, if the producer is:
+                    <command>./Readout --ring=fox --source-id=6</command>, the
+                    tuple will be <literal>('./Readout', '--ring=fox', '--sourceid=6')</literal>.
+                </para>
+                <para>
+                    The consumers key is a possibly empty tuple.  Each tuple
+                    itself contains a tuple that contains the words of the command
+                    which is attached to the ringbuffer as a consumer.
+                    Suppose, for example, the ring has two consumers,
+                    <command>ringselector --sample=PHYSICS_EVENT --non-blocking fox</command>,
+                    and <command>ringtostdout fox spdaq20.nscl.msu.edu</command>,
+                    The consumers key will have:
+                    <literal>
+                    (('ringselector', '--sample=PHYSICS_EVENT', '--non-blocking', 'fox'),
+                    ('ringtostdout', 'fox', 'spdaq20.nscl.msu.edu'))
+                    </literal>
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+
+<refentry id='python3_connectivity'>
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_connectivity_title'>nscldaq.ringbuffer.ringmaster.connectivity</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>nscldaq.ringbuffer.ringmaster.connectivity</refname>
+     <refpurpose>Get information about the systems that are getting/putting data to a host.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nsldaq.ringbuffer import ringmaster
+
+<replaceable>obj</replaceable> = ringmaster.connectivity(<replaceable>host</replaceable>)
+<replaceable>atuple</replaceable> = <replaceable>obj</replaceable>.producers()
+<replaceable>atuple</replaceable> = <replaceable>obj</replaceable>.consumers()
+
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class provides methods that allow python scripts to learn which
+        hosts are consumer data from or producing data into ringbuffers
+        in a specific host.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <replaceable>obj</replaceable> = ringmaster.connectivity(<replaceable>host</replaceable>)
+            </term>
+            <listitem>
+                <para>
+                    Constructs a connectivity object that gets information
+                    from the ring master in the specified <parameter>host</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <replaceable>atuple</replaceable> = <replaceable>obj</replaceable>.producers()
+            </term>
+            <listitem>
+                <para>
+                    Retrieves a (possibly empty) tuple that contains the fully
+                    qualified host names for hosts that are providing data
+                    to proxy rings in the host on which the object was
+                    constructed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <replaceable>atuple</replaceable> = <replaceable>obj</replaceable>.consumers()
+            </term>
+            <listitem>
+                <para>
+                    Returns a (possibly empty) tuple that contains a list of
+                    hosts that are receiving data from ringbuffers in the
+                    host on which this object was constructed.   This is done
+                    by looking at the consumers in each ring, finding those that
+                    are of the form <command>ringtostdout <replaceable>ringname hostname</replaceable></command>
+                    and extracting the hostname from the command.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+
+<!-- /manpage -->

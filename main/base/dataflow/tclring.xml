@@ -96,9 +96,15 @@ ringbuffer list
 </cmdsynopsis>
 
 <cmdsynopsis>
-    <command>
 <command>ringbuffer remove <replaceable>ringname</replaceable></command>
-    </command>
+</cmdsynopsis>
+
+<cmdsynopsis>
+    <command>producers <replaceable>?host?</replaceable></command>
+</cmdsynopsis>
+
+<cmdsynopsis>
+    <command>consumers <replaceable>?host?</replaceable></command>
 </cmdsynopsis>
 
   </refsynopsisdiv>
@@ -389,6 +395,43 @@ ringbuffer list
                 </para>
             </listitem>
         </varlistentry>
+     </variablelist>
+     <para>
+	In addition to the <command>ringbuffer</command> command ensemble, the
+	package makes the following commands available:
+     </para>
+     <variablelist>
+	<varlistentry>
+	    <term>
+		<cmdsynopsis>
+		    <command>producers <replaceable>?host?</replaceable></command>
+		</cmdsynopsis>
+	    </term>
+	    <listitem>
+		<para>
+		    Returns a list of the hosts (fully qualified host names) that
+		    are producing data into proxy rings in <parameter>host</parameter>.
+		    If the optional <parameter>host</parameter> parameter is
+		    omitted, it defaults to <literal>localhost</literal>.
+		</para>
+	    </listitem>
+	</varlistentry>
+	<varlistentry>
+	    <term>
+		<cmdsynopsis>
+		    <command>consumers <replaceable>?host?</replaceable></command>
+		</cmdsynopsis>		
+	    </term>
+	    <listitem>
+		<para>
+		    Returns a list of hosts (fully qualified host names)
+		    that are consuming data from <parameter>host</parameter>.
+		    If the optional parameter <parameter>host</parameter> is
+		    omitted, it defaults to <literal>localhost</literal>
+		</para>
+	    </listitem>
+	</varlistentry>
+	
      </variablelist>
   </refsect1>
 

@@ -150,7 +150,7 @@ consumer_CPPFLAGS=$(COMPILATION_FLAGS)
 
 TESTS=./unittests
 
-EXTRA_DIST=ringprimitives.xml ringbuffer_user.xml ringbuffer_man.xml ringlib.xml ringmaster.xml ringpipes.xml tclring.xml \
+EXTRA_DIST=ringprimitives.xml ringbuffer_user.xml ringbuffer_man.xml ringlib.xml ringmaster.xml ringpipes.xml tclring.xml pyring.xml \
 	RingMaster.tcl ringbuffer.tcl \
 	ringtostdoutsw.ggo stdintoringsw.ggo 
 

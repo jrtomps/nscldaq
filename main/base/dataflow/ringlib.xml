@@ -857,6 +857,117 @@ CRingBuffer* pRing =
          </example>
       </refsect1>
    </refentry>
-
+<refentry id="daq3_connectivity">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle>CConnectivity</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CConnectivity</refname>
+     <refpurpose>Determine remote systems impacting data flow.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CConnectivity.h&gt;
+       class <ooclass><classname>CConnectivity</classname></ooclass>
+{
+public:
+    <constructorsynopsis>
+        <methodname>CConnectivity</methodname>
+        <methodparam>
+            <modifier>const</modifier> <type>char*</type><parameter>pHost</parameter>
+        </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <type>std::vector&lt;std::string&gt;</type>
+        <methodname>getProducers</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>std::vector&lt;std::string&gt;</type>
+        <methodname>getConsumers</methodname>
+        <void />
+    </methodsynopsis>
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class allows programs to determine which hosts are connected to
+        the dataflow of a specific host as consumers and producers.  The
+        object is constructed on a hostname. Once constructed, the set of
+        producers and consumers can be gotten at anytime.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                    <methodname>CConnectivity</methodname>
+                    <methodparam>
+                        <modifier>const</modifier> <type>char*</type><parameter>pHost</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Construct a new object to get the connections between
+                    <parameter>pHost</parameter> and other hosts.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <type>std::vector&lt;std::string&gt;</type>
+                    <methodname>getProducers</methodname>
+                    <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a (possibly empty) vector of fully qualified host
+                    names for the hosts that are producing data into proxy rings
+                    for the host on which this object was constructed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <type>std::vector&lt;std::string&gt;</type>
+                    <methodname>getConsumers</methodname>
+                    <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a possibily empty vector of fully qualified hostnames
+                    for the hosts that are receiving data from the host on which
+                    this object was constructed.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   
+</refentry>     
 
 <!-- /manpage -->
