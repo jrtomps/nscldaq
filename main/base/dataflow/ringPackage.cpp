@@ -20,6 +20,7 @@
 
 #include "CRingCommand.h"
 #include "CPidToCommand.h"
+#include "CGetProducersCommand.h"
 
 
 #ifdef HAVE_STD_NAMESPACE
@@ -40,8 +41,9 @@ extern "C" {
     // create the commands.
 
     CTCLInterpreter& interp(*(new CTCLInterpreter(pInterp)));
-    CRingCommand* pAddedCommand = new CRingCommand(interp, "ringbuffer");
+    new CRingCommand(interp, "ringbuffer");
     new CPidToCommand(interp);
+    new CGetProducersCommand(interp);
     return TCL_OK;
 
  
