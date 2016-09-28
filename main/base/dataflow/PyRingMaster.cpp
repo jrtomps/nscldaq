@@ -22,11 +22,13 @@
 
 #include <Python.h>
 #include <CRingMaster.h>
+#include <CConnectivity.h>
 #include <Exception.h>
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 
 static PyObject* exception;             // For exceptions raised by us.
@@ -38,6 +40,12 @@ typedef struct {
     
     CRingMaster* m_pRingMaster;
 } RingMasterObject;
+
+typedef struct {
+    PyObject_HEAD
+    
+    CConnectivity* m_pConnectivity;
+} ConnectivityObject;
 
 // class methods:
 
@@ -225,6 +233,38 @@ describeClients(CRingMaster::ClientCommands& info)
     PyDict_SetItemString(result, "consumers", consumers);
     return result;
     
+}
+
+/**
+ * getConnectivity
+ *    Return the connectivity object pointer for a python connectivity object.
+ *
+ *  @param self - PyObject* that really points to a ConnectivityObject struct.
+ *  @return CConnectivity
+ */
+static CConnectivity*
+getConnectivity(PyObject* self)
+{
+    ConnectivityObject* c = reinterpret_cast<ConnectivityObject*>(self);
+    return c->m_pConnectivity;
+}
+/**
+ * stringVectorToTuple
+ *    Converts a string vector into a Python Tuple containing one element
+ *    of the vector in each tuple element.
+ *
+ *   @param vec - the string vector.
+ *   @return PyObject* - the tuple.
+ */
+static PyObject*
+stringVectorToTuple(const std::vector<std::string>& vec)
+{
+    PyObject* result = PyTuple_New(vec.size());
+    
+    for (size_t i = 0; i < vec.size(); i++) {
+        PyTuple_SetItem(result, i, PyString_FromString(vec[i].c_str()));
+    }
+    return result;
 }
 /**--------------------------------------------------------------------------
  * Object cannonicals
@@ -449,7 +489,6 @@ static PyMethodDef RingMasterObjectMethods [] {
     },
     {NULL, NULL, 0, NULL}
 };
-
 // Type table.
 
 static PyTypeObject RingMasterType = {
@@ -495,6 +534,252 @@ static PyTypeObject RingMasterType = {
     
 };
 
+/*---------------------------------------------------------------------------
+ * Canonical methods for the connectivity type.
+ */
+/**
+ * Connectivity_new
+ *    Allocates storage for the connectivity object.  This does no initialization.
+ *
+ *  @param type - pointer to the type object.
+ *  @param args - Positional parameters.
+ *  @param kwargs - keyword parameters
+ *  @return PyObject* - pointer to the object's storage.
+ */
+static PyObject*
+Connectivity_new(PyTypeObject* type, PyObject* args, PyObject* kwargs)
+{
+    // Allocate the object:
+    
+        ConnectivityObject* self = reinterpret_cast<ConnectivityObject*>(
+            type->tp_alloc(type, 0)
+        );
+        if (self) {
+            self->m_pConnectivity = 0;
+            return reinterpret_cast<PyObject*>(self);
+        } else {
+            PyErr_SetString(exception, "Unable to allocate Connectivity object");
+            return NULL;
+        }
+}
+
+
+/**
+ * RingMaster_init
+ *    The __init__ method for the connectivity object.
+ *    This requires a host to which the connectivity object proxy will be
+ *    connected.
+ *
+ *  @param self   - pointer to the object being initialized.
+ *  @param args   - Positional parameters - must contain a host string.
+ *  @param kwds   - Keyword parameters.
+ *  @return int   - -1 for failure.
+ */
+static int
+Connectivity_init(ConnectivityObject* self, PyObject* args, PyObject* kwargs)
+{
+    const char* pHost;
+    if (! PyArg_ParseTuple(args, "s", &pHost)) {
+        return -1;                  // Parsetuple raises its own exception.
+    }
+    
+    // remove any existing CRingMaster object:
+    
+    delete self->m_pConnectivity;
+    try {
+        self->m_pConnectivity = new CConnectivity(pHost);
+    }
+    catch(CException& e) {
+        PyErr_SetString(exception, e.ReasonText());
+        return -1;
+    }
+    catch (std::string msg) {
+        PyErr_SetString(exception, msg.c_str());
+        return -1;
+    }
+    catch (const char* msg) {
+        PyErr_SetString(exception, msg);
+        return -1;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated exception type");
+        return -1;
+    }
+    
+    return 0;                        // Success.
+}
+
+/**
+ * Connectivity_delete
+ *    Destroys a connectivity object.
+ *
+ *  @param self - pointer to the object storage.
+ */
+static void
+Connectivity_delete (ConnectivityObject* self)
+{
+    delete self->m_pConnectivity;
+    self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
+}
+
+/*----------------------------------------------------------------------------
+ *  public methods of the connectibity object:
+ */
+
+/**
+ * connectivity_producers
+ *    Returns a tuple (possibly empty) containing the set of hosts that are
+ *    producing into proxy rings in the host represented by the connectivity
+ *    object.
+ *
+ *  @param self  - Pointer to the object storage (ConnectivityObject*).
+ *  @param args  - Positional parameters (should not be any).
+ *  @return PyObject* Tuple we created.
+ */
+static PyObject*
+connectivity_producers(PyObject* self, PyObject* args)
+{
+    // There can be no parameters:
+    
+    if(PyTuple_Size(args) > 0) {
+        PyErr_SetString(exception, "producers method takes no parameters");
+        return NULL;
+    }
+    
+    CConnectivity* pConn = getConnectivity(self);
+    try {
+        std::vector<std::string> producers = pConn->getProducers();
+        return stringVectorToTuple(producers);
+    }
+    catch (CException& e) {
+        PyErr_SetString(exception, e.ReasonText());
+        return NULL;
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (std::string msg) {
+        PyErr_SetString(exception, msg.c_str());
+        return NULL;
+    }
+    catch (const char* msg) {
+        PyErr_SetString(exception, msg);
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ exception type caught");
+        return NULL;
+    }
+    
+    return NULL;                      // Should not get here.
+}
+/**
+ * connectivity_consumers
+ *   Return a (possibly empty ) tuple containing the hosts that consume data
+ *   from our rings.
+ *
+ * @param self   - Pointer to our object storage.
+ * @param args   - Positional argument tuple -- must be empty.
+ * @return PyObject* - actually a tuple.
+ */
+
+static PyObject*
+connectivity_consumers(PyObject* self, PyObject* args)
+{
+    // Must not have params:
+    
+    if (PyTuple_Size(args) > 0) {
+        PyErr_SetString(exception, "Method has no parameters");
+        return NULL;
+    }
+    
+    CConnectivity* pConn = getConnectivity(self);
+    try {
+        std::vector<std::string> consumers = pConn->getConsumers();
+        return stringVectorToTuple(consumers);
+    }
+    catch (CException& e) {
+        PyErr_SetString(exception, e.ReasonText());
+        return NULL;
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (std::string msg) {
+        PyErr_SetString(exception, msg.c_str());
+        return NULL;
+    }
+    catch (const char* msg) {
+        PyErr_SetString(exception, msg);
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ exception type caught");
+        return NULL;
+    }
+    // Should not get here:
+    
+    return NULL;
+}
+
+// Type dispatch table for the connectivity type:
+
+static PyMethodDef ConnectivityObjectMethods [] {
+    {"producers", connectivity_producers, METH_VARARGS,
+        "List remote hosts that produce data into proxy rings"},
+    {"consumers", connectivity_consumers, METH_VARARGS,
+        "List remote hosts that consume data from our rings"},
+    {NULL, NULL, 0, NULL}
+};
+
+// Type table.
+
+static PyTypeObject ConnectivityType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "ringmaster.connectivity",             /*tp_name*/
+    sizeof(ConnectivityObject), /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    (destructor)(Connectivity_delete), /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    0,                         /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+    "Connectivity object", /* tp_doc */
+    0,		               /* tp_traverse */
+    0,		               /* tp_clear */
+    0,		               /* tp_richcompare */
+    0,		               /* tp_weaklistoffset */
+    0,		               /* tp_iter */
+    0,		               /* tp_iternext */
+    ConnectivityObjectMethods,        /* tp_methods */
+    0,                         /* tp_members */
+    0,                         /* tp_getset */
+    0,                         /* tp_base */
+    0,                         /* tp_dict */
+    0,                         /* tp_descr_get */
+    0,                         /* tp_descr_set */
+    0,                         /* tp_dictoffset */
+    (initproc)Connectivity_init,      /* tp_init */
+    0,                         /* tp_alloc */
+    Connectivity_new,                 /* tp_new */
+    
+};
+
+
 /*----------------------------------------------------------------------------
  *  initringmaster
  *    Module initialization that is searched for by Python.
@@ -512,13 +797,21 @@ initringmaster(void)
     if (module == NULL) {
             return;               // Failure but not much we can do to signal it.
     }
-    // Register our type:
+    // Register our ringmaster type:
     
     if (PyType_Ready(&RingMasterType) < 0) {
         return;
     }
     Py_INCREF(&RingMasterType);
     PyModule_AddObject(module, "ringmaster", reinterpret_cast<PyObject*>(&RingMasterType));
+    
+    // Register our connectivity type:
+    
+    if (PyType_Ready(&ConnectivityType) < 0) {
+        return;
+    }
+    Py_INCREF(&ConnectivityType);
+    PyModule_AddObject(module, "connectivity", reinterpret_cast<PyObject*>(&ConnectivityType));
     
     // Add our exception type:
     
