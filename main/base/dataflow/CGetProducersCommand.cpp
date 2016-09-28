@@ -100,7 +100,8 @@ CGetProducersCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject
         return TCL_ERROR;    
     }
     catch (...) {
-        
+        interp.setResult("Unexpected C++ exception type caught");
+        return TCL_ERROR;
     }
     
     return TCL_OK;

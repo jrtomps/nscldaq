@@ -21,6 +21,7 @@
 #include "CRingCommand.h"
 #include "CPidToCommand.h"
 #include "CGetProducersCommand.h"
+#include "CGetConsumersCommand.h"
 
 
 #ifdef HAVE_STD_NAMESPACE
@@ -40,13 +41,14 @@ extern "C" {
     // Wrap the interpreter in an interpreter object and 
     // create the commands.
 
+    
     CTCLInterpreter& interp(*(new CTCLInterpreter(pInterp)));
     new CRingCommand(interp, "ringbuffer");
     new CPidToCommand(interp);
     new CGetProducersCommand(interp);
+    new CGetConsumersCommand(interp);
+    
     return TCL_OK;
-
- 
   }
 }
 
