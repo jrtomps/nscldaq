@@ -8,7 +8,7 @@ lib_LTLIBRARIES = libDataFlow.la \
 libDataFlow_la_SOURCES = CRingBuffer.cpp CTestRingBuffer.cpp CRemoteAccess.cpp CRingMaster.cpp \
 			CConnectivity.cpp
 include_HEADERS        = CRingBuffer.h CTestRingBuffer.h CRingMaster.h CRemoteAccess.h \
-			CConnectivity.cpp
+			CConnectivity.h
 
 
 noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h CPidToCommand.h
