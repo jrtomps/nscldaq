@@ -7,11 +7,13 @@ lib_LTLIBRARIES = libDataFlow.la \
 
 libDataFlow_la_SOURCES = CRingBuffer.cpp CTestRingBuffer.cpp CRemoteAccess.cpp CRingMaster.cpp \
 			CConnectivity.cpp
+
 include_HEADERS        = CRingBuffer.h CTestRingBuffer.h CRingMaster.h CRemoteAccess.h \
-			CConnectivity.h
+			CConnectivity.h 
 
 
-noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h CPidToCommand.h
+noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h CPidToCommand.h \
+	CGetProducersCommand.h CGetConsumersCommand.h
 
 COMPILATION_FLAGS =  -I@top_srcdir@/base/headers 	\
 	   -I@top_srcdir@/servers/portmanager \
@@ -35,7 +37,9 @@ libDataFlow_la_LIBADD  = @top_builddir@/servers/portmanager/libPortManager.la \
 
 libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
-libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp CPidToCommand.cpp
+libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp CPidToCommand.cpp \
+	CGetProducersCommand.cpp CGetConsumersCommand.cpp
+
 libRingBuffer_la_DEPENDENCIES = libDataFlow.la
 
 libRingBuffer_la_LIBADD  = 	@top_builddir@/base/os/libdaqshm.la @builddir@/libDataFlow.la 
