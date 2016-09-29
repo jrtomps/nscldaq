@@ -298,6 +298,10 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
                 <void />
                 <modifier></modifier>
             </methodsynopsis>    
+	    <methodsynopsis>
+	      <type>std::string</type><methodname>getHost</methodname>
+	      <void />
+	    </methodsynopsis>
          }
          </synopsis>
       </refsynopsisdiv>
@@ -555,6 +559,20 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
                     
                 </variablelist>
             </para>
+	    <methodsynopsis>
+	      <type>std::string</type><methodname>getHost</methodname>
+	      <void />
+	    </methodsynopsis>
+	    
+	    <para>
+	      Provides the fully qualified domain name for the 
+	      preferred name of the host the <classname>CRingMaster</classname>
+	      object is connected to.  Note this may not be the
+	      same value, or even textually related to the same
+	      value passed into the <classname>CRingMaster</classname>
+	      constructor.  For example, <literal>localhost</literal>
+	      will never be returned.
+	    </para>
       </refsect1>
    </refentry>
 
@@ -900,6 +918,11 @@ public:
         <methodname>getConsumers</methodname>
         <void />
     </methodsynopsis>
+    <methodsynopsis>
+      <type>std::vector&lt;std::string&gt;</type>
+      <methodname>getAllParticipants</methodname>
+      <void />
+    </methodsynopsis>
 };
    </synopsis>
   </refsynopsisdiv>
@@ -965,6 +988,21 @@ public:
                 </para>
             </listitem>
         </varlistentry>
+	<varlistentry>
+	  <term>
+	    <methodsynopsis>
+	      <type>std::vector&lt;std::string&gt;</type>
+	      <methodname>getAllParticipants</methodname>
+	      <void />
+	    </methodsynopsis>
+	  </term>
+	  <listitem>
+	    <para>
+	      Returns the name of all hostst that are involved in the
+	      dataflow(s) that include this host.
+	    </para>
+	  </listitem>
+	</varlistentry>
      </variablelist>
   </refsect1>
    
