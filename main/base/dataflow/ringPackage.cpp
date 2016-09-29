@@ -22,7 +22,7 @@
 #include "CPidToCommand.h"
 #include "CGetProducersCommand.h"
 #include "CGetConsumersCommand.h"
-
+#include "CAllParticipantsCommand.h"
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -47,7 +47,7 @@ extern "C" {
     new CPidToCommand(interp);
     new CGetProducersCommand(interp);
     new CGetConsumersCommand(interp);
-    
+    new CAllParticipantsCommand(interp);
     return TCL_OK;
   }
 }
