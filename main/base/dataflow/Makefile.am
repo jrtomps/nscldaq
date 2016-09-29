@@ -13,7 +13,7 @@ include_HEADERS        = CRingBuffer.h CTestRingBuffer.h CRingMaster.h CRemoteAc
 
 
 noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h CPidToCommand.h \
-	CGetProducersCommand.h CGetConsumersCommand.h
+	CGetProducersCommand.h CGetConsumersCommand.h CAllParticipantsCommand.h
 
 COMPILATION_FLAGS =  -I@top_srcdir@/base/headers 	\
 	   -I@top_srcdir@/servers/portmanager \
@@ -38,7 +38,8 @@ libDataFlow_la_LIBADD  = @top_builddir@/servers/portmanager/libPortManager.la \
 libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
 libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp CPidToCommand.cpp \
-	CGetProducersCommand.cpp CGetConsumersCommand.cpp
+	CGetProducersCommand.cpp CGetConsumersCommand.cpp \
+	CAllParticipantsCommand.cpp
 
 libRingBuffer_la_DEPENDENCIES = libDataFlow.la
 
