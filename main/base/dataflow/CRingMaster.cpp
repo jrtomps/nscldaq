@@ -64,7 +64,8 @@ CRingMaster::CRingMaster(string host) :
   m_socket(-1),
   m_isConnected(false),
   m_isDataConnection(false),
-  m_isLocal(false)
+  m_isLocal(false),
+  m_host(host)
 {
   std::string ip=ipAddress(host);
   if (ip == localhost) m_isLocal = true;

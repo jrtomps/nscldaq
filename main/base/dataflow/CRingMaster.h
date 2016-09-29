@@ -19,6 +19,7 @@
 
 #include <string>
 #include <vector>
+#include <os.h>
 
 // Forward class definitions.
 
@@ -53,6 +54,7 @@ private:
   bool     m_isConnected ;      // True if the object is still 
   bool     m_isDataConnection;  // True if the object holds data connection.
   bool     m_isLocal;           // True if connected to localhost.
+  std::string m_host;
 
   // Constructors and canonicals.
 public:
@@ -77,6 +79,14 @@ public:
   int  requestData(std::string ringname);
   std::string requestUsage();
   ClientCommands listClients(std::string ringname);
+
+  // Accessors (getters)
+
+public:
+  std::string getHost() {
+    return Os::getfqdn(m_host.c_str());
+  }
+
   // Utilities:
 
 private:

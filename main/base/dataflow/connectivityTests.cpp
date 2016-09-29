@@ -8,7 +8,7 @@
 #include "Asserts.h"
 #include "CRingBuffer.h"
 #include "CConnectivity.h"
-
+#include "os.h"
 
 class ConnectivityTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(ConnectivityTest);
@@ -26,8 +26,13 @@ class ConnectivityTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(noConsumer2);
   CPPUNIT_TEST(noConsumer3);
   CPPUNIT_TEST(consumer);
-  CPPUNIT_TEST_SUITE_END();
 
+  // Tests for connectivity walker
+  // Note we can really only test
+  // that localhost becomes what we want.
+  
+  CPPUNIT_TEST(walker);
+  CPPUNIT_TEST_SUITE_END();
 
 private:
   CConnectivity* m_pConnectivity;
@@ -49,6 +54,8 @@ protected:
   void noConsumer2();
   void noConsumer3();
   void consumer();
+
+  void walker();
 private:
   std::string makeFakeProxy(const char* ring, const char* host);
   std::string ringToHost(std::string ring);
@@ -279,4 +286,16 @@ ConnectivityTest::consumer()
     throw;
   } 
   CRingBuffer::remove("ron");
+}
+// We should find our fqdn in the walk:
+
+void
+ConnectivityTest::walker()
+{
+  char host[1000];
+  gethostname(host, sizeof(host));
+  std::string fq = Os::getfqdn(host);
+  std::vector<std::string> clients = m_pConnectivity->getAllParticipants();
+  EQ(size_t(1), clients.size());
+  EQ(std::string(host), fq);
 }

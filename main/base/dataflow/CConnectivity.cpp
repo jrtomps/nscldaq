@@ -144,6 +144,27 @@ CConnectivity::getConsumers()
   }
   return result;
 }
+/**
+ * getAllParticipants
+ *   Returns the set of all nodes that are participating in the
+ *   dataflow.  This is done by starting here and crawling the
+ *   graph of connected nodes.  Note that any exceptions in attempts
+ *   to connect to remote ring masters are just treated like the
+ *   remote node is not a participant.
+ *
+ *   @note - what we really do is just invoke the private
+ *           static metnhod getAllParticipants handing off us
+ *           as the parameter.  That method recursively walks the
+ *           connectivity graph.
+ *   @return std::vector<std::string> - The nodes involved.
+ */
+std::vector<std::string>
+CConnectivity::getAllParticipants()
+{
+  std::vector<std::string> result = getAllParticipants(*this);
+
+  return result;
+}
 /*---------------------------------------------------------------------------
  * private utilities.
  */
@@ -324,3 +345,45 @@ CConnectivity::extractHosts(
     return result;
   }
 }
+/**
+ * getAllParticipants
+ *   Returns all of the participants in the data flow relative to a 
+ *   starting point:
+ *     -  This host is put in the set of participants.
+ *     -  The connections here are gotten and put in an std::set.
+ *     -  For each participant in the set, a new bunch of participants
+ *        is gotten (recursive) and the new unique ones added to the set.
+ *     -  vector of set keys is then returned.
+ *
+ *  @param initial - an initial location from which to start probing.
+ *  @return std::vector<std::string> - the unique hosts involved in the data flow.
+ */
+std::vector<std::string>
+CConnectivity::getAllParticipants(CConnectivity& initial)
+{
+  std::set<std::string> allClients;
+  allClients.insert(initial.m_pRingMaster->getHost());    // Initial's host is always in the set.
+
+  // Get the clients:
+
+  std::vector<std::string> clients = initial.getProducers();
+  std::vector<std::string> consumers = initial.getConsumers();
+  clients.insert(clients.end(), consumers.begin(), consumers.end());
+
+  for (size_t i = 0; i < clients.size(); i++) {
+    if(!allClients.count(clients[i])) {
+      try {
+	CConnectivity next(clients[i].c_str());
+	std::vector<std::string> additionalHosts = getAllParticipants(next);
+	for (size_t h =0; h < additionalHosts.size(); h++) {
+	  allClients.insert(additionalHosts[h]);
+	}
+	allClients.insert(clients[i]); // Include the host we just checked.
+      }
+      catch(...) {}                 
+    }
+    
+  }
+  return std::vector<std::string>(allClients.begin(), allClients.end());
+
+}    

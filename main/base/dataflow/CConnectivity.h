@@ -28,6 +28,7 @@
 #include <string>
 #include <CRingMaster.h>
 
+
 /**
  * CConnectivity
  *   This class provides a mechanism to determine which hosts
@@ -57,6 +58,7 @@ public:
   
   std::vector<std::string> getProducers();
   std::vector<std::string> getConsumers();
+  std::vector<std::string> getAllParticipants();
   
   // Utilities:
   
@@ -70,6 +72,7 @@ public:
   std::vector<std::string> extractHosts(
       const std::vector<CRingMaster::commandWords>& consumers); 
 
+  static std::vector<std::string> getAllParticipants(CConnectivity& aHost);
 };
 
 
