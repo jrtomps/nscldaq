@@ -296,6 +296,7 @@ from nsldaq.ringbuffer import ringmaster
 <replaceable>obj</replaceable> = ringmaster.connectivity(<replaceable>host</replaceable>)
 <replaceable>atuple</replaceable> = <replaceable>obj</replaceable>.producers()
 <replaceable>atuple</replaceable> = <replaceable>obj</replaceable>.consumers()
+<replaceable>atuple</replaceable> = <replaceable>obj</replaceable>.allParticipants()
 
    </synopsis>
   </refsynopsisdiv>
@@ -348,6 +349,20 @@ from nsldaq.ringbuffer import ringmaster
                     by looking at the consumers in each ring, finding those that
                     are of the form <command>ringtostdout <replaceable>ringname hostname</replaceable></command>
                     and extracting the hostname from the command.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <replaceable>atuple</replaceable> = <replaceable>obj</replaceable>.allParticipants()
+            </term>
+            <listitem>
+                <para>
+                  Returns a tuple containing all the hosts participating in the
+                  data flow on which the connectivity object was constructed.
+                  Note that the tuple will have at least one element, the
+                  fully qualified canonical hostname of the host on which
+                  the object was constructed.
                 </para>
             </listitem>
         </varlistentry>

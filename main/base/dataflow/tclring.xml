@@ -107,6 +107,10 @@ ringbuffer list
     <command>consumers <replaceable>?host?</replaceable></command>
 </cmdsynopsis>
 
+<cmdsynopsis>
+    <command>getAllParticipants <replaceable>?host?</replaceable></command>
+</cmdsynopsis>
+
   </refsynopsisdiv>
   
   <refsect1>
@@ -431,7 +435,21 @@ ringbuffer list
 		</para>
 	    </listitem>
 	</varlistentry>
-	
+	<varlistentry>
+	    <term>
+		<cmdsynopsis>
+		    <command>getAllParticipants <replaceable>?host?</replaceable></command>
+		</cmdsynopsis>		
+	    </term>
+	    <listitem>
+		<para>
+		    Returns the participants in the dataflow involving the
+		    <parameter>host</parameter>.  If the optional
+		    <parameter>host</parameter> parameter is not supplied,
+		    <literal>localhost</literal> is used by default.
+		</para>
+	    </listitem>
+	</varlistentry>
      </variablelist>
   </refsect1>
 
