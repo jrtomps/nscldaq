@@ -58,9 +58,9 @@ libRingBuffer_la_CXXFLAGS	=	-I@top_srcdir@/base/os \
 #  Python bindings to CRingMaster entries that are useful.
 
 libRingPy_la_SOURCES  = PyRingMaster.cpp
-libRingPy_la_CPPFLAGS = @PYTHON_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
-libRingPy_la_LDFLAGS  =  @PYTHON_LDFLAGS@ @builddir@/libDataFlow.la \
-	@LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
+libRingPy_la_CPPFLAGS = -I@top_srcdir@/base/os @PYTHON_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
+libRingPy_la_LDFLAGS  =   @PYTHON_LDFLAGS@ @builddir@/libDataFlow.la \
+			@top_builddir@/base/os/libdaqshm.la @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
 #---------------- Compiled programs. 
 

@@ -297,5 +297,5 @@ ConnectivityTest::walker()
   std::string fq = Os::getfqdn(host);
   std::vector<std::string> clients = m_pConnectivity->getAllParticipants();
   EQ(size_t(1), clients.size());
-  EQ(std::string(host), fq);
+  EQ(Os::getfqdn(host), fq);
 }
