@@ -723,7 +723,57 @@ connectivity_consumers(PyObject* self, PyObject* args)
     
     return NULL;
 }
+/**
+ * connectivity_participants
+ *  Returns a tuple containing the fully qualified domain names of all hosts
+ *  that participate in the dataflow givne a single host that participates.
+ *
+ *  @param self  -  Pointer to the object struct for the object being invoked.
+ *  @param args  -  Pointer to a tuple containing the method's positional parameters.
+ *                  There must not be any parameters.  The host on which the
+ *                  object was constructed is the starting point.
+ *  @return PyObject* - An  n-tuple that contains at least one element (the
+ *                      starting point host),
+ */
+static PyObject*
+connectivity_participants(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        PyErr_SetString(exception, "Method takes no parameters");
+        return NULL;
+    }
+    
+    CConnectivity* c = getConnectivity(self);
+    try {
+        std::vector<std::string> participants = c->getAllParticipants();
+        return stringVectorToTuple(participants);
+    }
+    catch (CException& e) {
+        PyErr_SetString(exception, e.ReasonText());
+        return NULL;
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (std::string msg) {
+        PyErr_SetString(exception, msg.c_str());
+        return NULL;
+    }
+    catch (const char* msg) {
+        PyErr_SetString(exception, msg);
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "An unanticpated C++ exception type was caught.");
+        return NULL;
+    }
+    
+    // Control should not pass here:
+    
+    return NULL;
 
+}
 // Type dispatch table for the connectivity type:
 
 static PyMethodDef ConnectivityObjectMethods [] {
@@ -731,6 +781,8 @@ static PyMethodDef ConnectivityObjectMethods [] {
         "List remote hosts that produce data into proxy rings"},
     {"consumers", connectivity_consumers, METH_VARARGS,
         "List remote hosts that consume data from our rings"},
+    {"allParticipants", connectivity_participants, METH_VARARGS,
+        "Lists all hosts involved in the data flow from a starting point"},
     {NULL, NULL, 0, NULL}
 };
 

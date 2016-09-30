@@ -25,6 +25,7 @@
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <set>
+#include <unistd.h>
 
 /**
  *  Static utilities:
@@ -362,7 +363,17 @@ std::vector<std::string>
 CConnectivity::getAllParticipants(CConnectivity& initial)
 {
   std::set<std::string> allClients;
-  allClients.insert(initial.m_pRingMaster->getHost());    // Initial's host is always in the set.
+  
+  // If starting host is localhost  - map it to its canonical
+  // hostname:
+  
+  std::string startingHost = initial.m_pRingMaster->getHost();
+  if (startingHost == "localhost") {
+    char canonicalHost[100];
+    gethostname(canonicalHost, sizeof(canonicalHost));
+    startingHost = Os::getfqdn(canonicalHost);
+  }
+  allClients.insert(startingHost);    // Initial's host is always in the set.
 
   // Get the clients:
 
