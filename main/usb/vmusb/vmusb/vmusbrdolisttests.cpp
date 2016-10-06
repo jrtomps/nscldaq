@@ -284,16 +284,14 @@ void VMUSBRdoListTests::addBlockWrite32_0()
   m_pList->addBlockWrite32(0xffa23, 0x0b, data, 5);
   
 
-  std::vector<uint32_t> expected(8);
-  expected[0] = ((0xff<<24)|0x0b); // 255 transfers to align, 
-  expected[1] = 5;
-  expected[2] = 0xffa23;
-  expected[3] = 0;
-  expected[4] = 1;
-  expected[5] = 2;
-  expected[6] = 3;
-  expected[7] = 4;
-  expected[8] = 5;
+  std::vector<uint32_t> expected(7);
+  expected[0] = ((0x5<<24)|0x0b);  
+  expected[1] = 0xffa23;
+  expected[2] = 0;
+  expected[3] = 1;
+  expected[4] = 2;
+  expected[5] = 3;
+  expected[6] = 4;
 
   CPPUNIT_ASSERT(expected == m_pList->get());
 }
