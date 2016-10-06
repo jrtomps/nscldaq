@@ -813,16 +813,16 @@ CVMUSB::vmeFifoRead(uint32_t address, uint8_t aModifier,
 std::vector<uint8_t> 
 CVMUSB::executeList(CVMUSBReadoutList& list, int maxBytes)
 {
-  uint8_t data[maxBytes];
-  size_t     nRead;
-  std::vector<uint8_t> result;
+  size_t               nRead;
+  std::vector<uint8_t> result(maxBytes, 0);
 
-  int status = this->executeList(list, data, maxBytes, &nRead);
+  int status = this->executeList(list, result.data(), result.size(), &nRead);
 
   if (status == 0) {
-    for (int i = 0; i < nRead; i++) {
-      result.push_back(data[i]);
-    }
+    result.resize(nRead);
+  } else {
+    // failure ... get 
+    result.resize(0);
   }
 
   return result;

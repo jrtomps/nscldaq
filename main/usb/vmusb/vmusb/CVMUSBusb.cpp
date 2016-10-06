@@ -469,8 +469,10 @@ CVMUSBusb::setDefaultTimeout(int ms)
 int
 CVMUSBusb::transaction(void* writePacket, size_t writeSize,
 		    void* readPacket,  size_t readSize)
-{
-  char buf[26700];
+{ 
+//  std::cout << "transaction for " << readSize << " bytes" << std::endl;
+
+  char buf[8192];
   
   
   //print_stack(reinterpret_cast<char*>(writePacket), 
@@ -478,24 +480,48 @@ CVMUSBusb::transaction(void* writePacket, size_t writeSize,
 
     CriticalSection s(*m_pMutex);
     int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
-				static_cast<char*>(writePacket), writeSize, 
-        m_timeout);
+		                        		static_cast<char*>(writePacket), writeSize, 
+                                m_timeout);
     if (status < 0) {
       errno = -status;
       return -1;		// Write failed!!
-    } else if (status > 0) {
-      readSize = sizeof(buf);
-    }
+    } 
+    
+//    std::cout << "write status " << status << std::endl;
+
     status    = usb_bulk_read(m_handle, ENDPOINT_IN,
-                  			      buf, readSize, m_timeout);
+                  			      buf, sizeof(buf), m_timeout);
     if (status < 0) {
       errno = -status;
       return -2;
-    } else {
-      std::copy(buf, 
-                buf + std::min(size_t(status),readSize), 
-                reinterpret_cast<char*>(readPacket));
+    } 
+
+//    std::cout << "read " << status << " bytes " << std::endl;
+
+    long bytesRead = status;
+    auto pReadCursor = reinterpret_cast<char*>(readPacket);
+
+    // Copy the newly read data into the output buffer
+    pReadCursor = std::copy(buf, buf + status, pReadCursor);
+
+    // iteratively read until we have the data we desire
+    while (bytesRead < readSize) {
+      status = usb_bulk_read(m_handle, ENDPOINT_IN, buf, sizeof(buf), m_timeout);
+      if (status < 0) {
+        errno = -status;
+        return -2;
+      }
+ //     std::cout << "read " << status << " bytes " << std::endl;
+
+      pReadCursor = std::copy(buf, buf+status, pReadCursor);
+
+      bytesRead += status;
+
+      // set status so that we return the total number of bytes read
+      status = bytesRead;
     }
+
+ //   std::cout << "done" << std::endl;
     return status;
 }
 
@@ -543,7 +569,7 @@ void
 CVMUSBusb::writeRegister(unsigned int address, uint32_t data)
 {
   CVMUSBReadoutList list;
-  uint32_t          rdstatus;
+  uint16_t          rdstatus;
   size_t            rdcount;
   list.addRegisterWrite(address, data);
 
