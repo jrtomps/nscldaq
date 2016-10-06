@@ -690,12 +690,9 @@ CVMUSB::vmeWrite8(uint32_t address, uint8_t aModifier, uint8_t data)
 int
 CVMUSB::vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data)
 {
-  CVMUSBReadoutList list;
-  list.addRead32(address, aModifier);
-  uint32_t      lData;
-  int status = doVMERead(list, &lData);
-  *data      = lData;
-  return status;
+  unique_ptr<CVMUSBReadoutList> pList(createReadoutList());
+  pList->addRead32(address, aModifier);
+  return doVMERead(*pList, data);
 }
 
 /*!
@@ -706,13 +703,8 @@ int
 CVMUSB::vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data)
 {
   unique_ptr<CVMUSBReadoutList> pList(createReadoutList());
-  CVMUSBReadoutList& list = *pList;
-  list.addRead16(address, aModifier);
-  uint32_t lData;
-  int      status = doVMERead(list, &lData);
-  *data = static_cast<uint16_t>(lData);
-
-  return status;
+  pList->addRead16(address, aModifier);
+  return doVMERead(*pList, data);
 }
 /*!
    Read an 8 bit byte from the VME... see vmeRead32 for information about
@@ -721,12 +713,9 @@ CVMUSB::vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data)
 int
 CVMUSB::vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data)
 {
-  CVMUSBReadoutList list;
-  list.addRead8(address, aModifier);
-  uint32_t lData;
-  int      status = doVMERead(list, &lData);
-  *data  = static_cast<uint8_t>(lData);
-  return status;
+  unique_ptr<CVMUSBReadoutList> pList(createReadoutList());
+  pList->addRead8(address, aModifier);
+  return doVMERead(*pList, data);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -960,14 +949,6 @@ CVMUSB::doVMEWrite(CVMUSBReadoutList& list)
   return status;
 }
 
-// Common code to do a single shot vme read operation:
-int
-CVMUSB::doVMERead(CVMUSBReadoutList& list, uint32_t* datum)
-{
-  size_t actualRead;
-  int status = executeList(list, datum, sizeof(uint32_t), &actualRead);
-  return status;
-}
 
 //  Utility to create a stack from a transfer address word and
 //  a CVMUSBReadoutList and an optional list offset (for non VCG lists).

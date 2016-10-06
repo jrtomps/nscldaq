@@ -608,7 +608,8 @@ protected:
     void* getFromPacket32(void* packet, uint32_t* datum);
     unsigned int whichToISV(int which);
     int   doVMEWrite(CVMUSBReadoutList& list);
-    int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
+    template<class T>
+    int   doVMERead(CVMUSBReadoutList&  list, T* datum);
     uint16_t* listToOutPacket(uint16_t ta, CVMUSBReadoutList& list, size_t* outSize,
 			      off_t offset = 0);
 
@@ -655,5 +656,18 @@ inline size_t uint8_vector_size(std::vector<uint8_t> vec)  {
 }
 
   
+// Template implementations...
+//
+//
+
+// Common code to do a single shot vme read operation:
+template<class T>
+int
+CVMUSB::doVMERead(CVMUSBReadoutList& list, T* datum)
+{
+  size_t actualRead;
+  int status = executeList(list, datum, sizeof(T), &actualRead);
+  return status;
+}
 
 #endif
