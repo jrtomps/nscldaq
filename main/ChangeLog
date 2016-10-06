@@ -1121,3 +1121,8 @@ Work on 11.0-rc11 begins
 	read back after a stack execution always requests 26700 bytes.
 	* Bug #6245 Conditions call of exit(EXIT_FAILURE) on an actual failure. The
 	issue was introduced in version 11.1-006.
+	* Fixes buggy BLT read back when in interactive mode. The transaction method
+	of CVMUSBusb now is strict about reading iteratively until it receives all
+	requested data. This increased strictness caused changes to the vmeWrite16,
+	vmeWrite8, doVMERead, and writeRegister methods.
+
