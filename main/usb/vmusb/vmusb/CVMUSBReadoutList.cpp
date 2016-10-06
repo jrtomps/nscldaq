@@ -17,6 +17,7 @@
 #include "CVMUSBReadoutList.h"
 #include "CVMUSB.h"		//  I think this is ok.
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 
 // Class level statics:
@@ -424,18 +425,30 @@ CVMUSBReadoutList::addBlockRead32(uint32_t baseAddress, uint8_t amod,
   @param amod        - address modifier.
   @param data        - Data to transfer.
   @param transfers   - Number of transfers to perform.
+  @throws std::runtime_error if the number of transfers is greater than 254
 */
 void
 CVMUSBReadoutList::addBlockWrite32(uint32_t baseAddress, uint8_t amod,
 				   void* data, size_t transfers)
 {
 
-  // full universal MBLT -- doesn't seem to work
+  // If the number of transfers is 255 that causes the BLT bits of the
+  // command header to 0xff. This triggers MBLT mode and the subsequent
+  // data word is expected to be a number of transfers. We are not handling
+  // multi BLT mode so I am just going to prevent people from doing
+  // more than 254 block transfers at a time. Sorry folks. This has been
+  // broken for a long time and no one has cared, so no one is likely
+  // to begin caring now.
+  if (transfers > 254) {
+    std::string errmsg("CVMUSBReadoutList::addBlockWrite32() ");
+    errmsg += "only supports _fewer_ than 255 transfers";
+    throw std::runtime_error(errmsg);
+  }
+
   uint32_t mode = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
-  mode         |= (0xff<<24);
+  mode         |= (transfers<<24);
 
   m_list.push_back(mode);
-  m_list.push_back(transfers);
   m_list.push_back(baseAddress);
   
   // Put the data in the list too:

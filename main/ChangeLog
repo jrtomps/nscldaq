@@ -1125,4 +1125,5 @@ Work on 11.0-rc11 begins
 	of CVMUSBusb now is strict about reading iteratively until it receives all
 	requested data. This increased strictness caused changes to the vmeWrite16,
 	vmeWrite8, doVMERead, and writeRegister methods.
-
+	* Fixes broken BLT32 writes. Also imposes a limit on the size of the BLT
+	to be fewer than 255 transfers.
