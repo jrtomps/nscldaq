@@ -78,6 +78,7 @@ lappend auto_path $libdir
 package require portAllocator
 package require log
 package require ring
+package require dns
 
 
 #  Locate the directory in which the hoister lives and
@@ -200,6 +201,16 @@ proc RemoteHoist {socket client tail} {
     if {[lsearch -exact $::knownRings $ringname] == -1} {
 	puts $socket "ERROR $ringname does not exist"
     } else {
+	# If possible convert the client name in to an fqdn for the
+	# host (documented in the hoisters parameters).
+	
+	set dnsTok [::dns::resolve $client]
+	set result [dns::wait $dnsTok]
+	if {$result eq "ok"} {
+	    set client [::dns::name $dnsTok];  # FQDN of peer.    
+	} 
+	::dns::cleanup $dnsTok
+	
 	puts $socket "OK BINARY FOLLOWS"
 	exec $::hoisterProgram $ringname $client >@ $socket  &
 	releaseResources $socket $client
