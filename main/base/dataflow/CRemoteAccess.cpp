@@ -364,8 +364,9 @@ CRingAccess::startFeeder(string proxyName, int socket, std::string remoteHost)
   char* const argv[10]  = {const_cast<char*>(program.c_str()), 
 			   mindataSw, 
 			   timeoutSw, 
-			   const_cast<char*>(proxyName.c_str(), remoteHost.c_str()), 
-			 NULL};
+			   const_cast<char*>(proxyName.c_str()),
+			   const_cast<char*>(remoteHost.c_str()), 
+			   NULL};
   char* const env[1]  = {NULL};
 
   execve(program.c_str(), argv, env);
