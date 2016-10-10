@@ -350,7 +350,7 @@ CRingAccess::startFeeder(string proxyName, int socket, std::string remoteHost)
 
   string program(BINDIR);
   program += "/stdintoring";
-
+  
 
   // Construct the switches:
 
@@ -359,6 +359,8 @@ CRingAccess::startFeeder(string proxyName, int socket, std::string remoteHost)
   sprintf(mindataSw, "--mindata=%d", m_minData);
   sprintf(timeoutSw, "--timeout=%d", m_Timeout);
 
+  remoteHost = Os::getfqdn(remoteHost.c_str());   // Convert to fully qualified name:
+  
   // build up and do the execve:
 
   char* const argv[10]  = {const_cast<char*>(program.c_str()), 
