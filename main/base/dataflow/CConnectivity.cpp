@@ -27,6 +27,8 @@
 #include <set>
 #include <unistd.h>
 
+#include<iostream>
+
 /**
  *  Static utilities:
  */
@@ -47,6 +49,18 @@ tailIs(std::string longString, std::string shortString)
 
 }
 
+
+/**
+ * dumpStrings
+ *   Debugging utility to dump a vector of strings to an output file:
+ */
+static void
+dumpStrings(std::ostream& o, const std::vector<std::string>& s)
+{
+    for (auto p = s.begin(); p != s.end(); p++) {
+        std::cout << *p << std::endl;
+    }
+}
 
 /*--------------------------------------------------------------------------
  * Public methods:
@@ -368,19 +382,34 @@ CConnectivity::getAllParticipants(CConnectivity& initial)
   // hostname:
   
   std::string startingHost = initial.m_pRingMaster->getHost();
+  
   if (startingHost == "localhost") {
     char canonicalHost[100];
     gethostname(canonicalHost, sizeof(canonicalHost));
     startingHost = Os::getfqdn(canonicalHost);
+  } else {
+    startingHost = Os::getfqdn(startingHost.c_str());
   }
   allClients.insert(startingHost);    // Initial's host is always in the set.
 
   // Get the clients:
 
+  std::cout << "Probing participants starting at " << startingHost << std::endl;
   std::vector<std::string> clients = initial.getProducers();
+  std::cout << "Producers: ";
+  dumpStrings(std::cout, clients);
+  std::cout << std::endl;
+  
+  std::cout << "Consumers: ";
   std::vector<std::string> consumers = initial.getConsumers();
+  dumpStrings(std::cout, consumers);
+  std::cout << std::endl;
+  
+  
   clients.insert(clients.end(), consumers.begin(), consumers.end());
-
+    std::cout<< " Combined: ";
+    dumpStrings(std::cout, clients);  
+  
   for (size_t i = 0; i < clients.size(); i++) {
     if(!allClients.count(clients[i])) {
       try {
@@ -395,6 +424,9 @@ CConnectivity::getAllParticipants(CConnectivity& initial)
     }
     
   }
+  std::cout << "Returning: ";
+  dumpStrings(std::cout, std::vector<std::string>(allClients.begin(), allClients.end()));
+  std::cout << std::endl;
   return std::vector<std::string>(allClients.begin(), allClients.end());
 
 }    
