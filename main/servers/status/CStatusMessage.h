@@ -152,7 +152,56 @@ public:
         
         void logChange(std::string leaving, std::string entering);
     };
-    
-    
+    // Private data types see e.g. https://swdev-redmine.nscl.msu.edu/projects/sfnscldaq/wiki/NSCLDAQ_status_aggregation
+    private:
+        // This describes the structure of the message header.
+        
+        struct Header {
+            uint32_t s_type;
+            uint32_t s_severity
+            char     s_application[32];
+            char     s_source[128];
+        };
+        
+        // These two structures are the two body parts for ring statistics:
+        
+        struct RingStatIdentification {
+            uint64_t s_tod;
+            char     s_ringName[];                // Variable length.
+        };
+        struct RingStatClient {                  // Not same order as wiki but
+            uint64_t  s_operations;              // uses natural alignments.
+            uint64_t  s_bytes;
+            uint32_t  s_isProducer;
+            char      s_command[];               // Now this can be variable length.
+        };
+        // Structs that define message parts for ReadoutStatistics:
+        
+        struct ReadoutStatRunInfo {
+            uint32_t s_runNumber;
+            char     s_title[80];
+        };
+        struct ReadoutStatCounters {
+            uint64_t   s_tod;
+            uint64_t   s_elapsedTime;
+            uint64_t   s_triggers;
+            uint64_t   s_events;
+            uint64_t   s_bytes;
+        };
+        
+        // Log message structure:
+        
+        struct LogMessage {
+            uint64_t   s_tod;
+            char       s_message[];
+        };
+        
+        // State change message parts:
+        
+        struct StateChange {
+            uint64_t s_tod;
+            char     s_leaving[32];
+            char     s_entering[32];
+        }
 };
 #endif
