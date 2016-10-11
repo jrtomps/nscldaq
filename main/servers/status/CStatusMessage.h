@@ -133,12 +133,12 @@ public:
     public:
     class RingStatistics {
     private:
-        zmq::socket_t&              m_socket;
+        zmq::socket_t&            m_socket;
         std::string               m_applicationName;
         bool                      m_msgOpen;
         std::string               m_ringName;
-        RingStatClient            m_producer;
-        std::list<RingStatClient> m_consumers;
+        RingStatClient*           m_producer;
+        std::list<RingStatClient*> m_consumers;
         
     public:
         RingStatistics(zmq::socket_t& socket, std::string app="RingStatDaemon");
@@ -155,9 +155,9 @@ public:
         );
         void endMessage();
     private:
-        void push_back(
-            bool isProducer, std::vector<std::string> command,
-            std::uint64_t ops, std::uint64_t bytes
+        RingStatClient* makeClient(
+            std::vector<std::string> command, uint64_t opts, uint64_t bytes,
+            bool producer = false
         );
         
     };
