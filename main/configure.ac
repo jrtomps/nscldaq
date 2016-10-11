@@ -427,6 +427,7 @@ AC_CONFIG_FILES([Makefile
 		 servers/Makefile
 		 servers/tclserver/Makefile
                  servers/portmanager/Makefile
+		 servers/status/Makefile
 		 utilities/Makefile
 		utilities/common/Makefile
 		 utilities/Buffer/Makefile

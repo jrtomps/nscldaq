@@ -73,7 +73,7 @@ public:
   std::vector<std::string> extractHosts(
       const std::vector<CRingMaster::commandWords>& consumers); 
 
-  void getAllParticipants(CConnectivity& aHost, std::set<std::string>& seen);
+  static void getAllParticipants(CConnectivity& aHost, std::set<std::string>& seen);
 };
 
 
