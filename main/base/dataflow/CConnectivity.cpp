@@ -176,9 +176,10 @@ CConnectivity::getConsumers()
 std::vector<std::string>
 CConnectivity::getAllParticipants()
 {
-  std::vector<std::string> result = getAllParticipants(*this);
+  std::set<std::string>  result;
+  getAllParticipants(*this, result);
 
-  return result;
+  return std::vector<std::string>(result.begin(), result.end());
 }
 /*---------------------------------------------------------------------------
  * private utilities.
@@ -371,12 +372,17 @@ CConnectivity::extractHosts(
  *     -  vector of set keys is then returned.
  *
  *  @param initial - an initial location from which to start probing.
- *  @return std::vector<std::string> - the unique hosts involved in the data flow.
+ *  @param[inout] seen    - Context set reference in which the set of involved hosts
+ *                   will be built up.  Any hosts in this set will not be crawled
+ *                   during the mapping of the involved nodes.  Discovered nodes
+ *                   will be added to this set.
+ *              
+ *  @note The method is recursive as new nodes are discovered this method is called
+ *        again with the set containing the nodes already seen.
  */
-std::vector<std::string>
-CConnectivity::getAllParticipants(CConnectivity& initial)
+void
+CConnectivity::getAllParticipants(CConnectivity& initial, std::set<std::string>& seen)
 {
-  std::set<std::string> allClients;
   
   // If starting host is localhost  - map it to its canonical
   // hostname:
@@ -390,43 +396,25 @@ CConnectivity::getAllParticipants(CConnectivity& initial)
   } else {
     startingHost = Os::getfqdn(startingHost.c_str());
   }
-  allClients.insert(startingHost);    // Initial's host is always in the set.
+  seen.insert(startingHost);    // Initial's host is always in the set.
 
   // Get the clients:
 
-  std::cout << "Probing participants starting at " << startingHost << std::endl;
-  std::vector<std::string> clients = initial.getProducers();
-  std::cout << "Producers: ";
-  dumpStrings(std::cout, clients);
-  std::cout << std::endl;
-  
-  std::cout << "Consumers: ";
+  std::vector<std::string> clients = initial.getProducers();  
   std::vector<std::string> consumers = initial.getConsumers();
-  dumpStrings(std::cout, consumers);
-  std::cout << std::endl;
   
   
   clients.insert(clients.end(), consumers.begin(), consumers.end());
-    std::cout<< " Combined: ";
-    dumpStrings(std::cout, clients);  
   
   for (size_t i = 0; i < clients.size(); i++) {
-    if(!allClients.count(clients[i])) {
+    if(!seen.count(clients[i])) {
       try {
 	CConnectivity next(clients[i].c_str());
-	std::vector<std::string> additionalHosts = getAllParticipants(next);
-	for (size_t h =0; h < additionalHosts.size(); h++) {
-	  allClients.insert(additionalHosts[h]);
-	}
-	allClients.insert(clients[i]); // Include the host we just checked.
+	getAllParticipants(next, seen);
+	seen.insert(clients[i]); // Include the host we just checked.
       }
       catch(...) {}                 
     }
     
   }
-  std::cout << "Returning: ";
-  dumpStrings(std::cout, std::vector<std::string>(allClients.begin(), allClients.end()));
-  std::cout << std::endl;
-  return std::vector<std::string>(allClients.begin(), allClients.end());
-
 }    

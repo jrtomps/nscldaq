@@ -25,6 +25,7 @@
 #define _CCONNECTIITY_H
 
 #include <vector>
+#include <set>
 #include <string>
 #include <CRingMaster.h>
 
@@ -72,7 +73,7 @@ public:
   std::vector<std::string> extractHosts(
       const std::vector<CRingMaster::commandWords>& consumers); 
 
-  static std::vector<std::string> getAllParticipants(CConnectivity& aHost);
+  void getAllParticipants(CConnectivity& aHost, std::set<std::string>& seen);
 };
 
 
