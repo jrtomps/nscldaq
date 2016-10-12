@@ -110,10 +110,18 @@ void RingStatTests::startWhenOpen()
   CStatusDefinitions::RingStatistics msg(sock, "TestApp");
   msg.startMessage("aring");
   
-  CPPUNIT_ASSERT_THROW(
-    msg.startMessage("atest"),
-    std::logic_error
-  );
+  // Would love to use CPPUNIT_ASSERT_THROW but some versions of CPPUNIT
+  // make compilation errors for std::exception derived expected exception types.
+  // therefore:
+  
+  try {
+    msg.startMessage("atest");
+    ::CppUnit::Asserter::fail("Starting a message with one open expected std::logic_error");
+  }
+  catch (std::logic_error& e) {}
+  catch (...) {
+    ::CppUnit::Asserter::fail("Unexpected exception type thrown");
+  }
   
   msg.m_msgOpen = false;
 }
@@ -160,10 +168,14 @@ void RingStatTests::addSecondProducer()
   std::vector<std::string> command = {"this", "is", "the", "command"};
   msg.addProducer(command, 1234, 5678);
 
-  CPPUNIT_ASSERT_THROW(
-    msg.addProducer(command, 1234, 5678),
-    std::logic_error
-  );
+ try {
+    msg.addProducer(command, 1234, 5678);
+    ::CppUnit::Asserter::fail("Adding a second producer; expected std::logic_error");
+  }
+  catch (std::logic_error& e) {}
+  catch (...) {
+    ::CppUnit::Asserter::fail("Unexpected exception type thrown");
+  }  
 }
 
 
