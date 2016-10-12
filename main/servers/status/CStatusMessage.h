@@ -43,8 +43,7 @@ public:
      *    type field of status messages.
      */
     
-    // Private data types see e.g. https://swdev-redmine.nscl.msu.edu/projects/sfnscldaq/wiki/NSCLDAQ_status_aggregation
-    private:
+
         // This describes the structure of the message header.
         
         struct Header {
@@ -96,19 +95,19 @@ public:
         };
     class MessageTypes {
     public:
-        static const std::uint32_t RING_STATISTICS          = 0x00000000;
-        static const std::uint32_t EVENT_BUILDER_STATISTICS = 0x00000001;
-        static const std::uint32_t READOUT_STATISTICS       = 0x00000002;
-        static const std::uint32_t LOG_MESSAGE              = 0x00000003;
-        static const std::uint32_t STATE_CHANGE             = 0x00000004;
+        static const std::uint32_t RING_STATISTICS;
+        static const std::uint32_t EVENT_BUILDER_STATISTICS;
+        static const std::uint32_t READOUT_STATISTICS;
+        static const std::uint32_t LOG_MESSAGE;
+        static const std::uint32_t STATE_CHANGE;
         
         // keep this updated as new types are added:
         
-        static const std::uint32_t FIRST_FREE_TYPE          = 0x00000005;
+        static const std::uint32_t FIRST_FREE_TYPE;
         
         //
         
-        static const std::uint32_t FIRST_USER_TYPE          = 0x80000000;
+        static const std::uint32_t FIRST_USER_TYPE;
     };
     /**
      * @class CStatusDefinitions::SeverityLevels
@@ -118,11 +117,11 @@ public:
     public:
     class SeverityLevels {
     public:
-        static const std::uint32_t DEBUG   = 0x00000000;
-        static const std::uint32_t INFO    = 0x00000001;
-        static const std::uint32_t WARNING = 0x00000002;
-        static const std::uint32_t SEVERE  = 0x00000003;
-        static const std::uint32_t DEFECT  = 0x00000004;
+        static const std::uint32_t DEBUG;
+        static const std::uint32_t INFO;
+        static const std::uint32_t WARNING;
+        static const std::uint32_t SEVERE;
+        static const std::uint32_t DEFECT;
     };
     /**
      * @class  CStatusDefinitions::RingStatistics
@@ -156,9 +155,11 @@ public:
         void endMessage();
     private:
         RingStatClient* makeClient(
-            std::vector<std::string> command, uint64_t opts, uint64_t bytes,
+            std::vector<std::string> command, uint64_t ops, uint64_t bytes,
             bool producer = false
         );
+        void freeStorage();
+        size_t sizeClient(RingStatClient* pClient);
         
     };
     /**

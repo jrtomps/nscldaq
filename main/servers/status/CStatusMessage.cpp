@@ -26,9 +26,12 @@
 
 
 #include "CStatusMessage.h"
+#include <os.h>
+
 #include <stdexcept>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 
 /**
  * CStatusDefinitions::RingStatistics::RingStatistics
@@ -56,8 +59,7 @@ CStatusDefinitions::RingStatistics::RingStatistics(zmq::socket_t& sock, std::str
  */
 CStatusDefinitions::RingStatistics::~RingStatistics()
 {
-    std::free(m_producer);              // Kill off dynamic storage.
-    m_producer = 0;
+    freeStorage();
 }
 
 /**
@@ -79,8 +81,7 @@ CStatusDefinitions::RingStatistics::startMessage(std::string ring)
     
     // Newly opened messages don't have producers yet:
     
-    std::free(m_producer);
-    m_producer = 0;
+    freeStorage();
 }
 /**
  * CStatusDefinitions::RingStatistics::addProducer
@@ -102,29 +103,7 @@ CStatusDefinitions::RingStatistics::addProducer(
     if(m_producer) {
         throw std::logic_error("Ring statistic messages can only have one producer");
     }
-    // Figure out the size of the producer struct..it's going to be the size
-    // of the base struct added to the space required for the strings:
-    
-    size_t pSize = sizeof(CStatusDefinitions::RingStatClient);
-    for (int i = 0; i < command.size(); i++) {
-        pSize += std::strlen(command[i].c_str()) + 1;   // +1 for the null terminator.        
-    }
-    pSize++;                                           // Extra null terminator.
-    
-    m_producer = reinterpret_cast<CStatusDefinitions::RingStatClient*>(
-        std::calloc(pSize, 1)
-    );
-    // Fill in the storage:
-    
-    m_producer->s_operations = ops;
-    m_producer->s_bytes      = bytes;
-    m_producer->s_isProducer = true;
-    
-    char* p = m_producer->s_command;          // note this is prefilled with 0.
-    for (int i = 0; i < command.size(); i++) {
-        std::strcpy(p, command[i].c_str());
-        p += std::strlen(command[i].c_str()) + 1;
-    }
+    m_producer = makeClient(command, ops, bytes, true);
 }
 /**
  * CStatusDefinitions::RingStatistics::addConsumer
@@ -139,5 +118,162 @@ CStatusDefinitions::RingStatistics::addConsumer(
     std::vector<std::string> command, uint64_t ops, uint64_t bytes
 )
 {
+    m_consumers.push_back(makeClient(command, ops, bytes));  
+}
+
+/**
+ * CStatusDefinitions::RingStatistics::endMessage()
+ *   Indicates a message has been completely built up.  The message
+ *   is sent to the peer through m_socket.  Once the message is sent, the
+ *   storage associated with the message is released.
+ */
+void
+CStatusDefinitions::RingStatistics::endMessage()
+{
+    /* Build/send the header. */
     
+      // Fill in the header fields that are easy:
+      
+    Header hdr = {
+        MessageTypes::RING_STATISTICS, SeverityLevels::INFO, "", ""
+    };
+      // Fill in the application name.
+      
+    std::strncpy(
+        hdr.s_application, m_applicationName.c_str(),
+        sizeof(hdr.s_application) - 1
+    );
+    hdr.s_application[sizeof(hdr.s_application) -1 ] = '\0';
+    
+        // Fill in the source with the fqdn of this host:
+    
+    std::string host = Os::hostname();
+    std::strncpy(hdr.s_source, host.c_str(), sizeof(hdr.s_source) -1);
+    hdr.s_source[sizeof(hdr.s_source) -1]  = 0;
+    
+       // Build a message around this struct and send it to the socket.
+       // There's always at least one  more message part.
+    
+    zmq::message_t msgHeader(sizeof(hdr));
+    std::memcpy(msgHeader.data(), &hdr, sizeof(hdr));
+    
+    m_socket.send(msgHeader, ZMQ_SNDMORE);          // We have at least the ring id part.
+    
+    // Build and send the ring identification
+    
+       // How big is the struct:
+       
+    size_t idSize = sizeof(RingStatIdentification) + (m_ringName.size()) +1;
+    RingStatIdentification* pId =
+        reinterpret_cast<RingStatIdentification*>(calloc(1, idSize));
+    pId->s_tod = std::time(NULL);
+    strcpy(pId->s_ringName, m_ringName.c_str());
+    
+        // If there is no producer and no consumers, there are no more message
+        // parts:
+        
+    int flags = ((!m_producer) && (m_consumers.size() == 0)) ? 0 : ZMQ_SNDMORE;
+    zmq::message_t msgId(idSize);
+    std::memcpy(msgId.data(), pId, idSize);
+    m_socket.send(msgId, flags);
+   
+    
+    // If there's a producer send that message part.
+    
+    if (m_producer) {
+        int flags = m_consumers.size() ? ZMQ_SNDMORE : 0; // The send flag.
+        size_t prodSize = sizeClient(m_producer);
+        zmq::message_t producer(prodSize);
+        std::memcpy(producer.data(), m_producer, prodSize);
+        m_socket.send(producer, flags);
+    }
+    
+    // If there are consumers, send those message parts as well.
+    
+    freeStorage();
+}
+/*----------------------------------------------------------------------------
+ *  CStatusDefinitions::RingStatistics::addConsumer
+ *    private methods
+ */
+
+/**
+ * makeClient
+ *    Create a client description.  Note that the pointer to the returned
+ *    struct points to calloc's memory (not new) and must eventually be
+ *    relcaimed with free().
+ *
+ *    @param command - Vector of command words that are the consumer program.
+ *    @param ops     - Number of get/put operations performed by the client.
+ *    @param bytes   - Number of bytes gotten/put by the client.
+ *    @param producer - true if this is a producer, false if a consumer.
+ *    @return CStatusDefinitions::RingStatClient*
+ */
+CStatusDefinitions::RingStatClient*
+CStatusDefinitions::RingStatistics::makeClient(
+    std::vector<std::string> command, uint64_t ops, uint64_t bytes,
+    bool producer
+)
+{
+    // Figure out the size of the client struct..it's going to be the size
+    // of the base struct added to the space required for the strings:
+    
+    size_t size = sizeof(CStatusDefinitions::RingStatClient);
+    for (int i = 0; i < command.size(); i++) {
+        size += std::strlen(command[i].c_str()) + 1;   // +1 for the null terminator.        
+    }
+    size++;                                           // Extra null terminator.
+    
+    RingStatClient* result = reinterpret_cast<CStatusDefinitions::RingStatClient*>(
+        std::calloc(size, 1)
+    );
+    // Fill in the storage:
+    
+    result->s_operations = ops;
+    result->s_bytes      = bytes;
+    result->s_isProducer = producer;
+    
+    char* p = result->s_command;          // note this is prefilled with 0.
+    for (int i = 0; i < command.size(); i++) {
+        std::strcpy(p, command[i].c_str());
+        p += std::strlen(command[i].c_str()) + 1;
+    }
+    
+    return result;
+}
+/**
+ *  freeStorage
+ *     Get rid of all dynamically allocated object storage.
+ */
+void
+CStatusDefinitions::RingStatistics::freeStorage()
+{
+    std::free(m_producer);              // Kill off dynamic storage.
+    m_producer = 0;
+    
+    while(!m_consumers.empty()) {
+        std::free(m_consumers.front());
+        m_consumers.pop_front();
+    }
+    
+}
+/**
+ * sizeClient
+ *   @param pClient - points to a ring client data structure.
+ *   @return size_t - Number of bytes in that struct.
+ *   @note remember the s_command field is dynamically sized.
+ */
+size_t
+CStatusDefinitions::RingStatistics::sizeClient(RingStatClient* pClient)
+{
+    size_t result = sizeof(RingStatClient);
+    char* p       = pClient->s_command;
+    while (*p) {
+        size_t nbytes = std::strlen(p) + 1;   // count the null.
+        result += nbytes;
+        p      += nbytes;
+    }
+    result++;                              // Final null terminator.
+    
+    return result;
 }

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <zmq.hpp>
 #include <stdexcept>
+#include <os.h>
 
 #define private public
 #include "CStatusMessage.h"
@@ -22,7 +23,11 @@ class RingStatTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(addProducer);
   CPPUNIT_TEST(addSecondProducer);
   
-  //CPPUNIT_TEST(addConsumer);
+  CPPUNIT_TEST(addConsumer);
+  
+  CPPUNIT_TEST(fixedMessage);
+  CPPUNIT_TEST(prodMessage);
+
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -45,7 +50,11 @@ protected:
   void addProducer();
   void addSecondProducer();
   
+  
   void addConsumer();
+  
+  void fixedMessage();
+  void prodMessage();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RingStatTests);
@@ -191,4 +200,109 @@ void RingStatTests::addConsumer()
   EQ(uint64_t(5678), c.s_bytes);
   EQ(uint32_t(0), c.s_isProducer);
 
+}
+// Ensure the fixed part of a message comes through fine.  This consists
+// of an appropriately sized header and identification part.
+
+void RingStatTests::fixedMessage()
+{
+  std::string uri = "inproc://test";
+  zmq::socket_t sender(*m_pContext, ZMQ_PUSH);
+  zmq::socket_t receiver(*m_pContext, ZMQ_PULL);
+  
+  receiver.bind(uri.c_str());
+  sender.connect(uri.c_str());
+  
+  // Make a message with just a header and the id part:
+  
+  CStatusDefinitions::RingStatistics msg(sender, "TestApp");
+  msg.startMessage("testring");
+  msg.endMessage();                   // Everything should be queued
+  
+  zmq::message_t header;
+  zmq::message_t ringId;
+  
+  receiver.recv(&header);
+  int     haveMore(0);
+  size_t  size;
+  receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
+  ASSERT(haveMore);                // Should have the ring id part.
+  
+  receiver.recv(&ringId);
+  
+  receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
+  ASSERT(!haveMore);               // Should be all done.
+  
+  // Analyze the header we got:
+  
+  CStatusDefinitions::Header* h =
+    reinterpret_cast<CStatusDefinitions::Header*>(header.data());
+    
+  EQ(CStatusDefinitions::MessageTypes::RING_STATISTICS, h->s_type);
+  EQ(CStatusDefinitions::SeverityLevels::INFO, h->s_severity);
+  EQ(std::string("TestApp"), std::string(h->s_application));
+  EQ(Os::hostname(), std::string(h->s_source));
+  
+  // Analyze the ring identification - for now don't worry about the tod field.
+  
+  CStatusDefinitions::RingStatIdentification* pIdent  =
+    reinterpret_cast<CStatusDefinitions::RingStatIdentification*>(ringId.data());
+    
+  EQ(std::string("testring"), std::string(pIdent->s_ringName));
+}
+
+// Ensure that a message with a single producer gives me the right stuff:
+
+void
+RingStatTests::prodMessage()
+{
+  std::string uri = "inproc://test";
+  zmq::socket_t sender(*m_pContext, ZMQ_PUSH);
+  zmq::socket_t receiver(*m_pContext, ZMQ_PULL);
+  
+  receiver.bind(uri.c_str());
+  sender.connect(uri.c_str());
+  
+  // Make a message with just a header and the id part:
+  
+  CStatusDefinitions::RingStatistics msg(sender, "TestApp");
+  msg.startMessage("testring");
+  
+  // Add a producer:
+  
+  std::vector<std::string> command = {"dumper", "--source=tcp://localhost/fox", "this", "that"};
+  msg.addProducer(command, 1234, 5678);
+
+  msg.endMessage();                   // Everything should be queued
+  
+  // Read the message segments from the receiver socket:
+
+  zmq::message_t header;
+  zmq::message_t ringId;
+  
+  
+  receiver.recv(&header);
+  int     haveMore(0);
+  size_t  size;
+  receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
+  ASSERT(haveMore);                // Should have the ring id part.
+  
+  receiver.recv(&ringId);
+  
+  receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
+  ASSERT(haveMore);               // Should have a producer description.
+  
+  zmq::message_t prodMsg;
+  receiver.recv(&prodMsg);
+  receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
+  ASSERT(!haveMore);
+  
+  // Analyze the result:
+  
+  CStatusDefinitions::RingStatClient* prod =
+    reinterpret_cast<CStatusDefinitions::RingStatClient*>(prodMsg.data());
+  EQ(uint64_t(1234), prod->s_operations);
+  EQ(uint64_t(5678), prod->s_bytes);
+  ASSERT(prod->s_isProducer);                // This is a producer.
+  EQ(command, marshallVector(prod->s_command));
 }
