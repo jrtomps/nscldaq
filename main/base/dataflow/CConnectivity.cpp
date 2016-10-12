@@ -390,9 +390,7 @@ CConnectivity::getAllParticipants(CConnectivity& initial, std::set<std::string>&
   std::string startingHost = initial.m_pRingMaster->getHost();
   
   if (startingHost == "localhost") {
-    char canonicalHost[100];
-    gethostname(canonicalHost, sizeof(canonicalHost));
-    startingHost = Os::getfqdn(canonicalHost);
+    startingHost = Os::hostname();
   } else {
     startingHost = Os::getfqdn(startingHost.c_str());
   }

@@ -292,10 +292,8 @@ ConnectivityTest::consumer()
 void
 ConnectivityTest::walker()
 {
-  char host[1000];
-  gethostname(host, sizeof(host));
-  std::string fq = Os::getfqdn(host);
+  std::string fq = Os::hostname();
   std::vector<std::string> clients = m_pConnectivity->getAllParticipants();
   EQ(size_t(1), clients.size());
-  EQ(Os::getfqdn(host), fq);
+  EQ(fq, clients[0]);
 }
