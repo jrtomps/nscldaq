@@ -41,6 +41,7 @@ public:
   static int  checkNegativeStatus(int returnCode);
   static std::string  getfqdn(const char* host);
   static std::vector<std::string> getProcessCommand(pid_t pid);
+  static std::string hostname();
 };
 
 #endif

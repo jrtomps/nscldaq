@@ -8,6 +8,7 @@
 #include <CRemoteAccess.h>
 #include <string.h>
 #include "testcommon.h"
+#include <os.h>
 
 using namespace std;
 
@@ -105,9 +106,8 @@ RemoteTests::urllocal()
 {
 
 
-  char hostname[1000];
-  gethostname(hostname, sizeof(hostname));
-  string hostName(hostname);
+  
+  string hostName(Os::hostname());
 	      
 
 
@@ -163,9 +163,7 @@ RemoteTests::urlremote()
 {
 
 
-  char hostname[1000];
-  gethostname(hostname, sizeof(hostname));
-  string hostName(hostname);
+  string hostName(Os::hostname());
 	      
 
 

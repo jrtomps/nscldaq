@@ -116,9 +116,7 @@ void rmasterTests::registration()
     thrown  = false;
     bool wrongException(false);
 
-    char hostname[1000];
-    gethostname(hostname, sizeof(hostname));
-    string host(hostname);
+    string host = Os::hostname();
     CRingMaster remoteMaster(host); // Anything but localhost is remote.
 
     int errcode;
@@ -149,12 +147,9 @@ void rmasterTests::registration()
 void rmasterTests::unregister()
 {
   try {
-    char host[1000];
-    gethostname(host, sizeof(host));
+
+    string hostString = Os::hostname();
     CRingMaster localMaster;
-
-
-    string hostString(host);
     CRingMaster remoteMaster(hostString);
 
 

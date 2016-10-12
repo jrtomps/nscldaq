@@ -397,41 +397,9 @@ CRingAccess::local(std::string host)
   if (host == std::string("localhost")) return true;
 
 
-  // Create the fqdn of the local host:
-  // TODO: Error handling from gethostname and getaddrinfo
-  //
-  char hostname[HOST_NAME_MAX+1];
-  gethostname(hostname, sizeof(hostname));
-
-  if (host == std::string(hostname)) {
-    return true;
-  }
-
-  struct addrinfo  hints = {AI_CANONNAME | AI_V4MAPPED | AI_ADDRCONFIG,
-			    AF_UNSPEC, 0, 0, 
-			    0, NULL, NULL, NULL};
-			    
-
-  struct addrinfo* hostInfo;
-  getaddrinfo(hostname, NULL, &hints, &hostInfo);
-
-  std::string fqhostname(hostInfo->ai_canonname);
-  freeaddrinfo(hostInfo);
-
-  // If the host has no periods append the domain name from
-  // fqhostname.
-
-  if (host.find(".") == std::string::npos) {
-    
-    // locate the start of the domain name in 
-    // fqhostname..and append the domain to the host:
-
-    size_t domainStartsAt = fqhostname.find(".");
-    host += fqhostname.substr(domainStartsAt);
-  }
-
-  return host == fqhostname;
-
-	      
+  std::string localhost = Os::hostname();
+  std::string fqhost   = Os::getfqdn(host.c_str());
+  
+  return localhost == fqhost;
 
 }

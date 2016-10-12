@@ -28,6 +28,7 @@
 #include <stdexcept>
 #include <netdb.h>
 #include <sstream>
+#include <limits.h>
 
 #include <iostream>
 #include <errno.h>
@@ -262,4 +263,20 @@ Os::getProcessCommand(pid_t pid)
   delete []words;
   return result;
 
+}
+/**
+ * hostname
+ *   @return - Returns the fqdn for the host that's running this code.
+ */
+std::string
+Os::hostname()
+{
+  char host[HOST_NAME_MAX+1];
+  memset(host, 0, sizeof(host));
+  
+  checkNegativeStatus(gethostname(host, sizeof(host)-1));
+  
+  // Return the fqdn of host:
+  
+  return getfqdn(host);
 }
