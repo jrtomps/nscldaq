@@ -5,6 +5,7 @@
 #include <Asserts.h>
 #include <iostream>
 #include <zmq.hpp>
+#include <stdexcept>
 
 #define private public
 #include "CStatusMessage.h"
@@ -114,14 +115,10 @@ void RingStatTests::startWhenOpen()
   // make compilation errors for std::exception derived expected exception types.
   // therefore:
   
-  try {
-    msg.startMessage("atest");
-    ::CppUnit::Asserter::fail("Starting a message with one open expected std::logic_error");
-  }
-  catch (std::logic_error& e) {}
-  catch (...) {
-    ::CppUnit::Asserter::fail("Unexpected exception type thrown");
-  }
+  CPPUNIT_ASSERT_THROW(
+    msg.startMessage("atest"),
+    std::logic_error
+  );
   
   msg.m_msgOpen = false;
 }
@@ -168,14 +165,12 @@ void RingStatTests::addSecondProducer()
   std::vector<std::string> command = {"this", "is", "the", "command"};
   msg.addProducer(command, 1234, 5678);
 
- try {
-    msg.addProducer(command, 1234, 5678);
-    ::CppUnit::Asserter::fail("Adding a second producer; expected std::logic_error");
-  }
-  catch (std::logic_error& e) {}
-  catch (...) {
-    ::CppUnit::Asserter::fail("Unexpected exception type thrown");
-  }  
+  
+  CPPUNIT_ASSERT_THROW(
+    msg.addProducer(command, 1234,5678),
+    std::logic_error
+  );
+  
 }
 
 
