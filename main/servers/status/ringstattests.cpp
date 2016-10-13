@@ -27,7 +27,7 @@ class RingStatTests : public CppUnit::TestFixture {
   
   CPPUNIT_TEST(fixedMessage);
   CPPUNIT_TEST(prodMessage);
-
+  CPPUNIT_TEST(consumersMessage);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -55,6 +55,7 @@ protected:
   
   void fixedMessage();
   void prodMessage();
+  void consumersMessage();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RingStatTests);
@@ -305,4 +306,77 @@ RingStatTests::prodMessage()
   EQ(uint64_t(5678), prod->s_bytes);
   ASSERT(prod->s_isProducer);                // This is a producer.
   EQ(command, marshallVector(prod->s_command));
+}
+
+//  Case where there's a few consumers floating around in the message:
+
+void
+RingStatTests::consumersMessage()
+{
+  std::string uri = "inproc://test";
+  zmq::socket_t sender(*m_pContext, ZMQ_PUSH);
+  zmq::socket_t receiver(*m_pContext, ZMQ_PULL);
+  
+  receiver.bind(uri.c_str());
+  sender.connect(uri.c_str());
+  
+  // Make a message with just a header and the id part:
+  
+  CStatusDefinitions::RingStatistics msg(sender, "TestApp");
+  msg.startMessage("testring");
+
+  std::vector<std::string> cmd1 = {"ringselector", "testring", "--sample=PHYSICS_EVENT"};
+  std::vector<std::string> cmd2 = {"dumper", "--source=tcp://localhost/testring"};
+  
+  msg.addConsumer(cmd1, 100, 1000);
+  msg.addConsumer(cmd2, 200, 2500);
+  
+  msg.endMessage();                      // Send the message:
+  
+  // Receive the message header and ring id -- this is presumed to work:
+  
+  zmq::message_t junk;
+  receiver.recv(&junk);
+  receiver.recv(&junk);
+  
+  // There should be more data:
+  
+  int haveMore;
+  size_t size;
+  receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
+  ASSERT(haveMore);
+  
+  zmq::message_t c1;                // Consumer 1:
+  receiver.recv(&c1);
+  
+  // should be more data:
+  
+  receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
+  ASSERT(haveMore);
+  
+  zmq::message_t c2;             // Second consumer.
+  receiver.recv(&c2);
+  
+  // That should be the last segment.
+  
+  receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
+  ASSERT(!haveMore);
+  
+  // Analyze consumer1:
+  
+  CStatusDefinitions::RingStatClient* pClient =
+    reinterpret_cast<CStatusDefinitions::RingStatClient*>(c1.data());
+  ASSERT(!pClient->s_isProducer);
+  EQ(uint64_t(100), pClient->s_operations);
+  EQ(uint64_t(1000), pClient->s_bytes);
+  EQ(cmd1, marshallVector(pClient->s_command));
+  
+  // Analyze consumer 2:
+  
+  pClient = reinterpret_cast<CStatusDefinitions::RingStatClient*>(c2.data());
+  ASSERT(!pClient->s_isProducer);
+  EQ(uint64_t(200), pClient->s_operations);
+  EQ(uint64_t(2500), pClient->s_bytes);
+  EQ(cmd2, marshallVector(pClient->s_command));
+  
 }

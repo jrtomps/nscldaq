@@ -190,7 +190,21 @@ CStatusDefinitions::RingStatistics::endMessage()
     
     // If there are consumers, send those message parts as well.
     
+    for (auto p = m_consumers.begin(); p != m_consumers.end(); p++) {
+        RingStatClient* pClient = *p;
+        int flags = (*p == m_consumers.back()) ? 0 : ZMQ_SNDMORE;
+        
+        size_t s = sizeClient(pClient);
+        zmq::message_t client(s);
+        std::memcpy(client.data(), pClient, s);
+        m_socket.send(client, flags);
+    }
+    
+    // We did copy based data transmission so we can release the storage now
+    // and we no longer have a message open:
+    
     freeStorage();
+    m_msgOpen = false;
 }
 /*----------------------------------------------------------------------------
  *  CStatusDefinitions::RingStatistics::addConsumer
