@@ -3,9 +3,10 @@ lib_LTLIBRARIES = libStatusMessages.la
 COMPILATION_FLAGS= -I@top_srcdir@/base/os
 COMMON_LIBS      = @top_builddir@/base/os/libdaqshm.la  @ZMQ_LDFLAGS@ @LIBEXCEPTION_LDFLAGS@
 
-libStatusMessages_la_SOURCES=Constants.cpp CStatusDefinitions.h \
+libStatusMessages_la_SOURCES=Constants.cpp \
 	CRingStatisticsMessage.cpp \
-	CReadoutStatistics.cpp
+	CReadoutStatistics.cpp \
+	CStatusDefinitions.cpp 
 
 libStatusMessages_la_CPPFLAGS = $(COMPILATION_FLAGS)
 libStatusMessages_la_LDFLAGS  = $(COMMON_LIBS)

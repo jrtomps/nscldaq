@@ -60,7 +60,33 @@ CStatusDefinitions::ReadoutStatistics::beginRun(
     uint32_t runNumber, std::string title
 )
 {
-    // Format a header:
+    // Mark that we've seen a run start and set the time base for the elapsed time
     
+    m_runStartTime = std::time(nullptr);
+    m_haveOpenRun  = true;
+    
+    
+    // Format the header and send it:
+    
+    Header hdr = CStatusDefinitions::formatHeader(
+        MessageTypes::READOUT_STATISTICS, SeverityLevels::INFO,
+        m_appName.c_str()
+    );
+    zmq::message_t headerMsg(sizeof(hdr));
+    std::memcpy(headerMsg.data(), &hdr, sizeof(hdr));
+    m_socket.send(headerMsg, ZMQ_SNDMORE);   // There's one more segment:
+    
+    
+    
+    // Format the run info and send it:
+    
+    ReadoutStatRunInfo info = {m_runStartTime, runNumber, ""};
+    strncpy(info.s_title, title.c_str(), sizeof(info.s_title) -1);
+    info.s_title[sizeof(info.s_title) - 1] = '\0';
+    
+    zmq::message_t infoMsg(sizeof info);
+    memcpy(infoMsg.data(), &info, sizeof(info));
+    
+    m_socket.send(infoMsg, 0);
     
 }

@@ -134,22 +134,11 @@ CStatusDefinitions::RingStatistics::endMessage()
     
       // Fill in the header fields that are easy:
       
-    Header hdr = {
-        MessageTypes::RING_STATISTICS, SeverityLevels::INFO, "", ""
-    };
-      // Fill in the application name.
-      
-    std::strncpy(
-        hdr.s_application, m_applicationName.c_str(),
-        sizeof(hdr.s_application) - 1
+    Header hdr = formatHeader(
+        MessageTypes::RING_STATISTICS, SeverityLevels::INFO,
+        m_applicationName.c_str()
     );
-    hdr.s_application[sizeof(hdr.s_application) -1 ] = '\0';
-    
-        // Fill in the source with the fqdn of this host:
-    
-    std::string host = Os::hostname();
-    std::strncpy(hdr.s_source, host.c_str(), sizeof(hdr.s_source) -1);
-    hdr.s_source[sizeof(hdr.s_source) -1]  = 0;
+
     
        // Build a message around this struct and send it to the socket.
        // There's always at least one  more message part.
