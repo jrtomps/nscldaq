@@ -69,7 +69,7 @@ public:
         // Structs that define message parts for ReadoutStatistics:
         
         struct ReadoutStatRunInfo {
-            uint64_t s_startTime;
+            int64_t s_startTime;
             uint32_t s_runNumber;
             char     s_title[80];
         };
