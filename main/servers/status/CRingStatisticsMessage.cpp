@@ -16,8 +16,8 @@
 */
 
 /**
-* @file   CStatusMesszage.cpp
-* @brief  Implement API to implement status messages.
+* @file   CRingStatisticsMessage.cpp
+* @brief  Implement formatting of ring statistics status messages.
 * @author <fox@nscl.msu.edu>
 * @note See the nscldaq redmine wiki at:
 *       https://swdev-redmine.nscl.msu.edu/projects/sfnscldaq/wiki/NSCLDAQ_status_aggregation
