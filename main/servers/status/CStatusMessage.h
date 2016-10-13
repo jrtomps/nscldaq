@@ -28,6 +28,7 @@
 #include <list>
 
 #include <zmq.hpp>
+#include <ctime>
 
 /**
  *  @class CStatusDefinitions
@@ -68,6 +69,7 @@ public:
         // Structs that define message parts for ReadoutStatistics:
         
         struct ReadoutStatRunInfo {
+            uint64_t s_startTime;
             uint32_t s_runNumber;
             char     s_title[80];
         };
@@ -186,9 +188,13 @@ public:
      */
     public:
     class ReadoutStatistics {
+        zmq::socket_t&  m_socket;
+        std::string     m_appName;
+        std::time_t     m_runStartTime;
+        bool            m_haveOpenRun;
     public:
         ReadoutStatistics(zmq::socket_t& socket, std::string app = "Readout");
-        ~ReadoutStatistics();
+        virtual ~ReadoutStatistics();
         
         
         void beginRun(std::uint32_t runNumber, std::string title);
@@ -221,6 +227,12 @@ public:
         
         void logChange(std::string leaving, std::string entering);
     };
+    // Utility methods for building messages:
+    
+    private:
+        static Header formatHeader(
+            uint32_t type, uint32_t severity, const char* appName
+        );
 
 };
 #endif

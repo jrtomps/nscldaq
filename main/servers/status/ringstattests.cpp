@@ -378,5 +378,5 @@ RingStatTests::consumersMessage()
   EQ(uint64_t(200), pClient->s_operations);
   EQ(uint64_t(2500), pClient->s_bytes);
   EQ(cmd2, marshallVector(pClient->s_command));
-  
+
 }
