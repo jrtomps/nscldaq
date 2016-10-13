@@ -21,7 +21,8 @@ TEST_PROGS=ringstattests
 noinst_PROGRAMS=$(TEST_PROGS)
 
 
-ringstattests_SOURCES=TestRunner.cpp Asserts.h ringstattests.cpp
+ringstattests_SOURCES=TestRunner.cpp Asserts.h ringstattests.cpp \
+	readoutstattests.cpp
 ringstattests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 ringstattests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
