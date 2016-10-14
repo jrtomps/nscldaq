@@ -4,6 +4,7 @@
 #include <cppunit/Asserter.h>
 #include <zmq.hpp>
 #include "Asserts.h"
+#include <stdexcept>
 
 #include <os.h>
 
