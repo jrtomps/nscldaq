@@ -84,7 +84,7 @@ public:
         // Log message structure:
         
         struct LogMessageBody {
-            uint64_t   s_tod;
+            int64_t   s_tod;
             char       s_message[];
         };
         
@@ -221,7 +221,7 @@ public:
         LogMessage(zmq::socket_t& socket, std::string app);
         virtual ~LogMessage();
         
-        void Log(SeverityLevels sev, std::string message);
+        void Log(uint32_t sev, std::string message);
     };
     /**
      * @class StateChanges
