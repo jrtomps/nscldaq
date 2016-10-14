@@ -74,7 +74,7 @@ public:
             char     s_title[80];
         };
         struct ReadoutStatCounters {
-            uint64_t   s_tod;
+            int64_t    s_tod;
             uint64_t   s_elapsedTime;
             uint64_t   s_triggers;
             uint64_t   s_events;
@@ -188,10 +188,13 @@ public:
      */
     public:
     class ReadoutStatistics {
+    private:
         zmq::socket_t&  m_socket;
         std::string     m_appName;
         std::time_t     m_runStartTime;
         bool            m_haveOpenRun;
+        uint32_t        m_runNumber;
+        std::string     m_title;
     public:
         ReadoutStatistics(zmq::socket_t& socket, std::string app = "Readout");
         virtual ~ReadoutStatistics();
@@ -201,6 +204,9 @@ public:
         void emitStatistics(
             std::uint64_t triggers, std::uint64_t events, std::uint64_t bytes
         );
+    private:
+        ReadoutStatRunInfo formatIdent();
+        void emitHeader();
     };
     /**
      * @class LogMessage

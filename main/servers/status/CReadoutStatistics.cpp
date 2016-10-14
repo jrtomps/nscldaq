@@ -20,6 +20,7 @@
 # @author <fox@nscl.msu.edu>
 */
 #include "CStatusMessage.h"
+#include <stdexcept>
 
 /**
  * CStatusDefinitions::CReadoutStatistics::CReadoutStatistics (constructor)
@@ -64,29 +65,102 @@ CStatusDefinitions::ReadoutStatistics::beginRun(
     
     m_runStartTime = std::time(nullptr);
     m_haveOpenRun  = true;
+    m_runNumber    = runNumber;
+    m_title        = title;
     
     
     // Format the header and send it:
     
-    Header hdr = CStatusDefinitions::formatHeader(
-        MessageTypes::READOUT_STATISTICS, SeverityLevels::INFO,
-        m_appName.c_str()
-    );
-    zmq::message_t headerMsg(sizeof(hdr));
-    std::memcpy(headerMsg.data(), &hdr, sizeof(hdr));
-    m_socket.send(headerMsg, ZMQ_SNDMORE);   // There's one more segment:
-    
-    
+    emitHeader();    
     
     // Format the run info and send it:
     
-    ReadoutStatRunInfo info = {m_runStartTime, runNumber, ""};
-    strncpy(info.s_title, title.c_str(), sizeof(info.s_title) -1);
-    info.s_title[sizeof(info.s_title) - 1] = '\0';
+    ReadoutStatRunInfo info = formatIdent();
     
     zmq::message_t infoMsg(sizeof info);
     memcpy(infoMsg.data(), &info, sizeof(info));
     
     m_socket.send(infoMsg, 0);
     
+}
+/**
+ * CStatusDefinitions::ReadoutStatistics::emitStatistics
+ *
+ *   Emit a statistics message.
+ *
+ * @param triggers  - Number of triggers the system responded to.
+ * @param events    - Number of events that were emitted.
+ * @param bytes     - Number of bytes that were emitted.
+ */
+void CStatusDefinitions::ReadoutStatistics::emitStatistics(
+    std::uint64_t triggers, std::uint64_t events, std::uint64_t bytes
+)
+{
+    // We need to have at least one start of run in order to know how long
+    // things have been running:
+    
+    if (!m_haveOpenRun) {
+        throw std::logic_error("No run has evern been started");
+    }
+    emitHeader();    
+
+    // We're sending the run ident:
+    
+    
+    ReadoutStatRunInfo info = formatIdent();
+    
+    // And of course the statistics block:
+    
+    // Figure out the body fields and create one:
+    
+    time_t    now     = std::time(nullptr);    // Current time is needed.
+    uint64_t  elapsed = now - m_runStartTime;
+    
+    ReadoutStatCounters stats = {now, elapsed, triggers, events, bytes};
+
+    // Send the message body parts.
+
+    zmq::message_t id(sizeof(info));
+    zmq::message_t stat(sizeof(stats));
+    
+    std::memcpy(id.data(), &info, sizeof(info));
+    std::memcpy(stat.data(), &stats, sizeof(stats));
+    
+    m_socket.send(id,  ZMQ_SNDMORE);
+    m_socket.send(stat, 0);
+}
+/*----------------------------------------------------------------------------
+ * Private utilities.
+ */
+
+/**
+ *CStatusDefinitions::ReadoutStatistics::formatIdent
+ *
+ * Format the identification message:
+ *
+ * @return CStatusDefinitions::ReadoutStatRunInfo
+ */
+CStatusDefinitions::ReadoutStatRunInfo
+CStatusDefinitions::ReadoutStatistics::formatIdent()
+{
+    ReadoutStatRunInfo info = {m_runStartTime, m_runNumber, ""};
+    strncpy(info.s_title, m_title.c_str(), sizeof(info.s_title) -1);
+    info.s_title[sizeof(info.s_title) - 1] = '\0';
+    return info;    
+}
+/**
+ * CStatusDefinitions::ReadoutStatistics::emitHeader
+ *
+ *   Emits a header item.
+ */
+void
+CStatusDefinitions::ReadoutStatistics::emitHeader()
+{
+   Header hdr = formatHeader(
+        MessageTypes::READOUT_STATISTICS, SeverityLevels::INFO,
+        m_appName.c_str()
+    );
+   zmq::message_t h(sizeof(hdr));
+   std::memcpy(h.data(), &hdr, sizeof(hdr));
+   m_socket.send(h, ZMQ_SNDMORE);
 }
