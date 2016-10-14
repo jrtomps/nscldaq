@@ -6,7 +6,8 @@ COMMON_LIBS      = @top_builddir@/base/os/libdaqshm.la  @ZMQ_LDFLAGS@ @LIBEXCEPT
 libStatusMessages_la_SOURCES=Constants.cpp \
 	CRingStatisticsMessage.cpp \
 	CReadoutStatistics.cpp \
-	CStatusDefinitions.cpp 
+	CStatusDefinitions.cpp \
+	LogMessage.cpp
 
 libStatusMessages_la_CPPFLAGS = $(COMPILATION_FLAGS)
 libStatusMessages_la_LDFLAGS  = $(COMMON_LIBS)

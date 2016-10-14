@@ -214,9 +214,12 @@ public:
      */
     public:
     class LogMessage {
+    private:
+        zmq::socket_t& m_socket;
+        std::string    m_application;
     public:
         LogMessage(zmq::socket_t& socket, std::string app);
-        ~LogMessage();
+        virtual ~LogMessage();
         
         void Log(SeverityLevels sev, std::string message);
     };
