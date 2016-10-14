@@ -230,9 +230,12 @@ public:
     public:
     class StateChange
     {
+    private:
+        zmq::socket_t& m_socket;
+        std::string    m_application;
     public:
         StateChange(zmq::socket_t& socket, std::string app);
-        ~StateChange();
+        virtual ~StateChange();
         
         void logChange(std::string leaving, std::string entering);
     };

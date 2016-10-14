@@ -7,7 +7,9 @@ libStatusMessages_la_SOURCES=Constants.cpp \
 	CRingStatisticsMessage.cpp \
 	CReadoutStatistics.cpp \
 	CStatusDefinitions.cpp \
-	LogMessage.cpp
+	LogMessage.cpp		\
+	StateChange.cpp
+
 
 libStatusMessages_la_CPPFLAGS = $(COMPILATION_FLAGS)
 libStatusMessages_la_LDFLAGS  = $(COMMON_LIBS)
@@ -23,7 +25,7 @@ noinst_PROGRAMS=$(TEST_PROGS)
 
 
 ringstattests_SOURCES=TestRunner.cpp Asserts.h ringstattests.cpp \
-	readoutstattests.cpp logmsgtests.cpp
+	readoutstattests.cpp logmsgtests.cpp statemsgtests.cpp
 
 ringstattests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 ringstattests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
