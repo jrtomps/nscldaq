@@ -37,7 +37,7 @@ tclpkgInstall:
 #-------------------- Tests -----
 
 
-TEST_PROGS=ringstattests
+TEST_PROGS=ringstattests tclpkgtests
 
 noinst_PROGRAMS=$(TEST_PROGS)
 
@@ -48,7 +48,11 @@ ringstattests_SOURCES=TestRunner.cpp Asserts.h ringstattests.cpp \
 ringstattests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 ringstattests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
-TESTS=ringstattests
+tclpkgtests_SOURCES = TestRunner.cpp Asserts.h
+tclpkgtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
+tclpkgtests_LDFLAGS=$(COMMON_LIBS) @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@ @CPPUNIT_LDFLAGS@
+
+TESTS=$(TEST_PROGS)
 
 
 install-exec-hook: tclpkgInstall

@@ -24,3 +24,6 @@ int main(int argc, char** argv)
   }
   return !wasSucessful;
 }
+
+
+void* gpTCLApplication(0);
