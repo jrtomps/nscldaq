@@ -35,7 +35,7 @@
 
 // m_instanceNumber is used to create unique command names.
 
-unsigned CTCLRingStatitics::m_instanceNumber(0);
+unsigned CTCLRingStatistics::m_instanceNumber(0);
 
 // The zmq::context_t is required to generate objects:
 
@@ -48,8 +48,7 @@ zmq::context_t CTCLRingStatistics::m_zmqContext(1);
  * @param command - Command name string (argv0).
  */
 CTCLRingStatistics::CTCLRingStatistics(CTCLInterpreter& interp, const char* cmd) :
-    CTCLObjectProcessor(interp, cmd, true),
-    m_instanceNumber(0)
+    CTCLObjectProcessor(interp, cmd, true)
 {}
 
 /**
@@ -93,7 +92,7 @@ CTCLRingStatistics::~CTCLRingStatistics()
  */
 int
 CTCLRingStatistics::operator()(
-    CTCLInterpreter& interp, std::vector<CTCLObject& objv
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
 )
 {
     bindAll(interp, objv);
@@ -108,6 +107,7 @@ CTCLRingStatistics::operator()(
             destroy(interp, objv);
         } else {
             throw  std::invalid_argument("Unrecognized subcommand");
+        }
     }
     catch (std::exception& e) {
         interp.setResult(e.what());
@@ -118,7 +118,7 @@ CTCLRingStatistics::operator()(
         return TCL_ERROR;
     }
     catch (std::string msg) {
-        iterp.setResult(msg);
+        interp.setResult(msg);
         return TCL_ERROR;
     }
     catch (const char* msg) {
@@ -165,9 +165,9 @@ CTCLRingStatistics::operator()(
  void
  CTCLRingStatistics::create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
  {
-    CStatusDefinitions::RingStatitics pApiObject(0);
-    RingStatistics                    pCommandObject(0);
-    
+    CStatusDefinitions::RingStatistics* pApiObject(0);
+    RingStatistics*                     pCommandObject(0);
+    std::stringstream                   commandGenerator;
     
     // Validate the number of words we need on the command
     
@@ -178,7 +178,7 @@ CTCLRingStatistics::operator()(
     std::string app ="RingStatDaemon";
     
     if (objv.size() == 4) {
-        app = objv[3];
+        app = std::string(objv[3]);
     }
     
     // Create and connect the zmq socket, we're creating a PUB type socket.
@@ -196,19 +196,19 @@ CTCLRingStatistics::operator()(
             
         // Wrap it in our command object:
     
-        std::stringstream commandGenerator;
         commandGenerator << "ringstat_" << m_instanceNumber++;
         pCommandObject  = new RingStatistics(
                 interp, commandGenerator.str().c_str(),  pApiObject
         );
-        catch (...) {
-            // Delete any objects that might have been instantiated dynamically:
-            
-            if (pCommandObject) delete pCommandObject; // deletes the api object
-            else                delete pApiObject;
-            
-            throw;
-        }
+    }
+    catch (...) {
+        // Delete any objects that might have been instantiated dynamically:
+        
+        if (pCommandObject) delete pCommandObject; // deletes the api object
+        else                delete pApiObject;
+        
+        throw;
+    }
         
     // Register the object:
     
@@ -279,7 +279,7 @@ CTCLRingStatistics::RingStatistics::RingStatistics(
  * RingStatistics - destructor
  *    Just deletes the api object:
  */
-CTCLRingStatistics::RingStatistics::RingStatistics()
+CTCLRingStatistics::RingStatistics::~RingStatistics()
 {
     delete m_pObject;
 }
@@ -308,7 +308,7 @@ CTCLRingStatistics::RingStatistics::RingStatistics()
  */
 int
 CTCLRingStatistics::RingStatistics::operator()(
-    CTCLInterpreter& interp, std::vector<CTCLObject>& objv,
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
 )
 {
     bindAll(interp, objv);
@@ -341,7 +341,7 @@ CTCLRingStatistics::RingStatistics::operator()(
         return TCL_ERROR;
     }
     catch (const char* msg) {
-        interp.setResault(msg);
+        interp.setResult(msg);
         return TCL_ERROR;
     }
     catch(...) {
@@ -358,7 +358,7 @@ CTCLRingStatistics::RingStatistics::operator()(
  *  @param interp - interpreter that's running this command.
  *  @param objv   - Command words.
  */
-void'
+void
 CTCLRingStatistics::RingStatistics::startMessage(
     CTCLInterpreter& interp, std::vector<CTCLObject>& objv
 )
@@ -407,7 +407,7 @@ number of bytes put"
     
     // Invoke the method on our object:
     
-    m_pObject->addProducer(cmdVectyor, ops, bytes);
+    m_pObject->addProducer(cmdVector, ops, bytes);
     
 }
 /**
@@ -435,7 +435,7 @@ bytes gotten."
     );
     // Marshall the parameters:
     
-    std::vector<std::string> command = stringVectorFromList(obj[2]);
+    std::vector<std::string> command = stringVectorFromList(objv[2]);
     uint64_t                 ops     = uint64FromObject(
         interp, objv[3], "Getting the number of operations from the command"
     );
@@ -462,9 +462,11 @@ bytes gotten."
  *                 and subcommands.
  */
 void
-CTCLRingStatistics::RingStatistics::endMessage()
+CTCLRingStatistics::RingStatistics::endMessage(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
 {
-    requireExactly(objv, 2 "endMessage takes no additional command parameters");
+    requireExactly(objv, 2, "endMessage takes no additional command parameters");
     m_pObject->endMessage();
 }
 
@@ -500,15 +502,18 @@ CTCLRingStatistics::RingStatistics::stringVectorFromList(CTCLObject& obj)
  *  @throw  CTCLException if the parse fails.
  */
 uint64_t
-CTCLRingStatistics::RingStatistics::uin64FromObject(
+CTCLRingStatistics::RingStatistics::uint64FromObject(
     CTCLInterpreter& interp, CTCLObject& obj, const char* pDoing
 )
 {
-    static_assert(sizeof(long) >= sizeof(uint64_t));   // Ensure we're not chopping.
+    static_assert(
+        sizeof(long) >= sizeof(uint64_t),
+        "Long is not wide enough for a uint64_t"
+    );   // Ensure we're not chopping.
     
     uint64_t result;
     Tcl_Obj* tclObj = obj.getObject();
-    int status = Tcl_GetLongFromObj(interp.getInterpreter(), tclObj, &ops);
+    int status = Tcl_GetLongFromObj(interp.getInterpreter(), tclObj, reinterpret_cast<long*>(&result));
     if (status != TCL_OK) {
         throw CTCLException(
             interp, 0, "Failed to get number of operations from command line"

@@ -58,7 +58,7 @@ extern "C" {
         
         // Add the commands:
         
-        new CTCLRingStatistics(interp);
+        new CTCLRingStatistics(*interp);
         
         return TCL_OK;
     }

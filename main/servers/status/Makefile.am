@@ -19,7 +19,7 @@ include_HEADERS = CStatusMessage.h
 #--------------------Tcl Bindings:
 
 libTclStatusMessages_la_SOURCES= TclPackage.cpp \
-	CTCLRingStatisics.cpp CTCLRingStatistics.h
+	CTCLRingStatistics.cpp CTCLRingStatistics.h
 
 libTclStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@
 libTclStatusMessages_la_LDFLAGS=$(COMMON_LIBS)  	\

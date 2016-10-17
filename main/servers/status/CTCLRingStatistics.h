@@ -48,7 +48,7 @@ class CTCLObject;
 class CTCLRingStatistics : public CTCLObjectProcessor {
 private:
     class RingStatistics;                         // Object instances.
-    typdef std::map<std::string, RingStatistics*> ObjectRegistry;
+    typedef std::map<std::string, RingStatistics*> ObjectRegistry;
     
 private:
     ObjectRegistry m_registry;
@@ -82,7 +82,7 @@ private:
         public:    
             RingStatistics(
                 CTCLInterpreter& interp, const char* command,
-                CStatusDefinitions::RingStatistics* pApi)
+                CStatusDefinitions::RingStatistics* pApi
             );
             virtual ~RingStatistics();
         public:
@@ -104,11 +104,9 @@ private:
             );
             //  Utilities:
         private:
-            std::vector<std::string> stringVectorFromList(
-                CTCLInterpreter& interp, CTCLObject& obj
-            );
+            std::vector<std::string> stringVectorFromList(CTCLObject& obj);
             uint64_t uint64FromObject(
-                CTCLInterpreter& interp, CTCLObject& objv,
+                CTCLInterpreter& interp, CTCLObject& obj,
                 const char* doing = "Getting a uint64_t from a command argument"
             );
     };
