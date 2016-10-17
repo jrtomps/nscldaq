@@ -22,10 +22,13 @@
 
 #include <tcl.h>
 #include "TCLInterpreter.h"
+#include <zmq.hpp>
+#include "CTCLRingStatistics.h"
 
 static const char* packageName = "statusMessage";
 static const char* packageVers = "1.0";
 
+zmq::context_t* gpZmqContext(0);
 
 /**
  * tclStatusMessages_init
@@ -48,6 +51,14 @@ extern "C" {
         // command:
         
         CTCLInterpreter* interp  = new CTCLInterpreter(pInterp);
+        
+        // Make ZMQ usable:
+        
+        gpZmqContext = new zmq::context_t(1);    // Low performance is fine.
+        
+        // Add the commands:
+        
+        new CTCLRingStatistics(interp);
         
         return TCL_OK;
     }
