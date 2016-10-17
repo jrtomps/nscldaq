@@ -213,6 +213,7 @@ CTCLRingStatistics::operator()(
     // Register the object:
     
     m_registry[commandGenerator.str()] = pCommandObject;
+    interp.setResult(commandGenerator.str());
     
     // Success means no exception.
  }
