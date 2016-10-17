@@ -50,7 +50,7 @@ ringstattests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
 tclpkgtests_SOURCES = TestRunner.cpp Asserts.h pkgloads.cpp
 tclpkgtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@ \
-					-DTCLLIBPATH="@prefix@/TclLibs"
+					-DTCLLIBPATH="\"@prefix@/TclLibs\""
 tclpkgtests_LDFLAGS=$(COMMON_LIBS) @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@ @CPPUNIT_LDFLAGS@
 
 TESTS=$(TEST_PROGS)
