@@ -29,6 +29,7 @@
 #include <zmq.hpp>
 #include <sstream>
 
+
 #include <tcl.h>
 
 // Static data items:
@@ -183,8 +184,8 @@ CTCLRingStatistics::operator()(
     
     // Create and connect the zmq socket, we're creating a PUB type socket.
     
-    zmq::socket_t endpoint(m_zmqContext, ZMQ_PUB);
-    endpoint.connect(uri.c_str());
+    zmq::socket_t* pEndpoint = new zmq::socket_t(m_zmqContext, m_testMode ? ZMQ_PUSH: ZMQ_PUB);
+    pEndpoint->connect(uri.c_str());
     
     // This part is in a try /catch block so that resources can be recovered:
     
@@ -192,13 +193,13 @@ CTCLRingStatistics::operator()(
         
         // Make the underlying object:
         
-        pApiObject = new CStatusDefinitions::RingStatistics(endpoint, app);
+        pApiObject = new CStatusDefinitions::RingStatistics(*pEndpoint, app);
             
         // Wrap it in our command object:
     
         commandGenerator << "ringstat_" << m_instanceNumber++;
         pCommandObject  = new RingStatistics(
-                interp, commandGenerator.str().c_str(),  pApiObject
+                interp, commandGenerator.str().c_str(),  pApiObject, pEndpoint
         );
     }
     catch (...) {
@@ -267,13 +268,14 @@ CTCLRingStatistics::operator()(
   *    @param  pApi    - Pointer to an API object.  This must have been
   *                      dynamically generated and responsibility for its
   *                      destruction devolves to us.
+  *    @param sock     - Dynamically allocated socket.
   */
 CTCLRingStatistics::RingStatistics::RingStatistics(
     CTCLInterpreter& interp, const char* command,
-    CStatusDefinitions::RingStatistics* pApi
+    CStatusDefinitions::RingStatistics* pApi, zmq::socket_t* sock
 ) :
  CTCLObjectProcessor(interp, command, true),
- m_pObject(pApi)
+ m_pObject(pApi), m_pSocket(sock)
 {
 }
 /**
@@ -283,6 +285,7 @@ CTCLRingStatistics::RingStatistics::RingStatistics(
 CTCLRingStatistics::RingStatistics::~RingStatistics()
 {
     delete m_pObject;
+    delete m_pSocket;
 }
 
 /**

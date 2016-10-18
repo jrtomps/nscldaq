@@ -53,6 +53,8 @@ private:
 private:
     ObjectRegistry m_registry;
     static unsigned       m_instanceNumber;
+    bool                  m_testMode;
+public:
     static zmq::context_t m_zmqContext;
     // Canonicals:
     
@@ -66,7 +68,8 @@ public:
     
 public:
     virtual int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
-    
+    void        enableTest() {m_testMode = true;}
+    void        disableTest() {m_testMode = false;}
     // object constructors/destructors
     
 private:
@@ -78,11 +81,12 @@ private:
     class RingStatistics: public CTCLObjectProcessor {
         private:
             CStatusDefinitions::RingStatistics* m_pObject;
+            zmq::socket_t*                      m_pSocket;
             
         public:    
             RingStatistics(
                 CTCLInterpreter& interp, const char* command,
-                CStatusDefinitions::RingStatistics* pApi
+                CStatusDefinitions::RingStatistics* pApi, zmq::socket_t* sock
             );
             virtual ~RingStatistics();
         public:
