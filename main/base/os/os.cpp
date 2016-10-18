@@ -194,7 +194,8 @@ Os::getfqdn(const char* host)
   if (!pResult) {
     throw std::string(hstrerror(errorCode));
   }
-  return result.h_name;
+  std::string name(result.h_name);
+  return name;
 }
 /**
  * getProcesssCommand
@@ -277,6 +278,6 @@ Os::hostname()
   checkNegativeStatus(gethostname(host, sizeof(host)-1));
   
   // Return the fqdn of host:
-  
-  return getfqdn(host);
+  std::string result = getfqdn(host);
+  return result;
 }
