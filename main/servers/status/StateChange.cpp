@@ -64,7 +64,9 @@ CStatusDefinitions::StateChange::logChange(
     
     // Format the header
     
-    Header h = formatHeader(
+    Header h;
+    formatHeader(
+        h,
         MessageTypes::STATE_CHANGE, SeverityLevels::INFO, m_application.c_str()
     );
     
