@@ -134,7 +134,9 @@ CStatusDefinitions::RingStatistics::endMessage()
     
       // Fill in the header fields that are easy:
       
-    Header hdr = formatHeader(
+    Header hdr;
+    formatHeader(
+        hdr,
         MessageTypes::RING_STATISTICS, SeverityLevels::INFO,
         m_applicationName.c_str()
     );
