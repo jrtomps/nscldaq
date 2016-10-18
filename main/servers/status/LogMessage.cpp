@@ -52,9 +52,12 @@ CStatusDefinitions::LogMessage::Log(uint32_t sev, std::string message)
     // We need a header and a LogMessageBody where the latter is variable
     // sized:
     
-    Header          hdr     = formatHeader(
+    Header          hdr;
+    formatHeader(
+        hdr,
         MessageTypes::LOG_MESSAGE, sev, m_application.c_str()
     );
+    
     
     size_t          bodySize = sizeof(LogMessageBody) + message.size() + 1;
     LogMessageBody* logBody =
