@@ -70,7 +70,25 @@ private:
     void destroy(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
     // Class to encapsulate instances:
-    
+private:
+    class TCLReadoutStatistics : public CTCLObjectProcessor {
+    private:
+        CStatusDefinitions::ReadoutStatistics* m_pObject;
+        zmq::socket_t*                          m_pSocket;
+    public:
+        TCLReadoutStatistics(
+            CTCLInterpreter& interp, const char* cmd, zmq::socket_t* sock
+        );
+        virtual ~TCLReadoutStatistics();
+        
+    public:
+        int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    private:
+        void beginRun(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+        void emitStatistics(
+            CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+        );
+    };
 };
 
 #endif
