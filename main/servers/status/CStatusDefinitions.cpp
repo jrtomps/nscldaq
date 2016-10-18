@@ -34,16 +34,14 @@
  *   @param appName  -- Name of the application that's formatting this message.
  *   @return CStatusDefinitions::Header - the formatted header object.
  */
-CStatusDefinitions::Header
-CStatusDefinitions::formatHeader(uint32_t type, uint32_t severity, const char* appName)
+void
+CStatusDefinitions::formatHeader(Header& hdr, uint32_t type, uint32_t severity, const char* appName)
 {
     /* Build/send the header. */
     
-      // Fill in the header fields that are easy:
-      
-    CStatusDefinitions::Header hdr = {
-        type, severity, "", ""
-    };
+    hdr.s_type = type;
+    hdr.s_severity = severity;
+
       // Fill in the application name.
       
     std::strncpy(
@@ -57,6 +55,5 @@ CStatusDefinitions::formatHeader(uint32_t type, uint32_t severity, const char* a
     std::string host = Os::hostname();
     std::strncpy(hdr.s_source, host.c_str(), sizeof(hdr.s_source) -1);
     hdr.s_source[sizeof(hdr.s_source) -1]  = 0;
-    
-    return hdr;    
+     
 }
