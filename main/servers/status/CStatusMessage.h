@@ -242,8 +242,8 @@ public:
     // Utility methods for building messages:
     
     private:
-        static Header formatHeader(
-            uint32_t type, uint32_t severity, const char* appName
+        static void formatHeader(
+            Header& hdr, uint32_t type, uint32_t severity, const char* appName
         );
 
 };
