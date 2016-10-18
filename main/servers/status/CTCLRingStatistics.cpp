@@ -49,7 +49,8 @@ zmq::context_t CTCLRingStatistics::m_zmqContext(1);
  * @param command - Command name string (argv0).
  */
 CTCLRingStatistics::CTCLRingStatistics(CTCLInterpreter& interp, const char* cmd) :
-    CTCLObjectProcessor(interp, cmd, true)
+    CTCLObjectProcessor(interp, cmd, true),
+    m_testMode(false)
 {}
 
 /**
