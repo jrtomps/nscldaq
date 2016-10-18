@@ -92,8 +92,8 @@ void ReadoutStatTests::begin()
   EQ(app, std::string(pHeader->s_application));
   EQ(Os::hostname(), std::string(pHeader->s_source));
  
-  int haveMore;
-  size_t size;
+  int64_t haveMore(0);
+  size_t size(sizeof(haveMore));
   m_pReceiver->getsockopt(ZMQ_RCVMORE, &haveMore, &size);
   ASSERT(haveMore);
   
@@ -132,8 +132,8 @@ void ReadoutStatTests::stats()
   zmq::message_t ident;
   zmq::message_t statistics;
   
-  int haveMore;
-  size_t s;
+  int64_t haveMore(0);
+  size_t s(sizeof(haveMore));
   
   m_pReceiver->recv(&header);
   m_pReceiver->getsockopt(ZMQ_RCVMORE, &haveMore, &s);
