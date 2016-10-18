@@ -156,7 +156,9 @@ CStatusDefinitions::ReadoutStatistics::formatIdent()
 void
 CStatusDefinitions::ReadoutStatistics::emitHeader()
 {
-   Header hdr = formatHeader(
+   Header hdr;
+   formatHeader(
+        hdr,
         MessageTypes::READOUT_STATISTICS, SeverityLevels::INFO,
         m_appName.c_str()
     );
