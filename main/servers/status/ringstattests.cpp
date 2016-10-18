@@ -224,8 +224,8 @@ void RingStatTests::fixedMessage()
   zmq::message_t ringId;
   
   receiver.recv(&header);
-  int     haveMore(0);
-  size_t  size;
+  int64_t haveMore(0);     // Wheezy returns a 64 bit entitie!?!
+  size_t  size(sizeof(haveMore));
   receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
   ASSERT(haveMore);                // Should have the ring id part.
   
@@ -241,15 +241,17 @@ void RingStatTests::fixedMessage()
     
   EQ(CStatusDefinitions::MessageTypes::RING_STATISTICS, h->s_type);
   EQ(CStatusDefinitions::SeverityLevels::INFO, h->s_severity);
-  EQ(std::string("TestApp"), std::string(h->s_application));
-  EQ(Os::hostname(), std::string(h->s_source));
+  std::string app = h->s_application;
+  std::string src = h->s_source;
+  EQ(std::string("TestApp"), app);
+  EQ(Os::hostname(), src);
   
   // Analyze the ring identification - for now don't worry about the tod field.
   
   CStatusDefinitions::RingStatIdentification* pIdent  =
     reinterpret_cast<CStatusDefinitions::RingStatIdentification*>(ringId.data());
-    
-  EQ(std::string("testring"), std::string(pIdent->s_ringName));
+  std::string ring = pIdent->s_ringName;
+  EQ(std::string("testring"), ring);
 }
 
 // Ensure that a message with a single producer gives me the right stuff:
@@ -283,8 +285,8 @@ RingStatTests::prodMessage()
   
   
   receiver.recv(&header);
-  int     haveMore(0);
-  size_t  size;
+  int64_t     haveMore(0);
+  size_t  size(sizeof(haveMore));
   receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
   ASSERT(haveMore);                // Should have the ring id part.
   
@@ -341,8 +343,8 @@ RingStatTests::consumersMessage()
   
   // There should be more data:
   
-  int haveMore;
-  size_t size;
+  int64_t haveMore(0);
+  size_t size(sizeof(haveMore));
   receiver.getsockopt(ZMQ_RCVMORE, &haveMore, &size);
   ASSERT(haveMore);
   
