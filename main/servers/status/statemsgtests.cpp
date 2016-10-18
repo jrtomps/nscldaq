@@ -77,8 +77,8 @@ void StateTests::message()
   
   zmq::message_t hMsg;
   zmq::message_t bMsg;
-  int            haveMore;
-  size_t         s;
+  int64_t        haveMore(0);
+  size_t         s(sizeof(haveMore));
   
   m_pReceiver->recv(&hMsg);
   m_pReceiver->getsockopt(ZMQ_RCVMORE, &haveMore, &s);
