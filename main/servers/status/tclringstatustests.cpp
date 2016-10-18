@@ -12,6 +12,8 @@
 #include <sstream>
 #include <os.h>
 #include <stdlib.h>
+#include <testutils.h>
+
 
 #define private public
 #include "CStatusMessage.h"
@@ -31,6 +33,7 @@ class TclRingStatisticsTests : public CppUnit::TestFixture {
   
   CPPUNIT_TEST(minimal);
   CPPUNIT_TEST(producer);
+  CPPUNIT_TEST(consumers);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -77,6 +80,7 @@ protected:
   
   void minimal();
   void producer();
+  void consumers();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TclRingStatisticsTests);
@@ -258,5 +262,94 @@ void TclRingStatisticsTests::producer()
   EQ(uint64_t(1234), pClient->s_operations);
   EQ(uint64_t(5678), pClient->s_bytes);
   ASSERT(pClient->s_isProducer);
-      
+  std::vector<std::string> command = {
+      "a", "b", "c"
+  };
+  EQ(command, marshallVector(pClient->s_command));
+}
+
+// Put a couple of consumers in the message.
+
+void TclRingStatisticsTests::consumers()
+{
+    std::stringstream cmd;
+    cmd << "RingStatistics create " << uri;
+    std::string newCmd = m_pInterpObj->Eval(cmd.str()); // Default appname.  
+    
+    // Start the message:
+    
+    std::stringstream startMsg;
+    startMsg << newCmd << " startMessage " << "aring";
+    CPPUNIT_ASSERT_NO_THROW(
+      m_pInterpObj->Eval(startMsg.str())
+    );
+    // Add two consumers.
+    
+    std::stringstream addConsumer1;
+    addConsumer1 << newCmd << " addConsumer [list x y z p d q] 666 999";
+    CPPUNIT_ASSERT_NO_THROW(
+      m_pInterpObj->Eval(addConsumer1.str())
+    );
+    
+
+    std::stringstream addConsumer2;
+    addConsumer2 << newCmd << " addConsumer [list a b c d] 10 1000";
+    CPPUNIT_ASSERT_NO_THROW(
+      m_pInterpObj->Eval(addConsumer2.str())
+    );
+
+    
+    // End the message:
+    
+    std::stringstream endMsg;
+    endMsg << newCmd << " endMessage";
+    CPPUNIT_ASSERT_NO_THROW(
+      m_pInterpObj->Eval(endMsg.str())
+    );
+    // In receiving the message we only worry about having the right number of
+    // message parts..  in a bit we'll analyze the consumer client messages.
+    
+    zmq::message_t hdr;
+    zmq::message_t ringid;
+    zmq::message_t cons1;
+    zmq::message_t cons2;
+    
+    uint64_t haveMore(0);
+    size_t   s(sizeof(haveMore));
+    
+    m_pReceiver->recv(&hdr);
+    m_pReceiver->getsockopt(ZMQ_RCVMORE, &haveMore, &s);
+    ASSERT(haveMore);
+    
+    m_pReceiver->recv(&ringid);
+    m_pReceiver->getsockopt(ZMQ_RCVMORE, &haveMore, &s);
+    ASSERT(haveMore);
+    
+    m_pReceiver->recv(&cons1);            // First consumer
+    m_pReceiver->getsockopt(ZMQ_RCVMORE, &haveMore, &s);
+    ASSERT(haveMore);
+    
+    m_pReceiver->recv(&cons2);           // second consumer -- last segment.
+    m_pReceiver->getsockopt(ZMQ_RCVMORE, &haveMore, &s);
+    ASSERT(!haveMore);
+    
+    // Analyze contents of cons1:
+    
+    CStatusDefinitions::RingStatClient* pClient =
+      reinterpret_cast<CStatusDefinitions::RingStatClient*>(cons1.data());
+    EQ(uint64_t(666), pClient->s_operations);
+    EQ(uint64_t(999), pClient->s_bytes);
+    ASSERT(!pClient->s_isProducer);
+    std::vector<std::string> cons1Command={"x", "y", "z", "p", "d", "q"};
+    EQ(cons1Command, marshallVector(pClient->s_command));
+    
+    // Analyze contents of cons2:
+    
+    pClient = reinterpret_cast<CStatusDefinitions::RingStatClient*>(cons2.data());
+    EQ(uint64_t(10), pClient->s_operations);
+    EQ(uint64_t(1000), pClient->s_bytes);
+    ASSERT(!pClient->s_isProducer);
+    std::vector<std::string> cons2Command = {"a", "b", "c", "d"};
+    EQ(cons2Command, marshallVector(pClient->s_command));
+    
 }

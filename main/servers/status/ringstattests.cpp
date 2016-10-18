@@ -7,6 +7,7 @@
 #include <zmq.hpp>
 #include <stdexcept>
 #include <os.h>
+#include <testutils.h>
 
 #define private public
 #include "CStatusMessage.h"
@@ -61,28 +62,7 @@ protected:
 CPPUNIT_TEST_SUITE_REGISTRATION(RingStatTests);
 
 
-static std::vector<std::string>
-marshallVector(const char* s)
-{
-  std::vector<std::string> result;
-  while(*s) {
-    result.push_back(std::string(s));
-    s += strlen(s) + 1;
-  }
-  return result;
-}
-// So we can EQ on vectors e.g.
-std::ostream& operator<<(std::ostream& s, const std::vector<std::string>& v)
-{
-  s <<  "[";
-  for (int i = 0; i < v.size(); i++) {
-    s << v[i];
-    if (i < (v.size() -1)) s << ", ";
-  }
-  s << "]";
-  
-  return s;
-}
+
 
 // Construction should set the socket, the application, and clear the
 // msgOpen flag.
