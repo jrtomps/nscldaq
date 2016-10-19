@@ -77,7 +77,7 @@ void LogTests::message()
   
   m_pReceiver->recv(&header);
   
-  int64_t haveMore;
+  int64_t haveMore(0);
   size_t s(sizeof(haveMore));
   m_pReceiver->getsockopt(ZMQ_RCVMORE, &haveMore, &s);
   ASSERT(haveMore);                // Must be another part.
