@@ -251,18 +251,18 @@ CTCLReadoutStatistics::TCLReadoutStatistics::~TCLReadoutStatistics()
 int
 CTCLReadoutStatistics::TCLReadoutStatistics::operator()(
     CTCLInterpreter& interp, std::vector<CTCLObject>& objv
-)
+) 
 {
     bindAll(interp, objv);
     
     try {
         requireAtLeast(objv, 2, "Command needs at least a subcommand");
         std::string subcommand(objv[1]);
-        
+            
         if (subcommand == "beginRun") {
-            
+            beginRun(interp, objv);            
         } else if (subcommand == "emitStatistics") {
-            
+            emitStatistics(interp, objv);
         } else {
             throw std::invalid_argument("Invalid subcommand");
         }

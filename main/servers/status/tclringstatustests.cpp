@@ -13,6 +13,7 @@
 #include <os.h>
 #include <stdlib.h>
 #include <testutils.h>
+#include <stdexcept>
 
 
 #define private public
@@ -20,7 +21,7 @@
 #undef private
 
 
-std::string uri = "inproc://test";    // Use intra process sockets.
+static std::string uri = "inproc://test";    // Use intra process sockets.
 
 class TclRingStatisticsTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TclRingStatisticsTests);
@@ -28,6 +29,9 @@ class TclRingStatisticsTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(constructWithApp);
   CPPUNIT_TEST(construct2few);
   CPPUNIT_TEST(construct2many);
+  
+  CPPUNIT_TEST(destruct);
+  CPPUNIT_TEST(destructNoSuch);
   
   // These tests actually send messages.
   
@@ -42,7 +46,7 @@ private:
   CTCLRingStatistics* m_pStatsCmd;
   Tcl_Interp*      m_pInterpRaw;
   
-  zmq::context_t*  m_pZmqContext;
+  zmq::context_t*    m_pZmqContext;
   zmq::socket_t*   m_pReceiver;
 public:
   void setUp() {
@@ -69,7 +73,6 @@ public:
     delete m_pStatsCmd;
     delete m_pInterpObj;
     delete m_pReceiver;
-    //delete m_pZmqContext;
     
   }
 protected:
@@ -77,6 +80,9 @@ protected:
   void constructWithApp();
   void construct2few();
   void construct2many();
+  
+  void destruct();
+  void destructNoSuch();
   
   void minimal();
   void producer();
@@ -137,6 +143,47 @@ void TclRingStatisticsTests::construct2many()
 {
   CPPUNIT_ASSERT_THROW(
     m_pInterpObj->Eval("RingStatistics create inproc://test myap extra"),
+    CTCLException
+  );
+}
+
+// A constructed item should be destroyable:
+
+void TclRingStatisticsTests::destruct()
+{
+std::stringstream cmd;
+  cmd << "RingStatistics create " << uri;
+  std::string newCmd;
+  CPPUNIT_ASSERT_NO_THROW(
+     newCmd = m_pInterpObj->Eval(cmd.str())
+  );
+  
+  // newCmd should be a command in the interpreter:
+  
+  std::stringstream checkCmd;
+  checkCmd << "info command " << newCmd;
+  EQ(newCmd, m_pInterpObj->Eval(checkCmd.str()));
+  
+  // Destroy the command:
+  
+  std::string destroyCommand = "RingStatistics destroy ";
+  destroyCommand            += newCmd;
+  CPPUNIT_ASSERT_NO_THROW(
+    m_pInterpObj->Eval(destroyCommand)
+  );
+  
+  // The command should be gone:
+  
+  EQ(std::string(""), m_pInterpObj->Eval(checkCmd.str()));
+}
+
+// Invalid argument if destroying a command that does not exist... gets
+// converted into TCL_ERROR which converts to CTCLException:
+
+void TclRingStatisticsTests::destructNoSuch()
+{
+  CPPUNIT_ASSERT_THROW(
+    m_pInterpObj->Eval("RingStatistics destroy junk"),
     CTCLException
   );
 }
@@ -353,3 +400,4 @@ void TclRingStatisticsTests::consumers()
     EQ(cons2Command, marshallVector(pClient->s_command));
     
 }
+
