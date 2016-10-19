@@ -107,13 +107,17 @@ private:
                 CTCLInterpreter& interp, std::vector<CTCLObject>& objv
             );
             //  Utilities:
-        private:
-            std::vector<std::string> stringVectorFromList(CTCLObject& obj);
-            uint64_t uint64FromObject(
-                CTCLInterpreter& interp, CTCLObject& obj,
-                const char* doing = "Getting a uint64_t from a command argument"
-            );
+        
     };
+    // Utility methods for all - TODO: these and the context should be
+    //                                 factored out into a separate module:
+    
+    public:
+        static std::vector<std::string> stringVectorFromList(CTCLObject& obj);
+        static uint64_t uint64FromObject(
+            CTCLInterpreter& interp, CTCLObject& obj,
+            const char* doing = "Getting a uint64_t from a command argument"
+        );
 };
 
 #endif

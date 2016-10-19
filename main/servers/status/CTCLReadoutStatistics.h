@@ -46,7 +46,11 @@ class CTCLReadoutStatistics : public CTCLObjectProcessor
 {
     // Data types:
 private:
-    typedef std::map<std::string, CStatusDefinitions::ReadoutStatistics*> Registry;
+    class TCLReadoutStatistics;
+    typedef std::map<std::string, TCLReadoutStatistics*>
+        Registry;
+    
+    
     // Member data:
 private:
     static unsigned m_instanceCounter;             // Used to create unique cmds.
@@ -77,7 +81,8 @@ private:
         zmq::socket_t*                          m_pSocket;
     public:
         TCLReadoutStatistics(
-            CTCLInterpreter& interp, const char* cmd, zmq::socket_t* sock
+            CTCLInterpreter& interp, const char* cmd,
+            CStatusDefinitions::ReadoutStatistics* object, zmq::socket_t* sock
         );
         virtual ~TCLReadoutStatistics();
         

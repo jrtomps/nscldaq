@@ -476,7 +476,7 @@ CTCLRingStatistics::RingStatistics::endMessage(
 }
 
 /*---------------------------------------------------------------------------
- *  Private utility methods of the RingStatistics nested class:
+ *  Utility methods available for all:
  */
 /**
  * stringVectorFromList
@@ -486,7 +486,7 @@ CTCLRingStatistics::RingStatistics::endMessage(
  *  @return std::vector<std::string>
  */
 std::vector<std::string>
-CTCLRingStatistics::RingStatistics::stringVectorFromList(CTCLObject& obj)
+CTCLRingStatistics::stringVectorFromList(CTCLObject& obj)
 {
     std::vector<std::string> result;
         for (int i = 0; i < obj.llength(); i++) {
@@ -507,7 +507,7 @@ CTCLRingStatistics::RingStatistics::stringVectorFromList(CTCLObject& obj)
  *  @throw  CTCLException if the parse fails.
  */
 uint64_t
-CTCLRingStatistics::RingStatistics::uint64FromObject(
+CTCLRingStatistics::uint64FromObject(
     CTCLInterpreter& interp, CTCLObject& obj, const char* pDoing
 )
 {
