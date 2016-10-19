@@ -25,6 +25,7 @@
 #include <zmq.hpp>
 #include "CTCLRingStatistics.h"
 #include "CTCLReadoutStatistics.h"
+#include "CTCLLogMessage.h"
 
 static const char* packageName = "statusMessage";
 static const char* packageVers = "1.0";
@@ -57,6 +58,7 @@ extern "C" {
         
         new CTCLRingStatistics(*interp);
         new CTCLReadoutStatistics(*interp);
+        new CTCLLogMessage(*interp);
 
         return TCL_OK;
     }

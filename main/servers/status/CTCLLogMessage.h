@@ -56,16 +56,16 @@ private:
         bool            m_testing;
     
     // Canonicals:
-    
-    CTCLLogMessage(CTCLInterpreter& interp, const char* command);
+public:   
+    CTCLLogMessage(CTCLInterpreter& interp, const char* command= "LogMessage");
     virtual ~CTCLLogMessage();
     
     // operations:
 public:    
     int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
-    void enableDebugging()  { m_testing = true;}
-    void disableDebugging() { m_testing = false;}
+    void enableTesting()  { m_testing = true;}
+    void disableTesting() { m_testing = false;}
     
     // Sub command execution methods:
     

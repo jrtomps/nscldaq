@@ -166,6 +166,7 @@ CTCLLogMessage::create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
             delete pSocket;
         }
     }
+    interp.setResult(commandStream.str());
 }
 /**
  * destroy
