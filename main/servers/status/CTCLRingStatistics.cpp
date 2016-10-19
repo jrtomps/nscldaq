@@ -40,7 +40,7 @@ unsigned CTCLRingStatistics::m_instanceNumber(0);
 
 // The zmq::context_t is required to generate objects:
 
-zmq::context_t CTCLRingStatistics::m_zmqContext(1); 
+zmq::context_t& CTCLRingStatistics::m_zmqContext(*(new zmq::context_t(1))); 
 
 /**
  * constructer(outer)

@@ -55,7 +55,7 @@ private:
     static unsigned       m_instanceNumber;
     bool                  m_testMode;
 public:
-    static zmq::context_t m_zmqContext;
+    static zmq::context_t& m_zmqContext;
     // Canonicals:
     
 public:
