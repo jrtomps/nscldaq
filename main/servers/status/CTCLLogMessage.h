@@ -85,7 +85,7 @@ private:
     public:
         TCLLogMessage(
             CTCLInterpreter& interp, const char* command,
-            CStatusDefinitions::LogMessage* pObject, zmq::socket_t* m_pSocket
+            CStatusDefinitions::LogMessage* pObject, zmq::socket_t* pSocket
         );
         virtual ~TCLLogMessage();
         
