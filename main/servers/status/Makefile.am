@@ -20,7 +20,8 @@ include_HEADERS = CStatusMessage.h
 
 libTclStatusMessages_la_SOURCES= TclPackage.cpp \
 	CTCLRingStatistics.cpp CTCLRingStatistics.h \
-	CTCLReadoutStatistics.cpp CTCLReadoutStatistics.h
+	CTCLReadoutStatistics.cpp CTCLReadoutStatistics.h \
+	CTCLLogMessage.cpp CTCLLogMessage.h
 
 libTclStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@
 libTclStatusMessages_la_LDFLAGS=$(COMMON_LIBS)  	\

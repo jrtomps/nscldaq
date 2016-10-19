@@ -125,6 +125,10 @@ CTCLReadoutStatistics::operator()(
  *
  *  @param interp - interpreter that is running the command.
  *  @param objv   - Command words that make up the command.
+ *
+ *  @note on successful completion the name of the new command is set as the
+ *        interpreter result.
+ *        
  */
 void
 CTCLReadoutStatistics::create(
