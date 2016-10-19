@@ -12,7 +12,8 @@
 class pkgloadTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(pkgloadTests);
   CPPUNIT_TEST(load);
-  CPPUNIT_TEST(cmd);
+  CPPUNIT_TEST(ringstatcommand);
+  CPPUNIT_TEST(readoutstatcommand);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -29,16 +30,17 @@ public:
     
     // Add the Tcl package path to the intepreter:
     
-    std::stringstream cmd;
-    cmd << "lappend auto_path " << TCLLIBPATH << std::endl;
-    m_pInterpObj->GlobalEval(cmd.str());
+    std::stringstream ringstatcommand;
+    ringstatcommand << "lappend auto_path " << TCLLIBPATH << std::endl;
+    m_pInterpObj->GlobalEval(ringstatcommand.str());
   }
   void tearDown() {
     delete m_pInterpObj;
   }
 protected:
   void load();
-  void cmd();
+  void ringstatcommand();
+  void readoutstatcommand();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(pkgloadTests);
@@ -52,9 +54,22 @@ void pkgloadTests::load() {
 }
 // Loading the package defines the "RingStatistics" command
 
-void pkgloadTests::cmd()
+void pkgloadTests::ringstatcommand()
 {
   Tcl_PkgRequire(m_pInterpRaw, "statusMessage", "1.0", 0);
-  std::string cmds = m_pInterpObj->Eval("info commands RingStatistics");
-  EQ(std::string("RingStatistics"), cmds);
+  std::string ringstatcommands = m_pInterpObj->Eval("info commands RingStatistics");
+  EQ(std::string("RingStatistics"), ringstatcommands);
+}
+
+// Loading the package creates the "ReadoutStatistics" command:
+
+void pkgloadTests::readoutstatcommand()
+{
+  Tcl_PkgRequire(m_pInterpRaw, "statusMessage", "1.0", 0);
+  std::string commandName = "RingStatistics";
+  std::string infoCommand = "info commands ";
+  infoCommand += commandName;
+  
+  std::string availCommands = m_pInterpObj->Eval(infoCommand);
+  EQ(commandName, availCommands);
 }
