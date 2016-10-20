@@ -173,6 +173,7 @@ CTCLReadoutStatistics::create(
             delete pApiObject;
             delete pConnection;
         }
+        throw;
     }
     // Return the command name.
     

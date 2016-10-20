@@ -40,7 +40,8 @@ class CTCLObject;
 class CTCLStateChangeMessage : public CTCLObjectProcessor
 {
 private:
-    typedef std::map<std::string, CStatusDefinitions::StateChange*> Registry;
+    class TCLStateChangeMessage;
+    typedef std::map<std::string, TCLStateChangeMessage*> Registry;
 private:
     static unsigned m_instanceNumber;
     Registry        m_registry;
