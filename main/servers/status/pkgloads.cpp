@@ -14,6 +14,8 @@ class pkgloadTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(load);
   CPPUNIT_TEST(ringstatcommand);
   CPPUNIT_TEST(readoutstatcommand);
+  CPPUNIT_TEST(logmsgcmd);
+  CPPUNIT_TEST(statemsgcmd);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -41,8 +43,9 @@ protected:
   void load();
   void ringstatcommand();
   void readoutstatcommand();
+  void logmsgcmd();
+  void statemsgcmd();
 };
-
 CPPUNIT_TEST_SUITE_REGISTRATION(pkgloadTests);
 
 
@@ -67,6 +70,32 @@ void pkgloadTests::readoutstatcommand()
 {
   Tcl_PkgRequire(m_pInterpRaw, "statusMessage", "1.0", 0);
   std::string commandName = "RingStatistics";
+  std::string infoCommand = "info commands ";
+  infoCommand += commandName;
+  
+  std::string availCommands = m_pInterpObj->Eval(infoCommand);
+  EQ(commandName, availCommands);
+}
+// Loading the packager creates the LogMessage command.
+
+void pkgloadTests::logmsgcmd()
+{
+  
+  Tcl_PkgRequire(m_pInterpRaw, "statusMessage", "1.0", 0);
+  std::string commandName = "LogMessage";
+  std::string infoCommand = "info commands ";
+  infoCommand += commandName;
+  
+  std::string availCommands = m_pInterpObj->Eval(infoCommand);
+  EQ(commandName, availCommands);
+}
+
+// Loading the package creates the 'StateChange' command:
+
+void pkgloadTests::statemsgcmd()
+{
+  Tcl_PkgRequire(m_pInterpRaw, "statusMessage", "1.0", 0);
+  std::string commandName = "StateChange";
   std::string infoCommand = "info commands ";
   infoCommand += commandName;
   
