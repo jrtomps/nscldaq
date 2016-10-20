@@ -159,7 +159,7 @@ CTCLStateChangeMessage::create(
         pSocket = new zmq::socket_t(
             CTCLRingStatistics::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
         );
-        pSocket->bind(uri.c_str());
+        pSocket->connect(uri.c_str());
         
         pApiObject  = new CStatusDefinitions::StateChange(*pSocket, app);
         pWrapper    = new TCLStateChangeMessage(

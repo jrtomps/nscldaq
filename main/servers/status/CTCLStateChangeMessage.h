@@ -53,6 +53,8 @@ public:
     
 public:
     int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void enableTesting()  { m_testing = true; }
+    void disableTesting() { m_testing = true; } 
 
 private:
     void create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
