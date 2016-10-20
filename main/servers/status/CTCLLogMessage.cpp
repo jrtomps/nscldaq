@@ -23,6 +23,7 @@
 #include "CTCLRingStatistics.h"
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
+#include <TclUtilities.h>
 #include <stdexcept>
 #include <Exception.h>
 #include <sstream>
@@ -145,7 +146,7 @@ CTCLLogMessage::create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     std::stringstream                commandStream;
     try {
         pSocket = new zmq::socket_t(
-            CTCLRingStatistics::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
+            TclMessageUtilities::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
         );
         pSocket->connect(uri.c_str());
         pApiObject = new CStatusDefinitions::LogMessage(*pSocket, app);

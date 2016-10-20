@@ -24,6 +24,7 @@
 #include "CTCLRingStatistics.h"
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
+#include <TclUtilities.h>
 #include <Exception.h>
 #include <stdexcept>
 #include <sstream>
@@ -157,7 +158,7 @@ CTCLStateChangeMessage::create(
     
     try {
         pSocket = new zmq::socket_t(
-            CTCLRingStatistics::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
+            TclMessageUtilities::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
         );
         pSocket->connect(uri.c_str());
         

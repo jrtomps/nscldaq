@@ -6,6 +6,7 @@
 #include "CStatusMessage.h"
 #include "CTCLRingStatistics.h"
 #include "CTCLLogMessage.h"
+#include <TclUtilities.h>
 
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
@@ -59,7 +60,7 @@ public:
     
     //  Setup zmq - our receiver socket will be bound to the uri as a SUB socket.
     
-    m_pZmqContext = &CTCLRingStatistics::m_zmqContext;
+    m_pZmqContext = &TclMessageUtilities::m_zmqContext;
     m_pReceiver   = new zmq::socket_t(*m_pZmqContext, ZMQ_PULL);
     m_pReceiver->bind(uri.c_str());
   }

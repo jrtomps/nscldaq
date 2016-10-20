@@ -26,6 +26,7 @@
 #include <stdexcept>
 #include <Exception.h>
 #include <TCLException.h>
+#include <TclUtilities.h>
 #include <zmq.hpp>
 #include <sstream>
 
@@ -38,9 +39,6 @@
 
 unsigned CTCLRingStatistics::m_instanceNumber(0);
 
-// The zmq::context_t is required to generate objects:
-
-zmq::context_t& CTCLRingStatistics::m_zmqContext(*(new zmq::context_t(1))); 
 
 /**
  * constructer(outer)
@@ -185,7 +183,7 @@ CTCLRingStatistics::operator()(
     
     // Create and connect the zmq socket, we're creating a PUB type socket.
     
-    zmq::socket_t* pEndpoint = new zmq::socket_t(m_zmqContext, m_testMode ? ZMQ_PUSH: ZMQ_PUB);
+    zmq::socket_t* pEndpoint = new zmq::socket_t(TclMessageUtilities::m_zmqContext, m_testMode ? ZMQ_PUSH: ZMQ_PUB);
     pEndpoint->connect(uri.c_str());
     
     // This part is in a try /catch block so that resources can be recovered:
@@ -398,15 +396,16 @@ number of bytes put"
     
     // Marshall the command into the vector of strings required by the Api
     
-    std::vector<std::string> cmdVector = stringVectorFromList(command);
+    std::vector<std::string> cmdVector =
+        TclMessageUtilities::stringVectorFromList(command);
 
     //  The operations and bytes need to be pulled out as uint64_t as they
     //  can get rather large:
 
-    uint64_t ops = uint64FromObject(
+    uint64_t ops = TclMessageUtilities::uint64FromObject(
         interp, objv[3], "Getting op count from command line"
     );
-    uint64_t bytes = uint64FromObject(
+    uint64_t bytes = TclMessageUtilities::uint64FromObject(
         interp, objv[4], "Getting byte count from command line"
     );
     
@@ -440,11 +439,12 @@ bytes gotten."
     );
     // Marshall the parameters:
     
-    std::vector<std::string> command = stringVectorFromList(objv[2]);
-    uint64_t                 ops     = uint64FromObject(
+    std::vector<std::string> command =
+        TclMessageUtilities::stringVectorFromList(objv[2]);
+    uint64_t                 ops     = TclMessageUtilities::uint64FromObject(
         interp, objv[3], "Getting the number of operations from the command"
     );
-    uint64_t                 bytes   = uint64FromObject(
+    uint64_t                 bytes   = TclMessageUtilities::uint64FromObject(
         interp, objv[4], "Getting the bytes transferred from the command"
     );
     
@@ -475,54 +475,3 @@ CTCLRingStatistics::RingStatistics::endMessage(
     m_pObject->endMessage();
 }
 
-/*---------------------------------------------------------------------------
- *  Utility methods available for all:
- */
-/**
- * stringVectorFromList
- *    Turn a CTCLObject that contains a list to an std::vector<std::string.
- *    The object is assumed bound to an interpreter.
- *  @param obj - The object being analyzed.
- *  @return std::vector<std::string>
- */
-std::vector<std::string>
-CTCLRingStatistics::stringVectorFromList(CTCLObject& obj)
-{
-    std::vector<std::string> result;
-        for (int i = 0; i < obj.llength(); i++) {
-        result.push_back(std::string(obj.lindex(i)));
-    }
-    return result;
-}
-
-/*
- * uint64FromObject
- *    Fetches a uint64_t from a CTCLObject.
- *
- *  @param interp - interpreter to use to parse the object.
- *  @param obj    - Object we're getting the value from.
- *  @param pDoing - String documenting what's being done.  This is part of the
- *                  error exception if the parse fails.
- *  @return uint64_t
- *  @throw  CTCLException if the parse fails.
- */
-uint64_t
-CTCLRingStatistics::uint64FromObject(
-    CTCLInterpreter& interp, CTCLObject& obj, const char* pDoing
-)
-{
-    static_assert(
-        sizeof(long) >= sizeof(uint64_t),
-        "Long is not wide enough for a uint64_t"
-    );   // Ensure we're not chopping.
-    
-    uint64_t result;
-    Tcl_Obj* tclObj = obj.getObject();
-    int status = Tcl_GetLongFromObj(interp.getInterpreter(), tclObj, reinterpret_cast<long*>(&result));
-    if (status != TCL_OK) {
-        throw CTCLException(
-            interp, 0, "Failed to get number of operations from command line"
-        );       
-    }
-    return result;
-}

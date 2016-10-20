@@ -22,7 +22,8 @@ libTclStatusMessages_la_SOURCES= TclPackage.cpp \
 	CTCLRingStatistics.cpp CTCLRingStatistics.h \
 	CTCLReadoutStatistics.cpp CTCLReadoutStatistics.h \
 	CTCLLogMessage.cpp CTCLLogMessage.h		\
-	CTCLStateChangeMessage.cpp CTCLStateChangeMessage.h
+	CTCLStateChangeMessage.cpp CTCLStateChangeMessage.h \
+	TclUtilities.cpp TclUtilities.h
 
 libTclStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@
 libTclStatusMessages_la_LDFLAGS=$(COMMON_LIBS)  	\

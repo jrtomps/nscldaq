@@ -23,6 +23,7 @@
 #include "CTCLRingStatistics.h"
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
+#include <TclUtilities.h>
 #include <stdexcept>
 #include <Exception.h>
 #include <tcl.h>
@@ -121,7 +122,7 @@ CTCLReadoutStatistics::operator()(
  *    an optional application name (defaults to "Readout").  Note that
  *    we are going to dynamically create and connect a zmq::socket after which
  *    the wrapper will be responsible for its storage.  The zmq::context_t we're
- *    using for the socket is CTCLRingStatistics::m_zmqContext.
+ *    using for the socket is TclMessageUtilities::m_zmqContext.
  *
  *  @param interp - interpreter that is running the command.
  *  @param objv   - Command words that make up the command.
@@ -153,7 +154,7 @@ CTCLReadoutStatistics::create(
     // m_testing flag as pub/sub can be tough to use in testing.
     
     pConnection = new zmq::socket_t(
-        CTCLRingStatistics::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
+        TclMessageUtilities::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
     );
     // From now on we need to be in a try/catch block so resources can be
     // released on throws:
@@ -350,13 +351,13 @@ CTCLReadoutStatistics::TCLReadoutStatistics::emitStatistics(
     requireExactly(objv, 5, "Need number of triggers, events and bytes read");
     
 
-    uint64_t nTriggers = CTCLRingStatistics::uint64FromObject(
+    uint64_t nTriggers = TclMessageUtilities::uint64FromObject(
         interp, objv[2], "Getting trigger count."
     );
-    uint64_t nEvents  = CTCLRingStatistics::uint64FromObject(
+    uint64_t nEvents  = TclMessageUtilities::uint64FromObject(
         interp, objv[3], "Getting event count."
     );
-    uint64_t nBytes   = CTCLRingStatistics::uint64FromObject(
+    uint64_t nBytes   = TclMessageUtilities::uint64FromObject(
         interp, objv[4], "Getting byte count."
     );
     
