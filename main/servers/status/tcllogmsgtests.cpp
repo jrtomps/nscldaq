@@ -28,6 +28,11 @@ class TclLogTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(construct);
   CPPUNIT_TEST(constructNeedApp);
   CPPUNIT_TEST(constructTooMany);
+
+  //
+  
+  CPPUNIT_TEST(destroy);
+  CPPUNIT_TEST(destroyNoSuch);
   
   // Log message
   
@@ -70,6 +75,9 @@ protected:
   void construct();
   void constructNeedApp();
   void constructTooMany();
+  
+  void destroy();
+  void destroyNoSuch();
   
   void logMessage();
   
@@ -117,6 +125,38 @@ void TclLogTests::constructTooMany()
     CTCLException
   );
 }
+// Destruction removes command:
+
+void TclLogTests::destroy()
+{
+  std::string newCmd;
+  std::stringstream constCommand;
+  constCommand << "LogMessage create " << uri << " " << app;
+  CPPUNIT_ASSERT_NO_THROW(
+    newCmd = m_pInterpObj->Eval(constCommand.str())
+  );
+  
+  std::stringstream destroyCommand;
+  destroyCommand << "LogMessage destroy " << newCmd;
+  CPPUNIT_ASSERT_NO_THROW(
+    m_pInterpObj->Eval(destroyCommand.str())
+  );
+  
+  std::stringstream infoCmd;
+  infoCmd << "info commands " << newCmd;
+  EQ(std::string(""), m_pInterpObj->Eval(infoCmd.str())); // no commands match.
+}
+
+// Destruction of a command that does not exist throws:
+
+void TclLogTests::destroyNoSuch()
+{
+  CPPUNIT_ASSERT_THROW(
+    m_pInterpObj->Eval("LogMessage destroy no-such-object"),
+    CTCLException
+  );
+}
+
 // See if we can make a good log message:
 
 void TclLogTests::logMessage()
