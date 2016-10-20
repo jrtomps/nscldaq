@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libStatusMessages.la libTclStatusMessages.la
+lib_LTLIBRARIES = libStatusMessages.la libTclStatusMessages.la libPyStatusMessages.la
 
 COMPILATION_FLAGS= -I@top_srcdir@/base/os
 COMMON_LIBS      = @top_builddir@/base/os/libdaqshm.la  @ZMQ_LDFLAGS@ @LIBEXCEPTION_LDFLAGS@
@@ -38,8 +38,27 @@ tclpkgInstall:
 	echo pkg_mkIndex -verbose "@prefix@/TclLibs/status *.so" |@TCLSH@
 
 
+#------------------- Python Bindings -
+
+libPyStatusMessages_la_SOURCES= PyStatusMessages.cpp
+libPyStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @PYTHON_CPPFLAGS@
+libPyStatusMessages_la_LDLFAGS=$(COMMON_LIBS) @builddir@/libStatusMessages.la \
+				@PYTHON_LDFLAGS@
+
+pypkgInstall:
+	$(mkinstalldirs) @prefix@/pythonLibs  @prefix@/pythonLibs/nscldaq
+	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/status
+	touch @prefix@/pythonLibs/nscldaq/status/__init__.py
+	$(INSTALL_PROGRAM) @libdir@/libPyStatusMessages.so @prefix@/pythonLibs/nscldaq/status/statusmessages.so
+
 #-------------------- Tests -----
 
+TEST_EXTENSIONS=.py
+PY_LOG_COMPILER=@PYTHON@
+TESTS_ENVIRONMENT=PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
+
+
+PYTHON_TESTS=ringstatisticstests.py
 
 TEST_PROGS=ringstattests tclpkgtests
 
@@ -62,7 +81,7 @@ tclpkgtests_LDFLAGS=$(COMMON_LIBS) libTclStatusMessages.la \
 		libStatusMessages.la	\
 		@LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@ @CPPUNIT_LDFLAGS@
 
-TESTS=$(TEST_PROGS)
+TESTS=$(TEST_PROGS) $(PYTHON_TESTS)
 
 
-install-exec-hook: tclpkgInstall
+install-exec-hook: tclpkgInstall pypkgInstall
