@@ -36,6 +36,39 @@ typedef struct _ringstatistics_Data {
     zmq::socket_t*                      m_pSocket;
 } ringStatisticsData, *pRingStatisticsData;
 
+/**
+ * common utilities:
+ */
+
+/**
+ * iterableToStringVector
+ *    Takes a python interable and returns a vector of strings containing its
+ *    values.
+ *
+ *  @param obj  - The python interable.
+ *  @return std::vector<std::string>L
+ */
+static std::vector<std::string>
+iterableToStringVector(PyObject* objv) {
+    std::vector<std::string> result;
+    PyObject* iter = PyObject_GetIter(objv);
+    if (!iter) return result;                  // exception in progress though.
+    
+    while (PyObject* item = PyIter_Next(iter)) {
+        char* word = PyString_AsString(item);
+        if (!word) {
+            Py_DECREF(item);
+            PyErr_SetString(exception, "iterable must contain only strings");
+            return result;
+        }
+        result.push_back(std::string(word));
+        Py_DECREF(item);
+    }
+    
+    Py_DECREF(iter);                          // Release the iterator.
+    return result;
+}
+
 /*----------------------------------------------------------------------------
  * The RingStatistics type/class.
  */
@@ -156,11 +189,141 @@ ringstatistics_delete(PyObject* self)
     
     self->ob_type->tp_free(self);
 }
+
+/**
+ * Methods on instances of a RingStatistics object.
+
 /**
  *  Tables needed by Python to connect data/code.
  */
 
-static PyMethodDef RingStatistics_Methods[] {    
+/**
+ * ringstatistics_startMessage
+ *    Wrapper for CStatusDefinitions::RingStatistics::startMessage
+ *    A message is opened and the ringbuffer name is provided so that
+ *    the id message segment can be formatted.
+ *
+ * @param PyObject* self - Pointer to our object storage.
+ * @param PyObject* args - Tuple containing one element  - the ringbuffer name.
+ * @return PyObject* (Py_None on success, NULL if not).
+ */
+static PyObject*
+ringstatistics_startMessage(PyObject* self, PyObject* args)
+{
+    const char* ring;
+    pRingStatisticsData pThis = reinterpret_cast<pRingStatisticsData>(self);
+    
+    if(!PyArg_ParseTuple(args, "s", &ring)) {
+        return NULL;
+    }
+    
+    // The actual method is invoked inside a try/catch block that
+    // maps C++ exceptions into raises of our exception type.
+    
+    try {
+        CStatusDefinitions::RingStatistics* pStats = pThis->m_pObject;
+        pStats->startMessage(std::string(ring));
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ type exception returned");
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+/**
+ * ringstatistics_endMessage
+ *    Wraps CStatusDefinitions::RingStatistics::endMessage.  This indicates
+ *    all the required chunks of the statistics message have been accumulated
+ *    and hsould be dumped out.
+ * @param self    - Pointer to ou object storage.
+ * @param args    - Positional parameters... cannot be andy.
+ * @return PyObject* (Py_None).
+ */
+static PyObject*
+ringstatistics_endMessage(PyObject* self, PyObject* args)
+{
+    pRingStatisticsData pThis = reinterpret_cast<pRingStatisticsData>(self);
+    
+    if (PyTuple_Size(args) > 0) {
+        PyErr_SetString(exception, "endMessage does not accept any parameters");
+        return NULL;
+    }
+    
+    try {
+        CStatusDefinitions::RingStatistics* pStats = pThis->m_pObject;
+        pStats->endMessage();
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ type exception returned");
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+/**
+ * ringstatistics_addProducer
+ *    Adds a producder to the message being built up.  This wraps
+ *    CStatusDefinitions::RingStatistics::addProducer
+ *
+ * @param self - pointer to object's data.
+ * @param args - Positional parameters which must be a tuple containing in order:
+ *               -  An iterable containing the command words.
+ *               -  The number of operations (puts) the producer performed.
+ *               -  The number of bytes the producer put.
+ * @return PyObject* - Py_None;
+ */
+static PyObject*
+ringstatistics_addProducer(PyObject* self, PyObject* args)
+{
+    pRingStatisticsData pThis = reinterpret_cast<pRingStatisticsData>(self);
+    PyObject*           command;
+    uint64_t            ops;
+    uint64_t            bytes;
+    const char*         format;
+    if(sizeof(uint64_t) == sizeof(unsigned long)) format = "Okk";
+    else if (sizeof(uint64_t) == sizeof(unsigned long long)) format = "OKK";
+    else {
+        PyErr_SetString(exception, "Cant' figure out format string to decode uint64_t");
+    }
+    
+    if (!PyArg_ParseTuple(args, format, &command, &ops, &bytes)) {
+        return NULL;
+    }
+    std::vector<std::string> cmdWords = iterableToStringVector(command);
+    if(PyErr_Occurred()) return NULL;
+    
+    try {
+        pThis->m_pObject->addProducer(cmdWords, ops, bytes);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ exception type caught.");
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/*  Method dispatch table for RingStatistics objects: */
+
+static PyMethodDef RingStatistics_Methods[] {
+    {"startMessage", ringstatistics_startMessage, METH_VARARGS,
+     "Start building up the information needed to send a message"},
+    {"endMessage", ringstatistics_endMessage, METH_VARARGS,
+     "Complete and send a ring statistics message"},
+     {"addProducer", ringstatistics_addProducer, METH_VARARGS,
+      "Add a producer record to the message"},
     {NULL, NULL, 0, NULL}
 };
 

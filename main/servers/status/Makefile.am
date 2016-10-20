@@ -42,7 +42,7 @@ tclpkgInstall:
 
 libPyStatusMessages_la_SOURCES= PyStatusMessages.cpp
 libPyStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @PYTHON_CPPFLAGS@
-libPyStatusMessages_la_LDLFAGS=$(COMMON_LIBS) @builddir@/libStatusMessages.la \
+libPyStatusMessages_la_LDFLAGS=$(COMMON_LIBS) @builddir@/libStatusMessages.la \
 				@PYTHON_LDFLAGS@
 
 pypkgInstall:
