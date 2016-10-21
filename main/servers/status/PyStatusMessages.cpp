@@ -205,10 +205,57 @@ logmessage_delete(PyObject* self)
  */
 
 /**
+ * logmessage_Log
+ *    Emit a log message.
+ *
+ *  @param self   - pointer to our storage,.
+ *  @param args   - positional arguments which are:
+ *                  - Severity - a severity code.
+ *                  - The message string.
+ *  @return PyObject* - Py_None
+ */
+PyObject*
+logmessage_Log(PyObject* self, PyObject* args)
+{
+    uint32_t severity;
+    const char* msg;
+    
+    static_assert(
+        sizeof(uint32_t) == sizeof(unsigned int),
+        "i format won't work on this platform"
+    );
+    
+    if(!PyArg_ParseTuple(args, "is", &severity, &msg)) {
+        return NULL;
+    }
+    
+    pLogMessageData pThis = reinterpret_cast<pLogMessageData>(self);
+    
+    try {
+        pThis->m_pObject->Log(severity, std::string(msg));
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch(...) {
+        PyErr_SetString(
+            exception,
+            "An unanticipated C++ exception was caught."
+        );
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
  * Tables needed by Python to construct this type.
  */
 
 static PyMethodDef logmessage_Methods[] = {
+    {"Log", logmessage_Log, METH_VARARGS,
+    "Emit a log message"},
     {NULL, NULL, 0, NULL}
 };
 static PyTypeObject logmessage_Type = {

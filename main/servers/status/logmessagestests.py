@@ -51,9 +51,33 @@ class TestRingStatistics(unittest.TestCase):
     #  The tests:
     
     def test_construct(self):
-        objv = statusmessages.LogMessage(self._uri, 'MyApplication')
+        obj = statusmessages.LogMessage(self._uri, 'MyApplication')
         
+    def test_message(self):
+        app = 'My Application'
+        msg = 'This is a test log message.'
+        obj = statusmessages.LogMessage(self._uri, app)
 
-
+        obj.Log(0, msg)
+        
+        frames = self._receiver.recv_multipart()
+        self.assertEqual(2, len(frames))   # Header and message
+        
+        #  Analyze the header:
+        
+        hdr = frames[0]
+        header = struct.unpack('ii32s128s', hdr)
+        self.assertEqual(3, header[0])
+        self.assertEqual(0, header[1])
+        self.assertEqual(app, string.rstrip(header[2],"\0"))
+        self.assertEqual(socket.getfqdn(), string.rstrip(header[3], "\0"))
+        
+        # Analyze the log message:
+        
+        body = frames[1]
+        msgSize = len(body) - 8
+        message = struct.unpack('q%ds' % msgSize, body)
+        self.assertEqual(msg, string.rstrip(message[1], "\0"))
+        
 if __name__ == '__main__':
     unittest.main()
