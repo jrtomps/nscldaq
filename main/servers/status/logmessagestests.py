@@ -32,7 +32,7 @@ import string
 port = 29000
 
 
-class TestRingStatistics(unittest.TestCase):
+class TestLogMessage(unittest.TestCase):
     def setUp(self):
         global port
         self._ctx = zmq.Context(1)

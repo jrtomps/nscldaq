@@ -59,7 +59,7 @@ TESTS_ENVIRONMENT=PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
 
 
 PYTHON_TESTS=ringstatisticstests.py readoutstatisticstests.py \
-	logmessagestests.py
+	logmessagestests.py statusmessagetests.py
 
 
 

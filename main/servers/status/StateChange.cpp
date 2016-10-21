@@ -73,6 +73,7 @@ CStatusDefinitions::StateChange::logChange(
     // Format the body:
     
     StateChangeBody body;
+    std::memset(&body, 0, sizeof(body));
     
     // Strings must fit in state slots:
     
