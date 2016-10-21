@@ -44,7 +44,19 @@ class TestRingStatistics(unittest.TestCase):
         self._receiver.close()
         self._ctx.destroy()
         port = port - 1                # In case the server socket lingers.
+    
+    def decodeClient(self, frame):
+        cmdlen = len(frame) - 20
+        fmt    = 'LLI%ds' % cmdlen
+        producer = struct.unpack(fmt, frame)
         
+        pcommand = string.rstrip(producer[3], "\0")
+        command = pcommand.split("\0")
+        result = list(producer[0:3])
+        result.append(command)
+        return  result
+    
+    
     ############################  the tests ####################################
     
     def test_construct(self):
@@ -98,18 +110,38 @@ class TestRingStatistics(unittest.TestCase):
         # I am only interested in the producer frame:
         
         prod = frames[2]
-        cmdlen = len(prod) - 20
-        fmt    = 'LLI%ds' % cmdlen
-        producer = struct.unpack(fmt, prod)
+        producer = self.decodeClient(prod)
         self.assertEqual(100, producer[0])
         self.assertEqual(1000, producer[1])
         self.assertEqual(1, producer[2])
-        pcommand = string.rstrip(producer[3], "\0")
-        command = pcommand.split("\0")
+        command = producer[3]
+        
         self.assertEqual(len(programWords), len(command))
         for i in range(0, len(programWords)):
             self.assertEqual(programWords[i], command[i])
-
+            
+    # Test adding client parts to ring statistics messages:
+    
+    def test_clientParts(self, ):
+        obj = statusmessages.RingStatistics(self._uri)
+        obj.startMessage('aring')
+        
+        program1Words = ('/usr/opt/daq/12.1/bin/ringselector', 'fox', '--sample=PHYSICS_EVENT')
+        program2Words = ('/usr/opt/daq/12.1/bin/dumper', '--source=tcp://localhost/fox', "--count=10")
+        
+        obj.addConsumer(program1Words, 100, 1000)
+        obj.addConsumer(program2Words, 125, 5000)
+        
+        obj.endMessage()
+    
+        frames = self._receiver.recv_multipart()
+        self.assertEqual(4, len(frames))   # header, ringid, 2x consumers.
+        
+        cons1 = frames[2]
+        cons2 = frames[3]
+        
+        cons1Info = self.decodeClient(cons1)
+        cons2Info = self.decodeClient(cons2)
 
         
         

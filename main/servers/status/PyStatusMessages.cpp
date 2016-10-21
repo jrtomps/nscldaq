@@ -314,6 +314,50 @@ ringstatistics_addProducer(PyObject* self, PyObject* args)
     
     Py_RETURN_NONE;
 }
+/**
+ * ringstatistics_addConsumer
+ *    Add a consumer record to the message.
+ *
+ *  @param self - pointer to our storage.
+ *  @param args - Pointer to the positional parameters which must have:
+ *                - iterable containing the command words.
+ *                - number of operations (gets) performed.
+ *                - Numer of bytes gotten.
+ *  @return PyObject* - Py_None.
+ */
+PyObject*
+ringstatistics_addConsumer(PyObject* self, PyObject* args)
+{
+    pRingStatisticsData pThis = reinterpret_cast<pRingStatisticsData>(self);
+    PyObject*           command;
+    uint64_t            ops;
+    uint64_t            bytes;
+    const char*         format;
+    if(sizeof(uint64_t) == sizeof(unsigned long)) format = "Okk";
+    else if (sizeof(uint64_t) == sizeof(unsigned long long)) format = "OKK";
+    else {
+        PyErr_SetString(exception, "Cant' figure out format string to decode uint64_t");
+    }
+    
+    if (!PyArg_ParseTuple(args, format, &command, &ops, &bytes)) {
+        return NULL;
+    }
+    std::vector<std::string> cmdWords = iterableToStringVector(command);
+    if(PyErr_Occurred()) return NULL;
+    
+    try {
+        pThis->m_pObject->addConsumer(cmdWords, ops, bytes);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ exception type caught.");
+    }
+    
+    Py_RETURN_NONE;
+}
 
 /*  Method dispatch table for RingStatistics objects: */
 
@@ -324,6 +368,8 @@ static PyMethodDef RingStatistics_Methods[] {
      "Complete and send a ring statistics message"},
      {"addProducer", ringstatistics_addProducer, METH_VARARGS,
       "Add a producer record to the message"},
+    {"addConsumer", ringstatistics_addConsumer, METH_VARARGS,
+      "Add a consumer record to the message"},
     {NULL, NULL, 0, NULL}
 };
 
