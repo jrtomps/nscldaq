@@ -58,7 +58,7 @@ class TestRingStatistics(unittest.TestCase):
         msg = 'This is a test log message.'
         obj = statusmessages.LogMessage(self._uri, app)
 
-        obj.Log(0, msg)
+        obj.Log(statusmessages.SeverityLevels.WARNING, msg)
         
         frames = self._receiver.recv_multipart()
         self.assertEqual(2, len(frames))   # Header and message
@@ -67,8 +67,8 @@ class TestRingStatistics(unittest.TestCase):
         
         hdr = frames[0]
         header = struct.unpack('ii32s128s', hdr)
-        self.assertEqual(3, header[0])
-        self.assertEqual(0, header[1])
+        self.assertEqual(statusmessages.MessageTypes.LOG_MESSAGE, header[0])
+        self.assertEqual(statusmessages.SeverityLevels.WARNING, header[1])
         self.assertEqual(app, string.rstrip(header[2],"\0"))
         self.assertEqual(socket.getfqdn(), string.rstrip(header[3], "\0"))
         

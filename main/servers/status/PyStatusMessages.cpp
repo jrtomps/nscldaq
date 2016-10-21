@@ -959,6 +959,7 @@ initstatusmessages(void)
 {
     PyObject* module;
     
+    
     // Initialize the module.
     
     module = Py_InitModule3(
@@ -968,6 +969,75 @@ initstatusmessages(void)
     if(module == nullptr) {
         return;                         // Though there's no way to say we failed.
     }
+    // Add constants from the CStatusDefinitions::MessageTypes:
+    
+    PyObject* MessageTypes = Py_InitModule3(
+        "statusmessages.MessageTypes", ModuleMethods,  // Must change if
+        "Message type code"                            // outer modules get methods
+    );
+    if (MessageTypes == nullptr) {
+        return;
+    }
+    Py_INCREF(MessageTypes);
+    PyModule_AddObject(module, "MessageTypes", MessageTypes);
+
+    // Message types:
+    
+    PyModule_AddIntConstant(
+        MessageTypes, "RING_STATISTICS",
+        CStatusDefinitions::MessageTypes::RING_STATISTICS
+    );
+    PyModule_AddIntConstant(
+        MessageTypes, "EVENT_BUILDER_STATISTICS",
+        CStatusDefinitions::MessageTypes::EVENT_BUILDER_STATISTICS
+    );
+    PyModule_AddIntConstant(
+        MessageTypes, "READOUT_STATISTICS",
+        CStatusDefinitions::MessageTypes::READOUT_STATISTICS
+    );
+    PyModule_AddIntConstant(
+        MessageTypes, "LOG_MESSAGE",
+        CStatusDefinitions::MessageTypes::LOG_MESSAGE
+    );
+    PyModule_AddIntConstant(
+        MessageTypes, "STATE_CHANGE",
+        CStatusDefinitions::MessageTypes::STATE_CHANGE
+    );
+    PyModule_AddIntConstant(
+        MessageTypes, "FIRST_FREE_TYPE",
+        CStatusDefinitions::MessageTypes::FIRST_FREE_TYPE
+    );
+    PyModule_AddIntConstant(
+        MessageTypes, "FIRST_USER_TYPE",
+        CStatusDefinitions::MessageTypes::FIRST_USER_TYPE
+    );
+    // The constants from CStatusDefinitions::SeverityLevels:
+    
+    PyObject* SeverityLevels = Py_InitModule3(
+        "statusmessages.SeverityLevels", ModuleMethods,
+        "Message severity codes"
+    );
+    if (SeverityLevels == nullptr) {
+        return;
+    }
+    Py_INCREF(SeverityLevels);
+    PyModule_AddObject(module, "SeverityLevels", SeverityLevels);
+    
+    PyModule_AddIntConstant(
+        SeverityLevels, "DEBUG", CStatusDefinitions::SeverityLevels::DEBUG
+    );
+    PyModule_AddIntConstant(
+        SeverityLevels, "INFO", CStatusDefinitions::SeverityLevels::INFO
+    );
+    PyModule_AddIntConstant(
+        SeverityLevels, "WARNING", CStatusDefinitions::SeverityLevels::WARNING
+    );
+    PyModule_AddIntConstant(
+        SeverityLevels, "SEVERE", CStatusDefinitions::SeverityLevels::SEVERE
+    );
+    PyModule_AddIntConstant(
+        SeverityLevels, "DEFECT", CStatusDefinitions::SeverityLevels::DEFECT
+    );
     
     // Initialize our module specific exception
     

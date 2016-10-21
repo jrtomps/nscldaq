@@ -78,8 +78,8 @@ class TestRingStatistics(unittest.TestCase):
         
         hdr = frames[0]
         header = struct.unpack('ii32s128s', hdr)
-        self.assertEqual(0, header[0])     # Type.
-        self.assertEqual(1, header[1])     # Severity  == info
+        self.assertEqual(statusmessages.MessageTypes.RING_STATISTICS , header[0])     # Type.
+        self.assertEqual(statusmessages.SeverityLevels.INFO, header[1])     # Severity  == info
         self.assertEqual('RingStatDaemon', string.rstrip(header[2], "\0"))
         self.assertEqual(socket.getfqdn(), string.rstrip(header[3], "\0"))
                          
