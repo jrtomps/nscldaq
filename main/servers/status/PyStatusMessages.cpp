@@ -36,6 +36,12 @@ typedef struct _ringstatistics_Data {
     zmq::socket_t*                      m_pSocket;
 } ringStatisticsData, *pRingStatisticsData;
 
+typedef struct _readoutStatisticsData {
+    PyObject_HEAD
+    CStatusDefinitions::ReadoutStatistics* m_pObject;
+    zmq::socket_t*                         m_pSocket;
+
+} readoutStatisticsData, *pReadoutStatisticsData;
 /**
  * common utilities:
  */
@@ -69,6 +75,254 @@ iterableToStringVector(PyObject* objv) {
     return result;
 }
 
+/*---------------------------------------------------------------------------
+ *  The ReadoutStatistics type/class.
+ */
+
+/**
+* Canonical methods
+*/
+
+/**
+ * readoutstatistics_new
+ *    Allocate object storage for ReadoutStatistics class instance.
+ *
+ * @param    type - Pointer to the type object.
+ * @param    args - Positional args.
+ * @param    kwargs - Keword parameters.
+ * @return PyObject* - the allocated storage.
+ */
+static PyObject*
+readoutstatistics_new(PyTypeObject* type, PyObject* args, PyObject* kwargs)
+{
+    // Attempt to allocate the object.
+    
+    PyObject* self = type->tp_alloc(type, 0);
+    if(!self) {
+        PyErr_SetString(exception, "Unable to allocate object storage");
+    } else {
+        // Initialize the fields.
+        
+        pReadoutStatisticsData pThis
+            = reinterpret_cast<pReadoutStatisticsData>(self);
+        pThis->m_pObject = nullptr;
+        pThis->m_pSocket = nullptr;
+    }
+    
+    // Return the result (win or lose)
+    
+    return self;
+}
+/**
+ * readoutstatistics_init
+ *    Initialize a readout statistics object.
+ *
+ * @param self - pointer to our object storage.
+ * @param args - positional args, must have a URI.  There can also be an optional
+ *               application name.  Note that the socket created will either be
+ *               a PUSH (testMode true), or a PUB socket (testMode false).
+ * @return int - 0  success, -1 failure.
+ * 
+ */
+static int
+readoutstatistics_init(PyObject* self, PyObject*args, PyObject* kwargs)
+{
+    const char* uri(0);
+    const char* app("Readout");
+    size_t nParams = PyTuple_Size(args);
+    int parseStatus;
+    
+    if (nParams == 1) {
+        parseStatus = PyArg_ParseTuple(args, "s", &uri);    
+    } else if (nParams == 2) {
+        parseStatus = PyArg_ParseTuple(args, "ss", &uri, &app);
+    } else {
+        parseStatus = -0;
+    }
+    if (!parseStatus) {
+        PyErr_SetString(exception, "Only a URI and an optional appname can be supplied");
+        return -1;
+    }
+    // Actually create the componet objects in try block so the catchs can change
+    // C++ exceptions into Python:
+    
+     bool raise(false);
+     std::string msg;
+     try {
+        pReadoutStatisticsData  pThis = reinterpret_cast<pReadoutStatisticsData>(self);
+        pThis->m_pSocket =
+            new zmq::socket_t(*pContext, testMode ? ZMQ_PUSH : ZMQ_PUB);
+        pThis->m_pSocket->connect(uri);
+        pThis->m_pObject =
+            new CStatusDefinitions::ReadoutStatistics(*pThis->m_pSocket, app);
+     }
+     catch (std::exception& e) {
+        msg = e.what();
+        raise = true;
+     }
+    catch (...) {
+        msg = "Unanticipated C++ exception type caught";
+        raise = true;
+    }
+     if (raise) {
+        PyErr_SetString(exception, msg.c_str());
+        return -1;
+     }
+     
+     return 0;
+}
+/**
+ * readoutstatistics_delete
+ *    Free the storage associated with a ReadoutStatistics object.
+ *    @param self - pointer to the object storage.
+ */
+static void
+readoutstatistics_delete(PyObject* self)
+{
+    pReadoutStatisticsData  pThis = reinterpret_cast<pReadoutStatisticsData>(self);
+    delete pThis->m_pObject;
+    delete pThis->m_pSocket;
+    pThis->m_pSocket = nullptr;
+    pThis->m_pObject = nullptr;
+    
+    self->ob_type->tp_free(self);
+}
+/**
+ *  Methods on constructed objects:
+ */
+
+/**
+ * readoutstatistics_beginRun
+ *   Logs the beginning of a run.  This establishes the contents of the
+ *   ReadoutStatRunInfo message segments until the next call to this method.
+ *   The underlying object will also emit a two part message consisting of a header
+ *   and a RunStatRunInfo message segment.
+ *
+ * @param self - pointer to the object's storage.
+ * @param args - Positional parameters.  A tuple that must have:
+ *               *   The run number.
+ *               *   The run title.
+ * @return PyObject* - Py_None.
+ */
+static PyObject*
+readoutstatistics_beginRun(PyObject* self, PyObject* args)
+{
+    uint32_t    runNumber;
+    static_assert(sizeof(uint32_t) == sizeof(int), "Python I conversion won't work");
+    const char* title;
+    
+    if (!PyArg_ParseTuple(args, "Is", &runNumber, &title)) {
+        return NULL;                  // Exception has already been raised.
+    }
+    
+    pReadoutStatisticsData pThis = reinterpret_cast<pReadoutStatisticsData>(self);
+    try {
+        pThis->m_pObject->beginRun(runNumber, std::string(title));
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unexpected C++ exception type caught");
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+/**
+ * readoutstatistics_emitStatistics
+ *    Emits the statistics concerning triggers, events and bytes from a readout.
+ *
+ *  @param self - Pointer to the object's storage.
+ *  @param args - Tuple of parameters, in order:
+ *                - triggers, the number of times the code responded to triggers.
+ *                - events, the number of events actually read.  Could be more or
+ *                  less than triggers - events can be rejected and triggers could,
+ *                  in an appropriate framework, result in more than one event.
+ *                - bytes - number of bytes that have been read.
+ *  @return PyObject* - Py_None.
+ */
+static PyObject*
+readoutstatistics_emitStatistics(PyObject* self, PyObject* args)
+{
+    uint64_t triggers;
+    uint64_t events;
+    uint64_t bytes;
+    static_assert(
+        sizeof(uint64_t) == sizeof(unsigned long),
+        "k conversion won't work on this platform"
+    );
+    if (!PyArg_ParseTuple(args, "kkk", &triggers, &events, &bytes)) {
+        return NULL;
+    }
+    pReadoutStatisticsData pThis = reinterpret_cast<pReadoutStatisticsData>(self);
+    try {
+        pThis->m_pObject->emitStatistics(triggers, events, bytes);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unexpected C++ exception type caught");
+        return NULL;
+    }
+    Py_RETURN_NONE;
+    
+}
+/**
+ *  tables that define the class and its methods:
+ */
+
+static PyMethodDef readoutStatistics_Methods[] = {
+    {"beginRun", readoutstatistics_beginRun, METH_VARARGS,
+     "Log the run information (run number and title"},
+    {"emitStatistics", readoutstatistics_emitStatistics, METH_VARARGS,
+    "Emit readout statistics"},
+    {NULL, NULL, 0, NULL}
+};
+static PyTypeObject readoutstatistics_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "statusmessages.readoutStatistics",       /*tp_name*/
+    sizeof(readoutStatisticsData), /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    (destructor)(readoutstatistics_delete), /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    0,                         /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,        /*tp_flags*/
+    "Encapsulation of CreadoutStatisticsMessage class.", /* tp_doc */
+    0,                         /* tp_traverse */
+    0,                         /* tp_clear */
+    0,                         /* tp_richcompare */
+    0,                         /* tp_weaklistoffset */
+    0,                         /* tp_iter */
+    0,                         /* tp_iternext */
+    readoutStatistics_Methods,           /* tp_methods */
+    0,                         /* tp_members */
+    0,                         /* tp_getset */
+    0,                         /* tp_base */
+    0,                         /* tp_dict */
+    0,                         /* tp_descr_get */
+    0,                         /* tp_descr_set */
+    0,                         /* tp_dictoffset */
+    (initproc)readoutstatistics_init,      /* tp_init */
+    0,                         /* tp_alloc */
+    readoutstatistics_new,                 /* tp_new */
+};
 /*----------------------------------------------------------------------------
  * The RingStatistics type/class.
  */
@@ -505,6 +759,18 @@ initstatusmessages(void)
     }
     Py_INCREF(&ringstatistics_Type);
     PyModule_AddObject(
-        module, "RingStatistics", reinterpret_cast<PyObject*>(&ringstatistics_Type)
+        module, "RingStatistics",
+        reinterpret_cast<PyObject*>(&ringstatistics_Type)
+    );
+    
+    // Add the ReadoutStatistics class:
+    
+    if (PyType_Ready(&readoutstatistics_Type) < 0) {
+        return;
+    }
+    Py_INCREF(&readoutstatistics_Type);
+    PyModule_AddObject(
+        module, "ReadoutStatistics",
+        reinterpret_cast<PyObject*>(&readoutstatistics_Type)
     );
 }

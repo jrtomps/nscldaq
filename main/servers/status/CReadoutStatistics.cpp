@@ -77,7 +77,7 @@ CStatusDefinitions::ReadoutStatistics::beginRun(
     
     ReadoutStatRunInfo info = formatIdent();
     
-    zmq::message_t infoMsg(sizeof info);
+    zmq::message_t infoMsg(sizeof(info));
     memcpy(infoMsg.data(), &info, sizeof(info));
     
     m_socket.send(infoMsg, 0);

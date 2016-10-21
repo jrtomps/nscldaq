@@ -58,7 +58,8 @@ PY_LOG_COMPILER=@PYTHON@
 TESTS_ENVIRONMENT=PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
 
 
-PYTHON_TESTS=ringstatisticstests.py
+PYTHON_TESTS=ringstatisticstests.py readoutstatisticstests.py
+
 
 TEST_PROGS=ringstattests tclpkgtests
 
