@@ -42,6 +42,13 @@ typedef struct _readoutStatisticsData {
     zmq::socket_t*                         m_pSocket;
 
 } readoutStatisticsData, *pReadoutStatisticsData;
+
+typedef struct _logmessage_Data {
+    PyObject_HEAD
+    CStatusDefinitions::LogMessage*   m_pObject;
+    zmq::socket_t*                    m_pSocket;
+} logMessageData, *pLogMessageData;
+
 /**
  * common utilities:
  */
@@ -74,6 +81,177 @@ iterableToStringVector(PyObject* objv) {
     Py_DECREF(iter);                          // Release the iterator.
     return result;
 }
+/*---------------------------------------------------------------------------
+ * The LogMessage class
+ */
+
+/**
+ * Canonical methods:
+ */
+/**
+ * logmessage_new
+ *   Allocate the data needed by the object.
+ *   @param type - pointer to the type table (logmessage_Type)
+ *   @param args - Positional args (none expected).
+ *   @param kwargs - Keyword argument dict (empty is fine).
+ *   @return PyObject* - Pointer to the storage we newly allocated for the object.
+ */
+static PyObject*
+logmessage_new(PyTypeObject* type, PyObject* args, PyObject* kwargs)
+{
+    PyObject* self = type->tp_alloc(type, 0);         // allocate storage.
+    if (!self) {
+        /// Allocation failed.
+        PyErr_SetString(exception, "Unable to allocate object storage");
+        
+    } else {
+        
+        // Initialize  the object data so that the components have not yet
+        // been created.
+        
+        
+        pLogMessageData  pThis = reinterpret_cast<pLogMessageData>(self);
+        pThis->m_pObject = 0;
+        pThis->m_pSocket = 0;
+    }
+    return self;
+}
+
+
+/**
+ * logmessage_init
+ *    Initializes the contents of a logmessage object.  This means:
+ *    - Creating/connecting the socket.
+ *    - Creating the API object.
+ *    - Saving the two objects in object storage.
+ *  @note the type of socket created depends on the testMode flag.  If true
+ *        a push socket is created else a PUB socket is created.
+ *  @param self - pointer to object storage.
+ *  @param args - Positional arguments - need URI and optional appname.
+ *  @param kwargs - Keywords parameters.
+ *  @return status of the initialization:
+ *  @retval  0    - success.
+ *  @retval -1    - failure.
+ */
+static int
+logmessage_init(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+    const char* uri(0);
+    const char* app("RingStatDaemon");
+    int         parseStatus;
+    
+    size_t nParams = PyTuple_Size(args);
+    if (nParams == 1) {
+        parseStatus = PyArg_ParseTuple(args, "s", &uri);    
+    } else if (nParams == 2) {
+        parseStatus = PyArg_ParseTuple(args, "ss", &uri, &app);
+    } else {
+        parseStatus = -0;
+    }
+    if (!parseStatus) {
+        PyErr_SetString(exception, "Only a URI and an optional appname can be supplied");
+        return -1;
+    }
+    // This block turns any exceptions into python raises.
+    
+     bool raise(false);
+     std::string msg;
+     try {
+        pLogMessageData  pThis = reinterpret_cast<pLogMessageData>(self);
+        pThis->m_pSocket =
+            new zmq::socket_t(*pContext, testMode ? ZMQ_PUSH : ZMQ_PUB);
+        pThis->m_pSocket->connect(uri);
+        pThis->m_pObject =
+            new CStatusDefinitions::LogMessage(*pThis->m_pSocket, app);
+     }
+     catch (std::exception& e) {
+        msg = e.what();
+        raise = true;
+     }
+    catch (...) {
+        msg = "Unanticipated C++ exception type caught";
+        raise = true;
+    }
+     if (raise) {
+        PyErr_SetString(exception, msg.c_str());
+        return -1;
+     }
+     
+     return 0;
+     
+}
+/**
+ * ringstatistics_delete
+ *    Dispose of object dynamic storage (to whit the wrapped object and the
+ *    transport socket).
+ *
+ *  @param self - pointer to our object storage
+ *  @note we also delete the object storage itself.
+ */
+static void
+logmessage_delete(PyObject* self)
+{
+    pRingStatisticsData  pThis = reinterpret_cast<pRingStatisticsData>(self);
+    delete pThis->m_pObject;
+    delete pThis->m_pSocket;
+    pThis->m_pSocket = nullptr;
+    pThis->m_pObject = nullptr;
+    
+    self->ob_type->tp_free(self);
+}
+
+/**
+ * methods that can be called on a constructed object.
+ */
+
+/**
+ * Tables needed by Python to construct this type.
+ */
+
+static PyMethodDef logmessage_Methods[] = {
+    {NULL, NULL, 0, NULL}
+};
+static PyTypeObject logmessage_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "statusmessages.logmessage",       /*tp_name*/
+    sizeof(logMessageData), /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    (destructor)(logmessage_delete), /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    0,                         /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,        /*tp_flags*/
+    "Encapsulation of ClogmessageMessage class.", /* tp_doc */
+    0,                         /* tp_traverse */
+    0,                         /* tp_clear */
+    0,                         /* tp_richcompare */
+    0,                         /* tp_weaklistoffset */
+    0,                         /* tp_iter */
+    0,                         /* tp_iternext */
+    logmessage_Methods,           /* tp_methods */
+    0,                         /* tp_members */
+    0,                         /* tp_getset */
+    0,                         /* tp_base */
+    0,                         /* tp_dict */
+    0,                         /* tp_descr_get */
+    0,                         /* tp_descr_set */
+    0,                         /* tp_dictoffset */
+    (initproc)logmessage_init,      /* tp_init */
+    0,                         /* tp_alloc */
+    logmessage_new,                 /* tp_new */
+};
 
 /*---------------------------------------------------------------------------
  *  The ReadoutStatistics type/class.
@@ -772,5 +950,13 @@ initstatusmessages(void)
     PyModule_AddObject(
         module, "ReadoutStatistics",
         reinterpret_cast<PyObject*>(&readoutstatistics_Type)
+    );
+    // add the LogMessage class:
+    
+    if (PyType_Ready(&logmessage_Type));
+    Py_INCREF(&logmessage_Type);
+    PyModule_AddObject(
+        module, "LogMessage",
+        reinterpret_cast<PyObject*>(&logmessage_Type)
     );
 }
