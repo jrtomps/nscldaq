@@ -28,17 +28,22 @@ import struct
 import socket
 import string
 
+port = 29000
+
 class TestRingStatistics(unittest.TestCase):
     def setUp(self):
+        global port
         self._ctx = zmq.Context(1)
-        self._uri = 'tcp://localhost:29000'
+        self._uri = 'tcp://localhost:%d' % port
         self._receiver = self._ctx.socket(zmq.PULL)
-        self._receiver.bind('tcp://*:29000')
+        self._receiver.bind('tcp://*:%d' % port) 
         statusmessages.enableTest()
     def tearDown(self):
+        global port
         statusmessages.disableTest()
         self._receiver.close()
         self._ctx.destroy()
+        port = port - 1                # In case the server socket lingers.
         
     ############################  the tests ####################################
     

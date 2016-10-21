@@ -85,3 +85,7 @@ TESTS=$(TEST_PROGS) $(PYTHON_TESTS)
 
 
 install-exec-hook: tclpkgInstall pypkgInstall
+
+#  Ensure stuff makes it into the tarball:
+
+EXTRA_DIST = $(PYTHON_TESTS)
