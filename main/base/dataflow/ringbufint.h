@@ -52,7 +52,7 @@
    buffer as well as to know how big the buffer itself is:
 */
 
-#define MAGICSTRING "NSCLRing"
+#define MAGICSTRING "NSCLRing12"
 
 typedef struct __RingHeader {
    char       s_magicString[32];	/* Should contain the text "NSCLRing" */
