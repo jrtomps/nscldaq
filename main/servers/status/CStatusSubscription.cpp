@@ -93,11 +93,13 @@ CStatusSubscription::subscribe(Subscription& sub)
     
     SubscriptionIterator p = sub.begin();
     try {
-        size_t bytes = p->first;
-        CStatusDefinitions::Header& header(p->second);
-        m_socket.setsockopt(ZMQ_SUBSCRIBE, &header, bytes);
-        
-        p++;
+        while (p != sub.end()) {
+            size_t bytes = p->first;
+            CStatusDefinitions::Header& header(p->second);
+            m_socket.setsockopt(ZMQ_SUBSCRIBE, &header, bytes);
+            
+            p++;
+        }
     }
     catch(...) {
         unsubscribe(sub.begin(), p);

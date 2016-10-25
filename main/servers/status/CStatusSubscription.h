@@ -61,7 +61,7 @@ private:
     SubscriptionRegistry    m_registry;
     
     // Canonicals:
-    
+public:    
     CStatusSubscription(zmq::socket_t& sock);
     virtual ~CStatusSubscription();
     
