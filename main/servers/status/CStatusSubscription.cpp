@@ -42,12 +42,7 @@ CStatusSubscription::CStatusSubscription(zmq::socket_t& sock) :
 CStatusSubscription::~CStatusSubscription()
 {
     for(auto pMap = m_registry.begin(); pMap != m_registry.end(); pMap++) {
-        for (auto sub = pMap->second.begin(); sub != pMap->second.end(); sub++) {
-            size_t                      nBytes = sub->first;
-            CStatusDefinitions::Header& data(sub->second);
-            
-            m_socket.setsockopt(ZMQ_UNSUBSCRIBE, &data, nBytes);
-        }
+        unsubscribe(pMap->second.begin(), pMap->second.end());
     }
 }
 
@@ -111,6 +106,22 @@ CStatusSubscription::subscribe(Subscription& sub)
     return registerSubscription(sub);
 }
 
+/**
+ * unsubscribe
+ *    Remove the specified subscription.
+ *
+ *  @param sub - handle to the subscription to remove.
+ */
+void
+CStatusSubscription::unsubscribe(unsigned sub)
+{
+    auto p  = m_registry.find(sub);
+    if (p == m_registry.end()) {
+        throw std::invalid_argument("Invalid subscription handle");
+    }
+    Subscription& s(p->second);
+    unsubscribe(s.begin(), s.end());
+}
 /*----------------------------------------------------------------------------
  *    Private utility functions.  Some for code re-use others just to make
  *    the logic of the public methods look cleaner than they have any right to

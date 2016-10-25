@@ -72,7 +72,7 @@ public:
     );
     unsigned subscribe(Subscription& sub);
     
-    unsigned unsubscribe(unsigned sub);
+    void unsubscribe(unsigned sub);
 
     // Utilities:
     
