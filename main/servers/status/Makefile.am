@@ -8,7 +8,9 @@ libStatusMessages_la_SOURCES=Constants.cpp \
 	CReadoutStatistics.cpp \
 	CStatusDefinitions.cpp \
 	LogMessage.cpp		\
-	StateChange.cpp
+	StateChange.cpp		\
+	CStatusSubscription.cpp CStatusSubscription.h
+
 
 
 libStatusMessages_la_CPPFLAGS = $(COMPILATION_FLAGS)

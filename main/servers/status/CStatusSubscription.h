@@ -44,12 +44,15 @@
 class CStatusSubscription
 {
     // Data types:
-private:
+public:
     typedef std::list<std::pair<size_t, CStatusDefinitions::Header> > Subscription;
-    typedef std::map<unsigned, Subscription>                          SubscriptionRegistry;
+    typedef Subscription::iterator                                    SubscriptionIterator;
     
     typedef std::list<uint32_t>                                       RequestedTypes;
     typedef std::list<uint32_t>                                       RequestedSeverities;
+
+private:
+    typedef std::map<unsigned, Subscription>                          SubscriptionRegistry;
     
     // Instance data
 private:
@@ -69,10 +72,11 @@ public:
     );
     unsigned subscribe(Subscription& sub);
     
-    void unsubscribe(unsigned sub);
+    unsigned unsubscribe(unsigned sub);
 
     // Utilities:
     
+private:    
     void legalSubscription(
         const RequestedTypes& types, const RequestedSeverities& sev,
         const char* app=nullptr, const char* source=nullptr
@@ -81,8 +85,8 @@ public:
         const RequestedTypes& types, const RequestedSeverities& sev,
         const char* app=nullptr, const char* source=nullptr
     );
-    void subscribe(const Subscription& sub);
-    unsigned registerSubscription(const Subscription& sub);
+    unsigned registerSubscription(Subscription& subs);
+    void unsubscribe(SubscriptionIterator s, SubscriptionIterator e);
     
 };
 
