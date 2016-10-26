@@ -67,7 +67,8 @@ package provide EVB::OutOfOrderUI 1.0
 #
 snit::widgetadaptor OutOfOrderUI {
     component tree
-    
+    option    -retain -default 2000
+    option    -trimdivisor -default 10
     
     delegate option * to tree
 
@@ -117,6 +118,15 @@ snit::widgetadaptor OutOfOrderUI {
         set timeString [clock format $time -format "%Y-%m-%d %R:%S %Z"]
         
         $tree insert $itemId end -values [list "" $timeString $prior $bad]
+        
+        # If we have too many items, then we must delete the first few of them:
+        # We rely on the fact that the 
+        set items [$tree children $itemId]
+        if {[llength $items] > $options(-retain)} {
+            set numToKill [expr {$options(-retain)/$options(-trimdivisor)}]
+            set killItems [lrange $items 0 $numToKill]
+            $tree delete $killItems
+        }
     }
     
     ##
@@ -231,7 +241,7 @@ snit::widgetadaptor OutOfOrderWindow {
     delegate method * to hull
     
     
-    ##
+    ##reta
     # construtor
     #    Put everthing together.
     #
