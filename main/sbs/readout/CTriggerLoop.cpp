@@ -195,6 +195,7 @@ CTriggerLoop::mainLoop()
 	}
 	if ((*pScaler)()) {
 	  m_pExperiment->TriggerScalerReadout();
+          if (m_stopping) break;                  // Check for time to stop.
 	}
       }
     }

@@ -46,6 +46,7 @@
 #include <os.h>
 #include <CCondition.h>
 #include <CMutex.h>
+#include <CVMEInterface.h>
 
 
 using namespace std;
@@ -628,7 +629,9 @@ void CExperiment::TriggerScalerReadout()
 
   // For now documented variables are tied to this trigger too:
 
+  CVMEInterface::Unlock();
   ScheduleRunVariableDump();
+  CVMEInterface::Lock();
 
 }
 
