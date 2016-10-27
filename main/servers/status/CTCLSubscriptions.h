@@ -26,10 +26,12 @@
 #include <TCLObjectProcessor.h>
 #include <map>
 #include <zmq.hpp>
+#include <tcl.h>
+#include <CStatusSubscription.h>
 
 class CTCLInterpreter;
 class CTCLObject;
-class CStatusSubscription;
+
 
 /**
  *  @class CTCLSubscription
@@ -48,6 +50,7 @@ private:
 private:
     Registry        m_registry;
     static unsigned m_sequence;
+    static zmq::context_t m_zmqContext;
     
 public:
     CTCLSubscription(
@@ -57,19 +60,66 @@ public:
     
 public:
     int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
-    
+private:
+    void create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void destroy(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+
     // Nested instance class:
 private:
     class SubscriptionInstance : public CTCLObjectProcessor
     {
+    private:
+        typedef struct _ThreadParameter {
+            zmq::socket_t*        s_pSocket;
+            SubscriptionInstance* s_pInstance;
+            Tcl_ThreadId          s_NotifyMe;
+        } ThreadParameter, *pThreadParameter;
+        
+        typedef struct _NotificationEvent {
+            Tcl_Event             s_tclEvent;
+            SubscriptionInstance* s_pInstance;
+            
+        } NotificationEvent, *pNotificationEvent;
+    private:
+        zmq::socket_t&       m_socket;
+        CStatusSubscription m_Subscription;
+        std::string          m_script;
+        bool                 m_dispatching;
+        bool                 m_requestEndToDispatching;
+        Tcl_ThreadId         m_pollThreadId;
+        Tcl_Mutex*           m_socketLock;
     public:
         SubscriptionInstance(
             CTCLInterpreter& interp, const char* cmd, zmq::socket_t& sock,
-            CStatusSubscription& subs
+            CTCLObject& subdef
         );
         virtual ~SubscriptionInstance();
     public:
         int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    private:
+        void receive(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+        void onMessage(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    private:
+        Tcl_Obj* receiveMessage();
+        
+        void createSubscriptions(CTCLInterpreter& interp, CTCLObject& obj);
+        void subscribe(CTCLInterpreter& interp, CTCLObject& sub);
+        std::vector<std::string> objListToStringVector(
+            CTCLInterpreter& interp, CTCLObject& obj
+        );
+        CStatusSubscription::RequestedTypes stringsToTypes(
+            const std::vector<std::string>& strings
+        );
+        CStatusSubscription::RequestedSeverities stringsToSeverities(
+            const std::vector<std::string>& strings
+        );
+        
+        void startPollThread();
+        void stopPollThread();
+        void flushEvents();
+        
+        static int  eventHandler(Tcl_Event* pEvent, int flags);
+        static void pollThread(ClientData pInfo);
     };
 };
 
