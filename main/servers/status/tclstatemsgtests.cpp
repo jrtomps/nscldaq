@@ -58,7 +58,6 @@ public:
     m_pInterpRaw = m_pInterpObj->getInterpreter();
     Tcl_Init(m_pInterpRaw);
     m_pCommand= new CTCLStateChangeMessage(*m_pInterpObj);
-    m_pCommand->enableTesting();
     
     //  Setup zmq - our receiver socket will be bound to the uri as a SUB socket.
     

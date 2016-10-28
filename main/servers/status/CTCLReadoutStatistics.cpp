@@ -150,16 +150,23 @@ CTCLReadoutStatistics::create(
         app = std::string(objv[3]);
     }
     std::stringstream commandName;
-    // Create and connect the socket.  The actual socket type depends on the
-    // m_testing flag as pub/sub can be tough to use in testing.
     
-    pConnection = new zmq::socket_t(
-        TclMessageUtilities::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
-    );
+
+    
     // From now on we need to be in a try/catch block so resources can be
     // released on throws:
     try {
-        pConnection->connect(uri.c_str());
+        // m_testing true allows directly testing subscription without running
+        // an aggregator. Normally we push at the aggregator.
+        
+        if (m_testing) {
+            pConnection = new zmq::socket_t(TclMessageUtilities::m_zmqContext, ZMQ_PUB);
+            pConnection->bind(uri.c_str());
+        } else {
+            pConnection = new zmq::socket_t(TclMessageUtilities::m_zmqContext, ZMQ_PUSH);
+            pConnection->connect(uri.c_str());
+        }
+        
         pApiObject = new CStatusDefinitions::ReadoutStatistics(*pConnection, app);
         
         commandName << "readoutstats_" << m_instanceCounter++;

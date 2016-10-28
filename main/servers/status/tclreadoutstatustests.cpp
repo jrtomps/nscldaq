@@ -54,7 +54,6 @@ public:
     m_pInterpRaw = m_pInterpObj->getInterpreter();
     Tcl_Init(m_pInterpRaw);
     m_pStatsCmd = new CTCLReadoutStatistics(*m_pInterpObj);
-    m_pStatsCmd->enableTesting();
     
     //  Setup zmq - our receiver socket will be bound to the uri as a SUB socket.
     

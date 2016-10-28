@@ -27,20 +27,84 @@ exec tclsh "$0" ${1+"$@"}
 #
 package require tcltest
 
+set port 20000
+proc commonSetup {} {
+    set ::log [LogMessage create tcp://localhost:$::port  myapplication]
+}
+proc commonCleanup {} {
+    LogMessage destroy $::log
+    incr port
+}
+
+# @note there's an implicit assumption that the tests are executed in order
+#       as pkgLoad is required first to load the package under test.
+
 ##
 #  Test package load:
 #
 tcltest::test pkgLoad {Test ability to load package} \
 -body {
-    catch {package require statusMessage}
-} -result 0 \
+    catch {package require statusMessage} msg
+} -result 0 
+
+tcltest::test subcommand {Test for defined statusSubscription command} \
+-body {
+    info commands statusSubscription
+} -result statusSubscription
+
+tcltest::test create-toofew {Subcommand 'create' requires two parameters} \
+-body {
+    catch {statusSubscripton create tcp://localhost:20000}
+} -result 1
+
+tcltest::test destroy-toofew {Subcommand 'destroy' requires an additional parameter} \
+-body {
+    catch {statusSubscription destroy}
+} -result 1
+
+tcltest::test create-destroy {Create and destroy a subscription} \
+-setup {
+    commonSetup
+} \
 -cleanup {
-    catch package forget statusMessage
-}
+    commonCleanup
+} \
+-body {
+    set result [list]
+    lappend result [catch {statusSubscription create tcp://localhost:$::port [list]} ::cmd]
+    lappend result [catch {statusSubscription destroy $::cmd} message]
+    
+    set result
+
+} -result [list 0 0]
+
+tcltest::test readmessage {Create a null subscription, send a log message/read it} \
+-setup {
+    commonSetup
+} -cleanup {
+    commonCleanup
+} -body {
+    set ::cmd [statusSubscription create tcp://localhost:$::port [list]]; #subscribe all.
+    after 1000
+    $::log Log INFO {This is a test}
+    set msg [$::cmd receive]
+    
+    #  Should be two message segments:
+    
+    llength $msg
+} -result 2
+
 
 #
 #  Ensure that test failures result in exit failure:
 #
 
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode [expr {$numTests(Failed) > 0}]
+    puts $::exitCode
+}
+
 
 tcltest::cleanupTests
+exit $::exitCode

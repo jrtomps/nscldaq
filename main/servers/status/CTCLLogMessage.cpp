@@ -48,7 +48,8 @@ static std::map<std::string, uint32_t> severityTable = {
  */
 
 CTCLLogMessage::CTCLLogMessage(CTCLInterpreter& interp, const char* command) :
-    CTCLObjectProcessor(interp, command, true)
+    CTCLObjectProcessor(interp, command, true),
+    m_testing(false)
 {}
 
 /**
@@ -145,10 +146,22 @@ CTCLLogMessage::create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     TCLLogMessage*                   pWrapperObject(0);
     std::stringstream                commandStream;
     try {
-        pSocket = new zmq::socket_t(
-            TclMessageUtilities::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
-        );
-        pSocket->connect(uri.c_str());
+        // In testing mode we are a pub/bind socket so that subscriptions can
+        // be tested without running an aggregator.  Otherwise we push to the
+        // aggregator:
+        
+        if (m_testing) {
+            pSocket = new zmq::socket_t(
+                TclMessageUtilities::m_zmqContext,  ZMQ_PUB
+            );
+            pSocket->bind(uri.c_str());            
+        } else {
+            pSocket = new zmq::socket_t(
+                TclMessageUtilities::m_zmqContext,  ZMQ_PUSH 
+            );
+            pSocket->connect(uri.c_str());            
+        }
+        
         pApiObject = new CStatusDefinitions::LogMessage(*pSocket, app);
 
         // Construct the new command name and the wrapper object:

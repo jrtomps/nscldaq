@@ -29,6 +29,7 @@
 #include <Exception.h>
 #include <sstream>
 #include <errno.h>
+#include <iostream>
 
 /** Static members */
 
@@ -136,8 +137,8 @@ CTCLSubscription::create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     
     // Create the socket as a sub socket and connect it to the URI:
     
-    zmq::socket_t sock(m_zmqContext, ZMQ_SUB);
-    sock.connect(uri.c_str());
+    zmq::socket_t& sock = *(new zmq::socket_t(m_zmqContext, ZMQ_SUB));
+    sock.bind(uri.c_str());
     
     // Create the instance object and add it to the registry:
     
@@ -194,7 +195,7 @@ CTCLSubscription::SubscriptionInstance::SubscriptionInstance(
 ) :
     CTCLObjectProcessor(interp, command, true),
     m_socket(sock),
-    m_Subscription(sock),
+    m_Subscription(*(new CStatusSubscription(sock))),
     m_script(""),
     m_dispatching(false),
     m_requestEndToDispatching(false),
@@ -224,6 +225,12 @@ CTCLSubscription::SubscriptionInstance::~SubscriptionInstance()
     if (m_socketLock) {
         Tcl_MutexFinalize(m_socketLock);
     }
+    try {
+        delete &m_Subscription;
+    } catch (std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+    delete &m_socket;
     
 }    
 /**

@@ -41,7 +41,8 @@ unsigned CTCLStateChangeMessage::m_instanceNumber(0);
 CTCLStateChangeMessage::CTCLStateChangeMessage(
     CTCLInterpreter& interp, const char* command
 ) :
-    CTCLObjectProcessor(interp, command, true)
+    CTCLObjectProcessor(interp, command, true),
+    m_testing(false)
 {}
 
 /**
@@ -157,11 +158,20 @@ CTCLStateChangeMessage::create(
     // The rest is inside a try/catch block so we can clean up on errors:
     
     try {
-        pSocket = new zmq::socket_t(
-            TclMessageUtilities::m_zmqContext, m_testing ? ZMQ_PUSH : ZMQ_PUB
-        );
-        pSocket->connect(uri.c_str());
+        // In test mode we publish so that subscription tests don't need an
+        // aggregator.  Otherwise we push at the aggregator.
         
+        if (m_testing) {
+             pSocket = new zmq::socket_t(
+                TclMessageUtilities::m_zmqContext,  ZMQ_PUB
+            );
+            pSocket->bind(uri.c_str());           
+        } else {
+            pSocket = new zmq::socket_t(
+                TclMessageUtilities::m_zmqContext, ZMQ_PUSH 
+            );
+            pSocket->connect(uri.c_str());
+        }
         pApiObject  = new CStatusDefinitions::StateChange(*pSocket, app);
         pWrapper    = new TCLStateChangeMessage(
             interp, cmdName.str().c_str(), pApiObject, pSocket

@@ -181,10 +181,21 @@ CTCLRingStatistics::operator()(
         app = std::string(objv[3]);
     }
     
-    // Create and connect the zmq socket, we're creating a PUB type socket.
+    // Create and connect the zmq socket;   Normally we connect to the aggregator
+    // with a push socket.  If, however, we are in test mode, we advertise as
+    // a publisher so that subscriptions can test directly against the publisher
+    // command.
     
-    zmq::socket_t* pEndpoint = new zmq::socket_t(TclMessageUtilities::m_zmqContext, m_testMode ? ZMQ_PUSH: ZMQ_PUB);
-    pEndpoint->connect(uri.c_str());
+    zmq::socket_t* pEndpoint;
+    if (m_testMode) {
+        pEndpoint = new zmq::socket_t(TclMessageUtilities::m_zmqContext, ZMQ_PUB);
+        pEndpoint->bind(uri.c_str());
+    } else {
+        pEndpoint = new zmq::socket_t(TclMessageUtilities::m_zmqContext, ZMQ_PUSH);
+        pEndpoint->connect(uri.c_str());
+        
+    }
+    
     
     // This part is in a try /catch block so that resources can be recovered:
     

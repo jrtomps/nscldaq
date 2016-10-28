@@ -82,7 +82,7 @@ private:
         } NotificationEvent, *pNotificationEvent;
     private:
         zmq::socket_t&       m_socket;
-        CStatusSubscription m_Subscription;
+        CStatusSubscription& m_Subscription;
         std::string          m_script;
         bool                 m_dispatching;
         bool                 m_requestEndToDispatching;
