@@ -56,14 +56,18 @@ pypkgInstall:
 
 #-------------------- Tests -----
 
-TEST_EXTENSIONS=.py
+TEST_EXTENSIONS=.py .test
 PY_LOG_COMPILER=@PYTHON@
-TESTS_ENVIRONMENT=PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
+TEST_LOG_COMPILER=@TCLSH@
+TESTS_ENVIRONMENT=PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;\
+	TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH;
 
 
 PYTHON_TESTS=ringstatisticstests.py readoutstatisticstests.py \
 	logmessagestests.py statemessagetests.py
 
+
+TCL_TESTS=statussubtest.test
 
 
 TEST_PROGS=ringstattests tclpkgtests subtests
@@ -91,11 +95,11 @@ subtests_SOURCES=TestRunner.cpp subtest.cpp
 subtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 subtests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
-TESTS=$(TEST_PROGS) $(PYTHON_TESTS)
+TESTS=$(TEST_PROGS) $(PYTHON_TESTS) $(TCL_TESTS)
 
 
 install-exec-hook: tclpkgInstall pypkgInstall
 
 #  Ensure stuff makes it into the tarball:
 
-EXTRA_DIST = $(PYTHON_TESTS)
+EXTRA_DIST = $(PYTHON_TESTS) $(TCL_TESTS)
