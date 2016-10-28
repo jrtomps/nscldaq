@@ -27,6 +27,8 @@
 #include "CTCLReadoutStatistics.h"
 #include "CTCLLogMessage.h"
 #include "CTCLStateChangeMessage.h"
+#include "CTCLSubscriptions.h"
+
 
 static const char* packageName = "statusMessage";
 static const char* packageVers = "1.0";
@@ -61,6 +63,7 @@ extern "C" {
         new CTCLReadoutStatistics(*interp);
         new CTCLLogMessage(*interp);
         new CTCLStateChangeMessage(*interp);
+        new CTCLSubscription(*interp);
         return TCL_OK;
     }
     // needed by tcl++
