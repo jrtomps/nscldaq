@@ -53,7 +53,7 @@ struct gengetopt_args_info;
  * The struct below defines the metadata associated with each event fragment.
  */
 
-typedef struct _ClientEventFragment {
+typedef struct __attribute__((__packed__)) _ClientEventFragment {
   uint64_t s_timestamp;
   uint32_t s_sourceId;
   uint32_t s_size;
