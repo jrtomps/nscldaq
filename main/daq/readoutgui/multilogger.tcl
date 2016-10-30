@@ -154,11 +154,13 @@ snit::type EventLogger {
             
             # Construct the logger command and start it.
             
+            set timestamp [clock format [clock seconds] -format {%d%b%Y-%T}]
+            
             set command [list $loggerProgram                        \
                 --source=$options(-ring) --path=$options(-out)      \
                 --oneshot --checksum                                \
                 --number-of-sources=$options(-sources)              \
-                
+                --prefix=$timestamp-run                             \
             ]
 
             set loggerFd [open "| $command |& cat" r]
@@ -231,7 +233,6 @@ snit::type EventLogger {
                         -message "Multilogger $ring -> $out failed to exit within timeout"
                 }
             }
-            $self _renameFiles
         }
     }
     ##
@@ -304,52 +305,7 @@ snit::type EventLogger {
             }
         }
   }
-    ##
-    # _renameFiles
-    #   Rename all files that are associated with the recently ended run.
-    #   We look for all files of the form
-    #    $options(-out)/run-runnum* and rename them to a file with a timestamp
-    #    placed prior to the extension e.g.
-    #     /this/that/run-0001-00.evt gets renamed to
-    #     /this/that/run-0001-00-01JAN2015-13:45:02.evt
-    #
-    #    For a run that was started January 1, 2015 at 1:45:02 PM.
-    #
-    #
-    method _renameFiles {} {
-        set nameGlob [format {run-%04d-[0-9][0-9].*} $run]
-        set pathGlob [file join $options(-out) $nameGlob];   # Fully qualified glob.
-        
-        set shaglob  [format {run-%04d.sha512} $run]
-        set shaglob  [file join $options(-out) $shaglob]
-        
-        
-        set originalFiles [glob -nocomplain $pathGlob $shaglob]
-        foreach file $originalFiles {
-            set fullpath [file normalize $file]
-            set ext [file extension $fullpath]
-            set dir [file dirname $fullpath]
-            set fname [ file tail $fullpath] ;   #includes $ext.
-            set basename [string map [list $ext ""] $fname]
-            
-            # Append the timestamp to basename and reconstruct a new path:
-            
-            append basename "-[clock format $startTime -format {%d%b%Y-%T}]"
-            set newpath [file join $dir $basename]$ext
-            
-            
-            file rename -force $fullpath $newpath
-            
-            # Turn off write access for everyone:
-            
-            file attributes $newpath -permissions ugo-w
-            
-        }
-        # Turn off writ-ability of the directory:
-        
-        file attributes $options(-out) -permissions ugo-w 
-        
-    }
+
 }
 
 
