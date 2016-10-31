@@ -164,9 +164,17 @@ statechange_init(PyObject* self, PyObject* args, PyObject* kwargs)
      std::string msg;
      try {
         pStateChangeData  pThis = reinterpret_cast<pStateChangeData>(self);
-        pThis->m_pSocket =
-            new zmq::socket_t(*pContext, testMode ? ZMQ_PUSH : ZMQ_PUB);
-        pThis->m_pSocket->connect(uri);
+        
+        // testMode means we're testing publication, so we et a PUB/bind socket.
+        // otherwise we get a PUSH connect socket.
+        
+        if (testMode) {
+            pThis->m_pSocket = new zmq::socket_t(*pContext,  ZMQ_PUB);
+            pThis->m_pSocket->bind(uri);
+        } else {
+            pThis->m_pSocket = new zmq::socket_t(*pContext, ZMQ_PUSH );
+            pThis->m_pSocket->connect(uri);
+        }
         pThis->m_pObject =
             new CStatusDefinitions::StateChange(*pThis->m_pSocket, app);
      }
@@ -375,9 +383,18 @@ logmessage_init(PyObject* self, PyObject* args, PyObject* kwargs)
      std::string msg;
      try {
         pLogMessageData  pThis = reinterpret_cast<pLogMessageData>(self);
-        pThis->m_pSocket =
-            new zmq::socket_t(*pContext, testMode ? ZMQ_PUSH : ZMQ_PUB);
-        pThis->m_pSocket->connect(uri);
+        
+        // Normally we push data to a known server.  In testMode, however
+        // we publish data and bind so that subscriptions  can be tested without
+        // the services of an aggregator process.
+        
+        if (testMode) {
+            pThis->m_pSocket = new zmq::socket_t(*pContext,  ZMQ_PUB);
+            pThis->m_pSocket->bind(uri);
+        } else {
+            pThis->m_pSocket = new zmq::socket_t(*pContext, ZMQ_PUSH );
+            pThis->m_pSocket->connect(uri);
+        }
         pThis->m_pObject =
             new CStatusDefinitions::LogMessage(*pThis->m_pSocket, app);
      }
@@ -592,9 +609,20 @@ readoutstatistics_init(PyObject* self, PyObject*args, PyObject* kwargs)
      std::string msg;
      try {
         pReadoutStatisticsData  pThis = reinterpret_cast<pReadoutStatisticsData>(self);
-        pThis->m_pSocket =
-            new zmq::socket_t(*pContext, testMode ? ZMQ_PUSH : ZMQ_PUB);
-        pThis->m_pSocket->connect(uri);
+        
+        // Normally the socket pushes to a pull server that aggregates data
+        // and relays it on a pub socket.  testMode, however, allows SUB
+        // to be tested without requiring an aggregator so it binds a PUB socket
+        // to the requested URI:
+        
+        if (testMode) {
+            pThis->m_pSocket = new zmq::socket_t(*pContext,  ZMQ_PUB);
+            pThis->m_pSocket->bind(uri);
+        } else {
+            
+            pThis->m_pSocket = new zmq::socket_t(*pContext, ZMQ_PUSH);
+            pThis->m_pSocket->connect(uri);
+        }
         pThis->m_pObject =
             new CStatusDefinitions::ReadoutStatistics(*pThis->m_pSocket, app);
      }
@@ -844,9 +872,19 @@ ringstatistics_init(PyObject* self, PyObject* args, PyObject* kwargs)
      std::string msg;
      try {
         pRingStatisticsData  pThis = reinterpret_cast<pRingStatisticsData>(self);
-        pThis->m_pSocket =
-            new zmq::socket_t(*pContext, testMode ? ZMQ_PUSH : ZMQ_PUB);
-        pThis->m_pSocket->connect(uri);
+        // The socket we create is normally pushing to a pull server which
+        // aggregates to a single pub interface.   In test mode however
+        // we want to test our ability to subscribe so the socket we create is
+        // a pub which binds to the URI:
+        
+        if (testMode) {
+            pThis->m_pSocket = new zmq::socket_t(*pContext, ZMQ_PUB);
+            pThis->m_pSocket->bind(uri);
+        } else {
+            pThis->m_pSocket = new zmq::socket_t(*pContext, ZMQ_PUSH);
+            pThis->m_pSocket->connect(uri);    
+        }
+        
         pThis->m_pObject =
             new CStatusDefinitions::RingStatistics(*pThis->m_pSocket, app);
      }

@@ -34,7 +34,8 @@
 /** Static members */
 
 unsigned        CTCLSubscription::m_sequence(0);
-zmq::context_t  CTCLSubscription::m_zmqContext(1);
+zmq::context_t&  CTCLSubscription::m_zmqContext(*(new zmq::context_t(1)));
+
 
 /*=============================================================================
  *  Outer class implementation
@@ -86,8 +87,7 @@ CTCLSubscription::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& o
             create(interp, objv);
         } else if (subcommand == "destroy") {
             destroy(interp, objv);
-        }
-        else {
+        } else {
             throw std::invalid_argument("Unrecognized subcommand keyword.");
         }
     }
@@ -138,7 +138,7 @@ CTCLSubscription::create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     // Create the socket as a sub socket and connect it to the URI:
     
     zmq::socket_t& sock = *(new zmq::socket_t(m_zmqContext, ZMQ_SUB));
-    sock.bind(uri.c_str());
+    sock.connect(uri.c_str());
     
     // Create the instance object and add it to the registry:
     
@@ -199,7 +199,8 @@ CTCLSubscription::SubscriptionInstance::SubscriptionInstance(
     m_script(""),
     m_dispatching(false),
     m_requestEndToDispatching(false),
-    m_socketLock(nullptr)
+    m_socketLock(nullptr),
+    m_condition(nullptr)
 {
     createSubscriptions(interp, obj);        
 }
@@ -222,9 +223,9 @@ CTCLSubscription::SubscriptionInstance::~SubscriptionInstance()
     stopPollThread();         // no new events but there might be some queued.
     
     flushEvents();
-    if (m_socketLock) {
-        Tcl_MutexFinalize(m_socketLock);
-    }
+    
+    Tcl_MutexFinalize(&m_socketLock);
+    Tcl_ConditionFinalize(&m_condition);
     try {
         delete &m_Subscription;
     } catch (std::exception& e) {
@@ -368,7 +369,7 @@ CTCLSubscription::SubscriptionInstance::onMessage(
  Tcl_Obj*
  CTCLSubscription::SubscriptionInstance::receiveMessage()
  {
-    Tcl_MutexLock(m_socketLock);
+    Tcl_MutexLock(&m_socketLock);
     try {
         Tcl_Obj* result = Tcl_NewListObj(0, nullptr);
         uint64_t haveMore(0);
@@ -386,11 +387,11 @@ CTCLSubscription::SubscriptionInstance::onMessage(
             
             m_socket.getsockopt(ZMQ_RCVMORE, &haveMore, &n);
         } while (haveMore);
-        Tcl_MutexUnlock(m_socketLock);
+        Tcl_MutexUnlock(&m_socketLock);
         return result;
     }
     catch (...) {
-        Tcl_MutexUnlock(m_socketLock);
+        Tcl_MutexUnlock(&m_socketLock);
         throw;
     }
 
@@ -534,6 +535,7 @@ CTCLSubscription::SubscriptionInstance::stringsToTypes(
             }
         }
     );
+    return result;
 }
 /**
  * stringsToSeverities
@@ -565,6 +567,7 @@ CTCLSubscription::SubscriptionInstance::stringsToSeverities(
             }
         }
     );
+    return result;
 }
 /**
  * startPollThread
@@ -634,7 +637,7 @@ CTCLSubscription::SubscriptionInstance::stopPollThread()
 {
     int status;
     if (m_dispatching) {
-        m_requestEndToDispatching;
+        m_requestEndToDispatching= true;
         Tcl_JoinThread(m_pollThreadId, &status);     // Wait if needed for thread exit.
         m_dispatching = false;            // Dispatching is done/
     }
@@ -670,6 +673,8 @@ CTCLSubscription::SubscriptionInstance::eventHandler(Tcl_Event* pEvent, int flag
     // Read the zmq data:
     
     Tcl_Obj*  messageList = pInstance->receiveMessage();
+    Tcl_MutexLock(&(pInstance->m_socketLock));
+    
     
     // What we do next depends on if there's a script:
     
@@ -687,6 +692,8 @@ CTCLSubscription::SubscriptionInstance::eventHandler(Tcl_Event* pEvent, int flag
         int status = Tcl_GlobalEvalObj(
             interp, script.getObject()
         );
+        Tcl_ConditionNotify(&(pInstance->m_condition));
+        Tcl_MutexUnlock(&(pInstance->m_socketLock));
         if (status != TCL_OK) {
             //  Turn off script handling.
             
@@ -715,9 +722,9 @@ CTCLSubscription::SubscriptionInstance::pollThread(ClientData pInfo)
     Tcl_ThreadId          targetThread = params->s_NotifyMe;
     
     while (!pInstance->m_requestEndToDispatching) {
-        Tcl_MutexLock(&pInstance->socketLog);
+        Tcl_MutexLock(&(pInstance->m_socketLock));
         zmq_pollitem_t item =
-            {reinterpret_cast<void*>(sock), -1, ZMQ_POLLIN|ZMQ_POLLERR, 0};
+            {(void*)(*sock), -1, ZMQ_POLLIN|ZMQ_POLLERR, 0};
         if(zmq_poll(&item, 1, 1000) == 1) {
             pNotificationEvent pEvent =
                 reinterpret_cast<pNotificationEvent>(
@@ -730,6 +737,11 @@ CTCLSubscription::SubscriptionInstance::pollThread(ClientData pInfo)
                 targetThread, reinterpret_cast<Tcl_Event*>(pEvent),
                 TCL_QUEUE_TAIL
             );
+            Tcl_ThreadAlert(targetThread);
+            Tcl_ConditionWait(
+                &(pInstance->m_condition), &(pInstance->m_socketLock), nullptr
+            );
         }
+        Tcl_MutexUnlock(&(pInstance->m_socketLock));
     }
 }

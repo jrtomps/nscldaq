@@ -27,13 +27,47 @@ exec tclsh "$0" ${1+"$@"}
 #
 package require tcltest
 
+set LOG_MESSAGE 3
+set INFO        1
+
 set port 20000
 proc commonSetup {} {
-    set ::log [LogMessage create tcp://localhost:$::port  myapplication]
+    LogMessage test on
+    set uri tcp://*:$::port
+    set ::log [LogMessage create $uri  myapplication]
 }
 proc commonCleanup {} {
     LogMessage destroy $::log
+    LogMessage test off
     incr port
+}
+
+#
+#  Pull the following out of what we think is a log message:
+#  Header: Type, severity, application.
+#  Body    message
+#
+#  If the Type is not $::LOG_MESSAGE error out.
+#
+# @param parts - message parts.
+#
+proc analyzeLogMessage parts {
+    set header [lindex $parts 0]
+    set body   [lindex $parts 1]
+    
+    #  Get header bits and pieces;
+    
+    binary scan $header nnA32A128 type sev app source
+    
+    # Get the body bits and pieces:
+    
+    binary scan $body mA* tod message
+    
+    return [list $type $sev $app $source $tod $message]
+}
+set receivedMessage [list]
+proc receive msg {
+    set ::receivedMessage $msg
 }
 
 # @note there's an implicit assumption that the tests are executed in order
@@ -83,9 +117,9 @@ tcltest::test readmessage {Create a null subscription, send a log message/read i
     commonSetup
 } -cleanup {
     commonCleanup
+    statusSubscription destroy $::cmd
 } -body {
     set ::cmd [statusSubscription create tcp://localhost:$::port [list]]; #subscribe all.
-    after 1000
     $::log Log INFO {This is a test}
     set msg [$::cmd receive]
     
@@ -94,7 +128,68 @@ tcltest::test readmessage {Create a null subscription, send a log message/read i
     llength $msg
 } -result 2
 
+tcltest::test subscribe {Create a subscription ensure we only get matching} \
+-setup {
+    commonSetup
+    # Subscribe to log messages of INFO severity only.
+    
+    set ::cmd [statusSubscription create tcp://localhost:$::port    \
+        [list [list LOG_MESSAGE INFO]]                              \
+    ]
+} \
+-cleanup {
+    commonCleanup
+    statusSubscription destroy $::cmd
+} -body {
+    #  Send two log messages, one with severity DEBUG another with INFO:
+    
+    $::log Log DEBUG {Should not receive this}
+    $::log Log INFO {Should receive this}
+    
+    #  Should only receive the second of those two messages:
+    
+    set msg [$::cmd receive]
+    
+    # Analyze the message - ignore the timestamp.
+    
+    set parts [analyzeLogMessage $msg]
+    set type [lindex $parts 0]
+    set sev  [lindex $parts 1]
+    set app  [lindex $parts 2]
+    set src  [lindex $parts 3]
+    set tod  [lindex $parts 4]
+    set msg  [lindex $parts 5]
+    
+    list $type $sev $app $msg
+} -result [list $::LOG_MESSAGE $::INFO myapplication {Should receive this}]
 
+tcltest::test onmsg {Test that onMessage can deliver us an event} \
+-setup {
+    commonSetup
+    # Subscribe to log messages of INFO severity only.
+    
+    set ::cmd [statusSubscription create tcp://localhost:$::port    \
+        [list [list LOG_MESSAGE INFO]]                              \
+    ]
+} \
+-cleanup {
+    commonCleanup
+    statusSubscription destroy $::cmd
+} -body {
+    $::cmd onMessage receive
+    $::log Log INFO {Should receive this}
+    
+    vwait ::receivedMessage
+    
+    set parts [analyzeLogMessage $::receivedMessage]
+    set type [lindex $parts 0]
+    set sev  [lindex $parts 1]
+    set app  [lindex $parts 2]
+    set src  [lindex $parts 3]
+    set tod  [lindex $parts 4]
+    set msg  [lindex $parts 5]
+    list $type $sev $app $msg
+} -result [list $::LOG_MESSAGE $::INFO myapplication {Should receive this}]
 #
 #  Ensure that test failures result in exit failure:
 #
@@ -102,7 +197,7 @@ tcltest::test readmessage {Create a null subscription, send a log message/read i
 proc tcltest::cleanupTestsHook {} {
     variable numTests
     set ::exitCode [expr {$numTests(Failed) > 0}]
-    puts $::exitCode
+
 }
 
 

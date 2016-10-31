@@ -72,6 +72,7 @@ public:
 private:
     void create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void destroy(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void test(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
     /**
      * Inner class that wraps an actual object.

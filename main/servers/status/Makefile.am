@@ -28,7 +28,7 @@ libTclStatusMessages_la_SOURCES= TclPackage.cpp             \
 	CTCLSubscriptions.cpp CTCLSubscriptions.h             \
 	TclUtilities.cpp TclUtilities.h 
 
-libTclStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@
+libTclStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_DEFS@
 libTclStatusMessages_la_LDFLAGS=$(COMMON_LIBS)  	\
 				@builddir@/libStatusMessages.la   \
 				@LIBTCLPLUS_LDFLAGS@ 	\
@@ -95,7 +95,7 @@ subtests_SOURCES=TestRunner.cpp subtest.cpp
 subtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 subtests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
-TESTS=$(TEST_PROGS) $(PYTHON_TESTS)
+TESTS=$(TEST_PROGS) $(PYTHON_TESTS) $(TCL_TESTS)
 
 
 install-exec-hook: tclpkgInstall pypkgInstall

@@ -37,10 +37,9 @@ class TestReadoutStatistics(unittest.TestCase):
         self._uri = 'tcp://localhost:%d' % port
         self._receiver = self._ctx.socket(zmq.PULL)
         self._receiver.bind('tcp://*:%d' % port) 
-        statusmessages.enableTest()
+
     def tearDown(self):
         global port
-        statusmessages.disableTest()
         self._receiver.close()
         self._ctx.destroy()
         port = port - 1

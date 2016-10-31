@@ -76,7 +76,7 @@ namespace EVB {
    * Within the event builder fragments and payloads get bundled
    * together into something that looks like:
    */
-  typedef struct _Fragment {
+  typedef struct __attribute__((__packed__)) _Fragment {
     FragmentHeader   s_header;
     void*           s_pBody;
   } Fragment, *pFragment;
@@ -85,13 +85,13 @@ namespace EVB {
   /**
    * Linked list of fragments:
    */
-  typedef struct _FragmentChain {
+  typedef struct __attribute__((__packed__)) _FragmentChain {
     struct _FragmentChain*    s_pNext;
     pFragment         s_pFragment;
   } FragmentChain, *pFragmentChain;
 
 
-  typedef struct _FlatFragment {
+  typedef struct __attribute__((__packed__)) _FlatFragment {
     FragmentHeader s_header;
     int            s_body[];
   } FlatFragment, *pFlatFragment;

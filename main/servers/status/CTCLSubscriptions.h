@@ -50,7 +50,8 @@ private:
 private:
     Registry        m_registry;
     static unsigned m_sequence;
-    static zmq::context_t m_zmqContext;
+    static zmq::context_t& m_zmqContext;
+
     
 public:
     CTCLSubscription(
@@ -87,7 +88,8 @@ private:
         bool                 m_dispatching;
         bool                 m_requestEndToDispatching;
         Tcl_ThreadId         m_pollThreadId;
-        Tcl_Mutex*           m_socketLock;
+        Tcl_Mutex           m_socketLock;
+        Tcl_Condition       m_condition;
     public:
         SubscriptionInstance(
             CTCLInterpreter& interp, const char* cmd, zmq::socket_t& sock,
@@ -99,6 +101,8 @@ private:
     private:
         void receive(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
         void onMessage(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+        void test(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+        
     private:
         Tcl_Obj* receiveMessage();
         

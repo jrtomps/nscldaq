@@ -93,6 +93,10 @@ CTCLLogMessage::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& obj
             create(interp, objv);
         } else if (subcommand == "destroy") {
             destroy(interp, objv);
+        } else if (subcommand == "test") {
+            test(interp, objv);
+        } else {
+            throw std::invalid_argument("Invalid/unrecognized subcommand");
         }
     }
     catch (std::exception & e) {
@@ -204,6 +208,28 @@ CTCLLogMessage::destroy(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
         m_registry.erase(p);         // remove it from the registry.
     } else {
         throw std::invalid_argument("No Such command in destroy");
+    }
+}
+/**
+ * test
+ *    Turn on/off test mode.  Requires an additional parameter that is a bool
+ *    the truth/falseness determines the state of the testing flag.
+ *
+ *  @param interp - interpreter on which the command is running.
+ *  @param objv   - Command words.
+ */
+void
+CTCLLogMessage::test(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireExactly(objv, 3, "test requires an enable/disable flag");
+    int flag;
+    int status = Tcl_GetBooleanFromObj(
+        interp.getInterpreter(), objv[2].getObject(), &flag
+    );
+    if (status == TCL_OK) {
+        m_testing = flag ? true : false;
+    } else {
+        throw std::invalid_argument("Flag parameter must be a boolean");
     }
 }
 /*-----------------------------------------------------------------------------
