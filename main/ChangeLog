@@ -1132,3 +1132,4 @@ Work on 11.0-rc11 begins
 	every run which led to an 8192 kB leak in memory each begin run. There was
 	also a deadlock condition that could occur when the user attempted to end
 	a run when the trigger loop was attempting to do a scaler read.
+11.2-000
