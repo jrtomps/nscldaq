@@ -1,7 +1,10 @@
 lib_LTLIBRARIES = libStatusMessages.la libTclStatusMessages.la libPyStatusMessages.la
 
-COMPILATION_FLAGS= -I@top_srcdir@/base/os
-COMMON_LIBS      = @top_builddir@/base/os/libdaqshm.la  @ZMQ_LDFLAGS@ @LIBEXCEPTION_LDFLAGS@
+COMPILATION_FLAGS= -I@top_srcdir@/base/os -I@top_srcdir@/base/dataflow \
+	@LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
+COMMON_LIBS      = @top_builddir@/base/os/libdaqshm.la  \
+	@top_builddir@/base/dataflow/libDataFlow.la	\
+	@ZMQ_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
 libStatusMessages_la_SOURCES=Constants.cpp \
 	CRingStatisticsMessage.cpp \
@@ -9,14 +12,15 @@ libStatusMessages_la_SOURCES=Constants.cpp \
 	CStatusDefinitions.cpp \
 	LogMessage.cpp		\
 	StateChange.cpp		\
-	CStatusSubscription.cpp CStatusSubscription.h
+	CStatusSubscription.cpp CStatusSubscription.h \
+	CPublishRingStatistics.cpp
 
 
 
 libStatusMessages_la_CPPFLAGS = $(COMPILATION_FLAGS)
 libStatusMessages_la_LDFLAGS  = $(COMMON_LIBS)
 
-include_HEADERS = CStatusMessage.h
+include_HEADERS = CStatusMessage.h CPublishRingStatistics.h
 
 #--------------------Tcl Bindings:
 
