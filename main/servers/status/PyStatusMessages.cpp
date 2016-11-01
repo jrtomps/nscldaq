@@ -21,9 +21,10 @@
 */
 #include <Python.h>
 #include <CStatusMessage.h>
+#include <CStatusSubscription.h>
 #include <exception>
 #include <string>
-
+#include <zmq.hpp>
 
 static PyObject*  exception;
 
@@ -55,6 +56,12 @@ typedef struct _statechange_Data {
     zmq::socket_t*                    m_pSocket;
 } stateChangeData, *pStateChangeData;
 
+typedef struct _subscriptionData {
+    PyObject_HEAD
+    CStatusSubscription*       m_pObject;
+    zmq::socket_t*             m_pSocket;
+} subscriptionData, *pSubscriptionData;
+
 /**
  * common utilities:
  */
@@ -65,7 +72,7 @@ typedef struct _statechange_Data {
  *    values.
  *
  *  @param obj  - The python interable.
- *  @return std::vector<std::string>L
+ *  @return std::vector<std::string>
  */
 static std::vector<std::string>
 iterableToStringVector(PyObject* objv) {
@@ -86,6 +93,64 @@ iterableToStringVector(PyObject* objv) {
     
     Py_DECREF(iter);                          // Release the iterator.
     return result;
+}
+
+/**
+ * iterableToIntList
+ *    Take an interable into a some integer type and turns them into an
+ *    std::list<uint32_t>
+ *
+ *  @param iter - Python iterator - will be marked for disposal.
+ *  @return std::list<uint32_t>
+ */
+static std::list<uint32_t>
+iterableToIntList(PyObject* iter)
+{
+    std::list<uint32_t> result;
+    while(PyObject* item = PyIter_Next(iter)) {
+        long value = PyInt_AsLong(item);
+        result.push_back(static_cast<std::uint32_t>(value));
+        Py_DECREF(item);
+    }
+    Py_DECREF(iter);
+    return result;
+}
+
+/**
+ * msgPartVectorToTuple
+ *    Given a reference to a vector of message part pointers, returns
+ *    a Tuple of Python strings that contain copies of those message parts.
+ *
+ *  @param msgParts - vector of message part pointers.
+ *  @return PyObject* - Tuple.
+ */
+static PyObject*
+msgPartVectorToTuple(std::vector<zmq::message_t*>& msgParts)
+{
+    PyObject* result = PyTuple_New(msgParts.size());
+    Py_ssize_t i = 0;
+    for_each(msgParts.begin(), msgParts.end(), [result, i](zmq::message_t* msg) mutable {
+        PyObject* part = PyString_FromStringAndSize(
+            reinterpret_cast<const char*>(msg->data()), msg->size()
+        );
+        PyTuple_SetItem(result, i, part);
+        i++;
+    });
+    return result;
+}
+/**
+ * freeMessageParts
+ *    Destroys the message parts in a vector of message parts. Note that once this
+ *    is done,the vector contents should not be referenced as message parts.
+ *
+ *  @param parts - reference to the vector whose message parts will be destroyed.
+ */
+void
+freeMessageParts(std::vector<zmq::message_t*>& parts)
+{
+    for_each(parts.begin(), parts.end(), [](zmq::message_t* msg) {
+        delete msg;
+    });
 }
 /**
 *   The StateChange class.
@@ -1149,6 +1214,377 @@ static PyTypeObject ringstatistics_Type = {
     ringstatistics_new,                 /* tp_new */
 };
 
+/*-----------------------------------------------------------------------------
+ * Subscription canonical methods.
+ */
+
+/**
+ * subscription_new
+ *
+ *   Allocates storage for the subscription type.  The storage is not initialized
+ *   until _init is invoked.
+ *
+ *  @param type - Pointer to the type struct.
+ *  @param args - Positional parameters to the __new__ invocation.
+ *  @param kwargs - keywords arguments to the __new__ invocation.
+ *  @return PyObject Pointer to the new object's storage.
+ */
+static PyObject*
+subscription_new(PyTypeObject* type, PyObject* args, PyObject* kwargs)
+{
+    PyObject* self = type->tp_alloc(type, 0);         // allocate storage.
+    if (!self) {
+        /// Allocation failed.
+        PyErr_SetString(exception, "Unable to allocate object storage");
+        
+    } else {
+        
+        // Initialize  the object data so that the components have not yet
+        // been created.
+        
+        
+        pSubscriptionData  pThis = reinterpret_cast<pSubscriptionData>(self);
+        pThis->m_pObject = 0;
+        pThis->m_pSocket = 0;
+    }
+    return self;
+}
+
+/**
+ * subscription_init
+ *    Initializes the contents of a subscription object.  This means:
+ *    - Creating/connecting the socket.
+ *    - Creating the API object.
+ *    - Saving the two objects in object storage.
+ *  @note The object created is unconditionally a SUB socket and it always connects
+ *        to the URI.
+ *  @param self - pointer to object storage.
+ *  @param args - Positional arguments - need URI only.
+ *  @param kwargs - Keywords parameters.
+ *  @return status of the initialization:
+ *  @retval  0    - success.
+ *  @retval -1    - failure.
+ */
+static int
+subscription_init(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+    const char* uri(0);
+    
+    
+    if (!PyArg_ParseTuple(args, "s", &uri)) {
+        return -1;
+    }
+
+    // This block turns any exceptions into python raises.
+    
+     bool raise(false);
+     std::string msg;
+     try {
+        pSubscriptionData  pThis = reinterpret_cast<pSubscriptionData>(self);
+        // The socket we create is normally pushing to a pull server which
+        // aggregates to a single pub interface.   In test mode however
+        // we want to test our ability to subscribe so the socket we create is
+        // a pub which binds to the URI:
+        
+        
+        pThis->m_pSocket = new zmq::socket_t(*pContext, ZMQ_SUB);
+        pThis->m_pSocket->connect(uri);
+        
+        pThis->m_pObject = new CStatusSubscription(*pThis->m_pSocket);
+     }
+     catch (std::exception& e) {
+        msg = e.what();
+        raise = true;
+     }
+    catch (...) {
+        msg = "Unanticipated C++ exception type caught";
+        raise = true;
+    }
+     if (raise) {
+        PyErr_SetString(exception, msg.c_str());
+        return -1;
+     }
+     
+     return 0;
+     
+}
+
+/**
+ * subscription_delete
+ *    Dispose of object dynamic storage (to whit the wrapped object and the
+ *    transport socket).
+ *
+ *  @param self - pointer to our object storage
+ *  @note we also delete the object storage itself.
+ */
+static void
+subscription_delete(PyObject* self)
+{
+    pSubscriptionData  pThis = reinterpret_cast<pSubscriptionData>(self);
+    delete pThis->m_pObject;
+    delete pThis->m_pSocket;
+    pThis->m_pSocket = nullptr;
+    pThis->m_pObject = nullptr;
+    
+    self->ob_type->tp_free(self);
+}
+
+/*---------------------------------------------------------------------------
+ * Instance methods for Subscription
+ */
+
+/**
+ * subscription_subscribe
+ *    Add a subscription to the underlying socket.
+ *
+ *  @param PyObject* self - Actually a pointer to the pSubscriptionData for
+ *                          the object  on whom this method is being called.
+ *  @param args - Positional parameters.  For the parameters below,
+ *                only the first is mandatory:
+ *                -  types - Iterable of message types desired.   If the iterable
+ *                           is empty all types are subscribed.
+ *                -  severities - Iterable of severity types desired.  If not supplied
+ *                                or empty, all severities are subscribed.
+ *                -  application - String, which if supplied designates the application from
+ *                                 which messages are desired.
+ *                -  source      - string, which if supplied, designates the
+ *                                 source FQDN from messages are desired.
+ * @return PyObject* - an integer that is the id of the subscription.  Thios
+ *                     id is used to remove an existing subscription (see below).
+ */
+static PyObject*
+subscription_subscribe(PyObject* self, PyObject* args)
+{
+    // Require that there are between 1 and 4 parameters:
+    
+    Py_ssize_t nArgs = PyTuple_Size(args);
+    if ((nArgs < 1) || (nArgs > 4)) {
+        PyErr_SetString(exception, "Subscription requires between 1 and 4 parameters");
+        return NULL;
+    }
+    
+    // Process the parameters:
+    
+    CStatusSubscription::RequestedTypes      types;
+    CStatusSubscription::RequestedSeverities sevs;
+    char*                                    app(nullptr);
+    char*                                    src(nullptr);
+    
+    // The message types (could be empty but can't be missing)
+    
+    PyObject* pTypes = PyTuple_GetItem(args, 0);
+    PyObject* typeIter = PyObject_GetIter(pTypes);
+    if (!typeIter) return NULL;
+    types = iterableToIntList(typeIter);
+    
+    // Severities if present:
+    
+    if (nArgs >= 2) {
+        PyObject* pSevs   = PyTuple_GetItem(args, 1);
+        PyObject* sevIter = PyObject_GetIter(pSevs);
+        if (!sevIter) return NULL;
+        sevs = iterableToIntList(sevIter);
+    }
+    
+    // Application name if present:
+    
+    if (nArgs > 3) {
+        app = PyString_AsString(PyTuple_GetItem(args, 2));
+        if (!app) return NULL;              // Was not a string.
+    }
+    if (nArgs == 4) {
+        src = PyString_AsString(PyTuple_GetItem(args, 3));
+        if (!src) return NULL;;
+    }
+    
+    // Now we have what we need to invoke the method, this is all done in
+    // the usual try/catch block so that we can turn C++ exceptionsi int Python's.
+    
+    unsigned result;
+    try {
+        pSubscriptionData pThis = reinterpret_cast<pSubscriptionData>(self);
+        CStatusSubscription* pSub = pThis->m_pObject;
+        result = pSub->subscribe(types, sevs, app, src);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (std::string msg) {
+        PyErr_SetString(exception, msg.c_str());
+        return NULL;
+    }
+    catch (const char* msg) {
+        PyErr_SetString(exception, msg);
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ exception type");
+        return NULL;
+    }
+    
+    PyObject* pResult = PyInt_FromSize_t(result);
+    Py_INCREF(pResult);
+    return pResult;
+    
+}
+
+/**
+ * subscription_unsubscribe,
+ *    Removes a subscription given an id returned by the subscribe method.
+ *
+ * @param PyObject* self - Pointer to the object data.
+ * @param PyObject* args - Tuple containing the positional parameters, a single
+ *                         integer containing the subscrption id.
+ * @return PyObject* - PyNone.
+ */
+static PyObject*
+subscription_unsubscribe(PyObject* self, PyObject* args)
+{
+    int id;
+    if(!PyArg_ParseTuple(args, "i", &id)) {
+        return NULL;
+    }
+    try {
+        pSubscriptionData pThis = reinterpret_cast<pSubscriptionData>(self);
+        CStatusSubscription* pO  = pThis->m_pObject;
+        pO->unsubscribe(id);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (std::string msg) {
+        PyErr_SetString(exception, msg.c_str());
+        return NULL;
+    }
+    catch (const char* msg) {
+        PyErr_SetString(exception, msg);
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ exception type");
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+/**
+ * subscription_receive
+ *    Receive data from the socket associated with a subscription.
+ *
+ *  @param self - Pointer to the object data.
+ *  @param args - Positional parameters - must be empty.
+ *  @return PyObject* On success, this is a tuple of PyString objects.  Each
+ *          string is the pure binary representation of a message part.
+ *          struct.unpack can be used to bust apart the bits and pieces of
+ *          these 'strings' into usable data.
+ */
+static PyObject*
+subscription_receive(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        PyErr_SetString(exception, "Method takes no parameters");
+        return NULL;
+    }
+    
+    // This try catch block does the actual receive:
+    
+    PyObject* result;
+    try {
+        std::vector<zmq::message_t*> messageParts;
+        pSubscriptionData pThis = reinterpret_cast<pSubscriptionData>(self);
+        zmq::socket_t*    pSock = pThis->m_pSocket;
+        uint64_t more(0);
+        size_t   n;
+        do {
+            zmq::message_t* pMsg = new zmq::message_t;
+            pSock->recv(pMsg);
+            messageParts.push_back(pMsg);
+            pSock->getsockopt(ZMQ_RCVMORE, &more, &n);
+        } while (more);
+        
+        // Pythonize the message parts and free them:
+        
+        result = msgPartVectorToTuple(messageParts);
+        freeMessageParts(messageParts);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    catch (std::string msg) {
+        PyErr_SetString(exception, msg.c_str());
+        return NULL;
+    }
+    catch (const char* msg) {
+        PyErr_SetString(exception, msg);
+        return NULL;
+    }
+    catch (...) {
+        PyErr_SetString(exception, "Unanticipated C++ exception type");
+        return NULL;
+    }
+    
+    Py_INCREF(result);
+    return result;
+}
+
+// Tables for the subscription class.
+
+static PyMethodDef Subscription_Methods[] {
+    {"subscribe", subscription_subscribe, METH_VARARGS,
+     "Add a subscripton"},
+    {"unsubscribe", subscription_unsubscribe, METH_VARARGS,
+     "Remove a subscription"},
+    {"receive", subscription_receive, METH_VARARGS,
+     "Receive a segmented message from the subscription"},
+    {NULL, NULL, 0, NULL}
+};
+
+static PyTypeObject subscription_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "statusmessages.Subscription",       /*tp_name*/
+    sizeof(subscriptionData), /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    (destructor)(subscription_delete), /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    0,                         /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,        /*tp_flags*/
+    "Encapsulation of CStatusSubscription class.", /* tp_doc */
+    0,                         /* tp_traverse */
+    0,                         /* tp_clear */
+    0,                         /* tp_richcompare */
+    0,                         /* tp_weaklistoffset */
+    0,                         /* tp_iter */
+    0,                         /* tp_iternext */
+    Subscription_Methods,           /* tp_methods */
+    0,                         /* tp_members */
+    0,                         /* tp_getset */
+    0,                         /* tp_base */
+    0,                         /* tp_dict */
+    0,                         /* tp_descr_get */
+    0,                         /* tp_descr_set */
+    0,                         /* tp_dictoffset */
+    (initproc)subscription_init,      /* tp_init */
+    0,                         /* tp_alloc */
+    subscription_new,                 /* tp_new */
+};
+
+
 /*----------------------------------------------------------------------------
  * Module level methods (see ModuleMethods for the dispatch table).
  */
@@ -1342,5 +1778,15 @@ initstatusmessages(void)
     PyModule_AddObject(
         module, "StateChange",
         reinterpret_cast<PyObject*>(&statechange_Type)
+    );
+    // Add the Subscription class:
+    
+    if (PyType_Ready(&subscription_Type) > 0) {
+        return;
+    }
+    Py_INCREF(&subscription_Type);
+    PyModule_AddObject(
+        module, "Subscription",
+        reinterpret_cast<PyObject*>(&subscription_Type)
     );
 }
