@@ -74,7 +74,7 @@ PYTHON_TESTS=ringstatisticstests.py readoutstatisticstests.py \
 TCL_TESTS=statussubtest.test
 
 
-TEST_PROGS=ringstattests tclpkgtests subtests
+TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest
 
 noinst_PROGRAMS=$(TEST_PROGS)
 
@@ -98,6 +98,10 @@ tclpkgtests_LDFLAGS=$(COMMON_LIBS) libTclStatusMessages.la \
 subtests_SOURCES=TestRunner.cpp subtest.cpp
 subtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 subtests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
+
+ringpubclasstest_SOURCES=TestRunner.cpp ringpubclasstest.cpp
+ringpubclasstest_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
+ringpubclasstest_LDFLAGS = =libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
 TESTS=$(TEST_PROGS) $(PYTHON_TESTS) $(TCL_TESTS)
 
