@@ -30,7 +30,7 @@ package require tcltest
 set LOG_MESSAGE 3
 set INFO        1
 
-set port 20000
+set port 15000
 proc commonSetup {} {
     LogMessage test on
     set uri tcp://*:$::port
@@ -88,7 +88,7 @@ tcltest::test subcommand {Test for defined statusSubscription command} \
 
 tcltest::test create-toofew {Subcommand 'create' requires two parameters} \
 -body {
-    catch {statusSubscripton create tcp://localhost:20000}
+    catch {statusSubscripton create tcp://localhost:20001}
 } -result 1
 
 tcltest::test destroy-toofew {Subcommand 'destroy' requires an additional parameter} \
