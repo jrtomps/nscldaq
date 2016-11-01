@@ -47,6 +47,7 @@
 #include <CCondition.h>
 #include <CMutex.h>
 
+#include <CVMEInterface.h>
 
 using namespace std;
 
@@ -60,6 +61,7 @@ typedef struct _EndRunEvent {
   CExperiment* pExperiment;	// Pointer to the experiment object.
   CMutex*      pLock;            // Lock for condition variable.
   CConditionVariable* pCondVar;      // Condition variable.
+  CTriggerLoop* pTriggerLoop;      // the trigger loop
 
 } EndRunEvent, *pEndRunEvent;
 
@@ -587,12 +589,15 @@ CExperiment::readScalers()
 void CExperiment::TriggerScalerReadout()
 {
 
-
   readScalers();
 
-  // For now documented variables are tied to this trigger too:
 
+  CVMEInterface::Unlock();
+
+  // For now documented variables are tied to this trigger too:
   ScheduleRunVariableDump();
+
+  CVMEInterface::Lock();
 
 }
 
@@ -670,6 +675,7 @@ CExperiment::ScheduleEndRunBuffer(bool pause)
   pEvent->pExperiment   = this;
   pEvent->pLock         = new CMutex;
   pEvent->pCondVar      = new CConditionVariable;
+  pEvent->pTriggerLoop  = m_pTriggerLoop;
   
   pEvent->pLock->lock();                // Required to wait on condition.
 
@@ -710,6 +716,9 @@ int CExperiment::HandleEndRunEvent(Tcl_Event* evPtr, int flags)
   pExperiment->syncEndRun(pEvent->pause);
   pEvent->pCondVar->signal();             // Tell signaller we're done.
   pEvent->pLock->unlock();                // And this releases it to run.
+
+  pEvent->pTriggerLoop->join();
+
   return 1;
 }
 
