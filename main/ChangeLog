@@ -1127,3 +1127,8 @@ Work on 11.0-rc11 begins
 	vmeWrite8, doVMERead, and writeRegister methods.
 	* Fixes broken BLT32 writes. Also imposes a limit on the size of the BLT
 	to be fewer than 255 transfers.
+	* Fixes bugs threading issues in SBS Readout framework. Specifically, the
+	Readout program was leaking threads associated with the trigger loop
+	every run which led to an 8192 kB leak in memory each begin run. There was
+	also a deadlock condition that could occur when the user attempted to end
+	a run when the trigger loop was attempting to do a scaler read.
