@@ -1388,7 +1388,7 @@ subscription_subscribe(PyObject* self, PyObject* args)
     
     // Application name if present:
     
-    if (nArgs > 3) {
+    if (nArgs >= 3) {
         app = PyString_AsString(PyTuple_GetItem(args, 2));
         if (!app) return NULL;              // Was not a string.
     }
