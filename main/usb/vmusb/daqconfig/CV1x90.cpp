@@ -733,7 +733,7 @@ CV1x90::WaitMicro(CVMUSB& controller, uint32_t base)
     uint16_t status;
     int ok = controller.vmeRead16(address, initamod, &status);
     if (ok != 0) {
-      throw string("VME Read of mdiro handshake register failed");
+      throw string("VME Read of micro handshake register failed");
     }
     if (status & CCAENV1x90Registers::MicroHandshake::WRITE_OK) return;
     
