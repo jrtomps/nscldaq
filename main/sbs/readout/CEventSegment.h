@@ -70,7 +70,7 @@ public:
   void rejectImmediately();
   void keep();
   AcceptState getAcceptState() const;
-  void setTimestamp(uint64_t stamp);
+  virtual void setTimestamp(uint64_t stamp);
   void setSourceId(uint32_t id);
 };
 
