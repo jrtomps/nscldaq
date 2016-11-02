@@ -8,5 +8,5 @@ version "1.0"
 purpose "Push ring statistics to an publishing aggregator"
 
 option "service" s "Name of service to connect with" string optional default="StatusAggregator"
-option "update-rate" u "Seconds between statistics updates" optional default="2"
+option "update-rate" u "Seconds between statistics updates" int optional default="2"
 

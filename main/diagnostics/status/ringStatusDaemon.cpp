@@ -33,6 +33,8 @@
 #include <CPortManager.h>
 #include <Exception.h>
 
+#include "CRingStatusDaemon.h"
+
 
 static const unsigned MAX_SERVICE_CHECKS(10);
 static const unsigned SERVICE_CHECK_INTERVAL(2);
@@ -54,6 +56,10 @@ static unsigned translateService(const char* serviceName)
     CPortManager manager;
     for (int i = 0; i < MAX_SERVICE_CHECKS; i++) {
         std::vector<CPortManager::portInfo> info = manager.getPortUsage();
+        
+        // for_each and lambdas don't give an easy early loop termination when
+        // we find the service so:
+        
         for (size_t s = 0; s < info.size(); s++) {
             if (info[s].s_Application == serviceName) {
                 return info[s].s_Port;
@@ -77,7 +83,7 @@ int main(int argc, char** argv)
 {
     gengetopt_args_info parsedArgs;    
     if (cmdline_parser(argc,argv, &parsedArgs)) {
-        std::exit(EXIT_FAILURE);            // gengetopt says why and actually exits.
+        std::exit(EXIT_FAILURE);            // cmdline_parser says why and actually exits.
     }
     // Figure out the port
     
@@ -91,6 +97,9 @@ int main(int argc, char** argv)
         pusher.connect(uri.str().c_str());
         
         // here's where we start the application:
+        
+        CRingStatusDaemon app(pusher, parsedArgs.update_rate_arg);
+        app();
     }
     catch(CException& e) {
         std::cerr << e.ReasonText();

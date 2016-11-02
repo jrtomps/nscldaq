@@ -26,9 +26,12 @@ include_HEADERS = CStatusMessage.h CPublishRingStatistics.h
 
 #------------------- daemon for ring status:
 
-ringstatusdaemon_SOURCES  = ringStatusDaemon.cpp
+ringstatusdaemon_SOURCES  = ringStatusDaemon.cpp \
+	CRingStatusDaemon.cpp CRingStatusDaemon.h
+
 ringstatusdaemon_CPPFLAGS = -I@top_srcdir@/servers/portmanager @LIBTCLPLUS_CFLAGS@
 ringstatusdaemon_LDFLAGS  = @top_builddir@/servers/portmanager/libPortManager.la \
+	@builddir@/libStatusMessages.la						\
 	@LIBEXCEPTION_LDFLAGS@
 
 nodist_ringstatusdaemon_SOURCES = ringstatus.c ringstatus.h
@@ -93,7 +96,7 @@ PYTHON_TESTS=ringstatisticstests.py readoutstatisticstests.py \
 TCL_TESTS=statussubtest.test
 
 
-TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest
+TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest ringdaemontests
 
 noinst_PROGRAMS=$(TEST_PROGS)
 
@@ -120,7 +123,13 @@ subtests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
 ringpubclasstest_SOURCES=TestRunner.cpp ringpubclasstest.cpp testutils.cpp testutils.h
 ringpubclasstest_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
-ringpubclasstest_LDFLAGS = =libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
+ringpubclasstest_LDFLAGS  =libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
+
+ringdaemontests_SOURCES=TestRunner.cpp ringdaemontests.cpp \
+	CRingStatusDaemon.cpp CRingStatusDaemon.h
+ringdaemontests_CPPFLAGS = $(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
+ringdaemontests_LDFLAGS  = libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
+
 
 TESTS=$(TEST_PROGS) $(PYTHON_TESTS) $(TCL_TESTS)
 
