@@ -1,3 +1,5 @@
+bin_PROGRAMS = ringstatusdaemon
+
 lib_LTLIBRARIES = libStatusMessages.la libTclStatusMessages.la libPyStatusMessages.la
 
 COMPILATION_FLAGS= -I@top_srcdir@/base/os -I@top_srcdir@/base/dataflow \
@@ -21,6 +23,23 @@ libStatusMessages_la_CPPFLAGS = $(COMPILATION_FLAGS)
 libStatusMessages_la_LDFLAGS  = $(COMMON_LIBS)
 
 include_HEADERS = CStatusMessage.h CPublishRingStatistics.h
+
+#------------------- daemon for ring status:
+
+ringstatusdaemon_SOURCES  = ringStatusDaemon.cpp
+ringstatusdaemon_CPPFLAGS = -I@top_srcdir@/servers/portmanager @LIBTCLPLUS_CFLAGS@
+ringstatusdaemon_LDFLAGS  = @top_builddir@/servers/portmanager/libPortManager.la \
+	@LIBEXCEPTION_LDFLAGS@
+
+nodist_ringstatusdaemon_SOURCES = ringstatus.c ringstatus.h
+
+
+BUIlT_SOURCES=ringstatus.c ringstatus.h
+
+ringstatus.c: ringstatus.h
+
+ringstatus.h: ringstatus.ggo
+	$(GENGETOPT) --output-dir=@builddir@ --input=ringstatus.ggo -F ringstatus
 
 #--------------------Tcl Bindings:
 
