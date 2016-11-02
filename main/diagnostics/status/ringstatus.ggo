@@ -1,0 +1,12 @@
+
+#
+#  Options for the ringstatus daemon
+#
+
+package "ringstatus"
+version "1.0"
+purpose "Push ring statistics to an publishing aggregator"
+
+option "service" s "Name of service to connect with" string optional default="localhost"
+option "update-rate" u "Seconds between statistics updates" optional default="2"
+
