@@ -18,7 +18,7 @@ if BUILD_DOCS
    DOCDIR=docbuild docconfig simplesetups
 endif
 
-SUBDIRS =	 base caenfw-common servers base/dataflow  \
+SUBDIRS =	 base caenfw-common servers base/dataflow diagnostics \
 		daq utilities $(DOCDIR) \
 		$(SBSDIRS) $(EPICSDIRS) $(USBDIR)
 

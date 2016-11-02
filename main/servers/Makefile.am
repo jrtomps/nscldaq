@@ -1,2 +1,2 @@
-SUBDIRS = portmanager tclserver status
+SUBDIRS = portmanager tclserver
 
