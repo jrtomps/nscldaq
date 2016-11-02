@@ -181,8 +181,10 @@ CPublishRingStatistics::itemToUsage(CTCLInterpreter& interp, CTCLObject& obj)
     result.s_usage.s_producerStats.s_pid = result.s_usage.s_producer;
     result.s_usage.s_producerStats.s_transfers = double(ops);
     result.s_usage.s_producerStats.s_bytes     = double(bytes);
-    result.s_producerCommand =
-        Os::getProcessCommand(result.s_usage.s_producer);
+    if (result.s_usage.s_producer != -1) {
+        result.s_producerCommand =
+            Os::getProcessCommand(result.s_usage.s_producer);
+    }
     
     CTCLObject oCstats;                    // Consumer statistics
     oCstats.Bind(interp);
@@ -203,8 +205,11 @@ CPublishRingStatistics::itemToUsage(CTCLInterpreter& interp, CTCLObject& obj)
         client.s_transfers= double(ops);
         client.s_bytes = double(bytes);
         result.s_usage.s_consumerStats.push_back(client);
-        
-        result.s_consumerCommands.push_back(Os::getProcessCommand(client.s_pid));
+        if (client.s_pid != -1) {
+            result.s_consumerCommands.push_back(
+                Os::getProcessCommand(client.s_pid)
+            );
+        }
         
     }
     

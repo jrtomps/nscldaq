@@ -99,7 +99,7 @@ subtests_SOURCES=TestRunner.cpp subtest.cpp
 subtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 subtests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
-ringpubclasstest_SOURCES=TestRunner.cpp ringpubclasstest.cpp
+ringpubclasstest_SOURCES=TestRunner.cpp ringpubclasstest.cpp testutils.cpp testutils.h
 ringpubclasstest_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 ringpubclasstest_LDFLAGS = =libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
