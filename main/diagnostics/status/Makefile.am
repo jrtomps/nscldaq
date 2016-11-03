@@ -37,7 +37,7 @@ ringstatusdaemon_LDFLAGS  = @top_builddir@/servers/portmanager/libPortManager.la
 nodist_ringstatusdaemon_SOURCES = ringstatus.c ringstatus.h
 
 
-BUIlT_SOURCES=ringstatus.c ringstatus.h
+BUILT_SOURCES=ringstatus.c ringstatus.h
 
 ringstatus.c: ringstatus.h
 
@@ -135,6 +135,9 @@ TESTS=$(TEST_PROGS) $(PYTHON_TESTS) $(TCL_TESTS)
 
 
 install-exec-hook: tclpkgInstall pypkgInstall
+
+clean-local:
+	rm -f $(BUILT_SOURCES)
 
 #  Ensure stuff makes it into the tarball:
 
