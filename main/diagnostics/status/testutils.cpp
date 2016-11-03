@@ -21,6 +21,10 @@
 */
 #include "testutils.h"
 #include <cstring>
+#include <CRingMaster.h>
+#include <CRingBuffer.h>
+#include <TCLInterpreter.h>
+#include <TCLObject.h>
 
 std::vector<std::string>
 marshallVector(const char* s)
@@ -44,3 +48,61 @@ std::ostream& operator<<(std::ostream& s, const std::vector<std::string>& v)
   
   return s;
 }
+
+void killRings()
+{
+  CTCLInterpreter interp;
+  CRingMaster master;
+  std::string usage = master.requestUsage();
+  CTCLObject  oUsage;
+  oUsage.Bind(interp);
+  oUsage = usage;
+  
+  // Usage is a list of two element sublists.  The first element of each
+  // list is a ring name:
+  
+  for(int i = 0; i < oUsage.llength(); i++) {
+    CTCLObject ringInfo;
+    ringInfo.Bind(interp);
+    ringInfo = oUsage.lindex(i);
+    
+    CTCLObject ringName;
+    ringName.Bind(interp);
+    ringName = ringInfo.lindex(0);
+    
+    std::string name = std::string(ringName);
+    
+    CRingBuffer::remove(name);
+    
+  }
+}
+
+std::vector<zmq::message_t*>
+receiveMessage(zmq::socket_t* socket)
+{
+  std::vector<zmq::message_t*> result;
+  std::uint64_t more(0);
+  size_t   smore(sizeof(more));
+  
+  do {
+    zmq::message_t* pMessage = new zmq::message_t;
+    socket->recv(pMessage);
+    result.push_back(pMessage);
+    
+    socket->getsockopt(ZMQ_RCVMORE, &more, &smore);
+    
+  } while(more);
+  
+  return result;
+}
+
+//  Delete message parts in a multipart message vector:
+
+void
+freeMessage(std::vector<zmq::message_t*>& message)
+{
+  for_each(message.begin(), message.end(), [](zmq::message_t* msg) {
+    delete msg;
+  });
+}
+

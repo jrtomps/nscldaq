@@ -22,8 +22,8 @@
 #include <unistd.h>
 #include <testutils.h>
 
-const char* uri="inproc://test";
-std::vector<std::string> command(Os::getProcessCommand(getpid()));
+static const char* uri="inproc://test";
+static std::vector<std::string> command(Os::getProcessCommand(getpid()));
 
 
 
@@ -80,74 +80,19 @@ protected:
   void ringWithProducerSeveralConsumers();
   void multipleRings();
 private:
-    void killRings();
     std::vector<zmq::message_t*> receiveMessage();
-    void freeMessage(std::vector<zmq::message_t*>& parts);
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RingPubTests);
 
 /*--------------------------- Utility methods -----------------------------*/
 
-// Destroy all existing rings:
-
-void RingPubTests::killRings()
-{
-  CTCLInterpreter interp;
-  CRingMaster master;
-  std::string usage = master.requestUsage();
-  CTCLObject  oUsage;
-  oUsage.Bind(interp);
-  oUsage = usage;
-  
-  // Usage is a list of two element sublists.  The first element of each
-  // list is a ring name:
-  
-  for(int i = 0; i < oUsage.llength(); i++) {
-    CTCLObject ringInfo;
-    ringInfo.Bind(interp);
-    ringInfo = oUsage.lindex(i);
-    
-    CTCLObject ringName;
-    ringName.Bind(interp);
-    ringName = ringInfo.lindex(0);
-    
-    std::string name = std::string(ringName);
-    
-    CRingBuffer::remove(name);
-    
-  }
-}
-
 // Recieve a multipart message and return it.
 
 std::vector<zmq::message_t*>
 RingPubTests::receiveMessage()
 {
-  std::vector<zmq::message_t*> result;
-  std::uint64_t more(0);
-  size_t   smore(sizeof(more));
-  
-  do {
-    zmq::message_t* pMessage = new zmq::message_t;
-    m_pReceiver->recv(pMessage);
-    result.push_back(pMessage);
-    
-    m_pReceiver->getsockopt(ZMQ_RCVMORE, &more, &smore);
-    
-  } while(more);
-  
-  return result;
-}
-
-//  Delete message parts in a multipart message vector:
-
-void
-RingPubTests::freeMessage(std::vector<zmq::message_t*>& message)
-{
-  for_each(message.begin(), message.end(), [](zmq::message_t* msg) {
-    delete msg;
-  });
+  return ::receiveMessage(m_pReceiver);
 }
 
 /*-------------------------------------- Tests ----------------------------*/

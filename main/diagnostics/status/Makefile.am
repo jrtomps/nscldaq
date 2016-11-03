@@ -126,7 +126,7 @@ ringpubclasstest_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 ringpubclasstest_LDFLAGS  =libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
 ringdaemontests_SOURCES=TestRunner.cpp ringdaemontests.cpp \
-	CRingStatusDaemon.cpp CRingStatusDaemon.h
+	CRingStatusDaemon.cpp CRingStatusDaemon.h testutils.cpp
 ringdaemontests_CPPFLAGS = $(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 ringdaemontests_LDFLAGS  = libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
