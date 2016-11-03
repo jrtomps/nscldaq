@@ -84,7 +84,7 @@ package require evbcallouts
 ::EVBC::useEventBuilder
 
 proc OnStart {} {
-  ::EVBC::initialize i-restart false -glombuild true -glomdt 123 -destring evbout
+  ::EVBC::initialize -restart false -glombuild true -glomdt 123 -destring evbout
 }
     </programlisting>
 
