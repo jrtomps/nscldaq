@@ -14,7 +14,10 @@
 #include <stdio.h>
 #include <signal.h>
 #include <os.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/tcp.h>
 
 using namespace std;
 
@@ -209,6 +212,42 @@ putData(CRingBuffer& ring, void* pBuffer, size_t nBytes)
 int
 mainLoop(string ring, int timeout, int mindata)
 {
+  // If stdin is a socket set keepalive so we're given a SIGPIPE if the other
+  // end drops off (See Bug #6248).
+  
+  struct stat fdInfo;
+  if (fstat(STDIN_FILENO, &fdInfo)) {
+    perror("Unable to fstat stdin");
+    exit(EXIT_FAILURE);
+  }
+  if ((fdInfo.st_mode & S_IFSOCK)  != 0) {
+    int keepflag=1;
+    if(setsockopt(STDIN_FILENO, SOL_SOCKET, SO_KEEPALIVE, &keepflag, sizeof(keepflag))) {
+      perror("Unable to enable keepalive flag on socket stdin");
+      exit(EXIT_FAILURE);
+    }
+    // The standard kernel keepalive times are too long - 2 hrs idle to 
+    // heartbeat at 75 second intervals with 9 consecutive missed HB's indicating
+    // failure.  We're going to h.b. after one minute of idle time with
+    // HB's every 10 seconds and leave the 9 alone so in theory we'll drop off
+    //  2.5 minutes from the remote guy exiting.
+    
+    int idleTime(60);
+    int hbInterval(10);
+    
+    if (setsockopt(STDIN_FILENO, SOL_TCP, TCP_KEEPIDLE, &idleTime, sizeof(idleTime))) {
+      perror("Unable to set STDIN (socket) TCP_KEEPIDLE parameter");
+      exit(EXIT_FAILURE);
+    }
+    
+    if (setsockopt(STDIN_FILENO, SOL_TCP, TCP_KEEPINTVL, &hbInterval, sizeof(hbInterval))) {
+      perror("Unable to set STDIN (socket) TCP_KEEPINTVL parameter");
+      exit(EXIT_FAILURE);
+    }
+  }
+  
+  
+  
   // Attach to the ring:
 
   CRingBuffer* pSource;

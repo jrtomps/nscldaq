@@ -1143,6 +1143,47 @@ Work on 11.0-rc11 begins
 	updating its value after the first run.
 	* Bug #5900 - Modifies the Makefiles so that NSCLDAQ can build in
 	 parallel.
+11.1-007
+	* Fixes bug in evbcallouts package that caused the -glomid option
+	to be ignored. Now it is passed to glom as the --sourceid command line
+	option.
+	* Bug#4834 - Fix bad dialog choice for data source editing.
+	* Bug #4384 - Unclear labels for prompt when adding data sources during a run
+	* Bug# 6133 - Threading the output stage of the event builder
+	caused flow control to deadlock.
+	* Adds a precheckForTransitionErrors to callout bundles. This allows for 
+	  for checking a transition doomed for failure because of some detectable
+		condition prior to transitioning. 
+	* Bug #6151 Slow controls server of CCUSBReadout and VMUSBReadout now
+	  accept connections from IPv6 loopback address (i.e. ::1) in addition
+		to the IPv4 loopback address (i.e. 127.0.0.1).
+	* Bug #5777 - Documentation added for RingSourceMgr and also documentation
+	  updated that pertains to the event builder.
+	* EVB gui is replaced with a new megawidget for better code organization.
+11.1-008
+	* Bug #6206 Fixes bug introduced in 11.1-007 concerning megawidget
+	introduction that caused failures during EVBC::initialize.
+11.1-009
+	* Changes the communication pattern with the VM-USB that was causing 
+	failures on daqdev-jessie. The opening of the VMUSB is simplified and the
+	read back after a stack execution always requests 26700 bytes.
+	* Bug #6245 Conditions call of exit(EXIT_FAILURE) on an actual failure. The
+	issue was introduced in version 11.1-006.
+	* Fixes buggy BLT read back when in interactive mode. The transaction method
+	of CVMUSBusb now is strict about reading iteratively until it receives all
+	requested data. This increased strictness caused changes to the vmeWrite16,
+	vmeWrite8, doVMERead, and writeRegister methods.
+	* Fixes broken BLT32 writes. Also imposes a limit on the size of the BLT
+	to be fewer than 255 transfers.
+	* Fixes bugs threading issues in SBS Readout framework. Specifically, the
+	Readout program was leaking threads associated with the trigger loop
+	every run which led to an 8192 kB leak in memory each begin run. There was
+	also a deadlock condition that could occur when the user attempted to end
+	a run when the trigger loop was attempting to do a scaler read.
+        * Bug #6248 enable keepalive and shorten timing parameters for ring2stdin
+	  when stdin is a socket so remote failures can be seen and seen
+          reasonably quickly.
 12.0-000
       * Bug #5903 - add separate options to enable/disable underflow and
         overflow in the "adc" command of VMUSBReadout
+
