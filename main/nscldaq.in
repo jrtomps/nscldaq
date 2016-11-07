@@ -35,6 +35,8 @@ PORTMANAGERPIDFILE="${PIDFILEDIR}/${PORTMANAGERNAME}.pid"
 RINGMASTER="${DAQHOME}/bin/RingMaster"
 RINGMASTERNAME="nscldaq-ringmaster"
 RINGMASTERPIDFILE="${PIDFILEDIR}/${RINGMASTERNAME}.pid"
+AGGREGATORPIDFILE="${PIDFILEDIR}/status-aggregator.pid"
+RINGSTATSPIDFILE="${PIDFILEDIR}/ring-statistics.pid"
 
 # escape hatch in case nscldaq is not installed but this script is
 # (should be marked as a conffile in dpkg if this came from a deb
@@ -87,6 +89,37 @@ stop_ringmaster() {
   return ${retval}
 }
 
+start_statusaggregator() {
+    /sbin/start-stop-daemon --start \
+			    --quiet \
+			    --pidfile=${AGGREGATORPIDFILE} \
+			    --make-pidfile --background \
+			    --startas ${DAQHOME}/bin/statusaggregator
+}
+
+stop_statusaggregator() {
+    /sbin/start-stop-daemon --stop \
+			    --retry 5 --oknodo \
+			    --quiet \
+			    --pidfile ${AGGREGATORPIDFILE}
+    
+}
+
+start_ringstatdaemon() {
+    /sbin/start-stop-daemon --start \
+			    --quiet \
+			    --pidfile=${RINGSTATSPIDFILE} \
+			    --make-pidfile --background \
+			    --startas ${DAQHOME}/bin/ringstatusdaemon
+}
+
+stop_ringstatdaemon() {
+    /sbin/start-stop-daemon --stop \
+			    --retry 5 --oknodo \
+			    --quiet \
+			    --pidfile ${RINGSTATSPIDFILE}
+}
+
 case "$1" in 
   start)
     log_daemon_msg "Starting DAQ daemons"
@@ -97,6 +130,11 @@ case "$1" in
     log_progress_msg "${RINGMASTERNAME}"
     start_ringmaster
 
+    log_progress_msg status-aggregator
+    start_statusaggregator
+
+    log_progress_msg ring-statistics
+    start_ringstatdaemon
 
     log_end_msg 0
     ;;
@@ -109,6 +147,12 @@ case "$1" in
 
     log_progress_msg "${PORTMANAGERNAME}"
     stop_portmanager
+
+    log_progress_msg ring-statistics
+    stop_ringstatdaemon
+
+    log_progress_msg status-aggregator
+    stop_statusaggregator
 
     log_end_msg 0
     ;;
