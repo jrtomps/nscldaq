@@ -47,10 +47,11 @@ ringstatus.h: ringstatus.ggo
 
 #---------------  status aggregator:
 
-statusaggregator_SOURCES  = statusaggregator.cpp
+statusaggregator_SOURCES  = aggregator.cpp
 statusaggregator_CPPFLAGS = -I@top_srcdir@/servers/portmanager @LIBTCLPLUS_CFLAGS@
 statusaggregator_LDFLAGS  =  @top_builddir@/servers/portmanager/libPortManager.la \
 	@builddir@/libStatusMessages.la						  \
+	@ZMQ_LDFLAGS@								\
 	@LIBEXCEPTION_LDFLAGS@
 
 #--------------------Tcl Bindings:
@@ -107,7 +108,7 @@ TCL_TESTS=statussubtest.test
 
 TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest ringdaemontests
 
-noinst_PROGRAMS=$(TEST_PROGS)
+noinst_PROGRAMS=$(TEST_PROGS) testringstatus
 
 
 ringstattests_SOURCES=TestRunner.cpp Asserts.h ringstattests.cpp \
@@ -137,8 +138,17 @@ ringpubclasstest_LDFLAGS  =libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 ringdaemontests_SOURCES=TestRunner.cpp ringdaemontests.cpp \
 	CRingStatusDaemon.cpp CRingStatusDaemon.h testutils.cpp
 ringdaemontests_CPPFLAGS = $(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
-ringdaemontests_LDFLAGS  = libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
+ringdaemontests_LDFLAGS  = libStatusMessages.la $(COMMON_LIBS) \
+	@CPPUNIT_LDFLAGS@
 
+
+#  These are not automated tests:
+
+testringstatus_SOURCES = testringstatus.cpp
+testringstatus_CPPFLAGS= $(COMPILATION_FLAGS)
+testringstatus_LDFLAGS= libStatusMessages.la \
+	@top_builddir@/servers/portmanager/libPortManager.la \
+	$(COMMON_LIBS)
 
 TESTS=$(TEST_PROGS) $(PYTHON_TESTS) $(TCL_TESTS)
 
