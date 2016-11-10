@@ -353,7 +353,7 @@ public:
       (fan in) socket.  The aggregator then serves as a proxy making those
       messages available on its PUB socket.  Since the
       aggregator publishes both its PUSH and PUB sockets as services via the
-      DAQ Port manager, it is possible for both providers of and subscsribers
+      DAQ Port manager, it is possible for both providers of and subscribers
       to status messages to discover the needed communication endpoints.
      </para>
      <para>
@@ -2767,7 +2767,7 @@ message.logChange(oldState, newState)
    <synopsis>
 from nscldaq.status import statusMessages
 
-sub = statusMessages.Subscsription(uri)
+sub = statusMessages.Subscription(uri)
 token = sub.subscribe(type, severities[, app[, source]])
 sub.unsubscribe(token)
 messageParts = sub.receive()
@@ -2795,7 +2795,7 @@ messageParts = sub.receive()
    <variablelist>
     <varlistentry>
         <term>
-          statusMessages.Subscsription(uri)      
+          statusMessages.Subscription(uri)      
         </term>
         <listitem>
             <para>
