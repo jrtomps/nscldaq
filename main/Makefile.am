@@ -22,7 +22,7 @@ SUBDIRS =	 base caenfw-common servers base/dataflow diagnostics \
 		daq utilities $(DOCDIR) \
 		$(SBSDIRS) $(EPICSDIRS) $(USBDIR)
 
-DIST_SUBDIRS = base caenfw-common servers base/dataflow daq utilities \
+DIST_SUBDIRS = base caenfw-common servers  base/dataflow diagnostics daq utilities \
 		 docbuild docconfig simplesetups sbs epics usb
 
 INTROFIGURES = @srcdir@/figures/intro-data-flow-diagram.png \
