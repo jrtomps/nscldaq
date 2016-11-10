@@ -145,7 +145,7 @@ ringdaemontests_LDFLAGS  = libStatusMessages.la $(COMMON_LIBS) \
 #  These are not automated tests:
 
 testringstatus_SOURCES = testringstatus.cpp
-testringstatus_CPPFLAGS= $(COMPILATION_FLAGS)
+testringstatus_CPPFLAGS= $(COMPILATION_FLAGS) -I@top_srcdir@/servers/portmanager
 testringstatus_LDFLAGS= libStatusMessages.la \
 	@top_builddir@/servers/portmanager/libPortManager.la \
 	$(COMMON_LIBS)
