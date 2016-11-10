@@ -1,0 +1,3071 @@
+<!-- manpage 1daq -->
+
+      <refentry id="daq1_ringstatusdaemon">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_ringstatusdaemon_title'>ringstatusdaemon</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>ringstatusdaemon</refname>
+           <refpurpose>Publisher of ring statistics</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+        <command>
+ringstatusdaemon <optional><option>--service=<replaceable>service-name</replaceable></option></optional>
+                <optional><option>--update-rate=seconds</option></optional>
+        </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <command>ringstatusdaemon</command> is an NSCLDAQ command that
+            is normally started at system startup time.  It periodically
+            PUSHes data on a ZMQ socket to a recipient (the status aggregator
+            daemon).  The data pushed are ring statistics messages.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>--service</option>=<replaceable>service-name</replaceable></term>
+                <listitem>
+                    <para>
+                      The service name to which the ZMQ PUSH socket along which
+                      messages are sent is connected.  This defaults to
+                      <literal>StatusAggregator</literal>, the PULL service
+                      that is normally accepting messages proxied by the
+                      status message aggregator.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <option>--update-rate</option>=<replaceable>seconds</replaceable>
+                </term>
+                <listitem>
+                    <para>
+                      Determines how often the program pushes ring statistics.  If
+                      not specified, this is <literal>2</literal>; providing
+                      statistics updates every two seconds.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+      <refentry id="daq1_statusaggregator">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_statusaggregator_title'>statusaggregator</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>statusaggregator</refname>
+           <refpurpose>Aggregate status/statistics messages for a host</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+statusaggregator
+        </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This program publishes two services.
+            <literal>StatusAggregator</literal> is a ZMQ PULL socket that
+            status providers (such as <command>ringstatusdaemon</command>)
+            PUSH messages into.  <literal>StatusPublisher</literal> is a
+            ZMQ PUB port that allows applications to subscribe to
+            status messages regardless of provider.
+           </para>
+           <para>
+            The service therefore provides two fixed, discoverable contact points.
+            Status providers can push status messages to <literal>StatusAggregator</literal>.
+            This is a fan-in.  The program will relay all messages (preserving the part structure)
+            to its <literal>StatusPublisher</literal> PUB port.   Status consumers
+            can register subscriptions on that port in order to select the
+            sorts of messages that interest them.
+           </para>
+        </refsect1>
+        
+
+      </refentry>
+
+<!-- /manpage -->
+
+<!-- manpage 3daq -->
+<refentry id="daq3_CStatusDefinitions">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_CStatusDefinitions_title'>CStatusDefinitions</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>Classname</refname>
+     <refpurpose>Classes that emit status messages.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CStatusMessage.h&gt;
+       class <ooclass><classname>CStatusDefinitions</classname></ooclass>
+{
+public:
+    class <classname>MessageTypes</classname> {
+    public:
+        <type>static const std::uint32_t</type> <varname>RING_STATISTICS</varname>;
+        <type>static const std::uint32_t</type> <varname>EVENT_BUILDER_STATISTICS</varname>;
+        <type>static const std::uint32_t</type> <varname>READOUT_STATISTICS</varname>;
+        <type>static const std::uint32_t</type> <varname>LOG_MESSAGE</varname>;
+        <type>static const std::uint32_t</type> <varname>STATE_CHANGE</varname>;
+        
+        <type>static const std::uint32_t</type> <varname>FIRST_FREE_TYPE</varname>;
+        <type>static const std::uint32_t</type> <varname>FIRST_USER_TYPE</varname>;
+    };
+    class <classname>SeverityLevels</classname> {
+    public:
+        <type>static const std::uint32_t</type> <varname>DEBUG</varname>;
+        <type>static const std::uint32_t</type> <varname>INFO</varname>;
+        <type>static const std::uint32_t</type> <varname>WARNING</varname>;
+        <type>static const std::uint32_t</type> <varname>SEVERE</varname>;
+        <type>static const std::uint32_t</type> <varname>DEFECT</varname>;
+    };
+    
+    class <classname>RingStatistics</classname> {    
+    public:
+        <constructorsynopsis>
+          <methodname>RingStatistics</methodname>
+          <methodparam>
+            <type>zmq::socket_t&amp;</type> <parameter> socket</parameter>
+          </methodparam>
+          <methodparam>
+            <type>std::string </type><parameter>app</parameter>
+            <initializer>"RingStatDaemon"</initializer>
+          </methodparam>
+        </constructorsynopsis>
+        <methodsynopsis>
+          <type>void </type>
+          <methodname>startMessage</methodname>
+          <methodparam>
+            <type>std::string</type> <parameter>ring</parameter>
+          </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+          <type>void</type> <methodname> addProducer</methodname>
+          <methodparam>
+            <type>std::vector&lt;std::string&gt;</type> <parameter> command</parameter>
+          </methodparam>
+          <methodparam>
+            <type> std::uint64_t</type> <parameter> ops</parameter>
+          </methodparam>
+          <methodparam>
+            <type>std::uint64_t </type> <parameter>bytes</parameter>
+          </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+          <type>void</type> <methodname> addConsumer</methodname>
+          <methodparam>
+            <type>std::vector&lt;std::string&gt;</type> <parameter> command</parameter>
+          </methodparam>
+          <methodparam>
+            <type>std::uint64_t</type> <parameter> ops</parameter>
+          </methodparam>
+          <methodparam>
+            <type>std::uint64_t</type> <parameter>bytes</parameter>
+          </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+          <type>void </type> <methodname>endMessage</methodname>
+          <void />
+        </methodsynopsis>    
+    };
+
+    class <classname>ReadoutStatistics</classname> {
+    
+    public:
+      <constructorsynopsis>
+        <methodname>ReadoutStatistics</methodname>
+        <methodparam>
+          <type>(zmq::socket_t&amp; </type> <parameter>socket</parameter>
+        </methodparam>
+        <methodparam>
+          <type>std::string</type> <parameter> app</parameter>
+          <initializer>"Readout"</initializer>
+        </methodparam>
+      </constructorsynopsis>  
+      <methodsynopsis>
+        <type>void </type><methodname>beginRun</methodname>
+        <methodparam>
+          <type>std::uint32_t</type> <parameter>runNumber</parameter>
+        </methodparam>
+        <methodparam>
+          <type>std::string</type> <parameter>title</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void </type><methodname>emitStatistics</methodname>
+        <methodparam>
+          <type>std::uint64_t</type> <parameter> triggers</parameter>
+        </methodparam>
+        <methodparam>
+          <type>std::uint64_t</type> <parameter> events</parameter>
+        </methodparam>
+        <methodparam>
+          <type>std::uint64_t </type> <parameter>bytes</parameter>
+        </methodparam>
+      </methodsynopsis>
+    };
+    class <classname>LogMessage</classname> {
+    public:
+        <constructorsynopsis>
+          <methodname>LogMessage</methodname>
+          <methodparam>
+            <type>zmq::socket_t&amp;</type> <parameter>socket</parameter>
+          </methodparam>
+          <methodparam>
+            <type>std::string </type> <parameter>app</parameter>
+          </methodparam>
+        </constructorsynopsis>
+        
+        <methodsynopsis>
+          <type>void </type><methodname>Log</methodname>
+          <methodparam>
+            <type>uint32_t </type><parameter>sev</parameter>
+          </methodparam>
+          <methodparam>
+            <type>std::string </type> <parameter>message</parameter>
+          </methodparam>
+        </methodsynopsis>
+    };
+    
+    class <classname>StateChange</classname>
+    {
+    public:
+        <constructorsynopsis>
+          <methodname>StateChange</methodname>
+          <methodparam>
+            <type>(zmq::socket_t&amp;</type> <parameter> socket</parameter>
+          </methodparam>
+          <methodparam>
+            <type>std::string </type><parameter>app</parameter>
+          </methodparam>
+        </constructorsynopsis>
+        <methodsynopsis>
+          <type>void </type><methodname>logChange</methodname>
+          <methodparam>
+            <type>std::string </type><parameter>leaving</parameter>
+          </methodparam>
+          <methodparam>
+            <type>std::string </type><parameter>entering</parameter>
+          </methodparam>
+        </methodsynopsis>
+    };
+public:
+       struct <structname>Header</structname> {
+            <type>uint32_t</type> <structfield>s_type</structfield>;
+            <type>uint32_t</type> <structfield>s_severity</structfield>;
+            <type>char</type>     <structfield>s_application[32]</structfield>;
+            <type>char</type>     <structfield>s_source[128]</structfield>;
+        };
+        struct <structname>RingStatIdentification</structname> {
+            <type>uint64_t</type> <structfield>s_tod</structfield>;
+            <type>char</type>     <structfield>s_ringName[]</structfield>;                // Variable length.
+        };
+        struct <structname>RingStatClient</structname> { 
+            <type>uint64_t</type>  <structfield>s_operations</structfield>; 
+            <type>uint64_t</type>  <structfield>s_bytes</structfield>;
+            <type>uint32_t</type>  <structfield>s_isProducer</structfield>;
+            <type>char</type>      <structfield>s_command[]</structfield>;  
+        };
+        struct <structname>ReadoutStatRunInfo</structname> {
+            <type>int64_t</type> <structfield>s_startTime</structfield>;
+            <type>uint32_t</type> <structfield>s_runNumber</structfield>;
+            <type>char</type>     <structfield>s_title[80]</structfield>;
+        };
+        struct <structname>ReadoutStatCounters</structname> {
+            <type>int64_t </type>   <structfield>s_tod</structfield>;
+            <type>uint64_t</type>   <structfield>s_elapsedTime</structfield>;
+            <type>uint64_t</type>   <structfield>s_triggers</structfield>;
+            <type>uint64_t</type>   <structfield>s_events</structfield>;
+            <type>uint64_t</type>   <structfield>s_bytes</structfield>;
+        };
+        struct <structname>LogMessageBody</structname> {
+            <type>int64_t</type>   <structfield>s_tod</structfield>;
+            <type>char</type>       <structfield>s_message[]</structfield>;
+        };
+        struct <structname>StateChangeBody</structname> {
+            <type>uint64_t</type> <structfield>s_tod</structfield>;
+            <type>char</type>     <structfield>s_leaving[32]</structfield>;
+            <type>char</type>     <structfield>s_entering[32]</structfield>;
+        };
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+      The <classname>CStatusDefinitions</classname> class is a container for inner
+      classes and data that know how to format status messages.  Status messages
+      are typically sent to a node resident status aggregator via a ZMQ PUSH
+      (fan in) socket.  The aggregator then serves as a proxy making those
+      messages available on its PUB socket.  Since the
+      aggregator publishes both its PUSH and PUB sockets as services via the
+      DAQ Port manager, it is possible for both providers of and subscsribers
+      to status messages to discover the needed communication endpoints.
+     </para>
+     <para>
+      For the classes contained by <classname>CStatusDefinitions</classname>,
+      see <literal>INNER CLASSES</literal> below.  For the data structure
+      definitions and constants (which are grouped in classes) see
+      <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal> below.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    INNER CLASSES
+     </title>
+     <para>
+      This section describes the message producing classes of
+      <classname>CStatusDefinitions</classname>.  Instances of these
+      clases produce multi-part messages for the system supported
+      status messsage types.
+     </para>
+     <refsect2>
+      <title>
+        <classname>CStatusDefinitions::RingStatistics</classname>
+      </title>
+      <para>
+        This class produces ring statistics messages.  These messages
+        consist of at least two message parts (a header and a ring
+        identification part).  Additionally, one client message part will
+        be produced if there is a producer to the ring and an additional
+        client message part is produced for each consumer attached to the
+        ring.
+      </para>
+      <para>
+        The class has the following constructor(s) and methods:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+              <constructorsynopsis>
+                  <methodname>RingStatistics</methodname>
+                  <methodparam>
+                    <type>zmq::socket_t&amp;</type> <parameter> socket</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <type>std::string </type><parameter>app</parameter>
+                    <initializer>"RingStatDaemon"</initializer>
+                  </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Constructs an instance of the class. <parameter>socket</parameter>
+                  is a reference to the ZMQ socket that will be used to
+                  PUSH data out of the application.  This socket must be created
+                  by the caller and hooked into the appropriate communication
+                  type.   
+                </para>
+                <para>
+                  <parameter>app</parameter> is the name of the application to
+                  appear in header message parts.  It defaulst to
+                  <literal>RingStatDaemon</literal>, which is the name
+                  of the status daemon associated with this application.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <type>void </type>
+                  <methodname>startMessage</methodname>
+                  <methodparam>
+                    <type>std::string</type> <parameter>ring</parameter>
+                  </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Starts producing records that make up a ring statistics
+                  message.  Once this is called, the user should call
+                  <methodname>addProducer</methodname> if there is a ring producer
+                  and <methodname>addConsumer</methodname> for each ring consumer.
+                  Once the entire picture of producer and consumers has been
+                  built up in this way, <methodname>endMessage</methodname>
+                  should be called to send the multipart message described
+                  by these calls.
+                </para>
+                <para>
+                  <parameter>ring</parameter> is the name of the ring
+                  for which the message is being built.
+                </para>
+            </listitem>
+        </varlistentry>      
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <type>void</type> <methodname> addProducer</methodname>
+                  <methodparam>
+                    <type>std::vector&lt;std::string&gt;</type> <parameter> command</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <type> std::uint64_t</type> <parameter> ops</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <type>std::uint64_t </type> <parameter>bytes</parameter>
+                  </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Once <methodname>beginMessage</methodname> is called, this
+                  method should be called if there is a producer.
+                  <parameter>command</parameter> is the command words that
+                  make up the producer.  Given the pid of the producer,
+                  <methodname>Os::getProcessCommand</methodname> can be used
+                  to return the command words used to start that process.
+                </para>
+                <para>
+                  <parameter>ops</parameter> and <parameter>bytes</parameter>
+                  are the number of put operations and the number of bytes put
+                  by the producer.  These values can either be gotten from the
+                  ring master (<methodname>CRingMaster::requestUsage</methodname>),
+                  or directly from the ringbuffer headers for local rings.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <type>void</type> <methodname> addConsumer</methodname>
+                  <methodparam>
+                    <type>std::vector&lt;std::string&gt;</type> <parameter> command</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <type>std::uint64_t</type> <parameter> ops</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <type>std::uint64_t</type> <parameter>bytes</parameter>
+                  </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  This method should be called once for each consumer attached
+                  to the ring.  The parameters are the same as for
+                  <methodname>addProducer</methodname>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <type>void </type> <methodname>endMessage</methodname>
+                  <void />
+                </methodsynopsis>    
+            </term>
+            <listitem>
+                <para>
+                  Once all of the message parts have been described, this  method
+                  should be called to emit them.  The result will be a
+                  header part and a ring identification part.  If <methodname>addProducer</methodname>
+                  was invoked a ring client  part with <structfield>s_isProducer</structfield>
+                  non zero will be emitted.  A ring client message part will
+                  also be  emitted for each call to <methodname>addConsumer</methodname>.
+                  For consumers, <structfield>s_isProducer</structfield> will
+                  be zero.
+                </para>
+            </listitem>
+        </varlistentry>        
+                
+        </variablelist>
+     </refsect2>
+     <refsect2>
+      <title>
+        ReadoutStatistics
+      </title>
+      <para>
+        Readout programs can emit statistics.  This class formats and emits those
+        statistics entries.  Two message parts, in addition to the header
+        can be emitted.  A run identification message part is emitted at each
+        begin run and along with trigger statistics message parts periodically.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+              <constructorsynopsis>
+                <methodname>ReadoutStatistics</methodname>
+                <methodparam>
+                  <type>(zmq::socket_t&amp; </type> <parameter>socket</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>std::string</type> <parameter> app</parameter>
+                  <initializer>"Readout"</initializer>
+                </methodparam>
+              </constructorsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                  Constructs the object.  <parameter>socket</parameter> is a ZMQ
+                  socket object.  It is the caller's responsibility to connect/bind
+                  that socket to an endpoint.   In normal use, this socket
+                  would be a PUSH socket that is connnected to the status
+                  aggregator.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                <type>void </type><methodname>beginRun</methodname>
+                <methodparam>
+                  <type>std::uint32_t</type> <parameter>runNumber</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>std::string</type> <parameter>title</parameter>
+                </methodparam>
+              </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Call this method to indicate the run number and title. This
+                  must be called at least once prior to emitting statistics.
+                  <parameter>runNumber</parameter> is the current run number
+                  and <parameter>title</parameter> the current title.
+                </para>
+                <para>
+                  Typically this method should be called at the beginning of
+                  each run.
+                </para>
+            </listitem>
+        </varlistentry>      
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                <type>void </type><methodname>emitStatistics</methodname>
+                <methodparam>
+                  <type>std::uint64_t</type> <parameter> triggers</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>std::uint64_t</type> <parameter> events</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>std::uint64_t </type> <parameter>bytes</parameter>
+                </methodparam>
+              </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Called to emit statistics about the run.  <parameter>triggers</parameter>
+                  is the number of triggers that have been processed by the
+                  Readout program.  <parameter>events</parameter> is the number
+                  of events that have been read out.  In some frameworks it is
+                  possible for a single trigger to emit more than one event.
+                  <parameter>bytes</parameter> is the  total number of bytes
+                  of event data emitted. Note that in general this is fewer
+                  than the number of bytes you will see in a ring buffer because
+                  the readout program is not aware of the ring item headers or
+                  size of the body header.
+                </para>
+            </listitem>
+        </varlistentry>      
+        </variablelist>
+     </refsect2>
+     <refsect2>
+      <title>
+        LogMessage
+      </title>
+      <para>
+        This class is responsible for emitting generic log messages.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+              <constructorsynopsis>
+                <methodname>LogMessage</methodname>
+                <methodparam>
+                  <type>zmq::socket_t&amp;</type> <parameter>socket</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>std::string </type> <parameter>app</parameter>
+                </methodparam>
+              </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Constructs an object that can be used to emit log
+                  messages.  <parameter>socket</parameter> is the ZMQ socket
+                  along which messages will be emitted.  
+                  It is the responsibility of the caller to bind/connect the
+                  socket.  In normal use, the socket should be a PUSH type socket
+                  connected to the status aggregator.
+                </para>
+                <para>
+                  <parameter>app</parameter> identifies the application.  This
+                  string will be part of the message header part and identifies
+                  the application emitting the message.
+                </para>
+                <para>
+                  Each message will
+                  consist of a header part and a log message body part.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                <type>void </type><methodname>Log</methodname>
+                <methodparam>
+                  <type>uint32_t </type><parameter>sev</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>std::string </type> <parameter>message</parameter>
+                </methodparam>
+              </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Emits a log message.  <parameter>sev</parameter> provides
+                  a message severity.  It is possible for subscribers to filter
+                  messages on the severity level.  <parameter>message</parameter>
+                  is the text of the log message.
+                </para>
+            </listitem>
+        </varlistentry>         
+      </variablelist>
+     </refsect2>
+     <refsect2>
+      <title>
+        StateChange
+      </title>
+      <para>
+        This class alows applications to emit state change status messages.
+        These messages allow applications to actively track state changes in
+        state sensitive program.
+      </para>
+      <para>
+        For the purposes of this class, a state is defined by a simple string.
+        it is up to the application to ensure that the state string is
+        sensible/legal.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+              <constructorsynopsis>
+                <methodname>StateChange</methodname>
+                <methodparam>
+                  <type>(zmq::socket_t&amp;</type> <parameter> socket</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>std::string </type><parameter>app</parameter>
+                </methodparam>
+              </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Constructs an object that can emit state change status messages.
+                  These messages consist of the standard header part and a
+                  second part that documents the time, the state being left and
+                  the state being entered.
+                </para>
+                <para>
+                  <parameter>socket</parameter> is the ZMQ socket on which
+                  messages will be sent.  Note that it is the caller's
+                  responsibility to bind/connect the socket to an endpoint.
+                  In normal use the socket will be a PUSH socket and connected
+                  to the status aggregator.
+                </para>
+                <para>
+                  The <parameter>app</parameter> parameter documents the
+                  application that is going to be emitting these messages.
+                  It is a string that indicates that the application is/does.
+                  This string will be part of the header message part.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                <type>void </type><methodname>logChange</methodname>
+                <methodparam>
+                  <type>std::string </type><parameter>leaving</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>std::string </type><parameter>entering</parameter>
+                </methodparam>
+              </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                  Logs a state change.  <parameter>leaving</parameter> is the
+                  former state while <parameter>entering</parameter> is the
+                  new state.
+                </para>
+            </listitem>
+        </varlistentry>      
+              
+
+      </variablelist>
+     </refsect2>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        Several classes and structs are exported by this class:
+      </para>
+      <refsect2>
+        <title>MessageTypes</title>
+        <para>
+          This nested class describes the types of messages.  These are the legal
+          values for the header's <structfield>s_type</structfield> member.
+          The values defined are:
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>RING_STATISTICS</varname>;        
+              </term>
+              <listitem>
+                  <para>
+                    The message provides ring statistics. 
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>EVENT_BUILDER_STATISTICS</varname>;        
+              </term>
+              <listitem>
+                  <para>
+                    The message provides event builder statistics.  Note that at
+                    the time this is being written the structure of those
+                    messages has not yet been defined.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>READOUT_STATISTICS</varname>;        
+              </term>
+              <listitem>
+                  <para>
+                    Messages of this type provide readout statistics.  These
+                    document the number of triggers a readout program has
+                    responded to as well as the number of events and bytes a
+                    readout program has emitted.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>LOG_MESSAGE</varname>;        
+              </term>
+              <listitem>
+                  <para>
+                    Messages of this type are log messages.  They have one
+                    additional message part that contains the message
+                    and timestamp.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>STATE_CHANGE</varname>;        
+              </term>
+              <listitem>
+                  <para>
+                    Messages of this type log state changes.  By state change
+                    I mean changes in either the global state of the system
+                    or the local state of a program that participates in
+                    global state transitions.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>FIRST_FREE_TYPE</varname>;        
+              </term>
+              <listitem>
+                  <para>
+                    This value documents the next type that can be assigned to
+                    system supported message types.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>FIRST_USER_TYPE</varname>;        
+              </term>
+              <listitem>
+                  <para>
+                    This value documents the first available message type for
+                    messages that are not supported by the system.  Specific
+                    applications can emit messages as long as the first
+                    part of each message is a header message part.  Message
+                    types can be assigned by these applications as long as
+                    they have a value greater than or equal to
+                    <literal>FIRST_USER_TYPE</literal>.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+      </refsect2>
+      <refsect2>
+        <title>SeverityLevels</title>
+        <para>
+          The <classname>SeverityLevels</classname> contains constant definitions
+          for values that can be placed in the <structfield>s_severity</structfield>
+          field of a header message.
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>DEBUG</varname>;
+              </term>
+              <listitem>
+                  <para>
+                    Severity indicates the message is for debugging purposes.
+                    Messages of this sort are usually emitted to allow the actions
+                    of a program to be remotely viewed.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>INFO</varname>;
+              </term>
+              <listitem>
+                  <para>
+                    Message is informational in nature.  For example, statistics.
+                    
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>WARNING</varname>;
+              </term>
+              <listitem>
+                  <para>
+                    Message warns that something is wrong but recovered.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>SEVERE</varname>;
+              </term>
+              <listitem>
+                  <para>
+                    Message indicates a severe problem that could  not be recovered.
+                    Normally messages of this sort indicate an application exit.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>static const std::uint32_t</type> <varname>DEFECT</varname>;
+              </term>
+              <listitem>
+                  <para>
+                    Message indicates a software error has been detected.  This
+                    is similar to <literal>SEVERE</literal>, however the nature
+                    of the problem is isolated to a presume programming error.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+      </refsect2>
+      <refsect2>
+        <title>Data structures.</title>
+        <para>
+          Several data structures are defined within the class.  These structures
+          describe the form of message parts that are sent for supported message
+          types.
+        </para>
+        <para>
+          All messages will begin with a <structname>Header</structname> message
+          part.  This message part defines the message type, severty and provides
+          information about the origin of the message.  It contains the
+          following fields:
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>uint32_t</type> <structfield>s_type</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    Contains the message type.  This should normally
+                    be a value from <classname>MessageTypes</classname>.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>uint32_t</type> <structfield>s_severity</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    Provides the message severity.  This should normally
+                    be a value fromt he <classname>SeverityLevels</classname>
+                    class.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>char</type>     <structfield>s_application[32]</structfield>;
+              </term>
+              <listitem>
+                  <para>
+                    A text string that identifies the application.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>char</type>     <structfield>s_source[128]</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    A text field that is normally the first 127 characters of
+                    the fully qualified domain name of the system from which the
+                    message was emitted.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>
+          Ring statistics messages contain a sequence of message parts in addition
+          to the header.  All messages contain a <structname>RingStatIdentification</structname>
+          message that immediately follows the <structname>Header</structname>.
+          Following the <structname>RingStateIdentification</structname>
+          message part will be zero  or more <structname>RingStateClient</structname>
+          message parts. 
+        </para>
+        <para>
+          If the ring has a producer program, one of the
+          <structname>RingStateClient</structname> message parts will have
+          <structfield>s_isProducer</structfield> non-zero indicating it
+          describes the producer.  All others will have that field
+          set to zero indicating they describe consumers.
+        </para>
+        <para>
+          The <structname>RingStatIdentification</structname> message part
+          has the following fields:
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>uint64_t</type> <structfield>s_tod</structfield>   
+              </term>
+              <listitem>
+                  <para>
+                    A UNIX timestamp value.  This can be turned into a
+                    human readable time via the
+                    <function>ctime(3)</function> function.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>char</type>     <structfield>s_ringName[]</structfield>
+              </term>
+              <listitem>
+                  <para>
+                    This is a variable length null terminated field that contains
+                    the name of the ring for which statistics are being emitted.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>
+          Note that if the ring has no producer and no consumers, the
+          <structname>RingStatIdentification</structname> message part is
+          the last part in the message.  If not the remainder of the message
+          will be made up of <structname>RingStatClient</structname> message
+          parts.  These are structs with the following fields:
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>uint64_t</type>  <structfield>s_operations</structfield>;     
+              </term>
+              <listitem>
+                  <para>
+                    The number of operations performed by that client.  For
+                    producers, this is the number of put operations. For consumers,
+                    the number of get operations.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>uint64_t</type>  <structfield>s_bytes</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    The number of bytes transferred from (producer) or to
+                    (consumers) the client via the ring buffer.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>uint32_t</type>  <structfield>s_isProducer</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    Non zero if the client is the ring producer, zero if
+                    a consumer.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>char</type>      <structfield>s_command[]</structfield>;      
+              </term>
+              <listitem>
+                  <para>
+                    The command that runs this consumer.  This is a sequence
+                    of null terminated strings.  The sequence itself is terminated
+                    by two consecutive nulls.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>
+          Readout programs can emit status messages that provide statistics that
+          track their responses to triggers and the data they emit as a result of
+          those triggers.   Each readout statistics message contains one or
+          two additional message parts.
+        </para>
+        <para>
+          All readout statistics messages have as a second part a
+          <structname>ReadoutStatRunInfo</structname> message part.
+          This message part describes the run that was most recently started.
+          It may also be emitted at the beginning of a new run.
+        </para>
+        <para>
+          The <structname>ReadoutStatRunInfo</structname> message part has
+          the following fields:
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>int64_t</type> <structfield>s_startTime</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    A UNIX timestamp that indicates when the current run started.
+                    This can be made human readable via the
+                    <function>ctime(3)</function> function.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>uint32_t</type> <structfield>s_runNumber</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    The number of the current run.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>char</type>     <structfield>s_title[80]</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    Title of the current run.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>
+          In addition to a <structname>ReadoutStatRunInfo</structname> message
+          part, an addtional <structname>ReadoutStatCounters</structname>
+          message part may be emitted.  This message part contains
+          statistics that show what the Readout program has been doing in the
+          current run.
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>int64_t </type>   <structfield>s_tod</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    A UNIX timestamp of the time at which this message part was
+                    created. This is distinct from the <structfield>s_startTime</structfield>
+                    described above which is the time at which the run information was
+                    provided.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>uint64_t</type>   <structfield>s_elapsedTime</structfield>;
+              </term>
+              <listitem>
+                  <para>
+                    Number of seconds into the run at which this message
+                    part was emitted.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>uint64_t</type>   <structfield>s_triggers</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    This provides the number of triggers the readout program
+                    has responded to.  Not from below that there's no assumption
+                    that each trigger results in an event or for that matter that
+                    only a single event is produced for a trigger.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>uint64_t</type>   <structfield>s_events</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    This provides the number of events that have been emitted
+                    by this readout program.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>uint64_t</type>   <structfield>s_bytes</structfield>;      
+              </term>
+              <listitem>
+                  <para>
+                    Provides the number of bytes of event data the readout
+                    program has produced.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>
+          The status message distribution system doubles as a logging subsystem.
+          Log messages have a header and a <structfield>LogMessageBody</structfield>.
+          Log recorders/displayers can subscribe to log message types.
+          The <structfield>LogMessageBody</structfield> has the following fields.
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>int64_t</type>   <structfield>s_tod</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    Unix timestamp of the time at which the message was
+                    generated.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>char</type>       <structfield>s_message[]</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    The null terminated message string.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>
+          The global state system is used to change the state of the
+          programs in the system in such a way as to ready them, and begin/end/pause/resume
+          data taking runs.  State sensitive programs can document their state
+          changes via status messages.
+        </para>
+        <para>
+          A state change message provides a <structname>StateChangeBody</structname>
+          in addition to the header.  This body contains the following fields:
+        </para>
+        <variablelist>
+          <varlistentry>
+              <term>
+                <type>uint64_t</type> <structfield>s_tod</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    A Unix timestamp that provides the time at which the state
+                    change occured.l
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>char</type>     <structfield>s_leaving[32]</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    The name of the prior state.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term>
+                <type>char</type>     <structfield>s_entering[32]</structfield>;    
+              </term>
+              <listitem>
+                  <para>
+                    Name of the new current state.
+                  </para>
+              </listitem>
+          </varlistentry>
+        </variablelist>
+      </refsect2>
+   </refsect1>
+</refentry>     
+
+<refentry id="daq3_CStatusSubscription">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='daq3_CStatusSubscription_title'>CStatusSubscription</refentrytitle>
+   <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>CStatusSubscription</refname>
+   <refpurpose>Manage subscriptions to status messages</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CStatusSubscription&gt;
+     class <ooclass><classname>CStatusSubscription</classname></ooclass>
+{
+public:
+    typedef std::list&lt;std::pair&lt;size_t, CStatusDefinitions::Header&gt; &gt; Subscription;
+    typedef Subscription::iterator                        SubscriptionIterator;
+    
+    typedef std::list&lt;uint32_t&gt;                     RequestedTypes;
+    typedef std::list&lt;uint32_t&gt;                     RequestedSeverities;
+public:
+    <constructorsynopsis>
+      <methodname>
+        CStatusSubscription    
+      </methodname>
+      <methodparam>
+        <type>zmq::socket_t&amp;</type> <parameter> sock</parameter>
+      </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+      <type>unsigned</type> <methodname> subscribe</methodname>
+      <methodparam>
+        <modifier>const</modifier><type>RequestedTypes&amp;</type>
+        <parameter> types</parameter>
+      </methodparam>
+      <methodparam>
+        <modifier>const </modifier><type>RequestedSeverities&amp; </type>
+        <parameter>sev</parameter>
+      </methodparam>
+      <methodparam>
+        <modifier>const </modifier><type>char*</type>
+        <parameter> app</parameter><initializer>nullptr</initializer>
+      </methodparam>
+      <methodparam>
+        <modifier>const </modifier><type>char* </type>
+        <parameter>source</parameter><initializer>nullptr</initializer>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <type>unsigned </type><methodname>subscribe</methodname>
+      <methodparam>
+        <type>Subscription&amp; </type><parameter>sub</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <type>void </type><methodname>unsubscribe</methodname>
+      <methodparam>
+        <type>unsigned</type> <parameter>sub</parameter>
+      </methodparam>
+    </methodsynopsis>   
+    
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    The ZMQ communications middle-ware on top of which the status message system
+    is built provides the ability to set up publish/subscribe systems.  The
+    per node status message aggregator and the multi-node aggregator do exactly that.
+    The <classname>CStatusSubScription</classname> class provides a simplified interface
+    for constructing and managing subscriptions to this (X)PUB/(X)SUB system.
+   </para>
+   <para>
+    The sort of subscriptions that are allowed are constrained by the fact that
+    a suscription specifies the initial part of a message to match.  Furthermore,
+    only acceptance is allowed, that is once a match has occured, the state of any
+    other subscriptions does not matter, the messge is accepted.
+   </para>
+   <para>
+    Having constructed an object of this class, in general you will invoke
+    <methodname>subscribe</methodname> one or more times to create your
+    application's set of subscriptions. The <methodname>subscribe</methodname>
+    methods return an integer which can be used to cancel a subscription vai
+    a call to <methodname>unsubscribe</methodname>.
+    Destruction of the object, furthermore, unsubscribes from all of the existing
+    subscriptions.
+   </para>
+  </refsect1>
+  <refsect1>
+   <title>
+  METHODS
+   </title>
+   <variablelist>
+    <varlistentry>
+        <term>
+          <constructorsynopsis>
+            <methodname>
+              CStatusSubscription    
+            </methodname>
+            <methodparam>
+              <type>zmq::socket_t&amp;</type> <parameter> sock</parameter>
+            </methodparam>
+          </constructorsynopsis>
+        </term>
+        <listitem>
+            <para>
+              Constructor.   The <parameter>sock</parameter> parameter is a
+              ZMQ socket that is administered by the caller.  This must be a
+              SUB socket.  It usually is connected to either a local message
+              aggregator or a multi-node messasge aggregator.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          <methodsynopsis>
+            <type>unsigned</type> <methodname> subscribe</methodname>
+            <methodparam>
+              <modifier>const</modifier><type>RequestedTypes&amp;</type>
+              <parameter> types</parameter>
+            </methodparam>
+            <methodparam>
+              <modifier>const </modifier><type>RequestedSeverities&amp; </type>
+              <parameter>sev</parameter>
+            </methodparam>
+            <methodparam>
+              <modifier>const </modifier><type>char*</type>
+              <parameter> app</parameter><initializer>nullptr</initializer>
+            </methodparam>
+            <methodparam>
+              <modifier>const </modifier><type>char* </type>
+              <parameter>source</parameter><initializer>nullptr</initializer>
+            </methodparam>
+          </methodsynopsis>
+        </term>
+        <listitem>
+            <para>
+              Adds a subscription to the set of subscriptions on the
+              socket used to construct the object.
+              <parameter>types</parameter> is the list of types that
+              will be accepted by this socket.  If this list is empty,
+              all types will be subscribed.    <parameter>sev</parameter>
+              is the list of severities that will be subscribed.  If empty
+              all severities will be subscribed.  If
+              <parameter>app</parameter> is present, specifies the application
+              from which messages will be delivered, otherwise messages will
+              be accepted from all applications.
+              If <parameter>source</parameter> is supplied, <parameter>app</parameter>
+              must also be supplied and not null.  Source specifies the fully
+              qualified domain name of the system from which messages will
+              be accepted.  If not supplied or null, messages will be accepted
+              from all sources.
+            </para>
+            <para>
+              Note that the logic of this method is to transform this
+              subscription specification into one or more <type>Subscription</type>
+              objects and then invoke the <parameter>subscribe</parameter> method
+              described below.
+            </para>
+            <para>
+              The method returns an integer token.  This token is required to
+              unsubscribe (remove an existing subscription).  Note that
+              multiple subscriptions are cumulative
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          <methodsynopsis>
+            <type>unsigned </type><methodname>subscribe</methodname>
+            <methodparam>
+              <type>Subscription&amp; </type><parameter>sub</parameter>
+            </methodparam>
+          </methodsynopsis>
+        </term>
+        <listitem>
+            <para>
+               <parameter>sub</parameter> is a list of pairs.  The second
+               element of each pair is a <classname>CStatusDefinitions::Header</classname>
+               struct that is at least partially filled in.  The first
+               element of each pair is the number of bytes that should
+               be compared from that header against incoming messages.
+               In summary, this is a list of ZMQ level specifications for
+               subscriptions
+            </para>
+            <para>
+              The method creates a subscription for each element of the
+              <parameter>sub</parameter> list. The return value is a
+              subscription token that can be used to remove all of the
+              subscriptions specified by this list.  
+            </para>
+            <para>
+              Note that multiple subscriptions are cumulative so if greater
+              granularity is desired in the ability to remove subscriptions,
+              the actual subscriptions can be divided across several calls.
+            </para>
+        </listitem>
+    </varlistentry>      
+    <varlistentry>
+        <term>
+          <methodsynopsis>
+            <type>void </type><methodname>unsubscribe</methodname>
+            <methodparam>
+              <type>unsigned</type> <parameter>sub</parameter>
+            </methodparam>
+          </methodsynopsis>   
+        </term>
+        <listitem>
+            <para>
+              Given a subscription token; <parameter>sub</parameter> returned
+              from a prior call to <methodname>subscribe</methodname> (either
+              overload), the ZMQ subscriptions associated with that token are
+              removed.  Once this method executes, the token is invalid and using
+              it in a subsequent call to e.g. <methodname>usubscribe</methodname>
+              will result in an error.
+            </para>
+        </listitem>
+    </varlistentry>      
+          
+
+   </variablelist>
+  </refsect1>
+</refentry>     
+
+<refentry id="daq3_CPublishRingStatistics">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='daq3_CPublishRingStatistics_title'>CPublishRingStatistics</refentrytitle>
+   <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>CPublishRingStatistics</refname>
+   <refpurpose>Class to publish ring buffer statistics messages</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CPublishRingStatistics.h&gt;
+     class <ooclass><classname>CPublishRingStatistics</classname></ooclass>
+{
+public:
+    <constructorsynopsis>
+      <methodname>CPublishRingStatistics</methodname>
+      <methodparam>
+        <type>zmq::socket_t&amp;</type> <parameter>socket</parameter>
+      </methodparam>
+      <methodparam>
+        <type>std::string </type><parameter>appName</parameter>
+      </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+      <type>void </type><methodname>operator()</methodname>
+      <void />
+    </methodsynopsis>
+  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    Provides a  high level interface for publishing ring statistics.  Once
+    constructed, invoking the function call operator (<methodname>operator()</methodname>)
+    will collect the statistics from all local rings and emit a sequence of
+    <literal>RING_STATISTICS</literal> messages that describe the rings and
+    statistics for producers and consumers of those rings.
+   </para>
+   <para>
+    Construction provides a ZMQ <parameter>socket</parameter> which is either
+    connected or bound to some ZMQ endpoint by the caller.  In normal use,
+    <parameter>socket</parameter> would be connected as a PUSH socket to the
+    local host's message aggregator's PULL Port.
+   </para>
+  </refsect1>
+</refentry>     
+<!-- /manpage -->
+
+<!-- manpage 3tcl -->
+
+      <refentry id="tcl3_RingStatistics">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_RingStatistics_title'>RingStatistics</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>RingStatistics</refname>
+           <refpurpose>Tcl command to produce ring statistics messages.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require statusMessage
+        </command>
+        <command>
+set <replaceable>ringstats</replaceable> [RingStatistics create <replaceable>uri ?appname?</replaceable>]
+        </command>
+        <command>
+RingStatistics destroy <replaceable>$ringstats</replaceable>
+        </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+          <command>
+$ringstats startMessage <replaceable>ring-name</replaceable>
+          </command>
+          <command>
+$ringstats addProducer <replaceable>command-list operations bytes</replaceable>
+          </command>
+          <command>
+$ringstats addConsumer <replaceable>command-list operations bytes</replaceable>
+          </command>
+          <command>
+$ringstats endMessage            
+          </command>
+        </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The <command>RingStatistics</command> command provides an object
+            based interface to the underlying C++ class that produces ring
+            statistics messages. <command>RingStatistics</command> itself
+            has subcommands, <command>create</command> which creates a new object
+            and <command>destroy</command> which destroys an existing object.
+           </para>
+           <para>
+             The <command>RingStatistics create</command> creates a new
+             ring statistics object.  The mandatory <replaceable>uri</replaceable>
+             parameter describes the end point to which the object is connected
+             via a ZMQ PUSH socket.  The optional <parameter>appname</parameter>
+             is the name of the application that will be associated with
+             the messages produced.  If not supplied the application name defaults
+             to <literal>RingStatDaemon</literal>.  The command returns a new
+             command ensemble name.
+           </para>
+           <para>
+            The command <command>RingStatistics destroy</command> takes as a
+            parameter a command ensemble name that was created by the
+            <command>RingStatistics create</command> command and destroys it
+            and all resources associated with it.  Once destroyed, the command
+            ensemble is no longer a valid Tcl command.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              RingStatistics objects
+           </title>
+           <para>
+            The <command>RingStatistics create</command> command creates a new
+            command ensemble that can be used to emit ring statistics messages.
+           </para>
+           <para>
+            To send a statistics message, you must first invoke the
+            <command>startMessage</command> subcommand.  This can then be followed
+            by zero or 1 <command>addProducer</command> invocations and zero or more
+            <command>addConsumer</command> subcommands.  Once the ring statistics
+            are fully described, <command>endMessage</command> actually sends the
+            multipart message.
+           </para>
+           <para>
+            This command ensemble has the following subcommands:
+           </para>
+           <variablelist>
+              <varlistentry>
+                  <term>
+                    <command>startMessage <replaceable>ring</replaceable></command>
+                  </term>
+                  <listitem>
+                      <para>
+                        Begins constructing a message for the ring buffer
+                        <parameter>ring</parameter>.  The
+                        <command>endMessage</command> subcommand actually
+                        sends theconstructed message.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                    <command>addProducer <replaceable>command-list ops bytes</replaceable></command>
+                  </term>
+                  <listitem>
+                      <para>
+                        Adds statistics for a producer to the message.  This
+                        can be invoked at most once as each ring can only have
+                        one producer.  
+                      </para>
+                      <para>
+                        <parameter>command-list</parameter> is a list of the
+                        words that make up the command being run as the producer.
+                        <parameter>ops</parameter> is the number of put operations
+                        the producer has perfromed. <parameter>bytes</parameter>
+                        is the number of bytes the producer has put into the
+                        ring.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                    <command>addConsumer <replaceable>command-list ops bytes</replaceable></command>
+                  </term>
+                  <listitem>
+                      <para>
+                        Adds statistics for a consumer to the message.  As many
+                        consumers as desired can be added to the message.
+                      </para>
+                      <para>
+                        <parameter>command-list</parameter> is a list of command
+                        words that make up the consumer process.  <parameter>ops</parameter>
+                        is the number of get operations the consumer performed.
+                        <parameter>bytes</parameter> is the number of bytes
+                        those get operations retrieved from the ring.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                    <command>endMessage</command>
+                  </term>
+                  <listitem>
+                      <para>
+                        This subcommand indicates the message has been
+                        completely specified.  The message parts are assembled
+                        and sent out.
+                      </para>
+                  </listitem>
+              </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+      <refentry id="tcl3_ReadoutStatistics">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id ='tcl3_ReadoutStatistics_title'>ReadoutStatistics</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>ReadoutStatistics</refname>
+           <refpurpose>Tcl commands to emit readout statistics.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+        <command>
+package require statusMessage
+        </command>
+        <command>
+set <replaceable>cmd</replaceable> [ReadoutStatistics create <replaceable>uri ?appname?</replaceable>
+        </command>
+        <command>
+ReadoutStatistics destroy <replaceable>cmd</replaceable>
+        </command>
+          </cmdsynopsis>
+
+        <cmdsynopsis>
+          <command>
+<replaceable>cmd</replaceable> beginRun <replaceable>run-num title</replaceable>
+          </command>
+          <command>
+<replaceable>cmd</replaceable> emitStatistics <replaceable>triggers events bytes</replaceable>
+          </command>
+        </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The <command>ReadoutStatistics</command> command provides an object
+            based interface to the underlying C++ libraries that emit
+            readout statistics messages.
+            <command>ReadoutStatistics create</command> creates a new Readout
+            statistics object/command ensemble while
+            <command>ReadoutStatistics destroy</command> destroys an existing
+            Readout statistics object.
+           </para>
+           <para>
+            <command>ReadoutStatistics create</command> returns the name of a
+             new command ensemble.   The <parameter>uri</parameter> parameter
+             describes the endpoint to which a ZMQ PUSH socket will be
+             connected in order to emit messages.  The optional
+             <parameter>appname</parameter> parameter provides an application
+             name used to identify the program that emits these messages. If
+             <parameter>appname</parameter> is not provided, the application name
+             defaults to <literal>Readout</literal>.
+           </para>
+           <para>
+            <command>ReadoutStatistics destroy</command> destroys an existing
+            object <parameter>cmd</parameter> returned by
+            <command>ReadoutStatistics create</command>.  Once destroyed the
+            command no longer exists.  All resources used by the command
+            (e.g. the ZMQ socket) are reclaimed.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              Object Command
+           </title>
+           <para>
+            The <command>ReadoutStatistics create</command> command produces a new
+            command ensemble.  This command ensemble can produce Readout Statistics
+            messages. These messages can have either two or three message
+            segments depending on which subcommand is invoked.  The first subcommand
+            that must be invoked is <command>beginRun</command> which establishes
+            the run information and sends a message containing that run information.
+           </para>
+           <para>
+            The subcommands for a readout statistics command ensemble are:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term>
+                  <command>beginRun <replaceable>run-number title</replaceable></command>
+                </term>
+                <listitem>
+                    <para>
+                      Provides the run number and title for a run.   A two
+                      part message is emitted consisting of a header and readout
+                      stat run information part.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>
+                    emitStatistics <replaceable>triggers events bytes</replaceable>
+                  </command>
+                </term>
+                <listitem>
+                    <para>
+                      Emits a three part message consisting of a header, a
+                      readout stat run information part containing the
+                      run identification from the most recent invocation
+                      of <command>beginRun</command>, and a
+                      readout statistics counter part.  
+                    </para>
+                    <para>
+                      <parameter>triggers</parameter> is the number of triggers
+                      the program has responded to.  <parameter>events</parameter>
+                      is the number of events the program has emitted.  Note
+                      that for some readout frameworks, in theory a trigger
+                      could be supressed by software or result in more than one
+                      event, so this value does not need to be the same
+                      as the <parameter>triggers</parameter> parameter.
+                      <parameter>bytes</parameter> is the number of bytes
+                      of event data that were emitted.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+      <refentry id="tcl3_logmessage">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_logmessage_title'>LogMessage</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>LogMessagse</refname>
+           <refpurpose>Emit log messages.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+package require statusMessage
+        </command>
+          <command>
+set <replaceable>cmd</replaceable> LogMessage create <replaceable>uri appname</replaceable>
+          </command>
+          <command>
+LogMessage destroy <replaceable>$cmd</replaceable>
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>$cmd</replaceable> Log <replaceable>severity message-text</replaceable>
+            </command>
+          </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Provides an object based wrapping of the C++ classes that produce
+            log messages.   Log messages are just status messages with a text
+            string.  The <command>LogMessage create</command> command creates
+            an object capable of emitting log messages and
+            <command>LogMessage destroy</command> destroys an existing object.
+           </para>
+           <para>
+            The <command>LogMessage create</command> command creates a new
+            message object.  <parameter>uri</parameter> specifies the
+            endpoint to which messages will be sent on an underlying ZMQ PUSH
+            socket.  <parameter>appname</parameter> is the name of the application
+            to be associated with the messages.  The name of the new command ensemble
+            is returned as the command's result.
+           </para>
+           <para>
+            The <command>LogMessage destroy</command> destroys an existing
+            log message object and releases all resources associated with the
+            object.  The <parameter>$cmd</parameter> parameter must be the name
+            of a command returnd by an earlier invocation of
+            <parameter>LogMessage create</parameter>.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              Object subcommands.
+           </title>
+           <para>
+            The <command>LogMessage create</command> creates a log message object
+            that is represented in Tcl as a command ensemble.  This command
+            ensemble has the following subcommands:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term><command>Log severity message</command></term>
+                <listitem>
+                    <para>
+                      Emits a log message.   <parameter>severity</parameter>
+                      provides the message severity and is one of
+                      <literal>INFO</literal>,
+                      <literal>DEBUG</literal>,
+                      <literal>WARNING</literal>,
+                      <literal>SEVERE</literal>,
+                      <literal>DEFECT</literal>.
+                    </para>
+                    <para>
+                      <parameter>message</parameter> is a text string that
+                      is the message that will be put in the message field of
+                      the Log message body.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+      <refentry id="tcl3_StateChange">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_StateChange_title'>StateChange</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>StateChange</refname>
+           <refpurpose>Tcl bindingss to create state change status messages</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+package require statusMessage
+        </command>
+          <command>
+set <replaceable>cmd</replaceable> [StateChange create <replaceable>uri app</replaceable>
+          </command>
+          <command>
+StateChange destroy <replaceable>$uri</replaceable>
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>$cmd</replaceable> logChange <replaceable>from-state to-state</replaceable>
+            </command>
+          </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The <command>StateChange</command> command provides an object based
+            binding to the underlying C++ classes responsible for emitting
+            state change status messages.  The <command>create</command>
+            subcommand creates an object that can then be used to emit
+            state change messages while the <command>destroy</command>
+            subcommand destroys existing objects of this sort.
+           </para>
+           <para>
+            <command>StateChange create</command> creates a new command
+            ensemlbe, returning the name of that command as its result.
+            The <parameter>uri</parameter> parameter specifies the ZMQ endpoint
+            to which the PUSH socket that will carry messages will be connected.
+            Usually this should be the URI of the status message aggregator's
+            PULL service.  <parameter>app</parameter> is the name of the
+            application that will be carried on messages sent through this
+            object.
+           </para>
+           <para>
+            <command>StateChange destroy</command> destroys the command ensemble
+            created by an invocation to <command>StateChange create</command>.
+            All resources used by that command ensemble are released.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <para>
+            The <command>StateChange create</command> command creates a new
+            command ensemble with the following subcommands.
+           </para>
+           <variablelist>
+              <varlistentry>
+                  <term>
+                    <command>logChange old-state new-state</command>
+                  </term>
+                  <listitem>
+                      <para>
+                        Sends a state change status message.
+                        <parameter>old-state</parameter> is the state that
+                        is being left and <parameter>new-state</parameter>
+                        is the state being entered.
+                      </para>
+                  </listitem>
+              </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
+      <refentry id="tcl3_statusSubscription">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_statusSubscription_title'>statusSubscription</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>statusSubscription</refname>
+           <refpurpose>Manage subscriptions to the status system.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require statusMessage
+        </command>
+        <command>
+set <replaceable>cmd</replaceable> [statusSubscription create <replaceable>uri subscription-list</replaceable>]
+        </command>
+        <command>
+statusSubscription destroy <replaceable>$cmd</replaceable>
+        </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+          <command>
+<replaceable>$cmd</replaceable> receive            
+          </command>
+          <command>
+<replaceable>$cmd</replaceable> onMessage <replaceable>?script?</replaceable>
+          </command>
+        </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The <command>statusSubscription</command> command provides an object
+            based wrapping of the C++ API for subscribing to subsets of
+            status messages.  The command is an ensemble.
+           </para>
+           <para>
+            The <command>create</command> command creates a new subscription
+            for the publisher defined by <parameter>uri</parameter>.
+            <parameter>subscription-list</parameter> is a list of subscription
+            specifications.  See <literal>SPECIFYING SUBSCRIPTIONS</literal>
+            below for more information about the contents of this list.
+            The result of this command is a new command ensemble.  See
+            <literal>SUBSCRIPTION SUBCOMMANDS</literal> for information
+            about the subcommands this new ensemble supports.
+           </para>
+           <para>
+            The <command>destroy</command> command destroys the command ensemble
+            <parameter>$cmd</parameter> created by <command>create</command> above.
+            All resources associated with the command are destroyed.  If a
+            message handler was associated with the command that message handler
+            will no longer be invoked.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              SUBSCRIPTION SUBCOMMANDS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>
+                  <command>$cmd receive</command>
+                </term>
+                <listitem>
+                    <para>
+                      Receives the next message that satisfies the subscription
+                      from the URI.  If no message is avaialble, blocks until
+                      one is.  The result is a list.  Each list element is a
+                      binary byte array that contains a message segment.
+                    </para>
+                    <para>
+                      The <command>binary scan</command> command can be used
+                      to decode the message segments into Tcl usable objects.
+                      See the C++ header <filename>CStatusMessage.h</filename>
+                      for a description of the possible structures of the
+                      message types.  Note that the first element of the list
+                      will be a Header message part.  The contents of that
+                      tell you how to decode the remaining parts.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <command>$cmd onMessage ?script?</command>
+                </term>
+                <listitem>
+                    <para>
+                      The use of this command requires application that have and
+                      use an event loop (e.g. Tk applications of scripts that use
+                      <command>vwait</command>).  
+                    </para>
+                    <para>
+                      If the <parameter>script</parameter> parameter is not supplied,
+                      the return value of this command is the currently established
+                      script (an empty string if none is established).  If the
+                      <parameter>script</parameter> is not an empty string,
+                      whenever a subscription is matched, the script is called
+                      with the message (see <command>receive</command>) appended
+                      to the script.  If the script is an empty string any
+                      existing message handling script is removed.
+                    </para>
+                    <para>
+                      Note that message handling is performed in a
+                      <firstterm>message pump thread</firstterm>.  This thread
+                      detects the presence of a message in the socket queue and
+                      queues events to the event loop of the main thread.
+                      It is therefore necessary for the application to use an event
+                      loop.
+                    </para>
+                    <para>
+                      The message pump thread is transparently started and stopped
+                      as needed by the command logic.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+        <refsect1>
+          <title>SPECIFYING SUBSCRIPTIONS</title>
+          <para>
+            When creating a subscription instance a list of subscriptions
+            must be provided.  If the list is empty, all messages will be received.
+            If the list is non-empty, each element of the list describes a
+            subscription.
+          </para>
+          <para>
+            Subscriptions consist of between two and four elements (inclusive).
+            Elements that are not present will match all values.  The
+            elements of the list are:
+          </para>
+          <variablelist>
+            <varlistentry>
+                <term>
+                  Message types
+                </term>
+                <listitem>
+                    <para>
+                      A list of valid message types. If the list is
+                      empty, all message types are received.
+                    </para>
+                    <para>
+                      List elements are drawn from the following strings:
+                      <literal>RING_STATISTICS</literal>,
+                      <literal>EVENT_BUILDER_STATISTICS</literal>,
+                      <literal>READOUT_STATISTICS</literal>,
+                      <literal>LOG_MESSAGE</literal>, and
+                      <literal>STATE_CHANGE</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Severities</term>
+                <listitem>
+                    <para>
+                      List of severity values to match.  If empty all
+                      severities are accepted.  Severities are
+                      drawn from the following strings:
+                      <literal>DEBUG</literal>,
+                      <literal>INFO</literal>,
+                      <literal>WARNING</literal>,
+                      <literal>SEVERE</literal>, or
+                      <literal>DEFECT</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  Application
+                </term>
+                <listitem>
+                    <para>
+                      If provided this is the name of the application for
+                      which we will receive messages.   If missing all
+                      applications will be received.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  Source
+                </term>
+                <listitem>
+                    <para>
+                      If provided this is the fully qualified domain name
+                      of the system from which we want to receive messages.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+        </refsect1>
+      </refentry>
+
+
+<!-- /manpage -->
+
+<!-- manpage 3python -->
+<refentry id="python3_RingStatistics">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='python3_RingStatistics_title'>RingStatistics</refentrytitle>
+   <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>RingStatistics</refname>
+   <refpurpose>Python bindings to the RingStatistics class</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nscldaq.status import statusmessages
+
+message = statusmessages.RingStatistics(uri[, app])
+message.startMessage(ringName)
+message.addProducer(producerCommand, puts, bytes)
+message.addConsumer(consumerCommand, gets, bytes)
+message.endMessage()
+
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    This class wraps the C++ code that emits status messages in a Python binding.
+    To use this create a <classname>RingStatistics</classname> object. Messages
+    are emitted by first invoking <methodname>startMessage</methodname> and
+    then invoking <methodname>addProducer</methodname> at least once followed
+    by an invocation of <methodname>addConsumer</methodname> for each consumer
+    attached to the ring.   The message built up in this manner will be
+    sent when <methodname>endMessage</methodname> is invoked.
+   </para>
+  </refsect1>
+  <refsect1>
+   <title>
+  METHODS
+   </title>
+   <variablelist>
+    <varlistentry>
+        <term>message = statusmessages.RingStatistics(uri[, app])</term>
+        <listitem>
+            <para>
+              Constructs a <classname>RingStatistics</classname> object.
+              <parameter>uri</parameter> is the URI to which the
+              resulting ZMQ PUSH socket will be connected.  The optional
+              <parameter>app</parameter> parameter is the optional application
+              name which defaults to <literal>RingStatDaemon</literal> if not
+              provided.
+            </para>
+            <para>
+              Normally the URI is the PULL socket of the status message
+              aggregator for the node in which the object has been
+              created.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          <methodname>startMessage(ring)</methodname>
+        </term>
+        <listitem>
+            <para>
+              Begins constructing a status message for  the <parameter>ring</parameter>
+              ringbuffer.    Once invoked, <methodname>addProducer</methodname>
+              and <methodname>addConsumer</methodname> are used to add
+              message parts for any producer and consumers connected to the
+              ringbuffer.  <methodname>endMessage</methodname> terminates
+              construction of the message and sends the appropriate message parts
+              along the ZMQ socket encapsulated by this object.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          <methodname>addProducer(producerCommand, puts, bytes)</methodname>
+        </term>
+        <listitem>
+            <para>
+              Called to describe the producer and provide its statistics.  This
+              will result in a message part containing the producer command
+              and its statistics.
+            </para>
+            <para>
+              <parameter>producerCommand</parameter> is an iterable whose members are the words of the
+              command used to start the producer program.
+            </para>
+            <para>
+              <parameter>puts</parameter> is the  number of put operations
+              the producer has performed. <parameter>bytes</parameter>
+              is the number of bytes of data the producer put in the ring.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          <methodname>addConsumer(consumerCommand, gets, bytes)</methodname>
+        </term>
+        <listitem>
+            <para>
+              Adds a consumer and its statistics to the message.  This
+              results in an additional message part that describes the consumer
+              and its statistics.
+            </para>
+            <para>
+              <parameter>consumerCommand</parameter> is an iterable whose
+              members are the command words of the command used
+              to start the consumer program.
+            </para>
+            <para>
+              <parameter>gets</parameter> are the number of get operations the
+              consumer has performed.  <parameter>bytes</parameter> are the
+              number of bytes the consumer has retrieved from the ring.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          <methodname>endMessage()</methodname>
+        </term>
+        <listitem>
+            <para>
+              Indicates to the object that the message has been completely
+              described.  The appropriate message parts are constructed and
+              sent along the ZMQ socket to the peer.
+            </para>
+        </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect1>
+
+</refentry>
+
+<refentry id="python3_ReadoutStatistics">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='python3_ReadoutStatistics_title'>ReadoutStatistics</refentrytitle>
+   <manvolnum>3</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>ReadoutStatistics</refname>
+   <refpurpose>Python bindings for readout statistics message class.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nscldaq.status import statusmessages
+
+message = statusMessages.ReadoutStatistics(uri[, app])
+message.beginRun(runNumber, title)
+message.emitStatistics(triggers, events, bytes)
+
+  </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    This class encapsulates the underlying C++ API for producing readout
+    statistics messages.   Readout statistics messages describe the activity
+    of readout programs.  Once an object has been instantiated, you must
+    invoke <methodname>beginRun</methodname> as the first method you call.
+    This establishes the run number and title and sends out a two part
+    message containing the header and run identification.
+   </para>
+   <para>
+    Subsequently, you may call <methodname>emitStatistics</methodname> to send
+    a message that contains updated statistics.  These messages are three
+    part messages consisting of a header, a run identification message part and
+    the statistics themselves.  If the run information changes, you may call
+    <methodname>beginRun</methodname> at any time to update that information
+    and send a new run information message.
+   </para>
+   <para>
+    Note that elapsed run times in the statistics message part are times relative
+    to the most recent call to <methodname>beginRun</methodname>.
+   </para>
+  </refsect1>
+  <refsect1>
+   <title>
+  METHODS
+   </title>
+   <variablelist>
+    <varlistentry>
+        <term>
+          statusMessages.ReadoutStatistics(uri[, app])
+        </term>
+        <listitem>
+            <para>
+              Constructs and returns a <classname>ReadoutStatistics</classname>
+              object.   The <parameter>uri</parameter> is the URI to which the
+              ZMQ PUSH socket created will be connected.  Normally this will be
+              the PULL socket of the status message aggregator.
+              If supplied, the optional <parameter>app</parameter> parameter
+              will be used as the application name in header message parts.
+              If not supplied, this defaults to <literal>Readout</literal>
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          beginRun(runNumber, title)
+        </term>
+        <listitem>
+            <para>
+              Sets the run number and title for the current or newly started
+              data taking run.  <parameter>runNumber</parameter> is the new run
+              number and <parameter>title</parameter> is the title.  This method
+              must be the first object method called as the information  supplied
+              is required for statistics messages.
+            </para>
+            <para>
+              Calling this method is going to emit a message with two message parts.
+              The first part is the header and the second is a run identification
+              part.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          emitStatistics(triggers, events, bytes)
+        </term>
+        <listitem>
+            <para>
+              Emits a statistics message.  This is a three part message that
+              consists of the header message part, the run identification part,
+              with the information saved from the most recent call of
+              <methodname>beginRun</methodname>.
+            </para>
+            <para>
+              <parameter>triggers</parameter> is the number of triggers that have
+              been responded to.  <parameter>events</parameter> is the number
+              of events emitted by the program and <parameter>bytes</parameter>
+              is the number of bytes of event data emitted by the program.
+            </para>
+        </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="python3_LogMessage">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='python3_LogMessage_title'>LogMessage</refentrytitle>
+   <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>LogMessage</refname>
+   <refpurpose>Python bindings to class for emitting log messages.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nscldaq.status import statusMessages
+
+message = statusMesssages.LogMessage(uri, app)
+message.Log(severity, message)
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    <classname>LogMessage</classname> is an object that can emit log status messages.
+    Log status messages are text strings with an associated timestamp and
+    severity.  The timestamp is automatically generated and is the time the
+    message is emitted.
+   </para>
+   <para>
+    Once created the <methodname>Log</methodname> method can be used to emit
+    log messages.
+   </para>
+  </refsect1>
+  <refsect1>
+   <title>
+  METHODS
+   </title>
+   <variablelist>
+    <varlistentry>
+        <term>
+          statusMesssages.LogMessage(uri, app)
+        </term>
+        <listitem>
+            <para>
+              Constructs and returns a new <classname>LogMessage</classname>
+              object.  <parameter>uri</parameter> is the URI of the service
+              to which the ZMQ PUSH socket held by this object will be connected.
+              <parameter>app</parameter> is the name of the application which
+              will be placed in the header message part.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          Log(severity, message)
+        </term>
+        <listitem>
+            <para>
+              Emits a log message.  <parameter>severity</parameter> is the
+              severity level of the message.   This can be one of the following
+              constants;
+            </para>
+            <variablelist>
+              <varlistentry>
+                  <term>
+                    statusmessages.SeverityLevels.DEBUG
+                  </term>
+                  <listitem>
+                      <para>
+                        Message is a debugging message.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                    statusmessages.SeverityLevels.INFO
+                  </term>
+                  <listitem>
+                      <para>
+                        Message just provides interesting information.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                    statusmessages.SeverityLevels.WARNING
+                  </term>
+                  <listitem>
+                      <para>
+                        Message is a warning that something bad but recoverable
+                        happened.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                    statusmessages.SeverityLevels.SEVERE
+                  </term>
+                  <listitem>
+                      <para>
+                        Message says that something bad and unrecoverable happened.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                    statusmessages.SeverityLevels.DEFECT
+                  </term>
+                  <listitem>
+                      <para>
+                        Something bad happened that was determined to be a
+                        software error.
+                      </para>
+                  </listitem>
+              </varlistentry>
+            </variablelist>
+            <para>
+              The <parameter>message</parameter> parameter is a string that
+              contains the actual message text.
+            </para>
+        </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="python3_StateChange">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='python3_StateChange_title'>StateChange</refentrytitle>
+   <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>StateChange</refname>
+   <refpurpose>Python class to emit state change status messages.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nscldaq.status import statusMessages
+
+message = statusMessages.StateChange(uri, app)
+message.logChange(oldState, newState)
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    <classname>StateChange</classname> allows the script to emit status messages
+    that indicate a change in program state.   Normally this is used by
+    programs that participate in global state transitions.  This class allows
+    information about state changes of those programs to be sent to status
+    monitoring programs that may not want to subscribe to changes in the
+    variable database.
+   </para>
+   <para>
+    Once an object has been created, its <methodname>logChange</methodname> method
+    can be used to emit a message.
+   </para>
+  </refsect1>
+  <refsect1>
+   <title>
+  METHODS
+   </title>
+   <variablelist>
+    <varlistentry>
+        <term>
+          statusMessages.StateChange(uri, app)
+        </term>
+        <listitem>
+            <para>
+              Constructs and returns a <classname>StateChange</classname>
+              object.  The <parameter>uri</parameter> parameter is a
+              URI string that specifies the end point to which the
+              ZMQ PUSH socket embedded in this object will be connected and
+              along which messages will be sent.  The <parameter>app</parameter>
+              parameter is an application name that identifies the program
+              creating status messages to the recipient.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          logChange(oldState, newState)
+        </term>
+        <listitem>
+            <para>
+              Creates a state change message.  The <parameter>oldState</parameter>
+              is the state being left while <parameter>newState</parameter>
+              is the name of the state being entered.
+            </para>
+        </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect1>
+</refentry>
+
+<refentry id="python3_Subscription">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='python3_Subscription_title'>Subscription</refentrytitle>
+   <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>Subscription</refname>
+   <refpurpose>Subscripton class for status messages.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nscldaq.status import statusMessages
+
+sub = statusMessages.Subscsription(uri)
+token = sub.subscribe(type, severities[, app[, source]])
+sub.unsubscribe(token)
+messageParts = sub.receive()
+
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    Provides python scripts with the ability to subscribe to status messages
+    from a status publisher such as the status message aggregator within a node
+    or the multi-node aggregator.
+   </para>
+   <para>
+    Multiple subscriptions are allowed, their matching criteria are or-ed together.
+    See the <literal>METHODS</literal> below for more information about how
+    to create, and destroy subscriptions as well as how to receive messages
+    that satisfy the subscription criteria.
+   </para>
+  </refsect1>
+  <refsect1>
+   <title>
+  METHODS
+   </title>
+   <variablelist>
+    <varlistentry>
+        <term>
+          statusMessages.Subscsription(uri)      
+        </term>
+        <listitem>
+            <para>
+              Constructs a new subscription object.  The <parameter>uri</parameter>
+              is the URI of the ZMQ PUB or XPUB end point that is publishing
+              status messages.  A SUB ZMQ socket is wrapped by the new object
+              and it is on that socket that subsriptions are created and messages
+              received.
+            </para>
+            <para>
+              The constructor returns a reference to the newly created object
+              which python destroys when garbage collection passes determine the
+              object has no more active references.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+            sub.subscribe(type, severities[, app[, source]])          
+        </term>
+        <listitem>
+            <para>
+              Adds a subscription specification to the subscription object.
+              At least one subscription must be created for messages to be
+              received.
+            </para>
+            <para>
+              <parameter>type</parameter> is an interable containing the types
+              of messages desired.  If the iterable is empty, then all message
+              types will be accepted.  Symbolic values for message types
+              are defined (see <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>).
+            </para>
+            <para>
+              <parameter>severities</parameter> is an iterable containing the
+              severity levels desired.  If the iterable is empty, then
+              all severity levels are accepted.  See
+              <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal> for
+              symbolic values for the severity levels.
+            </para>
+            <para>
+              <parameter>app</parameter> is an optional parameter that filters
+              messages to include only those messages from the specified
+              application.   If omitted no application name filtering is
+              performed.
+            </para>
+            <para>
+              <parameter>source</parameter> is an optional parameter that
+              filters messages to include onl those messages from the
+              host with the
+              specified fully qualified domain name.  If omitted,
+              no filtering by source is performed.  Note that filtering
+              by source also requires specification of an application.
+            </para>
+            <para>
+              The method returns a subscription <firstterm>token</firstterm>.
+              The token identifies the subscription.  See
+              <methodname>unsubscribe</methodname> below.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          sub.unsubscribe(token)          
+        </term>
+        <listitem>
+            <para>
+              Removes a subscription.  <parameter>token</parameter> is a value
+              that was returned from a call to the <methodname>subscribe</methodname>.
+              The subscription that was described by the call to <methodname>subscribe</methodname>
+              that returned that token is removed.  
+            </para>
+            <para>
+              Once removed, and the in-flight messages received, the removed
+              subscription no longer filters messages received by that
+              subscription object.  The <parameter>token</parameter> is then
+              invalid and of no further use.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          messageParts = sub.receive()          
+        </term>
+        <listitem>
+            <para>
+              Receives the next message from the subscription end point that matches
+              the set of subscriptions that are already defined.  If no messages
+              are queued for delivery, this method blocks until one is available.
+            </para>
+            <para>
+              The return vale is a tuple of binary strings.  Each string is a
+              raw message part for the message received. The
+              <literal>struct</literal> package can be used to turn these
+              message parts into data usable by Python scripts.
+            </para>
+            <para>
+              The structure of message parts is described by the
+              C++ header <filename>CStatusMessage.h</filename>.
+            </para>
+        </listitem>
+    </varlistentry>
+
+   </variablelist>
+  </refsect1>
+   <refsect1>
+    <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+    <para>
+      The <literal>nscldaq.status.statusMessage</literal> package provides a few
+      sets of constant definitions as class level constants.  These are divided
+      into <classname>MessageTypes</classname> which provide symbolic definitions
+      for the message types that are system supported, and <classname>SeverityLevels</classname>
+      which provide symbolic names for all of the message severity levels used
+      by the messaging system.
+    </para>
+    <refsect2>
+      <title><classname>MessageTypes</classname></title>
+      <para>
+        This module wide namespace provides the following definitions:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+              statusMessages.MessageTypes.RING_STATISTICS
+            </term>
+            <listitem>
+                <para>
+                  The message parts in this message describe a ring buffer and
+                  its statistics.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.MessageTypes.EVENT_BUILDER_STATISTICS
+            </term>
+            <listitem>
+                <para>
+                  The message parts in this message describe event builder
+                  statistics.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.MessageTypes.READOUT_STATISTICS
+            </term>
+            <listitem>
+                <para>
+                  The message parts in this message describe statistics from a
+                  Readout program.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.MessageTypes.LOG_MESSAGE
+            </term>
+            <listitem>
+                <para>
+                  The message parts in this message constitute a log message.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.MessageTypes.STATE_CHANGE
+            </term>
+            <listitem>
+                <para>
+                  The message parts in this message constitute information about
+                  a state change.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.MessageTypes.FIRST_FREE_TYPE
+            </term>
+            <listitem>
+                <para>
+                  This value is the first available message type.   Additional
+                  system message types will be given this and subsequent values
+                  (after which this value will be updated to reflect the
+                  new firts free type value).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.MessageTypes.FIRST_USER_TYPE
+            </term>
+            <listitem>
+                <para>
+                  The system supports user defined message types.  This value
+                  is the smallest value a user defined message type can hold.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+    <refsect2>
+      <title>
+        SeverityLevels
+      </title>
+      <para>
+        This set of symbolic constants define the severity levels a message can
+        have.  Note that at present, unlike for message type values, user defined
+        severity levels are not directly supported.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+              statusMessages.SeverityLevels.DEBUG
+            </term>
+            <listitem>
+                <para>
+                  The message represents some debugging information.  Normally,
+                  production programs will not emit messages with this severity
+                  level.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.SeverityLevels.INFO
+            </term>
+            <listitem>
+                <para>
+                  The message provides some information that is not indicative
+                  of a problem.  Most messages will have this severity level.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.SeverityLevels.WARNING
+            </term>
+            <listitem>
+                <para>
+                  The message provides information about a recoverable problem.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.SeverityLevels.SEVERE
+            </term>
+            <listitem>
+                <para>
+                  The message provides information about a severe error that
+                  cannot be recovered.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              statusMessages.SeverityLevels.DEFECT
+            </term>
+            <listitem>
+                <para>
+                  This is similar to SEVERE above, but the software was able to
+                  determine that the program logic itself was responsible for
+                  the problem the message is reporting rather than some external
+                  event.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+   </refsect1>
+</refentry>     
+
+<!-- /manpage -->

@@ -311,7 +311,7 @@ CTCLLogMessage::TCLLogMessage::operator()(
         return TCL_ERROR;
     }
     catch (...) {
-        interp.setResult("Unexpectec C++ exception type caught");
+        interp.setResult("Unexpected C++ exception type caught");
         return TCL_ERROR;
     }
     

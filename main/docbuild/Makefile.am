@@ -52,6 +52,7 @@ BOOKDIRS = 	@top_srcdir@ \
 		@top_srcdir@/base/dataflow \
 		@top_srcdir@/base/factories \
 		@top_srcdir@/daq/format \
+		@top_srcdir@/diagnostics/status \
 		@top_srcdir@/usb \
 		@top_srcdir@/usb/vmusb \
 		@top_srcdir@/usb/ccusb \
