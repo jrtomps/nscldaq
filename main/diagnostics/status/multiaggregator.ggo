@@ -1,0 +1,16 @@
+#
+#  options for the multinode aggregator daemon.
+#
+
+package "multiaggregate"
+version "1.0"
+purpose "Aggregate status information from several nodes."
+
+
+option "subscribe" s "Name of remote services to subscribe to" string optional default="StatusPublisher"
+option "publish"   p "Name of service to pub as" string optional default="MultiAggregator"
+#
+#  Note that system enumeration is quite costly.  Therefore we don't encourage
+#  enumeration to be a rapid thing.
+#
+option "discovery-period" d "Seconds between updating nodes in system" int optional default="10"

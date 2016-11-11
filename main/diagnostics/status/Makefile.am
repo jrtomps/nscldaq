@@ -1,4 +1,4 @@
-bin_PROGRAMS = ringstatusdaemon statusaggregator
+bin_PROGRAMS = ringstatusdaemon statusaggregator multiaggregator
 
 lib_LTLIBRARIES = libStatusMessages.la libTclStatusMessages.la libPyStatusMessages.la
 
@@ -38,14 +38,8 @@ ringstatusdaemon_LDFLAGS  = @top_builddir@/servers/portmanager/libPortManager.la
 nodist_ringstatusdaemon_SOURCES = ringstatus.c ringstatus.h
 
 
-BUILT_SOURCES=ringstatus.c ringstatus.h
-
-ringstatus.c: ringstatus.h
-
-ringstatus.h: ringstatus.ggo
-	$(GENGETOPT) --output-dir=@builddir@ --input=ringstatus.ggo -F ringstatus
-
 #---------------  status aggregator:
+
 
 statusaggregator_SOURCES  = aggregator.cpp
 statusaggregator_CPPFLAGS = -I@top_srcdir@/servers/portmanager @LIBTCLPLUS_CFLAGS@
@@ -53,6 +47,33 @@ statusaggregator_LDFLAGS  =  @top_builddir@/servers/portmanager/libPortManager.l
 	@builddir@/libStatusMessages.la						  \
 	@ZMQ_LDFLAGS@								\
 	@LIBEXCEPTION_LDFLAGS@
+
+#--------------- aggregator with node discovery.
+
+multiaggregator_SOURCES = multiaggmain.cpp
+multiaggregator_CPPFLAGS=-I@top_srcdir@/servers/portmanager @LIBTCLPLUS_CFLAGS@
+multiaggregator_LDFLAGS = @top_builddir@/servers/portmanager/libPortManager.la \
+	@builddir@/libStatusMessages.la						  \
+	@ZMQ_LDFLAGS@								\
+	@LIBEXCEPTION_LDFLAGS@
+
+nodist_multiaggregator_SOURCES = multiaggregator.h multiaggregator.c
+
+
+#---------------- build ggo files into .c/.h files.
+
+BUILT_SOURCES=ringstatus.c ringstatus.h multiaggregator.c multiaggregator.h
+
+ringstatus.c: ringstatus.h
+
+ringstatus.h: ringstatus.ggo
+	$(GENGETOPT) --output-dir=@builddir@ --input=ringstatus.ggo -F ringstatus
+
+multiaggregator.c: multiaggregator.h
+
+multiaggregator.h: multiaggregator.ggo
+	$(GENGETOPT) --output-dir=@builddir@ --input=multiaggregator.ggo -F multiaggregator
+
 
 #--------------------Tcl Bindings:
 
@@ -160,4 +181,4 @@ clean-local:
 
 #  Ensure stuff makes it into the tarball:
 
-EXTRA_DIST = $(PYTHON_TESTS) $(TCL_TESTS) ringstatus.ggo
+EXTRA_DIST = $(PYTHON_TESTS) $(TCL_TESTS) ringstatus.ggo multiaggregator.ggo
