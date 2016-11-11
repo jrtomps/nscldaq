@@ -254,6 +254,8 @@ void SubTests::allFromApp()
 {
   CStatusSubscription::RequestedTypes types;
   CStatusSubscription::RequestedSeverities sevs;
+
+  
   
   m_pObject->subscribe(types, sevs, "TestApp");
   
@@ -283,16 +285,5 @@ void SubTests::allFromApp()
   sc.logChange("From", "to");
   checkStateChange("From", "to");
   
-  // Should not get this:
-  
-  
-  
-  log2.Log(CStatusDefinitions::SeverityLevels::DEBUG, "Nope");
-  sleep(1);
-  m_pObject->subscribe(types, sevs, "WrongApp");   // should now get log2 msgs:
-
-  
-  log2.Log(CStatusDefinitions::SeverityLevels::INFO, "Yep");
-  checkLogMessage(CStatusDefinitions::SeverityLevels::INFO, "Yep");
-  
+ 
 }

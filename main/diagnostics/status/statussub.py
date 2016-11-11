@@ -11,21 +11,23 @@ import time
 import struct
 import string
 
-
+serial = 0
 class TestStatusSubscription(unittest.TestCase):
     def setUp(self):
-        
-        self._pubUri = 'inproc://subtest' 
-        self._subUri  = 'inproc://subtest'
+        global serial
+        self._pubUri = 'inproc://subtest%d' % serial 
+        self._subUri  = 'inproc://subtest%d' % serial
         statusmessages.enableTest()
         self._log     = statusmessages.LogMessage(self._pubUri, 'TestLogger')
         self._sub     = statusmessages.Subscription(self._subUri)
     def tearDown(self):
-        global port
+        global serial
         del self._sub 
         del self._log 
         statusmessages.disableTest()
-    
+        serial = serial + 1
+        
+        
     #  This just tests setup/teardown.
     
     def test_empty(self):
