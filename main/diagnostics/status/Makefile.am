@@ -160,4 +160,4 @@ clean-local:
 
 #  Ensure stuff makes it into the tarball:
 
-EXTRA_DIST = $(PYTHON_TESTS) $(TCL_TESTS)
+EXTRA_DIST = $(PYTHON_TESTS) $(TCL_TESTS) ringstatus.ggo
