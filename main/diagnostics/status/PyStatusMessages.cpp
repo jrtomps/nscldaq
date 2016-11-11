@@ -1496,7 +1496,7 @@ subscription_receive(PyObject* self, PyObject* args)
         pSubscriptionData pThis = reinterpret_cast<pSubscriptionData>(self);
         zmq::socket_t*    pSock = pThis->m_pSocket;
         uint64_t more(0);
-        size_t   n;
+        size_t   n(sizeof(more));
         do {
             zmq::message_t* pMsg = new zmq::message_t;
             pSock->recv(pMsg);

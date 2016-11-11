@@ -39,7 +39,7 @@ proc commonSetup {} {
 proc commonCleanup {} {
     LogMessage destroy $::log
     LogMessage test off
-    incr port
+    incr ::port
 }
 
 #
