@@ -6,6 +6,7 @@
 #include <CStatusSubscription.h>
 #include <CStatusMessage.h>
 #include <zmq.hpp>
+#include <unistd.h>
 
 static const char* uri="inproc://testing";
 
@@ -257,21 +258,41 @@ void SubTests::allFromApp()
   m_pObject->subscribe(types, sevs, "TestApp");
   
   CStatusDefinitions::LogMessage log2(*m_pSender, "WrongApp"); 
-  // Should get this
+  // Should not get this
   
   log2.Log(CStatusDefinitions::SeverityLevels::INFO, "Test1");
   
-  // Should not get this:
+  // Should  get these
   
   CStatusDefinitions::LogMessage log(*m_pSender, "TestApp");
   CStatusDefinitions::StateChange sc(*m_pSender, "TestApp");
   
-  // Should get this
+  // Should not get this:
   
-  log.Log(CStatusDefinitions::SeverityLevels::INFO, "WrongApp");
+  log2.Log(CStatusDefinitions::SeverityLevels::INFO, "should not get this");
   
   // Should get this:
   
+  log.Log(CStatusDefinitions::SeverityLevels::DEBUG, "Should Get This");
+  checkLogMessage(CStatusDefinitions::SeverityLevels::DEBUG, "Should Get This");
   
+  
+    
+  // Should get this too:
+  
+  sc.logChange("From", "to");
+  checkStateChange("From", "to");
+  
+  // Should not get this:
+  
+  
+  
+  log2.Log(CStatusDefinitions::SeverityLevels::DEBUG, "Nope");
+  sleep(1);
+  m_pObject->subscribe(types, sevs, "WrongApp");   // should now get log2 msgs:
+
+  
+  log2.Log(CStatusDefinitions::SeverityLevels::INFO, "Yep");
+  checkLogMessage(CStatusDefinitions::SeverityLevels::INFO, "Yep");
   
 }

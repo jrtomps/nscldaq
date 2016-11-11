@@ -11,22 +11,20 @@ import time
 import struct
 import string
 
-port = 29000
 
 class TestStatusSubscription(unittest.TestCase):
     def setUp(self):
-        global port
-        self._pubUri = 'tcp://*:%d' % port
-        self._subUri  = 'tcp://localhost:%d' %port
+        
+        self._pubUri = 'inproc://subtest' 
+        self._subUri  = 'inproc://subtest'
         statusmessages.enableTest()
         self._log     = statusmessages.LogMessage(self._pubUri, 'TestLogger')
         self._sub     = statusmessages.Subscription(self._subUri)
     def tearDown(self):
         global port
-        self._sub = None
-        self._log = None
+        del self._sub 
+        del self._log 
         statusmessages.disableTest()
-        port = port - 1
     
     #  This just tests setup/teardown.
     
@@ -43,9 +41,11 @@ class TestStatusSubscription(unittest.TestCase):
     # Only should get messages for the correct types:
     
     def test_subType(self):
-        self._sub.subscribe([statusmessages.MessageTypes.STATE_CHANGE])
+        self._sub.subscribe([statusmessages.MessageTypes.STATE_CHANGE],
+            [statusmessages.SeverityLevels.INFO])
         self._log.Log(statusmessages.SeverityLevels.INFO, 'A test') #Should not receive.
-        self._sub.subscribe([statusmessages.MessageTypes.LOG_MESSAGE])
+        self._sub.subscribe([statusmessages.MessageTypes.LOG_MESSAGE],
+                [statusmessages.SeverityLevels.DEBUG])
         time.sleep(0.1)                       # Wait for sub to propagate.
         self._log.Log(statusmessages.SeverityLevels.DEBUG, 'Another test') # Should get.
         
@@ -70,13 +70,18 @@ class TestStatusSubscription(unittest.TestCase):
     
     def test_subAppName(self):
         self._sub.subscribe(
-            [statusmessages.MessageTypes.LOG_MESSAGE], [], 'WrongApp'
+            [statusmessages.MessageTypes.LOG_MESSAGE],
+            [statusmessages.SeverityLevels.DEBUG], 'WrongApp'
         )
+        
         self._log.Log(statusmessages.SeverityLevels.DEBUG, "Won't receive this")
+        time.sleep(1.0)
+        
         self._sub.subscribe(
-            [statusmessages.MessageTypes.LOG_MESSAGE], [], 'TestLogger'
+            [statusmessages.MessageTypes.LOG_MESSAGE],
+            [statusmessages.SeverityLevels.INFO], 'TestLogger'
         )
-        time.sleep(0.1)
+        
         self._log.Log(statusmessages.SeverityLevels.INFO, 'Should receive this')
         
         parts = self._sub.receive()

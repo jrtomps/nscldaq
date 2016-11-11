@@ -1384,7 +1384,7 @@ subscription_subscribe(PyObject* self, PyObject* args)
         PyObject* sevIter = PyObject_GetIter(pSevs);
         if (!sevIter) return NULL;
         sevs = iterableToIntList(sevIter);
-    }
+    } 
     
     // Application name if present:
     
