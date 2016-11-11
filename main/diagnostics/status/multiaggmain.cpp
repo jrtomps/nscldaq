@@ -18,6 +18,8 @@
 /**
  * @file multiaggman.cpp
  * @brief Main program for the multi-node aggregator.
+ * @author <fox@nscl.msu.edu>
+ * 
  */
 #include "multiaggregator.h"
 #include <cstdlib>
