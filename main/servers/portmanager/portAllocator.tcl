@@ -191,5 +191,30 @@ package require snit
             close $Socket
         }
     }
+    ##
+    # waitServer(typemethod)
+    #   Wait for the port manager in the specified host to start
+    #
+    # @param retries - number of retries.
+    # @param host    - Which host we're contacting (defaults to localhost).
+    # @param interval - Retry interval in seconds - defaults to 1.
+    # @return bool   - True if we detected a port manager, false otherwise.
+    #
+    typemethod waitServer {retries {host localhost} {interval 1}} {
+        set a [portAllocator %AUTO% -hostname $host]
+        while {$retries > 0} {
+            if {![catch {$a OpenServer}]} {
+                $a destroy
+                return true;                  # was able to open...
+            }
+            incr retries -1
+            after [expr {$interval * 1000}]; # Wait...
+        }
+        #  Failed to connect:
+        
+        $a destroy
+        return false
+    }
+    
 }
 
