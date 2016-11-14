@@ -23,7 +23,8 @@
 #include <CConnectivity.h>
 #include <CPortManager.h>
 #include <sstream>
-
+#include <iostream>
+#include <cstdlib>
 
 
 // Static members:
@@ -59,6 +60,13 @@ CMultiAggregator::CMultiAggregator(
     m_publicationService(publicationService),
     m_nDiscoveryInterval(discoveryInterval)
 {
+    // Wait a decent interval for the port manager to startup -- die if not.
+    
+    if(!CPortManager::waitPortManager(10)) {
+        std::cerr << "Local port manager does not appear to be running\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
     // bind the XPUB socket to a specific advertised port:
     
     m_pPortManager = new CPortManager();
