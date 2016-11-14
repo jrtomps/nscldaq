@@ -131,6 +131,9 @@ operator<<(std::ostream& s, const CStatusDefinitions::RingStatClient& client)
  */
 int main(int argc, char** argv)
 {
+    if (argc > 1) {
+        Service = argv[1];
+    }
     int port = getPort();
     std::stringstream connection;
     connection << "tcp://localhost:" << port;
