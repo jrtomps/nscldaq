@@ -50,10 +50,11 @@ statusaggregator_LDFLAGS  =  @top_builddir@/servers/portmanager/libPortManager.l
 
 #--------------- aggregator with node discovery.
 
-multiaggregator_SOURCES = multiaggmain.cpp
-multiaggregator_CPPFLAGS=-I@top_srcdir@/servers/portmanager @LIBTCLPLUS_CFLAGS@
+multiaggregator_SOURCES = multiaggmain.cpp CMultiAggregator.cpp CMultiAggregator.h
+multiaggregator_CPPFLAGS=-I@top_srcdir@/servers/portmanager @LIBTCLPLUS_CFLAGS@ \
+	-I@top_srcdir@/base/dataflow
 multiaggregator_LDFLAGS = @top_builddir@/servers/portmanager/libPortManager.la \
-	@builddir@/libStatusMessages.la						  \
+	@builddir@/libStatusMessages.la @top_builddir@/base/dataflow/libDataFlow.la \
 	@ZMQ_LDFLAGS@								\
 	@LIBEXCEPTION_LDFLAGS@
 
@@ -67,12 +68,12 @@ BUILT_SOURCES=ringstatus.c ringstatus.h multiaggregator.c multiaggregator.h
 ringstatus.c: ringstatus.h
 
 ringstatus.h: ringstatus.ggo
-	$(GENGETOPT) --output-dir=@builddir@ --input=ringstatus.ggo -F ringstatus
+	$(GENGETOPT) --output-dir=@builddir@ --input=@srcdir@/ringstatus.ggo -F ringstatus
 
 multiaggregator.c: multiaggregator.h
 
 multiaggregator.h: multiaggregator.ggo
-	$(GENGETOPT) --output-dir=@builddir@ --input=multiaggregator.ggo -F multiaggregator
+	$(GENGETOPT) --output-dir=@builddir@ --input=@srcdir@/multiaggregator.ggo -F multiaggregator
 
 
 #--------------------Tcl Bindings:
