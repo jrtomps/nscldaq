@@ -52,9 +52,10 @@ statusaggregator_LDFLAGS  =  @top_builddir@/servers/portmanager/libPortManager.l
 
 multiaggregator_SOURCES = multiaggmain.cpp CMultiAggregator.cpp CMultiAggregator.h
 multiaggregator_CPPFLAGS=-I@top_srcdir@/servers/portmanager @LIBTCLPLUS_CFLAGS@ \
-	-I@top_srcdir@/base/dataflow
+	-I@top_srcdir@/base/dataflow -I@top_srcdir@/base/os
 multiaggregator_LDFLAGS = @top_builddir@/servers/portmanager/libPortManager.la \
 	@builddir@/libStatusMessages.la @top_builddir@/base/dataflow/libDataFlow.la \
+	@top_builddir@/base/os/libdaqshm.la					\
 	@ZMQ_LDFLAGS@								\
 	@LIBEXCEPTION_LDFLAGS@
 
