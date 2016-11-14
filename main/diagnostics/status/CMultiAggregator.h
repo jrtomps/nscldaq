@@ -24,7 +24,12 @@
 #define CMULTIAGGREGATOR_H
 #include <zmq.hpp>
 #include <set>
+#include <list>
 #include <string>
+#include <ctime>
+
+class CPortManager;
+
 /**
  * @class CMultiAggregator
  *
@@ -55,36 +60,41 @@
  *         of subscribers that set up relatively static subscriptions.
  *         Not really sure what else to do.
  */
-class MultiAggregator
+class CMultiAggregator
 {
 private:
     zmq::context_t   m_zmqContext;
     zmq::socket_t    m_XSUBSocket;
     zmq::socket_t    m_XPUBSocket;
+    CPortManager*    m_pPortManager;
     
     std::string      m_subscriptionService;
     std::string      m_publicationService;
     int              m_nDiscoveryInterval;
-    std::time_t      m_nLastDiscoveryTime
+    std::time_t      m_nLastDiscoveryTime;
     
     std::set<std::string> m_connectedNodes;
-    std::vector<std::vector<zmq::message_t*> > m_savedSubscriptions;
+    std::list<std::list<zmq::message_t*> > m_savedSubscriptions;
     
 public:
-    MultiAggregator(
+    CMultiAggregator(
         const char* subscriptionService, const char* publicationService, int discoveryInterval
     );
-    virtual ~MultiAggregator();
+    virtual ~CMultiAggregator();
     
     void operator()();
 private:
     std::set<std::string> discoverNodes();
     void disconnectDeadNodes(const std::set<std::string>& nodes);
     void connectNewNodes(const std::set<std::string>& nodes);
-    void forwardData();
+    void forwardMessages();
     std::string createUri(const std::string& node, const std::string& service);
     int  translatePort(const std::string& node, const std::string& service);
     void trimSavedMessages();
+    void replaySubscriptions();
+    std::list<zmq::message_t*> readMultipart(zmq::socket_t& s);
+    void sendMultipart(zmq::socket_t& s, const std::list<zmq::message_t*>& parts);
+    void freeMultiPart(std::list<zmq::message_t*>& parts);
 public:
     static size_t MAX_SAVED_SUBSCRIPTION_MESSAGES;
 };
