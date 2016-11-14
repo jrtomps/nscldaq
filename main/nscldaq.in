@@ -90,7 +90,6 @@ stop_ringmaster() {
 }
 
 start_statusaggregator() {
-    sleep 2
     /sbin/start-stop-daemon --start \
 			    --quiet \
 			    --pidfile=${AGGREGATORPIDFILE} \
@@ -107,7 +106,6 @@ stop_statusaggregator() {
 }
 
 start_ringstatdaemon() {
-    sleep 2
     /sbin/start-stop-daemon --start \
 			    --quiet \
 			    --pidfile=${RINGSTATSPIDFILE} \
