@@ -24,7 +24,7 @@
 import socket
 import getpass
 import Tkinter
-
+import time
 
 #   Below is a Tcl interpreter object that is used by all connection objects
 #   to parse the returned lists.
@@ -177,4 +177,28 @@ class PortManager:
             ports = filter(lambda port: port['user'] == user, ports)
         
         return ports
+        
+##
+# waitServer
+#   Wait for the port manager server in the specified host to start.
+#
+# @param retries - total number of retries allowed.
+# @param host    - Host we're waiting for (default is 'localhost').
+# @param intervval - Seconds between retries.  Defaults to a second.
+# @return boolean - True, port manager _is_ running, False - port manager has not
+#                   started in the requested host.
+def waitServer(retries, host='localhost', interval=1):
+    while retries > 0:
+        
+        retries = retries - 1
+        try:
+            pm = PortManager(host)
+            return True
+
+        except:
+            #              Failed count down retries and try again later:
+            retries = retries - 1
+            if retries > 0:
+                time.sleep(interval)
+    return False
         
