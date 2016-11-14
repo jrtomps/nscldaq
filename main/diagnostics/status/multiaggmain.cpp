@@ -22,6 +22,7 @@
  * 
  */
 #include "multiaggregator.h"
+#include "CMultiAggregator.h"
 #include <cstdlib>
 /**
  *  For more information about this program and how it works, see
@@ -42,6 +43,8 @@ int main(int argc, char** argv)
   
   // Create the application object and run it.
   
+  CMultiAggregator app(subService, pubService, discoveryInterval);
+  app();
   
   // We should not exit:
   
