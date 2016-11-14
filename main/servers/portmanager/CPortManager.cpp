@@ -38,7 +38,8 @@
 #include <os.h>
 
 #include <tcl.h>
-
+#include <thread>
+#include <chrono>
 
 // #include <publib.h>
 #include <ctype.h>
@@ -562,6 +563,41 @@ CPortManager::GetUsername()
   }
 
 }
+/**
+ * waitPortManager
+ *    Wait for the port manager in a system to start up.
+ *
+ *  @param retries - Number of retries to allow.
+ *  @param host    - Host whose port manager we're waiting for.
+ *  @param retryInterval - Seconds between retry attempts.
+ *  @return bool - true if the port manager started, false if not.
+ *  @note The maximum time waited is retries*retryInterval seconds.
+ */
+bool
+CPortManager::waitPortManager(
+  unsigned retries, std::string host, unsigned retryInterval
+)
+{
+  while (retries) {
+    try {
+      CPortManager pm(host);
+      pm.Connect();
+      return true;                   // Worked so it's alive.
+    }
+    catch (...) {
+      // Failed so try again later:
+      
+      retries--;
+      if(retries) {        // Only sleep to retry:
+	std::this_thread::sleep_for(std::chrono::seconds(retryInterval));
+      }
+    }
+  }
+  // If we got here, we exhausted our retries:
+  
+  return false;
+}
+
 /*!
   Return the Tcp protocol number.
   If this cannot be found, the function will assert fail.
