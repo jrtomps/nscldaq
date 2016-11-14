@@ -80,6 +80,9 @@ public:
   std::vector<portInfo> getPortUsage();
 
   static std::string GetUsername();
+  static bool waitPortManager(
+    unsigned retries, std::string host="localhost", unsigned retryInterval = 1
+  );
 
 
   // Utility functions
