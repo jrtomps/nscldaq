@@ -81,10 +81,19 @@ static unsigned translateService(const char* serviceName)
  */
 int main(int argc, char** argv)
 {
+    
     gengetopt_args_info parsedArgs;    
     if (cmdline_parser(argc,argv, &parsedArgs)) {
         std::exit(EXIT_FAILURE);            // cmdline_parser says why and actually exits.
     }
+    // Before doing anything interesting, wait for the local port manager
+    // to fire up:
+    
+    if (!CPortManager::waitPortManager(10)) {
+        std::cerr << "Local port manager is not running\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
     // Figure out the port
     
     try {
