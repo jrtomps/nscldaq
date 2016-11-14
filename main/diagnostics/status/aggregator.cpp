@@ -25,6 +25,7 @@
 #include <CPortManager.h>
 #include <Exception.h>
 #include <cstdlib>
+#include <iostream>
 /**
  * This program advertises two services via the NSCL port manager.
  * The first service 'StatusAggregator' is a ZMQ PULL socket.  Status providers
@@ -98,6 +99,13 @@ openPullSocket(CPortManager& manager, zmq::context_t& context)
 int
 main(int argc, char** argv)
 {
+    // Wait a decent interval for the port manager to start:
+    
+    if (!CPortManager::waitPortManager(10)) {
+        std::cerr << "Local port manager does not appear to be running\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
     CPortManager manager;
     zmq::context_t  context(1);
     zmq::socket_t*  receiver  = openPullSocket(manager, context);
