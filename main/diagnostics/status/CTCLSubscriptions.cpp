@@ -30,6 +30,7 @@
 #include <sstream>
 #include <errno.h>
 #include <iostream>
+#include "TclUtilities.h"
 
 /** Static members */
 
@@ -513,26 +514,13 @@ CTCLSubscription::SubscriptionInstance::stringsToTypes(
     const std::vector<std::string>& strings
 )
 {
-    static std::map<std::string, std::uint32_t> lookupTable = {
-        {"RING_STATISTICS", CStatusDefinitions::MessageTypes::RING_STATISTICS},
-        {"EVENT_BUILDER_STATISTICS",
-                CStatusDefinitions::MessageTypes::EVENT_BUILDER_STATISTICS},
-        {"READOUT_STATISTICS", CStatusDefinitions::MessageTypes::READOUT_STATISTICS},
-        {"LOG_MESSAGE", CStatusDefinitions::MessageTypes::LOG_MESSAGE},
-        {"STATE_CHANGE", CStatusDefinitions::MessageTypes::STATE_CHANGE}
-    };
     
     // Use a lambda to build up the result via for_each:
     
     CStatusSubscription::RequestedTypes result;
     for_each(strings.begin(), strings.end(),
         [&result](const std::string& s)  {
-            auto p = lookupTable.find(s);
-            if(p != lookupTable.end()) {
-                result.push_back(p->second);
-            } else {
-                throw std::invalid_argument("Invalid requested type string");
-            }
+                result.push_back(TclMessageUtilities::stringToMessageType(s.c_str()));
         }
     );
     return result;
@@ -548,23 +536,11 @@ CTCLSubscription::SubscriptionInstance::stringsToSeverities(
     const std::vector<std::string>& strings
 )
 {
-    static std::map<std::string, uint32_t> lookupTable = {
-        {"DEBUG", CStatusDefinitions::SeverityLevels::DEBUG},
-        {"INFO", CStatusDefinitions::SeverityLevels::INFO},
-        {"WARNING", CStatusDefinitions::SeverityLevels::WARNING},
-        {"SEVERE", CStatusDefinitions::SeverityLevels::SEVERE},
-        {"DEFECT", CStatusDefinitions::SeverityLevels::DEFECT}
-    };
-    
+       
     CStatusSubscription::RequestedSeverities result;
     for_each(strings.begin(), strings.end(),
         [&result](const std::string& s) {
-            auto p = lookupTable.find(s);
-            if (p != lookupTable.end()) {
-                result.push_back(p->second);
-            } else {
-                throw std::invalid_argument("Invalid requested severity string");
-            }
+            result.push_back(TclMessageUtilities::stringToSeverity(s.c_str()));
         }
     );
     return result;

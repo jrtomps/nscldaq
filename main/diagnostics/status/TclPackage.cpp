@@ -28,6 +28,7 @@
 #include "CTCLLogMessage.h"
 #include "CTCLStateChangeMessage.h"
 #include "CTCLSubscriptions.h"
+#include "CTCLDecodeMessage.h"
 
 
 static const char* packageName = "statusMessage";
@@ -64,6 +65,7 @@ extern "C" {
         new CTCLLogMessage(*interp);
         new CTCLStateChangeMessage(*interp);
         new CTCLSubscription(*interp);
+        new CTCLDecodeMessage(*interp);
         return TCL_OK;
     }
     // needed by tcl++

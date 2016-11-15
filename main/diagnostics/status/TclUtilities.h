@@ -28,6 +28,7 @@
 #include <string>
 #include <zmq.hpp>
 
+
 class CTCLInterpreter;
 class CTCLObject;
 
@@ -45,6 +46,24 @@ public:
         CTCLInterpreter& interp, CTCLObject& obj,
         const char* doing = "Getting a uint64_t from a command argument"
     );
+    
+    static std::string messageTypeToString(uint32_t type);
+    static uint32_t stringToMessageType(const char* typeString);
+    static std::string severityToString(uint32_t severity);
+    static uint32_t stringToSeverity(const char* severityString);
+    static void addToDictionary(
+        CTCLInterpreter& interp, CTCLObject& dict,
+        const char* key, const char* value
+    );
+    static void addToDictionary(
+        CTCLInterpreter& interp, CTCLObject& dict,
+        const char* key, uint64_t value
+    );
+    static void addToDictionary(
+        CTCLInterpreter& interp, CTCLObject& dict,
+        const char* key, CTCLObject& value
+    );
+    static CTCLObject listFromStringList(CTCLInterpreter& interp, const char* strings);
 };
 
 #endif

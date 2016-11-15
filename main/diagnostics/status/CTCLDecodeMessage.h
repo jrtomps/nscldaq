@@ -23,21 +23,18 @@
 #define CTCLDECODEMESSAGE_H
 
 #include <TCLObjectProcessor.h>
+#include "CStatusMessage.h"
+
 
 class CTCLInterpreter;
 class CTCLObject;
+
 
 /**
  * @class CTCLDecodeMessage
  *
  *   Command ensemble that knows how to decode status messages into
- *   Tcl usable information.  Subcommands describe the type of message being
- *   decoded e.g.:
- * \verbatim
- *    statusdecode ringstatistics part-list
- * \endverbatim
- *    returns the decoded ring statistics message whose raw message parts are
- *    in part-list.
+ *   Tcl usable information.  
  */
 class CTCLDecodeMessage : public CTCLObjectProcessor
 {
@@ -50,8 +47,22 @@ public:
     // Subcommand exectutors:
         
 private:
-    void decodeRingStatistics(
-        CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+    void decodeRingStatistics(CTCLInterpreter& interp, CTCLObject& msg);
+
+    // Header handling:    
+    
+    const CStatusDefinitions::Header* extractHeader(CTCLObject& headerObj);
+    CTCLObject  decodeHeader(
+        CTCLInterpreter& interp, const CStatusDefinitions::Header& hdr
+    );
+    
+    const CStatusDefinitions::RingStatIdentification* extractRingId(CTCLObject& ringIdObj);
+    CTCLObject decodeRingIdent(
+        CTCLInterpreter& interp, const CStatusDefinitions::RingStatIdentification& id
+    );
+    const CStatusDefinitions::RingStatClient* extractRingClientInfo(CTCLObject& clientObj);
+    CTCLObject decodeRingClientInfo(
+        CTCLInterpreter& interp, const CStatusDefinitions::RingStatClient& client
     );
 };
 

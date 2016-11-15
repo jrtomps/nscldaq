@@ -85,6 +85,7 @@ libTclStatusMessages_la_SOURCES= TclPackage.cpp             \
 	CTCLLogMessage.cpp CTCLLogMessage.h		    \
 	CTCLStateChangeMessage.cpp CTCLStateChangeMessage.h \
 	CTCLSubscriptions.cpp CTCLSubscriptions.h             \
+	CTCLDecodeMessage.cpp CTCLDecodeMesssage.h	\
 	TclUtilities.cpp TclUtilities.h 
 
 libTclStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_DEFS@
