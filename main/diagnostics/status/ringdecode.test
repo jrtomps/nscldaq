@@ -78,3 +78,12 @@ tcltest::test decodeClients {Decode client items} \
     lrange $decodedMessage 2 3
 } -result [list [dict create ops 100 bytes 1000 producer 1 command {This is a test}] \
           [dict create ops 250 bytes 12345678 producer 0 command {dumping the data}]]
+
+tcltest::test notheader {If a message has a header that is invalid should have an error} \
+-setup {
+    set notheader [binary format iii 1 2 3]
+    
+} \
+-body {
+    catch [statusdecode $notheader]
+} -result 1
