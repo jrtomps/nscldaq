@@ -28,7 +28,53 @@ exec tclsh "$0" ${1+"$@"}
 package require tcltest
 package require statusMessage
 
+proc makeMinimal {} {
+    
+    set header [binary format iia32a128 0 1 testapp fox.nscl.msu.edu]
+    set ringId [binary format wa* 12345678 somering]
+    
+    return [list $header $ringId]
+        
+}
+proc makeStat {ops bytes producer program} {
+    set format wwi[lrepeat [llength $program] a* ]
+    set item [binary format $format $ops $bytes $producer {*}$program]
+}
+
 tcltest::test command-exists {The statusdecode command should exist} \
 -body {
     info commands statusdecode
 } -result statusdecode
+
+tcltest::test decodeHeader {Decode the header of a ring statistics item} \
+-setup {
+    set message [makeMinimal]
+} \
+-body {
+
+    set decodedMessage [statusdecode $message]
+    lindex $decodedMessage 0;               # Select the header.
+} -result [dict create type RING_STATISTICS severity INFO application testapp source fox.nscl.msu.edu]
+
+tcltest::test decodeRingId {Decode the ring id message part} \
+-setup {
+    set message [makeMinimal]
+
+} \
+-body {
+    lindex [statusdecode $message] 0
+} -result [dict create timestamp 12345678 name somering]
+
+tcltest::test decodeClients {Decode client items} \
+-setup {
+    set message [makeMinimal]
+    lappend message [makeStat 100 1000 1 {This is a test}]
+    lappend message [makeStat 250 12345 0 {dumping the data}]
+    
+} \
+-body {
+    set decodedMessage [statusdecode $message]
+    
+    lrange $decodedMessage 2 3
+} -result [list [dict create ops 100 bytes 1000 producer 1 command {This is a test}] \
+          [dict create ops 250 bytes 12345678 producer 0 command {dumping the data}]]
