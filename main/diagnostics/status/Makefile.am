@@ -127,7 +127,7 @@ PYTHON_TESTS=ringstatisticstests.py readoutstatisticstests.py \
 	logmessagestests.py statemessagetests.py statussub.py
 
 
-TCL_TESTS=statussubtest.test
+TCL_TESTS=statussubtest.test ringdecode.test
 
 
 TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest ringdaemontests
