@@ -103,37 +103,24 @@ class PortManagerTests(unittest.TestCase):
         port = pm.getPort('myport')
         self.assertTrue(isinstance(port, (int, long)))
     
-    ##
-    # test_getPort_remotefail -- This test is not viable in some circumstances
-    #
-    def test_getPort_remotefail(self):
-        return
-        threw      = False
-        rightThrow = False
-        pm         = PortManager.PortManager(socket.gethostname(), 30000)
-        
-        try:
-            port = pm.getPort('myport')
-        except RuntimeError:
-            threw = True
-            rightThrow  = True
-        except:
-            threw = True
-            
-        self.assertTrue(threw)
-        self.assertTrue(rightThrow)
+    
         
     ##
     # test_list_base
     #   Tests that the port manager can give us the list initially.  The
-    #   assumption is that nothing else is running in which case there will
-    #   be one service, the RingMaster  We don't carea about the
+    #   assumption is that nothing else is running in which case
+    #   for nscldaq-12 there will be the following services:
+    #   - RingMaster
+    #   - StatusAggregatorPull
+    #   - StatusAggregatorPUB
+    #
+    #   We don't care about the
     #   port or the user.
     #
     def test_list_base(self):
         pm    = PortManager.PortManager('localhost', 30000)
         ports = pm.listPorts()
-        self.assertEquals(1, len(ports))
+        self.assertEquals(3, len(ports))
         rm = ports[0]
         self.assertEquals('RingMaster12', rm['service'])
     
@@ -141,7 +128,7 @@ class PortManagerTests(unittest.TestCase):
     # test_list_afew
     #   Not content with ensuring this all works for a single port I'll create
     #   a few and ensure the all are listed.
-    #   - This test assumes the ring master is running.
+    #   - This test assumes the standard services are running.
     #
     def test_list_afew(self):
         pm     = PortManager.PortManager('localhost', 30000)
@@ -150,7 +137,7 @@ class PortManagerTests(unittest.TestCase):
         iam    = getpass.getuser()
         
         info   = pm.listPorts()
-        self.assertEquals(3, len(info))
+        self.assertEquals(5, len(info))
         
         # Toss the data up into a dict keyed by service name.
         
