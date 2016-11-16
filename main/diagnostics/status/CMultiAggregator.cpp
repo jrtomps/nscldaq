@@ -19,6 +19,7 @@
 # @brief  Implement the aggregation proxy.
 # @author <fox@nscl.msu.edu>
 */
+#include <config.h>
 #include "CMultiAggregator.h"
 #include <CConnectivity.h>
 #include <CPortManager.h>
@@ -139,11 +140,10 @@ CMultiAggregator::discoverNodes()
 void
 CMultiAggregator::disconnectDeadNodes(const std::set<std::string>& current)
 {
-    int major, minor, patch;
-    zmq_version(&major, &minor, &patch);
+    // If the library does not have zmq_disconnect(), we're stuck still
+    // getting messages from nodes we'd like to drop..
     
-    if (major < 4) return;
- 
+#ifdef ZMQ_HAVE_DISCONNECT 
     for_each(
         m_connectedNodes.begin(), m_connectedNodes.end(),
         [this, current](const std::string& item) -> void {
@@ -155,7 +155,7 @@ CMultiAggregator::disconnectDeadNodes(const std::set<std::string>& current)
             }
         }
     );
-    
+#endif
 }
 /**
  * connectNewNodes

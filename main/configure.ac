@@ -336,6 +336,7 @@ fi
 
 AC_SUBST(ZMQ_LDFLAGS)
 
+
 ##
 # need the zmq c++ bindings
 #  note in some c++11's we need to include <algorithm> to include zmq.hpp:
@@ -343,6 +344,19 @@ AC_LANG_PUSH(C++)
 AC_CHECK_HEADERS([algorithm zmq.hpp],[], [AC_MSG_ERROR([The zeromq C++ header (zmq.hpp) is missing and is required for nscldaq])],
 			    [#include <algorithm>])
 AC_LANG_POP
+
+##
+# We need to know if zmq_disconnect is supported or not. We'll define HAVE_ZMQ_DISCONNECT
+# accordingly.  This is because the multiaggregator would like to be able to
+# disconnect from systems that no longer live in the dataflow.
+#
+
+AC_SEARCH_LIBS([zmq_disconnect], [zmq], [zmq_disconnect=1], [zmq_disconnect=0])
+if test $zmq_disconnect == '1'
+then
+   AC_DEFINE([ZMQ_HAVE_DISCONNECT], [], [ZMQ library has zmq_disconnect funtion])
+fi
+
 
 
 ##
