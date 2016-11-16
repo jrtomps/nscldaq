@@ -25,6 +25,7 @@
 #include <exception>
 #include <string>
 #include <zmq.hpp>
+#include <cstring>
 
 static PyObject*  exception;
 
@@ -65,6 +66,70 @@ typedef struct _subscriptionData {
 /**
  * common utilities:
  */
+
+/**
+ * stringListFromStrings
+ *    Return a Python list of strings from the list of null terminated strings
+ *    that appear in the messages.
+ *
+ * @param strings - input strings...these are 0 terminated strings and
+ *                  the last string has an additional null after it.
+ * @return PyObject* PyList object.
+ */
+static PyObject*
+stringListFromStrings(const char* strings)
+{
+    PyObject* result = PyList_New(0);
+    
+    while(*strings)
+    {
+        PyObject* item = PyString_FromString(strings);
+        Py_INCREF(item);
+        PyList_Append(result, item);
+        
+        strings += std::strlen(strings) + 1;       // Points to next string else NULL.
+    }
+    
+    Py_INCREF(result);
+    return result;
+}
+
+/**
+ * SetItem
+ *    Set a dictionary item - this overloads sets a string valued item
+ *
+ *  @param dict - Python dict.
+ *  @param key  - keyword value
+ *  @param value - Value to associate with key.
+ */
+static void
+SetItem(PyObject* dict, const char* key, const char* value)
+{
+    // Need to make the value an object:
+    
+    PyObject* valueObj = PyString_FromString(value);
+    Py_INCREF(valueObj);
+    
+    PyDict_SetItemString(dict, key, valueObj);
+}
+/**
+ * SetItem
+ *    Set a dictionary item - this overload sets from a uint64_t.
+ *
+ * @param dict - dictionary object.
+ * @param key  - key string.
+ * @param value - uint64_t value.
+ */
+static void
+SetItem(PyObject* dict, const char* key, uint64_t value)
+{
+    // Turn the value into an object:
+    
+    PyObject* valueObj = PyLong_FromLongLong(value);            // Playing it safe with width.
+    Py_INCREF(valueObj);
+    
+    PyDict_SetItemString(dict, key, valueObj);
+}
 
 /**
  * iterableToStringVector
@@ -1631,11 +1696,192 @@ disableTest(PyObject* self, PyObject* args)
     
     Py_RETURN_NONE;
 }
+/**
+ * msg_extractHeader
+ *   Given a message parts tuple, extracts the header from it.
+ *   Assumptions:
+ *     - The header is always first.
+ *     - The header object is a string created with PyStringFromStringAndSize.
+ *
+ *  @param PyObject* msg - the message parts
+ *  @return const CStatusDefinitions::Header*  pointer to the header data.
+ *  
+ */
+const CStatusDefinitions::Header*
+msg_extractHeader(PyObject* msg)
+{
+    // The header is the first object from the msg tuple
+    
+    PyObject* pHeaderObj = PyTuple_GET_ITEM(msg, 0);
+
+    return reinterpret_cast<const CStatusDefinitions::Header*>(
+        PyString_AS_STRING(pHeaderObj)
+    );
+
+}
+
+/**
+ *  msg_encodeHeader
+ *     Encode a header message part into a Python dict object.
+ *  @param pHeader - pointer to the raw header.
+ *  @return PyObject* - Dict encoding of the header containing:
+ *                     - type     - the type string.
+ *                     - severity - the severity string.
+ *                     - app      - Application string.
+ *                     - src      - source of the message (FQDN).
+ *
+ */
+PyObject*
+msg_encodeHeader(const CStatusDefinitions::Header* pHeader)
+{
+    PyObject* result = PyDict_New();
+    
+    SetItem(result, "type", pHeader->s_type);
+    SetItem(result, "severity", pHeader->s_severity);
+    SetItem(result, "app", pHeader->s_application);
+    SetItem(result, "src", pHeader->s_source);
+    
+    Py_INCREF(result);
+    return result;
+}
+
+/**
+ * msg_encodeRingId
+ *    Create and return a dict for an object that is a ring id object.
+ *    - Extract the ring id from the object.
+ *    - Create and return a dict with the following fields:
+ *      # timestamp    - unix timestamp that says when the item was generated.
+ *      # name         - Name of the ring buffer.
+ *
+ *  @param id   - PyObject (string/bytes) that contains the message part.
+ *  @return PyObject* - dict as described above with an incremented ref count.
+ */
+static PyObject*
+msg_encodeRingId(PyObject* id)
+{
+    PyObject* result = PyDict_New();
+    
+    // Get a pointer to the message struct:
+    
+    CStatusDefinitions::RingStatIdentification* pRawId =
+        reinterpret_cast<CStatusDefinitions::RingStatIdentification*>(PyString_AS_STRING(id));
+        
+    // Add items to the dict:
+    
+    SetItem(result, "timestamp", pRawId->s_tod);
+    SetItem(result, "name", pRawId->s_ringName);
+    
+    Py_INCREF(result);
+    return result;
+}
+/**
+ * msg_encodeRingClient
+ *
+ *    Encode the information from a RingStatClient message part into a dict
+ *    with the following keys:
+ *    -  operations - number of operations performed by the clent
+ *    -  bytes      - number of bytes transferred by the client.
+ *    -  producer   - Boolean True if the client is a producer.
+ *    -  command    - list of command words that comprise the consumer invocation.
+ *
+ * @param client - PyObject containing a client message part.
+ * @return PyObject* - dict as described above with ref count incremented.
+ * 
+ */
+static PyObject*
+msg_encodeRingClient(PyObject* client)
+{
+    PyObject* result = PyDict_New();
+    
+    // Extract the message part:
+    
+    CStatusDefinitions::RingStatClient* pRawClient =
+        reinterpret_cast<CStatusDefinitions::RingStatClient*>(PyString_AS_STRING(client));
+
+    // Fill in the dict:
+    
+    SetItem(result, "operations", pRawClient->s_operations);
+    SetItem(result, "bytes", pRawClient->s_bytes);
+    PyObject* isProducer = pRawClient->s_isProducer ? Py_True : Py_False;
+    Py_INCREF(isProducer);
+    PyDict_SetItemString(result, "producer", isProducer);
+    PyDict_SetItemString(result, "command", stringListFromStrings(pRawClient->s_command));
+    
+    Py_INCREF(result);
+    return result;
+}
+/**
+ * msg_encodeRingStatistics
+ *    Encodes a ring statistics item.  The assumption is that the result
+ *    already has the header encoded.  We must append the RingStatIdentification
+ *    and any client message parts to the result.
+ *
+ * @param result - List whose only element is the encoded message header.
+ * @param message- Tuple that contains the complete message (including the header).
+ */
+static void
+msg_encodeRingStatistics(PyObject* result, PyObject* message)
+{
+    PyObject* ringId = PyTuple_GET_ITEM(message, 1);
+    PyList_Append(result, msg_encodeRingId(ringId));
+    
+    // Now add in any client parts:
+    
+    Py_ssize_t nParts = PyTuple_GET_SIZE(message);
+    for (Py_ssize_t i = 2; i < nParts; i++) {
+        PyObject* pClient = PyTuple_GET_ITEM(message, i);
+        PyList_Append(result, msg_encodeRingClient(pClient));
+    }
+}
+
+/**
+ * msg_decode
+ *    Decode a message from binary into something usable by python.
+ *
+ *  @param self - Pointer to the module object (not really used).
+ *  @param args - Positional args - there should be exactly one which is a
+ *                tuple containing the binary message parts.
+ *  @return PyObject* - pointer to a list that contains dicts which
+ *                 describe the message.  The actual dicts depend
+ *                 on the message parts.
+ */
+static PyObject*
+msg_decode(PyObject* self, PyObject* args) {
+    PyObject* msgParts;
+    if (!PyArg_ParseTuple(args, "O", &msgParts) ) {
+        return NULL;            // Exception already raised.
+    }
+    // The tuple must have at least a header and one other part:
+    
+    if (PyTuple_Size(msgParts) < 2) {
+        PyErr_SetString(exception, "Message tuple has too few parts");
+        return NULL;
+    }
+    PyObject* result = PyList_New(0);
+    
+    // All objects have a header:
+    
+    const CStatusDefinitions::Header* pHeader = msg_extractHeader(msgParts);
+    PyList_Append(result, msg_encodeHeader(pHeader));
+    
+    if (pHeader->s_type == CStatusDefinitions::MessageTypes::RING_STATISTICS) {
+        msg_encodeRingStatistics(result, msgParts);
+    } else {
+        PyErr_SetString(exception, "Message type not supported (yet)");
+        return NULL;
+    }
+    
+    
+    
+    Py_INCREF(result);
+    return result;
+}
 // Method dispatch table for module level methods:
 
 static PyMethodDef ModuleMethods[] = {
     {"enableTest", enableTest,   METH_VARARGS, "Run Sockets in test mode"},
     {"disableTest", disableTest, METH_VARARGS, "Run sockets in normal mode"},
+    {"decode", msg_decode, METH_VARARGS, "Decode messages"},
     {NULL, NULL, 0, NULL}                        // End of methods sentinell.
 };
 
