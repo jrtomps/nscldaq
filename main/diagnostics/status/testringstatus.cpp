@@ -120,7 +120,8 @@ operator<<(std::ostream& s, const CStatusDefinitions::RingStatClient& client)
     std::string type = (client.s_isProducer ? "Producer " : "Consumer ");
     
     s << type << joinString(client.s_command) << " "
-      << client.s_operations << " ops " << client.s_bytes << " bytes";
+      << client.s_operations << " ops " << client.s_bytes << " bytes"
+      << client.s_backlog << " bytes backlogged " << client.s_pid << " client pid";
     
     return s;
 }
