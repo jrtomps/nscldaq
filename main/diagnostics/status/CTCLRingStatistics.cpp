@@ -387,8 +387,8 @@ CTCLRingStatistics::RingStatistics::startMessage(
  *    Add a producer to the status message.  Note that adding a producer is
  *    optional however only one producer can be added to the message.
  *    The command requires a list containing the words that make up the consumer
- *    command, a count of the operations (puts) performed on the ring and a count
- *    of the bytes sent into the ring.
+ *    command, a count of the operations (puts) performed on the ring, a count
+ *    of the bytes sent into the ring, and the pid of the producer.
  *
  * @param interp - interpreter on which this command is running.
  * @param objv   - Words that make up this command.
@@ -399,9 +399,9 @@ CTCLRingStatistics::RingStatistics::addProducer(
 )
 {
     requireExactly(
-        objv, 5,
-        "adding a producer needs the producer command, an op count and the \
-number of bytes put"
+        objv, 6,
+        "adding a producer needs the producer command, an op count, the \
+number of bytes put, and a producer pid"
     );
     CTCLObject& command(objv[2]);           // marshall into vector of strings.
     
@@ -419,10 +419,13 @@ number of bytes put"
     uint64_t bytes = TclMessageUtilities::uint64FromObject(
         interp, objv[4], "Getting byte count from command line"
     );
+    pid_t pid   = static_cast<pid_t>(TclMessageUtilities::uint64FromObject(
+        interp, objv[5], "Getting the PID from the command line"
+    ));
     
     // Invoke the method on our object:
     
-    m_pObject->addProducer(cmdVector, ops, bytes);
+    m_pObject->addProducer(cmdVector, ops, bytes, pid);
     
 }
 /**
@@ -437,6 +440,8 @@ number of bytes put"
  *                 - List of strings making up the consumer command.
  *                 - Number of get operations done by that consumer.
  *                 - Number of bytes gotten by that consumer.
+ *                 - Backlog of bytes to the consumer.
+ *                 - PID of the consumer.
  */
 void
 CTCLRingStatistics::RingStatistics::addConsumer(
@@ -444,9 +449,9 @@ CTCLRingStatistics::RingStatistics::addConsumer(
 )
 {
     requireExactly(
-        objv, 5,
-        "adding a consumer needs the command, number of gets and number of \
-bytes gotten."
+        objv, 7,
+        "adding a consumer needs the command, number of gets, number of \
+bytes gotten, the backlog in bytes and the pid of the consumer."
     );
     // Marshall the parameters:
     
@@ -458,10 +463,16 @@ bytes gotten."
     uint64_t                 bytes   = TclMessageUtilities::uint64FromObject(
         interp, objv[4], "Getting the bytes transferred from the command"
     );
+    uint64_t                backlog  = TclMessageUtilities::uint64FromObject(
+        interp, objv[5], "Getting the consumer backlog from the command"
+    );
+    pid_t                   pid = static_cast<pid_t>(TclMessageUtilities::uint64FromObject(
+        interp, objv[6], "Getting the consumer PID from the command"
+    ));
     
     // Now we can invoke the api method:
     
-    m_pObject->addConsumer(command, ops, bytes);
+    m_pObject->addConsumer(command, ops, bytes, backlog, pid);
     
 }
 /**

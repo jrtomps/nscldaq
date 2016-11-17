@@ -239,7 +239,8 @@ CPublishRingStatistics::publish(std::vector<Usage>& usage)
             publisher.addProducer(
                 item.s_producerCommand,
                 item.s_usage.s_producerStats.s_transfers,
-                item.s_usage.s_producerStats.s_bytes
+                item.s_usage.s_producerStats.s_bytes,
+                item.s_usage.s_producer
             );
         }
         // add any and all consumers:
@@ -248,7 +249,9 @@ CPublishRingStatistics::publish(std::vector<Usage>& usage)
             CRingBuffer::clientStatistics&
                 stats(item.s_usage.s_consumerStats[c]);
             publisher.addConsumer(
-                item.s_consumerCommands[c], stats.s_transfers, stats.s_bytes
+                item.s_consumerCommands[c], stats.s_transfers, stats.s_bytes,
+                item.s_usage.s_consumers[c].second,             // Backlog
+                stats.s_pid
             );
                                   
         }

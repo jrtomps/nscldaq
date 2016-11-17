@@ -171,6 +171,8 @@ void RingPubTests::ringWithProducer()
   EQ(uint64_t(100*sizeof(buffer)), pClient->s_bytes);
   ASSERT(pClient->s_isProducer);
   EQ(command, marshallVector(pClient->s_command));
+  EQ(uint64_t(0), pClient->s_backlog);
+  EQ(uint64_t(getpid()), pClient->s_pid); 
   
   freeMessage(message);
 }
@@ -194,6 +196,8 @@ void RingPubTests::ringWithConsumer()
   EQ(uint64_t(0), pClient->s_operations);
   EQ(uint64_t(0), pClient->s_bytes);
   ASSERT(!pClient->s_isProducer);
+  EQ(uint64_t(0), pClient->s_backlog);
+  EQ(uint64_t(getpid()), pClient->s_pid);
   EQ(command, marshallVector(pClient->s_command));
   
   freeMessage(message);
@@ -232,6 +236,8 @@ void RingPubTests::ringWithProducerAndConsumer()
   ASSERT(pProducer->s_isProducer);  
   EQ(uint64_t(100), pProducer->s_operations);
   EQ(uint64_t(100*sizeof(buffer)), pProducer->s_bytes);
+  EQ(uint64_t(0), pProducer->s_backlog);
+  EQ(uint64_t(getpid()), pProducer->s_pid);
   EQ(command, marshallVector(pProducer->s_command));
   
   
@@ -240,6 +246,8 @@ void RingPubTests::ringWithProducerAndConsumer()
   ASSERT(!pConsumer->s_isProducer);
   EQ(uint64_t(100), pConsumer->s_operations);
   EQ(uint64_t(100*sizeof(buffer)), pConsumer->s_bytes);
+  EQ(uint64_t(getpid()), pProducer->s_pid);
+  EQ(uint64_t(0), pProducer->s_backlog);
   EQ(command, marshallVector(pConsumer->s_command));
   
   freeMessage(message);
@@ -260,7 +268,8 @@ void RingPubTests::ringWithProducerSeveralConsumers()
   std::uint8_t buffer[100];
   
   // 102 is exactly divisible by three and event so there's no uncertainty
-  // for the number of reads done by consumers:
+  // for the number of reads done by consumers;  Note that the way this is done,
+  // the consumers that don't get all items will have backlogs:
   
   for(int i = 0; i < 102; i++) {
     producer.put(buffer, sizeof(buffer));
@@ -299,16 +308,19 @@ void RingPubTests::ringWithProducerSeveralConsumers()
   
   EQ(std::uint64_t(102), pCons1->s_operations);
   EQ(std::uint64_t(102*sizeof(buffer)), pCons1->s_bytes);
+  EQ(std::uint64_t(0), pCons1->s_backlog);             // so no backlog.
   
   // Cons 2 sees every other message:
   
   EQ(std::uint64_t(102/2), pCons2->s_operations);
   EQ(std::uint64_t(102*sizeof(buffer)/2), pCons2->s_bytes);
+  EQ(std::uint64_t(102*sizeof(buffer)/2), pCons2->s_backlog);   // 1/2 the data backlogged.
   
   // Cons 3 sees every  third message:
   
   EQ(std::uint64_t(102/3), pCons3->s_operations);
   EQ(std::uint64_t(102*sizeof(buffer)/3), pCons3->s_bytes);
+  EQ(std::uint64_t(102*2*sizeof(buffer)/3), pCons3->s_backlog);  // 2/3 the data backlogged.
   
   freeMessage(message);
 }

@@ -26,6 +26,8 @@
 #include <string>
 #include <zmq.hpp>
 #include <cstring>
+#include <sys/types.h>
+#include <unistd.h>
 
 static PyObject*  exception;
 
@@ -1143,6 +1145,7 @@ ringstatistics_endMessage(PyObject* self, PyObject* args)
  *               -  An iterable containing the command words.
  *               -  The number of operations (puts) the producer performed.
  *               -  The number of bytes the producer put.
+ *               -  The pid of the producer.
  * @return PyObject* - Py_None;
  */
 static PyObject*
@@ -1152,21 +1155,22 @@ ringstatistics_addProducer(PyObject* self, PyObject* args)
     PyObject*           command;
     uint64_t            ops;
     uint64_t            bytes;
+    uint64_t            pid;
     const char*         format;
-    if(sizeof(uint64_t) == sizeof(unsigned long)) format = "Okk";
-    else if (sizeof(uint64_t) == sizeof(unsigned long long)) format = "OKK";
+    if(sizeof(uint64_t) == sizeof(unsigned long)) format = "Okkk";
+    else if (sizeof(uint64_t) == sizeof(unsigned long long)) format = "OKKK";
     else {
         PyErr_SetString(exception, "Cant' figure out format string to decode uint64_t");
     }
     
-    if (!PyArg_ParseTuple(args, format, &command, &ops, &bytes)) {
+    if (!PyArg_ParseTuple(args, format, &command, &ops, &bytes, &pid)) {
         return NULL;
     }
     std::vector<std::string> cmdWords = iterableToStringVector(command);
     if(PyErr_Occurred()) return NULL;
     
     try {
-        pThis->m_pObject->addProducer(cmdWords, ops, bytes);
+        pThis->m_pObject->addProducer(cmdWords, ops, bytes, static_cast<pid_t>(pid));
     }
     catch (std::exception& e) {
         PyErr_SetString(exception, e.what());
@@ -1187,6 +1191,8 @@ ringstatistics_addProducer(PyObject* self, PyObject* args)
  *                - iterable containing the command words.
  *                - number of operations (gets) performed.
  *                - Numer of bytes gotten.
+ *                - Backlog to the consumer (bytes).
+ *                - PID of the consumer.
  *  @return PyObject* - Py_None.
  */
 PyObject*
@@ -1196,21 +1202,25 @@ ringstatistics_addConsumer(PyObject* self, PyObject* args)
     PyObject*           command;
     uint64_t            ops;
     uint64_t            bytes;
+    uint64_t            backlog;
+    uint64_t            pid;
     const char*         format;
-    if(sizeof(uint64_t) == sizeof(unsigned long)) format = "Okk";
-    else if (sizeof(uint64_t) == sizeof(unsigned long long)) format = "OKK";
+    if(sizeof(uint64_t) == sizeof(unsigned long)) format = "Okkkk";
+    else if (sizeof(uint64_t) == sizeof(unsigned long long)) format = "OKKKK";
     else {
         PyErr_SetString(exception, "Cant' figure out format string to decode uint64_t");
     }
     
-    if (!PyArg_ParseTuple(args, format, &command, &ops, &bytes)) {
+    if (!PyArg_ParseTuple(args, format, &command, &ops, &bytes, &backlog, &pid)) {
         return NULL;
     }
     std::vector<std::string> cmdWords = iterableToStringVector(command);
     if(PyErr_Occurred()) return NULL;
     
     try {
-        pThis->m_pObject->addConsumer(cmdWords, ops, bytes);
+        pThis->m_pObject->addConsumer(
+            cmdWords, ops, bytes, backlog, static_cast<pid_t>(pid)
+        );
     }
     catch (std::exception& e) {
         PyErr_SetString(exception, e.what());
@@ -1783,6 +1793,8 @@ msg_encodeRingId(PyObject* id)
  *    -  bytes      - number of bytes transferred by the client.
  *    -  producer   - Boolean True if the client is a producer.
  *    -  command    - list of command words that comprise the consumer invocation.
+ *    -  backlog    - Backlogged bytes for consumers (0 for producers),
+ *    -  pid        - Process Id of client.
  *
  * @param client - PyObject containing a client message part.
  * @return PyObject* - dict as described above with ref count incremented.
@@ -1802,6 +1814,8 @@ msg_encodeRingClient(PyObject* client)
     
     SetItem(result, "operations", pRawClient->s_operations);
     SetItem(result, "bytes", pRawClient->s_bytes);
+    SetItem(result, "backlog", pRawClient->s_backlog);
+    SetItem(result, "pid", pRawClient->s_pid);
     PyObject* isProducer = pRawClient->s_isProducer ? Py_True : Py_False;
     Py_INCREF(isProducer);
     PyDict_SetItemString(result, "producer", isProducer);

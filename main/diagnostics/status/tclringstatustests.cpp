@@ -265,7 +265,7 @@ void TclRingStatisticsTests::producer()
   // Add the producer:
   
   std::stringstream addProducer;
-  addProducer << newCmd << " addProducer [list a b c] 1234 5678";
+  addProducer << newCmd << " addProducer [list a b c] 1234 5678 6";
   CPPUNIT_ASSERT_NO_THROW(
     m_pInterpObj->Eval(addProducer.str())
   );
@@ -333,14 +333,14 @@ void TclRingStatisticsTests::consumers()
     // Add two consumers.
     
     std::stringstream addConsumer1;
-    addConsumer1 << newCmd << " addConsumer [list x y z p d q] 666 999";
+    addConsumer1 << newCmd << " addConsumer [list x y z p d q] 666 999 12345 10";
     CPPUNIT_ASSERT_NO_THROW(
       m_pInterpObj->Eval(addConsumer1.str())
     );
     
 
     std::stringstream addConsumer2;
-    addConsumer2 << newCmd << " addConsumer [list a b c d] 10 1000";
+    addConsumer2 << newCmd << " addConsumer [list a b c d] 10 1000 555 20";
     CPPUNIT_ASSERT_NO_THROW(
       m_pInterpObj->Eval(addConsumer2.str())
     );

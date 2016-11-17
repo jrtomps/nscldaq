@@ -46,13 +46,13 @@ class TestRingStatistics(unittest.TestCase):
         port = port - 1                # In case the server socket lingers.
     
     def decodeClient(self, frame):
-        cmdlen = len(frame) - 20
-        fmt    = 'LLI%ds' % cmdlen
+        cmdlen = len(frame) - 36
+        fmt    = 'LLLLI%ds' % cmdlen
         producer = struct.unpack(fmt, frame)
         
-        pcommand = string.rstrip(producer[3], "\0")
+        pcommand = string.rstrip(producer[5], "\0")
         command = pcommand.split("\0")
-        result = list(producer[0:3])
+        result = list(producer[0:5])
         result.append(command)
         return  result
     
@@ -101,7 +101,7 @@ class TestRingStatistics(unittest.TestCase):
         
         programWords = ('/usr/opt/daq/12.1/bin/ringselector', 'fox', '--sample=PHYSICS_EVENT')
         
-        obj.addProducer(programWords, 100, 1000)
+        obj.addProducer(programWords, 100, 1000, 10)
         obj.endMessage()
         
         frames = self._receiver.recv_multipart()
@@ -113,8 +113,10 @@ class TestRingStatistics(unittest.TestCase):
         producer = self.decodeClient(prod)
         self.assertEqual(100, producer[0])
         self.assertEqual(1000, producer[1])
-        self.assertEqual(1, producer[2])
-        command = producer[3]
+        self.assertEqual(0, producer[2])
+        self.assertEqual(10, producer[3])
+        self.assertEqual(1, producer[4])
+        command = producer[5]
         
         self.assertEqual(len(programWords), len(command))
         for i in range(0, len(programWords)):
@@ -129,8 +131,8 @@ class TestRingStatistics(unittest.TestCase):
         program1Words = ('/usr/opt/daq/12.1/bin/ringselector', 'fox', '--sample=PHYSICS_EVENT')
         program2Words = ('/usr/opt/daq/12.1/bin/dumper', '--source=tcp://localhost/fox', "--count=10")
         
-        obj.addConsumer(program1Words, 100, 1000)
-        obj.addConsumer(program2Words, 125, 5000)
+        obj.addConsumer(program1Words, 100, 1000,1234, 10)
+        obj.addConsumer(program2Words, 125, 5000, 5678, 20)
         
         obj.endMessage()
     
@@ -143,12 +145,17 @@ class TestRingStatistics(unittest.TestCase):
         cons1Info = self.decodeClient(cons1)
         cons2Info = self.decodeClient(cons2)
 
+        self.assertEqual(100, cons1Info[0])
+        self.assertEqual(1000, cons1Info[1])
+        self.assertEqual(1234, cons1Info[2])
+        self.assertEqual(10, cons1Info[3])
+        self.assertEqual(0, cons1Info[4])   # producer flag.
         
-        
-        
-        
-    
-    
+        self.assertEqual(125, cons2Info[0])
+        self.assertEqual(5000, cons2Info[1])
+        self.assertEqual(5678, cons2Info[2])
+        self.assertEqual(20, cons2Info[3])
+        self.assertEqual(0, cons2Info[4])
         
         
         

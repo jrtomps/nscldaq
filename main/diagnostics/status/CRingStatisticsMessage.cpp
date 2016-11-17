@@ -32,6 +32,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <sys/types.h>
+#include <unistd.h>
 
 /**
  * CStatusDefinitions::RingStatistics::RingStatistics
@@ -92,10 +94,12 @@ CStatusDefinitions::RingStatistics::startMessage(std::string ring)
  *  @param command - Command words that make up the consumer program.
  *  @param ops     - Number of puts to the ring.
  *  @param bytes   - Number of bytes sent to the ring
+ *  @param pid     - Pid of producer in the possibly remote host.
  */
 void
 CStatusDefinitions::RingStatistics::addProducer(
-    std::vector<std::string> command, uint64_t ops, uint64_t bytes
+    std::vector<std::string> command, uint64_t ops, uint64_t bytes,
+    pid_t pid
 )
 {
     // if there's a producer throw:
@@ -103,7 +107,7 @@ CStatusDefinitions::RingStatistics::addProducer(
     if(m_producer) {
         throw std::logic_error("Ring statistic messages can only have one producer");
     }
-    m_producer = makeClient(command, ops, bytes, true);
+    m_producer = makeClient(command, ops, bytes, 0, pid, true);
 }
 /**
  * CStatusDefinitions::RingStatistics::addConsumer
@@ -112,13 +116,16 @@ CStatusDefinitions::RingStatistics::addProducer(
  *   @param command  - Vector of command words.
  *   @param ops      - Number of get ops performed by this consumer.
  *   @param bytes    - Number of bytes gotten by this consumer.
+ *   @param backlog  - Number of bytes backlogged for the consumer.
+ *   @param pid      - pid of consumer in the possibly remote system.
  */
 void
 CStatusDefinitions::RingStatistics::addConsumer(
-    std::vector<std::string> command, uint64_t ops, uint64_t bytes
+    std::vector<std::string> command, uint64_t ops, uint64_t bytes,
+    uint64_t backlog, pid_t pid
 )
 {
-    m_consumers.push_back(makeClient(command, ops, bytes));  
+    m_consumers.push_back(makeClient(command, ops, bytes, backlog, pid));  
 }
 
 /**
@@ -211,12 +218,16 @@ CStatusDefinitions::RingStatistics::endMessage()
  *    @param command - Vector of command words that are the consumer program.
  *    @param ops     - Number of get/put operations performed by the client.
  *    @param bytes   - Number of bytes gotten/put by the client.
+ *    @param backlog - Number of bytes of backlog (producers should put 0)
+ *    @param pid     - Pid of client in possibly remote system.
  *    @param producer - true if this is a producer, false if a consumer.
+ *                      defaults to false.
  *    @return CStatusDefinitions::RingStatClient*
  */
 CStatusDefinitions::RingStatClient*
 CStatusDefinitions::RingStatistics::makeClient(
     std::vector<std::string> command, uint64_t ops, uint64_t bytes,
+    uint64_t backlog, pid_t pid,
     bool producer
 )
 {
@@ -236,6 +247,8 @@ CStatusDefinitions::RingStatistics::makeClient(
     
     result->s_operations = ops;
     result->s_bytes      = bytes;
+    result->s_backlog    = backlog;
+    result->s_pid       = pid;
     result->s_isProducer = producer;
     
     char* p = result->s_command;          // note this is prefilled with 0.

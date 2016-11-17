@@ -290,6 +290,8 @@ CTCLDecodeMessage::extractRingClientInfo(CTCLObject& clientObj)
  *    - bytes    - Bytes transferred by that client.
  *    - producer - Boolean that is true if the client is a producer.
  *    - command  - list of strings that make up the command word.
+ *    - backlog  - Number of bytes of backlog (consumers).
+ *    - pid      - PID of client.
  *
  *  @param interp - interpreter that will be used to encode/decode Tcl Objects.
  *  @param client - Pointer to the message part struct.
@@ -305,6 +307,8 @@ CTCLDecodeMessage::decodeRingClientInfo(
     
     TclMessageUtilities::addToDictionary(interp, result, "ops", client.s_operations);
     TclMessageUtilities::addToDictionary(interp, result, "bytes", client.s_bytes);
+    TclMessageUtilities::addToDictionary(interp, result, "backlog", client.s_backlog);
+    TclMessageUtilities::addToDictionary(interp, result, "pid", client.s_pid);
     TclMessageUtilities::addToDictionary(
         interp, result, "producer", client.s_isProducer
     );

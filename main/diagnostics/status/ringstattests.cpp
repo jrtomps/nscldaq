@@ -135,7 +135,7 @@ void RingStatTests::addProducer()
   msg.startMessage("aring");
   
   std::vector<std::string> command = {"this", "is", "the", "command"};
-  msg.addProducer(command, 1234, 5678);
+  msg.addProducer(command, 1234, 5678, 15);
   
   ASSERT(msg.m_producer);
   std::vector<std::string> msgCmd = marshallVector(msg.m_producer->s_command);
@@ -143,6 +143,8 @@ void RingStatTests::addProducer()
   EQ(uint64_t(1234), msg.m_producer->s_operations);
   EQ(uint64_t(5678), msg.m_producer->s_bytes);
   EQ(uint32_t(1),    msg.m_producer->s_isProducer);
+  EQ(uint64_t(0),    msg.m_producer->s_backlog);           // producers never backlog.
+  EQ(uint64_t(15),   msg.m_producer->s_pid);
 }
 // Adding a second producer makes a logic_error:
 
@@ -153,11 +155,11 @@ void RingStatTests::addSecondProducer()
   msg.startMessage("aring");
   
   std::vector<std::string> command = {"this", "is", "the", "command"};
-  msg.addProducer(command, 1234, 5678);
+  msg.addProducer(command, 1234, 5678,15);
 
   
   CPPUNIT_ASSERT_THROW(
-    msg.addProducer(command, 1234,5678),
+    msg.addProducer(command, 1234,5678, 16),
     std::logic_error
   );
   
@@ -171,7 +173,7 @@ void RingStatTests::addConsumer()
   msg.startMessage("aring");
   
   std::vector<std::string> command = {"this", "is", "the", "command"};
-  msg.addConsumer(command, 1234, 5678);
+  msg.addConsumer(command, 1234, 5678, 999, 10);
   
   EQ(size_t(1), msg.m_consumers.size());
   CStatusDefinitions::RingStatClient& c = *(msg.m_consumers.front());
@@ -180,6 +182,8 @@ void RingStatTests::addConsumer()
   EQ(uint64_t(1234), c.s_operations);
   EQ(uint64_t(5678), c.s_bytes);
   EQ(uint32_t(0), c.s_isProducer);
+  EQ(uint64_t(999), c.s_backlog);
+  EQ(uint64_t(10),  c.s_pid);
 
 }
 // Ensure the fixed part of a message comes through fine.  This consists
@@ -254,7 +258,7 @@ RingStatTests::prodMessage()
   // Add a producer:
   
   std::vector<std::string> command = {"dumper", "--source=tcp://localhost/fox", "this", "that"};
-  msg.addProducer(command, 1234, 5678);
+  msg.addProducer(command, 1234, 5678, 15);
 
   msg.endMessage();                   // Everything should be queued
   
@@ -288,6 +292,8 @@ RingStatTests::prodMessage()
   EQ(uint64_t(5678), prod->s_bytes);
   ASSERT(prod->s_isProducer);                // This is a producer.
   EQ(command, marshallVector(prod->s_command));
+  EQ(uint64_t(15), prod->s_pid);
+  EQ(uint64_t(0),  prod->s_backlog);
 }
 
 //  Case where there's a few consumers floating around in the message:
@@ -310,8 +316,8 @@ RingStatTests::consumersMessage()
   std::vector<std::string> cmd1 = {"ringselector", "testring", "--sample=PHYSICS_EVENT"};
   std::vector<std::string> cmd2 = {"dumper", "--source=tcp://localhost/testring"};
   
-  msg.addConsumer(cmd1, 100, 1000);
-  msg.addConsumer(cmd2, 200, 2500);
+  msg.addConsumer(cmd1, 100, 1000, 300, 10);
+  msg.addConsumer(cmd2, 200, 2500, 400, 20);
   
   msg.endMessage();                      // Send the message:
   
@@ -352,6 +358,8 @@ RingStatTests::consumersMessage()
   EQ(uint64_t(100), pClient->s_operations);
   EQ(uint64_t(1000), pClient->s_bytes);
   EQ(cmd1, marshallVector(pClient->s_command));
+  EQ(uint64_t(300), pClient->s_backlog);
+  EQ(uint64_t(10), pClient->s_pid);
   
   // Analyze consumer 2:
   
@@ -360,5 +368,7 @@ RingStatTests::consumersMessage()
   EQ(uint64_t(200), pClient->s_operations);
   EQ(uint64_t(2500), pClient->s_bytes);
   EQ(cmd2, marshallVector(pClient->s_command));
+  EQ(uint64_t(400), pClient->s_backlog);
+  EQ(uint64_t(20), pClient->s_pid);
 
 }

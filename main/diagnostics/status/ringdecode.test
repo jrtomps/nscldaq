@@ -36,9 +36,9 @@ proc makeMinimal {} {
     return [list $header $ringId]
         
 }
-proc makeStat {ops bytes producer program} {
-    set format wwi[lrepeat [llength $program] a* ]
-    set item [binary format $format $ops $bytes $producer {*}$program]
+proc makeStat {ops bytes producer backlog pid program} {
+    set format wwwwi[lrepeat [llength $program] a* ]
+    set item [binary format $format $ops $bytes $backlog $pid $producer {*}$program]
 }
 
 tcltest::test command-exists {The statusdecode command should exist} \
@@ -68,16 +68,16 @@ tcltest::test decodeRingId {Decode the ring id message part} \
 tcltest::test decodeClients {Decode client items} \
 -setup {
     set message [makeMinimal]
-    lappend message [makeStat 100 1000 1 {This is a test}]
-    lappend message [makeStat 250 12345 0 {dumping the data}]
+    lappend message [makeStat 100 1000 0 10 1 {This is a test}]
+    lappend message [makeStat 250 12345 1234 20 0 {dumping the data}]
     
 } \
 -body {
     set decodedMessage [statusdecode $message]
     
     lrange $decodedMessage 2 3
-} -result [list [dict create ops 100 bytes 1000 producer 1 command {This is a test}] \
-          [dict create ops 250 bytes 12345678 producer 0 command {dumping the data}]]
+} -result [list [dict create ops 100 bytes 1000 backlog 0 pid 10 producer 1 command {This is a test}] \
+          [dict create ops 250 bytes 12345678 backlog 1234 pid 20 producer 0 command {dumping the data}]]
 
 tcltest::test notheader {If a message has a header that is invalid should have an error} \
 -setup {

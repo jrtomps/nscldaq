@@ -108,8 +108,8 @@ class TestStatusSubscription(unittest.TestCase):
         
         
         ringSource.startMessage("aring")
-        ringSource.addProducer( ["a","producer", "program"], 100, 1234)
-        ringSource.addConsumer(["a", "consumer"], 123, 4567)
+        ringSource.addProducer( ["a","producer", "program"], 100, 1234, 10)
+        ringSource.addConsumer(["a", "consumer"], 123, 4567, 666, 20)
         ringSource.endMessage()
         
         message = self._sub.receive()
@@ -131,10 +131,14 @@ class TestStatusSubscription(unittest.TestCase):
         self.assertEqual(100, producer['operations'])
         self.assertEqual(1234, producer['bytes'])
         self.assertEqual(True, producer['producer'])
+        self.assertEqual(0,  producer['backlog'])
+        self.assertEqual(10, producer['pid'])
         self.assertEqual(["a","producer", "program"], producer['command'])
         
         self.assertEqual(123, consumer['operations'])
         self.assertEqual(4567, consumer['bytes'])
+        self.assertEqual(666, consumer['backlog'])
+        self.assertEqual(20, consumer['pid'])
         self.assertEqual(False, consumer['producer'])
         self.assertEqual(["a", "consumer"], consumer['command'])
         

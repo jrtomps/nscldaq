@@ -29,6 +29,8 @@
 
 #include <zmq.hpp>
 #include <ctime>
+#include <sys/types.h>
+#include <unistd.h>
 
 /**
  *  @class CStatusDefinitions
@@ -63,6 +65,8 @@ public:
         struct RingStatClient {                  // Not same order as wiki but
             uint64_t  s_operations;              // uses natural alignments.
             uint64_t  s_bytes;
+            uint64_t  s_backlog;                 // Bytes of backlog for consumer.
+            uint64_t  s_pid;                     // PID of client.
             uint32_t  s_isProducer;
             char      s_command[];               // Now this can be variable length.
         };
@@ -148,16 +152,17 @@ public:
         void startMessage(std::string ring);
         void addProducer(
             std::vector<std::string> command, std::uint64_t ops,
-            std::uint64_t bytes
+            std::uint64_t bytes, pid_t pid
         );
         void addConsumer(
-            std::vector<std::string> command, std::uint64_t ops,
-            std::uint64_t bytes
+            std::vector<std::string> command, std::uint64_t ops, 
+            std::uint64_t bytes, uint64_t backlog, pid_t pid
         );
         void endMessage();
     private:
         RingStatClient* makeClient(
             std::vector<std::string> command, uint64_t ops, uint64_t bytes,
+            uint64_t backlog, pid_t pid,
             bool producer = false
         );
         void freeStorage();
