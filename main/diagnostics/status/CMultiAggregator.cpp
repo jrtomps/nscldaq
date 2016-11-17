@@ -39,6 +39,8 @@ bool in(const T& item, const std::set<T>& s)
     return s.count(item) > 0;
 }
 
+static const std::string InProcURI("inproc://StatusPublisher");
+
 /**
  * constructor:
  *  - Save the parameters.
@@ -76,6 +78,32 @@ CMultiAggregator::CMultiAggregator(
     std::stringstream uri;
     uri << "tcp://*:" << port;
     m_XPUBSocket.bind(uri.str().c_str());       // Connections on all interfaces.
+    m_publisherURI = uri.str();                 // save for getPublisherURI
+}
+
+/**
+ * constructor
+ *    This construtor is intended to allow the multi-aggregator to run in a thread
+ *    of a client process.   The main difference is publication socket is
+ *    bound to InProcURI (a hard coded inproc uri).
+ *
+ *
+ *   @param subscriptionService - the subscription service we'll use to connect
+ *                                to node persistent aggregators.
+ *   @param discoveryInterval   - seconds between updating the dataflow graph.
+ */
+CMultiAggregator::CMultiAggregator(
+    const char* subscriptionService, int discoveryInterval
+) :
+    m_zmqContext(1),
+    m_XSUBSocket(m_zmqContext, ZMQ_XSUB),
+    m_XPUBSocket(m_zmqContext, ZMQ_XPUB),
+    m_pPortManager(0),
+    m_subscriptionService(subscriptionService),
+    m_nDiscoveryInterval(discoveryInterval),
+    m_publisherURI(InProcURI)
+{
+    m_XPUBSocket.bind(InProcURI.c_str());
 }
 
 /**

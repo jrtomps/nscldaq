@@ -30,6 +30,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <CMultiAggregator.h>
+#include <thread>
 
 /**
  *  This test program subscribes to ring status updates and just dumps
@@ -125,7 +127,9 @@ operator<<(std::ostream& s, const CStatusDefinitions::RingStatClient& client)
     
     return s;
 }
-
+static void aggregatorThread(CMultiAggregator& agg) {
+    agg();
+}
 
 /**
  * main
@@ -135,13 +139,29 @@ int main(int argc, char** argv)
     if (argc > 1) {
         Service = argv[1];
     }
-    int port = getPort();
-    std::stringstream connection;
-    connection << "tcp://localhost:" << port;
+    // The special Service 'THREAD' starts off the multi aggregator as a thread.
     
-    zmq::context_t ctx(1);
-    zmq::socket_t sock(ctx, ZMQ_SUB);
-    sock.connect(connection.str().c_str());
+    std::string subscriptionUri;
+    zmq::context_t*  pContext;
+    if (std::string("THREAD") == Service) {
+        static CMultiAggregator agg("StatusPublisher", 10);
+        subscriptionUri = agg.getPublisherURI();
+        pContext        = &agg.getZmqContext();
+        
+        static std::thread      aggThread(aggregatorThread, std::ref(agg));
+        aggThread.detach();
+        
+        
+    } else {
+        int port = getPort();
+        std::stringstream connection;
+        connection << "tcp://localhost:" << port;
+        subscriptionUri = connection.str();
+        pContext = new zmq::context_t(1);
+    }
+    
+    zmq::socket_t sock(*pContext, ZMQ_SUB);
+    sock.connect(subscriptionUri.c_str());
     
     CStatusSubscription* sub = subscribe(sock);
     

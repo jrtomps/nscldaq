@@ -76,13 +76,29 @@ private:
     std::set<std::string> m_connectedNodes;
     std::list<std::list<zmq::message_t*> > m_savedSubscriptions;
     
+    std::string      m_publisherURI;
+    
 public:
     CMultiAggregator(
         const char* subscriptionService, const char* publicationService, int discoveryInterval
     );
+    // Start for thread;
+    CMultiAggregator(
+        const char* subscriptionService, int discoveryInterval
+    );
     virtual ~CMultiAggregator();
     
     void operator()();
+    
+    // These are intended to be used when the object runs as  a thread.
+    
+    std::string getPublisherURI() const {
+        return m_publisherURI;
+    }
+    zmq::context_t& getZmqContext() {
+        return m_zmqContext;
+    }
+    
 private:
     std::set<std::string> discoverNodes();
     void disconnectDeadNodes(const std::set<std::string>& nodes);
