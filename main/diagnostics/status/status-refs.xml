@@ -2263,6 +2263,229 @@ statusSubscription destroy <replaceable>$cmd</replaceable>
         </refsect1>
       </refentry>
 
+      <refentry id="tcl3_statusdecode">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_statusdecode_title'>statusdecode</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>statusdecode</refname>
+           <refpurpose>Decode status messages into Tcl usable form</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+        <command>
+package require statusMessage
+        </command>
+        <command>
+set decoded [statusdecode $rawmessage]
+        </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This command decodes a status message in raw, binary form into
+            Tcl usable form.   The <parameter>rawmessage</parameter> is a list
+            of binary arrays that might have been gotten from the
+            <command>receive</command> or <command>onMessage</command> subcommands
+            of an instance of a
+            <link linkend='tcl3_StateChange' endterm='tcl3_StateChange_title' />
+            object.
+           </para>
+           <para>
+            The result of <command>statusdecode</command> is a list of dicts.
+            The first element of the list is always a dict containing
+            the decoded header.  The contents of the remaining list elements
+            depend on the type of message (can be determined from the header).
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              DECODED MESSAGE FORMATS
+           </title>
+           <para>
+            All messages have, as their first message part, a header part.
+            This part decodes into a dict with the following key/value pairs:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term><literal>type</literal></term>
+                <listitem>
+                    <para>
+                      Contains the message type.  This is a text string.  The
+                      value of the string determines the remaining message parts.
+                      see the subsections of this section for the values of this
+                      string and what to expect in subsequent message parts
+                      in the list.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>severity</literal></term>
+                <listitem>
+                    <para>
+                      This is a string that describes he message severity.
+                      It can be one of <literal>DEBUG, INFO, WARNING, SEVERE,</literal>
+                      or <literal>DEFECT</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>application</literal></term>
+                <listitem>
+                    <para>
+                      This is a text string that identifies the application
+                      emitting this message.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>source</literal></term>
+                <listitem>
+                    <para>
+                      This is a text string that is the fully qualified
+                      host name of the system from which the message
+                      was emitted (e.g. <literal>spdaq20.nscl.msu.edu</literal>).
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+           <refsect2>
+            <title><literal>RING_STATISTICS</literal> message types</title>
+            <para>
+              In addition to the header, this message will contain a
+              <literal>RingStatIdentification</literal>
+              message part that identifies the
+              ringbuffer for which statistics are being provided, and zero or
+              more <literal>RingStatClient</literal>
+              message parts that provide statistics for the
+              ringbuffer clients.
+            </para>
+            <para>
+              The mandatory <literal>RingStatIdentification</literal> message
+              part occurs immediately following the header (list element 1).
+              It is a dict that has the following key/value pairs.
+            </para>
+            <variablelist>
+              <varlistentry>
+                  <term><literal>timestamp</literal></term>
+                  <listitem>
+                      <para>
+                        The time at which the message was generated.  This is
+                        suitable for use with the Tcl <command>clock format</command>
+                        command.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>name</literal></term>
+                  <listitem>
+                      <para>
+                        Contains the full name of the ringbuffer.  Note that
+                        proxy rings will have names like
+                        <literal>origin-ring@fully.qualified.origin.host</literal>.
+                      </para>
+                  </listitem>
+              </varlistentry>
+            </variablelist>
+            <para>
+              Following the <literal>RingStateIdentification</literal> message
+              party, any remainder message parts are
+              <literal>RingStatClient</literal> message parts.  Those parts
+              describe clients and their statitics.  Note that it is perfectly
+              possible for a ring to have no clients, in which case, there
+              will be no <literal>RingStatClient</literal> message parts
+              in the message.
+            </para>
+            <para>
+              The <literal>RingStatClient</literal> message part is a dict
+              with the following key/value pairs:
+            </para>
+            <variablelist>
+              <varlistentry>
+                  <term><literal>ops</literal></term>
+                  <listitem>
+                      <para>
+                        The number of operations the client has performed
+                        on the ring. This is the number of puts (for
+                        producers) or gets (for consumers).
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>bytes</literal></term>
+                  <listitem>
+                      <para>
+                        The number of bytes transferred
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>backlog</literal></term>
+                  <listitem>
+                      <para>
+                        The number of bytes of backlog the consumer has.
+                        This will always be zero for producers.  The backlog
+                        is the number of bytes waiting for consumption for the
+                        specific consumer.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>pid</literal></term>
+                  <listitem>
+                      <para>
+                        The process id of the client.  Note that this PID is only
+                        valid in the system in which the process  lives.  That
+                        system can be determined by looking at the source
+                        in the message header.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>producer</literal></term>
+                  <listitem>
+                      <para>
+                        This is a boolean value that is true if the client  is a
+                        producer and false if the client is a consumer.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>command</literal></term>
+                  <listitem>
+                      <para>
+                        A list of command words used to start the client. If
+                        the client was started from the shell or a shell script,
+                        this will be the words handed to the shell after
+                        any substitutions performed by the shell.  If the
+                        client was started with e.g. <function>exec(3)</function>,
+                        this will be the path to the program along with any
+                        program arguments passed to the program by the
+                        <function>exec(3)</function> call.
+                      </para>
+                  </listitem>
+              </varlistentry>
+            </variablelist>
+           </refsect2>
+           
+        </refsect1>
+
+      </refentry>
 
 <!-- /manpage -->
 
@@ -3068,4 +3291,236 @@ messageParts = sub.receive()
    </refsect1>
 </refentry>     
 
+<refentry id="python3_statusmessages_decode">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='python3_statusmessages_decode_title'>statusmessages.decode</refentrytitle>
+   <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>statusmessags.decude</refname>
+   <refpurpose>class description</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nscldaq.status import statusmessages
+
+decodedMessage = statusmessages.decode(rawMessage)
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    The status messages returned by e.g.
+    <methodname>statusmessges.Subscription.receive</methodname> are tuples of
+    binary data.  While these <emphasis>can</emphasis> be decoded by
+    the <literal>struct</literal> package in pure python, you would need to
+    be aware of struct padding that might exist in order to do that properly.
+   </para>
+   <para>
+    The <methodname>decode</methodname> package level method takes a raw
+    message (tuple of binary strings) and turns it into a list of dicts.
+    Each list element is a decoded message part.  The list elements are in the
+    same order as the message parts in the original message.
+    The dict keys closely mirror the struct field members of the raw
+    C++ level message parts. 
+   </para>
+   <para>
+    See <literal>MESSAGE PART DETAILS</literal> below for a description of the
+    dicts that make up a message.
+   </para>
+  </refsect1>
+  <refsect1>
+   <title>
+  MESSAGE PART DETAILS
+   </title>
+   <para>
+    The first message part in each message is a header.  The header describes
+    the type of message and provides additional information that is
+    message type independent.  The remaining message parts depend completely
+    on the type of the message.
+   </para>
+   <para>
+    The decoded message header is a dict with the following key/value pairs:
+   </para>
+   <variablelist>
+    <varlistentry>
+        <term><literal>type</literal></term>
+        <listitem>
+            <para>
+              This is the message type and is one of the package level message
+              type constants described in
+              <link linkend='python3_Subscription'
+                    endterm='python3_Subscription_title' />.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          <literal>severity</literal>
+        </term>
+        <listitem>
+            <para>
+              The severity of the message.  This on of the package level message
+              severity constants described in
+              <link linkend='python3_Subscription'
+                    endterm='python3_Subscription_title' />.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><literal>app</literal></term>
+        <listitem>
+            <para>
+              This is a string chosen by the application that originated the message
+              that describes it.  Programmers should attempt to make
+              this a unique string.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><literal>src</literal></term>
+        <listitem>
+            <para>
+              This is filled in by the message generation APIs and contains
+              the fully qualified host name of the originating computer
+              (for example <literal>spdaq123.nscl.msu.edu</literal>).
+            </para>
+        </listitem>
+    </varlistentry>
+   </variablelist>
+   <para>
+    Subsequent message part contents depend entirely on the value associated with
+    the <literal>type</literal> key of the header dict.
+   </para>
+   <refsect2>
+    <title>message where type is <literal>statusmessages.RING_STATISTICS</literal></title>
+    <para>
+      These messages provide statistics about the data flow from produces to
+      consumers in a ringbuffer.  They consist of one or more additional message
+      parts.  All <literal>RING_STATISTICS</literal> messages will
+      have a ring identification message part that describes the ringbuffer.
+      The decoded  dict for this message part has the following fields:
+    </para>
+    <variablelist>
+      <varlistentry>
+          <term><literal>timestamp</literal></term>
+          <listitem>
+              <para>
+                The system time at which the message was emitted.  This
+                can be passed to e.g. <function>time.ctime()</function> to
+                obtain a human readable time string.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term>
+            <literal>name</literal>
+          </term>
+          <listitem>
+              <para>
+                The name of the ringbuffer.  Note that proxy ringbuffers
+                have names like
+                <literal>source-ring-name@source.ring.host.name</literal>.
+                That is the part of the string before the <literal>@</literal>
+                is the name of the ring from which the data is being hoisted
+                and the part of the name following the <literal>@</literal>
+                is the fully qualified name of the host in which the
+                originating ring lives.
+              </para>
+          </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      The ring identification part is followed by zero or more ring client parts.
+      The ring client parts provide the statistics for each client
+      (producer or consumer) of the ring buffer.  Note that if no clients
+      are attached to the ringbuffer no ring client message parts will be
+      present.
+    </para>
+    <para>
+      Ring statistics message parts are represented by dicts with the following
+      key/value pairs:
+    </para>
+    <variablelist>
+      <varlistentry>
+          <term><literal>operations</literal></term>
+          <listitem>
+              <para>
+                Contains the number of operations performed by the client on the
+                ring.   For producers this is the number of ring items put
+                into the ring.  For consumers, the number of ring items
+                gotten fromt he ring.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><literal>bytes</literal></term>
+          <listitem>
+              <para>
+                The total number of bytes of data transferred to (producers) or
+                from (consumers) the ring.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><literal>backlog</literal></term>
+          <listitem>
+              <para>
+                For consumers, this is the number of bytes of data that are
+                backlogged for consumption by that consumer.  The backlog
+                for producers is always zero.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><literal>pid</literal></term>
+          <listitem>
+              <para>
+                The process id of the client.  Note that this PID is only valid
+                in the host in which the ringbuffer lives.  This is the
+                <literal>source</literal> field of the message header.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><literal>producer</literal></term>
+          <listitem>
+              <para>
+                This is a boolean.
+                The value is <literal>True</literal> if the client is a producer,
+                and <literal>False</literal> other wise.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term>
+            <literal>command</literal>
+          </term>
+          <listitem>
+              <para>
+                A list of command line words.  For clients started with the
+                shell, this is the list of command line words that started the
+                consumer after the shell has performed any substitutions.
+                For consumers started via e.g. <function>exec(3)</function>,
+                this is a list containing the command file and the additional
+                arguments passed to the command.
+              </para>
+          </listitem>
+      </varlistentry>
+    </variablelist>
+   </refsect2>
+  </refsect1>
+</refentry>     
 <!-- /manpage -->
