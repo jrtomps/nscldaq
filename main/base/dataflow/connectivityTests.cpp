@@ -9,6 +9,9 @@
 #include "CRingBuffer.h"
 #include "CConnectivity.h"
 #include "os.h"
+#include <iostream>
+#include <stdexcept>
+#include <Exception.h>
 
 class ConnectivityTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(ConnectivityTest);
@@ -292,8 +295,24 @@ ConnectivityTest::consumer()
 void
 ConnectivityTest::walker()
 {
-  std::string fq = Os::hostname();
-  std::vector<std::string> clients = m_pConnectivity->getAllParticipants();
-  EQ(size_t(1), clients.size());
-  EQ(fq, clients[0]);
+  std::cerr << "walker\n";
+  try {
+    std::string fq = Os::hostname();
+    std::vector<std::string> clients = m_pConnectivity->getAllParticipants();
+    EQ(size_t(1), clients.size());
+    EQ(fq, clients[0]);
+  }
+  catch (std::exception& e) {
+    std::cerr << "std:excetpion caught: " << e.what() << std::endl;
+  }
+  catch (CException& e) {
+    std::cerr << "CException caught: " << e.ReasonText() << " " << e.WasDoing() << std::endl;
+  }
+  catch (std::string s) {
+    std::cerr << "String exception caught: " << s << std::endl;
+  }
+  catch (const char* s) {
+    std::cerr << "Const char* exception caught " << s << std::endl;
+  }
+  std::cerr << "Normal completion\n";
 }
