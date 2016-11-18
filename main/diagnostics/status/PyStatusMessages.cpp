@@ -22,12 +22,15 @@
 #include <Python.h>
 #include <CStatusMessage.h>
 #include <CStatusSubscription.h>
+#include <CMultiAggregator.h>
+
 #include <exception>
 #include <string>
 #include <zmq.hpp>
 #include <cstring>
 #include <sys/types.h>
 #include <unistd.h>
+#include <thread>
 
 static PyObject*  exception;
 
@@ -1890,12 +1893,46 @@ msg_decode(PyObject* self, PyObject* args) {
     Py_INCREF(result);
     return result;
 }
+/**
+ * msg_aggregate
+ *    Start a message aggregation thread.
+ *
+ *  @param self - module object pointer.
+ *  @param args - Positional parameters (Should be empty).
+ *  @return PyObject* - string containing the URI the publisher is bound to.
+ * 
+ */
+static void
+aggregateThread(CMultiAggregator* a) {     // The thread function.
+    (*a)();
+}
+static PyObject*
+msg_aggregate(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) != 0) {
+        PyErr_SetString(exception, "startAggregation takes no parameters");
+        return NULL;
+    }
+    CMultiAggregator* pAggregator = new CMultiAggregator("StatusPublisher", 10);
+    std::string uri = pAggregator->getPublisherURI();
+    
+    std::thread* pAggregationThread = new std::thread(aggregateThread, pAggregator);
+    
+    
+    PyObject* result = PyString_FromString(uri.c_str());
+    Py_INCREF(result);
+    return result;
+    
+}
+
 // Method dispatch table for module level methods:
 
 static PyMethodDef ModuleMethods[] = {
     {"enableTest", enableTest,   METH_VARARGS, "Run Sockets in test mode"},
     {"disableTest", disableTest, METH_VARARGS, "Run sockets in normal mode"},
     {"decode", msg_decode, METH_VARARGS, "Decode messages"},
+    {"startAggregation", msg_aggregate, METH_VARARGS,
+        "Start multinode message aggregation thread"},
     {NULL, NULL, 0, NULL}                        // End of methods sentinell.
 };
 
