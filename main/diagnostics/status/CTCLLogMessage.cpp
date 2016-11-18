@@ -156,12 +156,12 @@ CTCLLogMessage::create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
         
         if (m_testing) {
             pSocket = new zmq::socket_t(
-                TclMessageUtilities::m_zmqContext,  ZMQ_PUB
+                CStatusDefinitions::ZmqContext::getInstance(),  ZMQ_PUB
             );
             pSocket->bind(uri.c_str());            
         } else {
             pSocket = new zmq::socket_t(
-                TclMessageUtilities::m_zmqContext,  ZMQ_PUSH 
+                CStatusDefinitions::ZmqContext::getInstance(),  ZMQ_PUSH 
             );
             pSocket->connect(uri.c_str());            
         }

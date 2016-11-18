@@ -31,7 +31,7 @@ private:
   CStatusDefinitions::StateChange* m_pTestObject;
 public:
   void setUp() {
-    m_pContext = new zmq::context_t(1);
+    m_pContext = &CStatusDefinitions::ZmqContext::getInstance();
     
     // Create an internal push/pull pair between sender/receiver:
     
@@ -49,8 +49,7 @@ public:
     delete m_pTestObject;
     delete m_pSender;
     delete m_pReceiver;
-    delete m_pContext;
-    m_pContext = 0;
+    CStatusDefinitions::ZmqContext::reset();
   }
 protected:
   void construct();

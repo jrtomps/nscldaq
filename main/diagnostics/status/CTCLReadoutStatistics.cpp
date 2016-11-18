@@ -121,8 +121,8 @@ CTCLReadoutStatistics::operator()(
  *    describes what the zmq::socket will be connected to as well as allowing
  *    an optional application name (defaults to "Readout").  Note that
  *    we are going to dynamically create and connect a zmq::socket after which
- *    the wrapper will be responsible for its storage.  The zmq::context_t we're
- *    using for the socket is TclMessageUtilities::m_zmqContext.
+ *    the wrapper will be responsible for its storage.  The zmq::context_t
+ *    we're using for our sockets is the CStatusDefinitions singleton.
  *
  *  @param interp - interpreter that is running the command.
  *  @param objv   - Command words that make up the command.
@@ -160,10 +160,14 @@ CTCLReadoutStatistics::create(
         // an aggregator. Normally we push at the aggregator.
         
         if (m_testing) {
-            pConnection = new zmq::socket_t(TclMessageUtilities::m_zmqContext, ZMQ_PUB);
+            pConnection = new zmq::socket_t(
+                CStatusDefinitions::ZmqContext::getInstance(), ZMQ_PUB
+            );
             pConnection->bind(uri.c_str());
         } else {
-            pConnection = new zmq::socket_t(TclMessageUtilities::m_zmqContext, ZMQ_PUSH);
+            pConnection = new zmq::socket_t(
+                CStatusDefinitions::ZmqContext::getInstance(), ZMQ_PUSH
+            );
             pConnection->connect(uri.c_str());
         }
         

@@ -36,10 +36,10 @@ private:
   zmq::context_t* m_pContext;
 public:
   void setUp() {
-    m_pContext = new zmq::context_t(1);
+    m_pContext = &CStatusDefinitions::ZmqContext::getInstance();
   }
   void tearDown() {
-    delete m_pContext;
+    CStatusDefinitions::ZmqContext::reset();
   }
 protected:
   void construction();

@@ -188,10 +188,14 @@ CTCLRingStatistics::operator()(
     
     zmq::socket_t* pEndpoint;
     if (m_testMode) {
-        pEndpoint = new zmq::socket_t(TclMessageUtilities::m_zmqContext, ZMQ_PUB);
+        pEndpoint = new zmq::socket_t(
+            CStatusDefinitions::ZmqContext::getInstance(), ZMQ_PUB
+        );
         pEndpoint->bind(uri.c_str());
     } else {
-        pEndpoint = new zmq::socket_t(TclMessageUtilities::m_zmqContext, ZMQ_PUSH);
+        pEndpoint = new zmq::socket_t(
+            CStatusDefinitions::ZmqContext::getInstance(), ZMQ_PUSH
+        );
         pEndpoint->connect(uri.c_str());
         
     }

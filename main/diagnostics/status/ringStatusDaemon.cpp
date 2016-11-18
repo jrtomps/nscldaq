@@ -32,7 +32,7 @@
 
 #include <CPortManager.h>
 #include <Exception.h>
-
+#include "CStatusMessage.h"
 #include "CRingStatusDaemon.h"
 
 
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
     
     try {
         unsigned port = translateService(parsedArgs.service_arg);
-        zmq::context_t context(1);
+        zmq::context_t& context(CStatusDefinitions::ZmqContext::getInstance());
         zmq::socket_t  pusher(context, ZMQ_PUSH);
         
         std::stringstream uri;

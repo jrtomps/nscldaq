@@ -14,15 +14,16 @@ libStatusMessages_la_SOURCES=Constants.cpp CZmqContext.cpp \
 	CStatusDefinitions.cpp \
 	LogMessage.cpp		\
 	StateChange.cpp		\
-	CStatusSubscription.cpp CStatusSubscription.h \
-	CPublishRingStatistics.cpp
+	CStatusSubscription.cpp  \
+	CPublishRingStatistics.cpp CMultiAggregator.cpp 
 
 
 
 libStatusMessages_la_CPPFLAGS = $(COMPILATION_FLAGS)
 libStatusMessages_la_LDFLAGS  = $(COMMON_LIBS)
 
-include_HEADERS = CStatusMessage.h CPublishRingStatistics.h
+include_HEADERS = CStatusMessage.h CPublishRingStatistics.h \
+	CStatusSubscription.h CMultiAggregator.h
 
 #------------------- daemon for ring status:
 
@@ -86,6 +87,7 @@ libTclStatusMessages_la_SOURCES= TclPackage.cpp             \
 	CTCLStateChangeMessage.cpp CTCLStateChangeMessage.h \
 	CTCLSubscriptions.cpp CTCLSubscriptions.h             \
 	CTCLDecodeMessage.cpp CTCLDecodeMessage.h	\
+	CTCLAggregate.cpp CTCLAggregate.h		\
 	TclUtilities.cpp TclUtilities.h 
 
 libTclStatusMessages_la_CPPFLAGS=$(COMPILATION_FLAGS) @TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_DEFS@

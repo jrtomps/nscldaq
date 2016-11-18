@@ -60,7 +60,7 @@ public:
     
     //  Setup zmq - our receiver socket will be bound to the uri as a SUB socket.
     
-    m_pZmqContext = &TclMessageUtilities::m_zmqContext;
+    m_pZmqContext = &CStatusDefinitions::ZmqContext::getInstance();
     m_pReceiver   = new zmq::socket_t(*m_pZmqContext, ZMQ_PULL);
     m_pReceiver->bind(uri.c_str());
     
@@ -73,7 +73,7 @@ public:
     delete m_pStatsCmd;
     delete m_pInterpObj;
     delete m_pReceiver;
-    
+    CStatusDefinitions::ZmqContext::reset();
   }
 protected:
   void construct();

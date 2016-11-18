@@ -39,3 +39,13 @@ CStatusDefinitions::ZmqContext::getInstance()
     }
     return *m_context;
 }
+/**
+ * reset
+ *    used in test applications to destroy the context between tests.
+ */
+void
+CStatusDefinitions::ZmqContext::reset()
+{
+    delete m_context;            // No op if there's no context at this time.
+    m_context = 0;
+}

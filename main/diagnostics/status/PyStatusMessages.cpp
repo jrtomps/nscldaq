@@ -32,7 +32,7 @@
 static PyObject*  exception;
 
 static bool       testMode(false);                  // if true, sockets are ZMQ_PUSH,
-zmq::context_t*   pContext(new zmq::context_t(1));  
+zmq::context_t*   pContext(&CStatusDefinitions::ZmqContext::getInstance());
 
 typedef struct _ringstatistics_Data {
     PyObject_HEAD

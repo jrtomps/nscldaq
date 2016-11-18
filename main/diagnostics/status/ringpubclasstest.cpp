@@ -53,7 +53,7 @@ public:
     // Setup the zmq connections sender is a PUSH and receiver a PULL, and we'll
     // directly receive/analyze raw messages.
     
-    m_pZmqContext = new zmq::context_t(1);
+    m_pZmqContext = &CStatusDefinitions::ZmqContext::getInstance();
     m_pSender     = new zmq::socket_t(*m_pZmqContext, ZMQ_PUSH);
     m_pReceiver   = new zmq::socket_t(*m_pZmqContext, ZMQ_PULL);
     
@@ -69,7 +69,7 @@ public:
     delete m_pPublisher;
     delete m_pSender;
     delete m_pReceiver;
-    delete m_pZmqContext;
+    CStatusDefinitions::ZmqContext::reset();
     killRings();                        // no rings on exit too.
   }
 protected:

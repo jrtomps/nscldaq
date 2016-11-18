@@ -142,11 +142,10 @@ int main(int argc, char** argv)
     // The special Service 'THREAD' starts off the multi aggregator as a thread.
     
     std::string subscriptionUri;
-    zmq::context_t*  pContext;
+    zmq::context_t*  pContext = &CStatusDefinitions::ZmqContext::getInstance();
     if (std::string("THREAD") == Service) {
         static CMultiAggregator agg("StatusPublisher", 10);
         subscriptionUri = agg.getPublisherURI();
-        pContext        = &agg.getZmqContext();
         
         static std::thread      aggThread(aggregatorThread, std::ref(agg));
         aggThread.detach();
@@ -157,7 +156,6 @@ int main(int argc, char** argv)
         std::stringstream connection;
         connection << "tcp://localhost:" << port;
         subscriptionUri = connection.str();
-        pContext = new zmq::context_t(1);
     }
     
     zmq::socket_t sock(*pContext, ZMQ_SUB);

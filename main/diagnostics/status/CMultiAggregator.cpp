@@ -21,6 +21,7 @@
 */
 #include <config.h>
 #include "CMultiAggregator.h"
+#include "CStatusMessage.h"
 #include <CConnectivity.h>
 #include <CPortManager.h>
 #include <sstream>
@@ -55,7 +56,7 @@ CMultiAggregator::CMultiAggregator(
     const char* subscriptionService, const char* publicationService,
     int discoveryInterval
 ) :
-    m_zmqContext(1),
+    m_zmqContext(CStatusDefinitions::ZmqContext::getInstance()),
     m_XSUBSocket(m_zmqContext, ZMQ_XSUB),
     m_XPUBSocket(m_zmqContext, ZMQ_XPUB),
     m_pPortManager(0),
@@ -95,7 +96,7 @@ CMultiAggregator::CMultiAggregator(
 CMultiAggregator::CMultiAggregator(
     const char* subscriptionService, int discoveryInterval
 ) :
-    m_zmqContext(1),
+    m_zmqContext(CStatusDefinitions::ZmqContext::getInstance()),
     m_XSUBSocket(m_zmqContext, ZMQ_XSUB),
     m_XPUBSocket(m_zmqContext, ZMQ_XPUB),
     m_pPortManager(0),

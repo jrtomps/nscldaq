@@ -63,7 +63,7 @@ class CPortManager;
 class CMultiAggregator
 {
 private:
-    zmq::context_t   m_zmqContext;
+    zmq::context_t&   m_zmqContext;
     zmq::socket_t    m_XSUBSocket;
     zmq::socket_t    m_XPUBSocket;
     CPortManager*    m_pPortManager;

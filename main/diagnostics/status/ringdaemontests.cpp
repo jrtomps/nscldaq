@@ -46,7 +46,7 @@ public:
     killRings();
     // Setup the push/pull zmq connection between publisher and subscribder:
     
-    m_zmqContext = new zmq::context_t(1);
+    m_zmqContext = &CStatusDefinitions::ZmqContext::getInstance();
     m_publisher  = new zmq::socket_t(*m_zmqContext, ZMQ_PUSH);
     m_subscriber = new zmq::socket_t(*m_zmqContext, ZMQ_PULL);
     
@@ -64,8 +64,7 @@ public:
       delete m_pDaemon;
       delete m_subscriber;
       delete m_publisher;
-      delete m_zmqContext;
-      
+      CStatusDefinitions::ZmqContext::reset();
       killRings();
   }
 protected:

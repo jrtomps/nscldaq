@@ -26,6 +26,8 @@
 #include <Exception.h>
 #include <cstdlib>
 #include <iostream>
+#include "CStatusMessage.h"
+
 /**
  * This program advertises two services via the NSCL port manager.
  * The first service 'StatusAggregator' is a ZMQ PULL socket.  Status providers
@@ -107,7 +109,7 @@ main(int argc, char** argv)
     }
     
     CPortManager manager;
-    zmq::context_t  context(1);
+    zmq::context_t& context(CStatusDefinitions::ZmqContext::getInstance());
     zmq::socket_t*  receiver  = openPullSocket(manager, context);
     zmq::socket_t*  publisher = openPubSocket(manager, context);
     

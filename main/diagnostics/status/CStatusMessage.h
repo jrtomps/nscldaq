@@ -232,7 +232,7 @@ public:
      * @class StateChanges
      *    Resposible for emitting state change messages for a client.
      */
-    public:
+public:
     class StateChange
     {
     private:
@@ -244,23 +244,30 @@ public:
         
         void logChange(std::string leaving, std::string entering);
     };
+public:
+     /**
+     * @class ZmqContext
+     *     ZMQ likes to have a single application context (especially if inproc
+     *     protocols are used).  This is a singleton class that wraps a zmq::context_t
+     *     appropriately.
+     */
+
+    class ZmqContext {
+        static zmq::context_t* m_context;
+    public:
+        static zmq::context_t& getInstance();  // Returns the singleton context.
+        static void reset();                // Used for testing.
+    };
+    /*-------------------------------------------------------------------------
+     */
     // Utility methods for building messages:
     
     private:
         static void formatHeader(
             Header& hdr, uint32_t type, uint32_t severity, const char* appName
         );
-    /**
-     * @class ZmqContext
-     *     ZMQ likes to have a single application context (especially if inproc
-     *     protocols are used).  This is a singleton class that wraps a zmq::context_t
-     *     appropriately.
-     */
-    class ZmqContext {
-        static zmq::context_t* m_context;
-    public:
-        static zmq::context_t& getInstance();  // Returns the singleton context.
-    };
+        
+   
 
 };
 #endif

@@ -44,12 +44,16 @@ class CMultiAggregator;
  */
 class CTCLAggregate : public CTCLObjectProcessor
 {
+private:
+    bool   m_running;
 public:
     CTCLAggregate(CTCLInterpreter& interp, const char* command = "statusaggregator");
     virtual ~CTCLAggregate();
     
 public:
     int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
-static:
-    void aggregatorThread(CMultiAggregator& a);
+private:
+    static void aggregatorThread(CMultiAggregator& a);
 };
+
+#endif

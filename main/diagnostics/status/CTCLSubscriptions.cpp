@@ -35,7 +35,7 @@
 /** Static members */
 
 unsigned        CTCLSubscription::m_sequence(0);
-zmq::context_t&  CTCLSubscription::m_zmqContext(*(new zmq::context_t(1)));
+
 
 
 /*=============================================================================
@@ -138,7 +138,9 @@ CTCLSubscription::create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     
     // Create the socket as a sub socket and connect it to the URI:
     
-    zmq::socket_t& sock = *(new zmq::socket_t(m_zmqContext, ZMQ_SUB));
+    zmq::socket_t& sock = *(new zmq::socket_t(
+        CStatusDefinitions::ZmqContext::getInstance(), ZMQ_SUB
+    ));
     sock.connect(uri.c_str());
     
     // Create the instance object and add it to the registry:

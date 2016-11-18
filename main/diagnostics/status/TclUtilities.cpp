@@ -31,8 +31,6 @@
 
 
 
-zmq::context_t& TclMessageUtilities::m_zmqContext(*(new zmq::context_t(1)));
-
 static std::map<std::string, std::uint32_t> messageTypeLookup = {
         {"RING_STATISTICS", CStatusDefinitions::MessageTypes::RING_STATISTICS},
         {"EVENT_BUILDER_STATISTICS",

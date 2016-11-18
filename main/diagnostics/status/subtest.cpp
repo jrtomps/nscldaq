@@ -28,7 +28,7 @@ private:
   CStatusSubscription* m_pObject;
 public:
   void setUp() {
-    m_pContext = new zmq::context_t(1);         // Thread count needed on  older ZMQ versions.
+    m_pContext = &CStatusDefinitions::ZmqContext::getInstance();
     m_pSender  = new zmq::socket_t(*m_pContext, ZMQ_PUB);  // Sender publishes.
     m_pReceiver= new zmq::socket_t(*m_pContext, ZMQ_SUB);  // Receiver subscribes.
     
@@ -48,8 +48,7 @@ public:
     
     delete m_pReceiver;
     delete m_pSender;
-    
-    delete m_pContext;
+    CStatusDefinitions::ZmqContext::reset();
   }
 protected:
   void suball();
