@@ -95,6 +95,21 @@ class TestStatusSubscription(unittest.TestCase):
         self.assertEquals('TestLogger', app)
         self.assertEquals(statusmessages.SeverityLevels.INFO, header[1])
     
+    def test_decodeLogMessage(self):
+        self._sub.subscribe([statusmessages.MessageTypes.LOG_MESSAGE], [])
+        self._log.Log(statusmessages.SeverityLevels.WARNING, "Some sort of warning")
+        parts = self._sub.receive()
+        decoded = statusmessages.decode(parts)
+        self.assertEqual(2, len(decoded))
+        header = decoded[0]
+        self.assertEqual(statusmessages.MessageTypes.LOG_MESSAGE, header['type'])
+        self.assertEqual(statusmessages.SeverityLevels.WARNING, header['severity'])
+        self.assertEqual('TestLogger', header['app'])
+        self.assertEqual(socket.getfqdn(), header['src'])
+        
+        body   = decoded[1]
+        self.assertEqual('Some sort of warning', body['message'])
+    
     def test_decodeRingStats(self):
         self._log = None
         time.sleep(1)

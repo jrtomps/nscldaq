@@ -1850,7 +1850,32 @@ msg_encodeRingStatistics(PyObject* result, PyObject* message)
         PyList_Append(result, msg_encodeRingClient(pClient));
     }
 }
-
+/**
+ * msg_encodeLogMessage
+ *   Encode a log message into python dicts.  Log messages consist of
+ *   a header and a body.
+ *
+ *   @param result - the list of dicts we'll append decoded message parts to.
+ *   @param message - The list of raw message parts.
+ *   @note  the result already has a decoded header.
+ */
+static void
+msg_encodeLogMessage(PyObject* result, PyObject* message)
+{
+    PyObject* bodyObj = PyTuple_GET_ITEM(message, 1);   // the body.
+    CStatusDefinitions::LogMessageBody* pBody =
+        reinterpret_cast<CStatusDefinitions::LogMessageBody*>(PyString_AS_STRING(bodyObj));
+    
+    // Fill in the dict and append it to the result:
+    
+    PyObject* dictObj = PyDict_New();
+    SetItem(dictObj, "timestamp", pBody->s_tod);
+    SetItem(dictObj, "message", pBody->s_message);
+    Py_INCREF(dictObj);
+    
+    PyList_Append(result, dictObj);
+    
+}
 /**
  * msg_decode
  *    Decode a message from binary into something usable by python.
@@ -1883,6 +1908,8 @@ msg_decode(PyObject* self, PyObject* args) {
     
     if (pHeader->s_type == CStatusDefinitions::MessageTypes::RING_STATISTICS) {
         msg_encodeRingStatistics(result, msgParts);
+    } else if (pHeader->s_type == CStatusDefinitions::MessageTypes::LOG_MESSAGE) {
+        msg_encodeLogMessage(result, msgParts);
     } else {
         PyErr_SetString(exception, "Message type not supported (yet)");
         return NULL;

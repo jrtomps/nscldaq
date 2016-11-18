@@ -48,6 +48,7 @@ public:
         
 private:
     void decodeRingStatistics(CTCLInterpreter& interp, CTCLObject& msg);
+    void decodeLogMessage(CTCLInterpreter& interp, CTCLObject& msg);
 
     // Header handling:    
     
@@ -63,6 +64,11 @@ private:
     const CStatusDefinitions::RingStatClient* extractRingClientInfo(CTCLObject& clientObj);
     CTCLObject decodeRingClientInfo(
         CTCLInterpreter& interp, const CStatusDefinitions::RingStatClient& client
+    );
+    
+    const CStatusDefinitions::LogMessageBody* extractLogMessageBody(CTCLObject& logBodyObj);
+    CTCLObject decodeLogBody(
+      CTCLInterpreter& interp, const CStatusDefinitions::LogMessageBody& body
     );
 };
 

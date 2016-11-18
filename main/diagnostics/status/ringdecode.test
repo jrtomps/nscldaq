@@ -28,9 +28,14 @@ exec tclsh "$0" ${1+"$@"}
 package require tcltest
 package require statusMessage
 
+proc makeHeader {type} {
+    set header [binary format iia32a128 0 1 testapp fox.nscl.msu.edu]
+    return $header
+}
+
 proc makeMinimal {} {
     
-    set header [binary format iia32a128 0 1 testapp fox.nscl.msu.edu]
+    set header [makeHeader 0]
     set ringId [binary format wa* 12345678 somering]
     
     return [list $header $ringId]
@@ -39,6 +44,12 @@ proc makeMinimal {} {
 proc makeStat {ops bytes producer backlog pid program} {
     set format wwwwi[lrepeat [llength $program] a* ]
     set item [binary format $format $ops $bytes $backlog $pid $producer {*}$program]
+    
+    return $item
+}
+
+proc makeLogBody {stamp message} {
+    return [binary format wa* $stamp $message]
 }
 
 tcltest::test command-exists {The statusdecode command should exist} \
@@ -87,3 +98,28 @@ tcltest::test notheader {If a message has a header that is invalid should have a
 -body {
     catch [statusdecode $notheader]
 } -result 1
+
+
+
+tcltest::test decode-log {Decode a log message } \
+-setup {
+    set header [makeHeader 3]
+    set body   [makeLogBody 1234 {This is a test}]
+    set message [list $header $body]
+} \
+-body {
+    statusdecode $message
+} -result [list [dict create type RING_STATISTICS severity INFO application testapp source fox.nscl.msu.edu] \
+           [dict create timestamp 1234 message "This is a test"]]
+
+
+#
+#  Ensure that test failures result in exit failure:
+#
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode [expr {$numTests(Failed) > 0}]
+}
+
+tcltest::cleanupTests

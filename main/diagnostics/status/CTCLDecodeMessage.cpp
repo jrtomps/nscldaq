@@ -81,6 +81,8 @@ CTCLDecodeMessage::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& 
         
         if (header->s_type == CStatusDefinitions::MessageTypes::RING_STATISTICS) {
             decodeRingStatistics(interp, messageParts);
+        } else if (header->s_type == CStatusDefinitions::MessageTypes::LOG_MESSAGE) {
+            decodeLogMessage(interp, messageParts);
         } else {
             throw std::invalid_argument("Unsupported message type");
         }
@@ -158,6 +160,42 @@ CTCLDecodeMessage::decodeRingStatistics(CTCLInterpreter& interp, CTCLObject& msg
         
         result += decodedClientObj;
     }
+    interp.setResult(result);
+}
+/**
+ * decodeLogMessage
+ *    Decodes a log message.  This is a header and a single log message body.
+ * @param interp - interpreter running the command.
+ * @param msg    - Object containing a list of message body parts.
+ *
+ * The result is set with the list of decoded message parts.
+ */
+void
+CTCLDecodeMessage::decodeLogMessage(CTCLInterpreter& interp, CTCLObject& msg)
+{
+    CTCLObject result;
+    result.Bind(interp);
+    
+    // Log messages have a header and a body only:
+    
+    CTCLObject hdrObj = msg.lindex(0);
+    hdrObj.Bind(interp);
+    
+    CTCLObject bodyObj = msg.lindex(1);
+    bodyObj.Bind(interp);
+    
+    // Add the decoded header to the result:
+    
+    CTCLObject decodedHeader = decodeHeader(interp, *extractHeader(hdrObj));
+    decodedHeader.Bind(interp);
+    result += decodedHeader;
+    
+    // Add the decoded body to the result too:
+    
+    CTCLObject decodedBody = decodeLogBody(interp, *extractLogMessageBody(bodyObj));
+    decodedBody.Bind(interp);
+    result += decodedBody;
+    
     interp.setResult(result);
 }
 /**
@@ -321,4 +359,46 @@ CTCLDecodeMessage::decodeRingClientInfo(
     
     
     return result;  
+}
+/**
+ * extractLogMessageBody
+ *    Converts a byte array object into a pointer to a log message body.
+ *    It's up to the caller to ensure that's actually whaty the object contains.
+ *
+ *  @param obj - The byte array object.
+ *  @return CStatusDefinitions::LogMessageBody*
+ */
+const CStatusDefinitions::LogMessageBody*
+CTCLDecodeMessage::extractLogMessageBody(CTCLObject& logBodyObj)
+{
+    Tcl_Obj* clientByteArray = logBodyObj.getObject();
+    int size;
+    return reinterpret_cast<const CStatusDefinitions::LogMessageBody*>(
+        Tcl_GetByteArrayFromObj(clientByteArray, &size)
+    );
+}
+
+/**
+ * decodeLogBody
+ *    Given a log message body object, produces a TCL dict that represents that
+ *    body. This will be a dict with the following key/values:
+ *    - timestamp - [clock seconds] timestamp.
+ *    - message   - text fo the message.
+ *
+ * @param interp - interpreter that will be used in object manipulation.
+ * @param body   - reference to the body struct.
+ * @return CTCLObject - Dict.
+ */
+CTCLObject
+CTCLDecodeMessage::decodeLogBody(
+    CTCLInterpreter& interp, const CStatusDefinitions::LogMessageBody& body
+)
+{
+    CTCLObject result;
+    result.Bind(interp);
+    
+    TclMessageUtilities::addToDictionary(interp, result, "timestamp", body.s_tod);
+    TclMessageUtilities::addToDictionary(interp, result, "message", body.s_message);
+    
+    return result;
 }
