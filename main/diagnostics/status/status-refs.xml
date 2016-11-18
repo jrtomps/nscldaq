@@ -124,6 +124,141 @@ statusaggregator
 
       </refentry>
 
+      <refentry id="daq1_multiaggregator">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_multiaggregator_title'>multiaggregator</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>multiaggregator</refname>
+           <refpurpose>Aggregate status messages from entire data flow</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+        <command>
+$DAQBIN/multiaggregator
+  <optional><option>--subscribe=<replaceable>local-aggregation-service</replaceable></option></optional>
+  <optional><option>--publish=<replaceable>publication-service</replaceable></option></optional>
+  <optional><option>--discovery-period=<replaceable>seconds</replaceable></option></optional>
+        </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This program provides a single point of subscription for all of the
+            status messages in a DAQ data flow.  It alternates between
+            discovring the set of nodes in the data flow, and serving as a
+            proxy for messages from those nodes.  It does this by subscribing
+            to the node local status aggregator service's publication
+            service for all nodes in the data flow.
+           </para>
+           <para>
+            When a client makes subscriptions for status messages, these are
+            transparently relayed to all local status aggregators and saved.
+            When new nodes are discovered, the subscription requests are played
+            back to ensure that these new connections are aware of the client
+            program needs.
+           </para>
+           <para>
+            It is necessary for <command>multiaggregator</command> to maintain
+            the history of subscribe/unsubscribe messages.  In order to prevent
+            the message history from growing without bounds, only a limited
+            number of subscribe/unsubscribe messages are retained.  The assumption
+            in this is that the set of clients and their subscriptions are
+            relatively static.  For an alternative to a single multiaggregator process,
+            see
+            <link linkend='daq3_cmultiaggregator'
+                  endterm='daq3_cmultiaggregator_title' />.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>
+                  <option>--subscribe=<replaceable>local-aggregation-service</replaceable></option>
+                </term>
+                <listitem>
+                    <para>
+                      If provided, this option gives the name of the service
+                      advertised by node-local status aggregators.  When nodes
+                      are discovered to be in the data flow, this service
+                      is used to locate the port and hence compute the ZMQ URI
+                      used to connect a <literal>XSUB</literal> socket to allow
+                      messages to flow from that aggregator.
+                    </para>
+                    <para>
+                      If not supplied, the program uses <literal>StatusPublisher</literal>.
+                      This is the default name of the service advertised by the
+                      nscldaq's node local status aggregators
+                      (<link linkend='daq1_statusaggregator'
+                            endterm='daq1_statusaggregator_title' />).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <option>--publish=<replaceable>publication-service</replaceable></option>                  
+                </term>
+                <listitem>
+                    <para>
+                      If provided, this option determines the name of the
+                      service that will be advertised by
+                      <command>multiaggregator</command>.  Clients can connect
+                      to this service with ZMQ SUB sockets and use this endpoint
+                      as a single point from which aggregate status information
+                      can be received across the entire experiment data flow.
+                    </para>
+                    <para>
+                      IF this option is not provided, the program will advertise
+                      the service <literal>MultiAggregator</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <option>--discovery-period=<replaceable>seconds</replaceable></option>                  
+                </term>
+                <listitem>
+                    <para>
+                      Provides the interval between dataflow discovery passes.
+                      Note that it can be expensive to walk the data flow.  This
+                      value should be a compromise between the expense of
+                      computing the nodes in the data flow and the maximum
+                      desired latency of noticing new nodes have joined the system
+                      and old nodes have exited.
+                    </para>
+                    <para>
+                      If not supplied, this value defaults to <literal>10</literal>
+                      seconds.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+           
+        </refsect1>
+
+  
+  
+      </refentry>
+
+
 <!-- /manpage -->
 
 <!-- manpage 3daq -->
@@ -302,6 +437,22 @@ public:
             <type>std::string </type><parameter>entering</parameter>
           </methodparam>
         </methodsynopsis>
+    };
+    class <classname>ZmqContext</classname> {
+    public:
+      <methodsynopsis>
+          <modifier>static </modifier>
+          <type>zmq::context_t&amp; </type>
+          <methodname>getInstance</methodname>
+          <void />
+      </methodsynopsis>  
+      <methodsynopsis>
+          <modifier>static </modifier>
+          <type>void </type>
+          <methodname>reset</methodname>
+          <void />
+      </methodsynopsis>  
+      
     };
 public:
        struct <structname>Header</structname> {
@@ -749,6 +900,82 @@ public:
         </varlistentry>      
               
 
+      </variablelist>
+     </refsect2>
+     <refsect2>
+      <title>ZmqContext</title>
+      <para>
+        ZMQ messaging APIs require the construction of at least one communications
+        <firstterm>context</firstterm>.  In order for some communications
+        patterns to correctly exchange data it may be necessary to ensure
+        the same context object is used over an entire application.
+      </para>
+      <para>
+        <classname>ZmqContext</classname> wraps a single
+         <classname>zmq::context_t</classname> objects with a singleton
+         pattern.  Users of the status message class should use this singleton
+         to obtain a commonb application ZMQ context object.
+      </para>
+      <para>
+        The need for a single application ZMQ context object has a certain
+        design tension with unit test programs which will want a fresh
+        ZMQ context for each test.   This class supports such tests by
+        providing a method that allows applications to shutdown and forget
+        about any existing <classname>zmq::context_t</classname> the class
+        has already created.
+      </para>
+      <para>
+        The class therefore provides the following methods:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <modifier>static </modifier>
+                  <type>zmq::context_t&amp; </type>
+                  <methodname>getInstance</methodname>
+                  <void />
+              </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                  Returns a reference to the instance of the singleton
+                  <classname>zmq::context_t</classname> object.  If necessary,
+                  the object is created.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <modifier>static </modifier>
+                  <type>void </type>
+                  <methodname>reset</methodname>
+                  <void />
+              </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                  If the singleton wrapper has already created a
+                  <classname>zmq::context_t</classname> object, that object
+                  is destroyed.   Note that this destruction also finalizes
+                  any existing <classname>zmq::socket_t</classname> objects
+                  created with this context.   
+                </para>
+                <para>
+                  The singleton is made to forget about the existence of any
+                  prior <classname>zmq::context_t</classname> object.  Therefore
+                  after <methodname>reset</methodname> is invoked, the next
+                  call to <methodname>getInstance</methodname> will return
+                  a new context.
+                </para>
+                <para>
+                  Normally only test programs invoke <methodname>reset</methodname>
+                  as part of the teardown for a specific test.
+                </para>
+            </listitem>
+        </varlistentry>
+              
       </variablelist>
      </refsect2>
   </refsect1>
@@ -1570,7 +1797,225 @@ public:
     local host's message aggregator's PULL Port.
    </para>
   </refsect1>
+</refentry>
+<refentry id="daq3_cmultiaggregator">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='daq3_cmultiaggregator_title'>CMultiAggregator</refentrytitle>
+   <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>CMultiAggregator</refname>
+   <refpurpose>Aggregate status messages across a data flow.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CMultiAggregator.h&gt;
+     class <ooclass><classname>CMultiAggregator</classname></ooclass>
+{
+  <constructorsynopsis>
+     <methodname>CMultiAggregator</methodname>
+     <methodparam>
+      <modifier>const</modifier> <type>char*</type>
+      <parameter>subscriptionService</parameter> 
+     </methodparam>
+     <methodparam>
+      <modifier>const</modifier> <type>char*</type>
+      <parameter>publicationService</parameter>
+     </methodparam>
+     <methodparam>
+      <type>int</type> <parameter>discoveryInterval</parameter>
+     </methodparam>
+  </constructorsynopsis>
+  <constructorsynopsis>
+     <methodname>CMultiAggregator</methodname>
+     <methodparam>
+      <modifier>const</modifier><type>char* </type>
+      <parameter>subscriptionService</parameter>
+     </methodparam>
+     <methodparam>
+      <type>int</type> <parameter>discoveryInterval</parameter>
+     </methodparam>
+  </constructorsynopsis>
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>void </type>
+      <methodname>operator()</methodname>
+      <void />
+  </methodsynopsis>  
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>std::string </type>
+      <methodname>getPublisherURI</methodname>
+      <void />
+      <modifier>const</modifier>
+  </methodsynopsis>    
+  <methodsynopsis>
+      <modifier></modifier>
+      <type>zmq::context_t&amp;</type>
+      <methodname>getZmqContext</methodname>
+      <void />
+  </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    This class is the heart of a ZMQ proxy that can provide a single point
+    of aggregation for messages from status provides in all nodes that participate
+    in the dataflow.
+   </para>
+   <para>
+    The class can be used as part of a separate program that advertises its
+    publication service via the NSCLDAQ port manager, or it can be use
+    in a thread of an application in which case its publication URI
+    is an <literal>inproc:</literal> protocol service and no advertisement is
+    needed or done.
+   </para>
+  </refsect1>
+  <refsect1>
+   <title>
+  METHODS
+   </title>
+   <variablelist>
+    <varlistentry>
+        <term>
+          <constructorsynopsis>
+             <methodname>CMultiAggregator</methodname>
+             <methodparam>
+              <modifier>const</modifier> <type>char*</type>
+              <parameter>subscriptionService</parameter> 
+             </methodparam>
+             <methodparam>
+              <modifier>const</modifier> <type>char*</type>
+              <parameter>publicationService</parameter>
+             </methodparam>
+             <methodparam>
+              <type>int</type> <parameter>discoveryInterval</parameter>
+             </methodparam>
+          </constructorsynopsis>
+        </term>
+        <listitem>
+            <para>
+              This constructor creates an aggregator object that is normally
+              used within a separate program.
+              <parameter>subscriptionService</parameter> is the name of the
+              publication service advertised by status aggregators in the
+              nodes of the data flow.   <parameter>publicationService</parameter>
+              is the name of a service our program will advertise via the
+              port manager of the node it runs it.
+            </para>
+            <para>
+              <parameter>discvoveryInterval</parameter> determines the time
+              in seconds between updates of the data flow graph.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+          <constructorsynopsis>
+             <methodname>CMultiAggregator</methodname>
+             <methodparam>
+              <modifier>const</modifier><type>char* </type>
+              <parameter>subscriptionService</parameter>
+             </methodparam>
+             <methodparam>
+              <type>int</type> <parameter>discoveryInterval</parameter>
+             </methodparam>
+          </constructorsynopsis>
+        </term>
+        <listitem>
+            <para>
+              This constructor is intended to create an object that will
+              be run in a separate thread within a single process.
+              <parameter>subscriptionService</parameter>, once more is the
+              name of the publication service advertised by status aggregators
+              in the nodes of the daatflow.  See <methodname>getPublisherURI</methodname>
+              below for information on how to obtain the URI of the publisher.
+              The publish URI will be an <literal>inproc:</literal> protocol
+              URI.
+            </para>
+            <para>
+              <parameter>discvoveryInterval</parameter> determines the time
+              in seconds between updates of the data flow graph.
+            </para>
+        </listitem>
+    </varlistentry>      
+    <varlistentry>
+        <term>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>void </type>
+              <methodname>operator()</methodname>
+              <void />
+          </methodsynopsis>  
+        </term>
+        <listitem>
+            <para>
+              Runs the multi-aggregator proxy once constructed.  The
+              proxy will alternate between periods of forwarding messages from
+              to subscribers from the node local status aggregators it is
+              connected to, and passes to update the set of connected nodes
+              based on changes to the dataflow graph.
+            </para>
+            <para>
+              Normally, this method does not return.
+            </para>
+        </listitem>
+    </varlistentry>      
+    <varlistentry>
+        <term>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>std::string </type>
+              <methodname>getPublisherURI</methodname>
+              <void />
+              <modifier>const</modifier>
+          </methodsynopsis>    
+        </term>
+        <listitem>
+            <para>
+              Returns the URI the object has chosen to publish its aggregate
+              messages on.
+            </para>
+        </listitem>
+    </varlistentry>      
+    <varlistentry>
+        <term>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>zmq::context_t&amp;</type>
+              <methodname>getZmqContext</methodname>
+              <void />
+          </methodsynopsis>      
+        </term>
+        <listitem>
+            <para>
+              Returns the ZMQ context that is being used by this object.
+              This is provided for historical reasons.  The application
+              ZMQ context singleton maintained by
+              <classname>CStatusDefinitions::ZmqContext</classname> is
+              used.
+            </para>
+        </listitem>
+    </varlistentry>      
+          
+   </variablelist>
+  </refsect1>
 </refentry>     
+
 <!-- /manpage -->
 
 <!-- manpage 3tcl -->
@@ -2483,6 +2928,55 @@ set decoded [statusdecode $rawmessage]
             </variablelist>
            </refsect2>
            
+        </refsect1>
+
+      </refentry>
+      <refentry id="tcl3_statusaggregator">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_statusaggregator_title'>statusaggregator</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>statusaggregator</refname>
+           <refpurpose>Start a multi-node status aggregation thread for Tcl scripts.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+        <command>
+package require statusMessage
+        </command>
+        <command>
+statusaggregator
+        </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Runs the multi node status aggregation as a thread within a process
+            that runs Tcl.  See
+            <link linkend='daq3_cmultiaggregator' endterm='daq3_cmultiaggregator_title' />
+            for more information about what this does.
+           </para>
+           
+           <para>
+            The command value is the URI on which the aggregator publishes data.
+            Normally scripts will use this to instantiate a subscription object
+            and then receive/decode messages from that object. 
+           </para>
         </refsect1>
 
       </refentry>
@@ -3521,6 +4015,47 @@ decodedMessage = statusmessages.decode(rawMessage)
       </varlistentry>
     </variablelist>
    </refsect2>
+  </refsect1>
+</refentry>
+
+<refentry id="python3_startaggregation">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+   <refentrytitle id='python3_startaggregation_title'>statusmessages.startAggregation</refentrytitle>
+   <manvolnum>3</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+   <refname>statusmessages.startAggregation</refname>
+   <refpurpose>Start multinode status aggregation for python scripts.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+from nscldaq.status import statusmessages
+
+uri = statusmessages.startAggregation()
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    Runs a multi-node status aggregator in a thread within programs written in
+    Python.   The method returns a ZMQ URI to which a <literal>SUB</literal>
+    socket can be connected.  Normally Python scripts will create one or more
+    Subscription objects using this URI and use them both to define the set
+    of messages of interest (subscriptions) and to receive messages
+    from the aggregator.
+   </para>
   </refsect1>
 </refentry>     
 <!-- /manpage -->
