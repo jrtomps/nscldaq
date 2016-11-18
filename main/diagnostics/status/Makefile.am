@@ -8,7 +8,7 @@ COMMON_LIBS      = @top_builddir@/base/os/libdaqshm.la  \
 	@top_builddir@/base/dataflow/libDataFlow.la	\
 	@ZMQ_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
-libStatusMessages_la_SOURCES=Constants.cpp \
+libStatusMessages_la_SOURCES=Constants.cpp CZmqContext.cpp \
 	CRingStatisticsMessage.cpp \
 	CReadoutStatistics.cpp \
 	CStatusDefinitions.cpp \
