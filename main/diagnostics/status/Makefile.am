@@ -102,6 +102,10 @@ tclpkgInstall:
 	$(LN_S) @libdir@/libTclStatusMessages.so @prefix@/TclLibs/status/libTclStatusMessages.so
 	echo pkg_mkIndex -verbose "@prefix@/TclLibs/status *.so" |@TCLSH@
 
+tclAppInstall::
+	$(mkinstalldirs) @bindir@
+	$(INSTALL_SCRIPT) Log.tcl @bindir@/Log
+
 
 #------------------- Python Bindings -
 
@@ -179,11 +183,12 @@ testringstatus_LDFLAGS= libStatusMessages.la \
 TESTS=$(TEST_PROGS) $(PYTHON_TESTS) $(TCL_TESTS)
 
 
-install-exec-hook: tclpkgInstall pypkgInstall
+install-exec-hook: tclpkgInstall pypkgInstall tclAppInstall
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
 
 #  Ensure stuff makes it into the tarball:
 
-EXTRA_DIST = $(PYTHON_TESTS) $(TCL_TESTS) ringstatus.ggo multiaggregator.ggo
+EXTRA_DIST = $(PYTHON_TESTS) $(TCL_TESTS) ringstatus.ggo multiaggregator.ggo \
+	Log.tcl

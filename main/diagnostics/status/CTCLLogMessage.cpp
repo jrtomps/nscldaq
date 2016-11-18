@@ -31,13 +31,6 @@
 
 unsigned CTCLLogMessage::m_instanceNumber(0);
 
-static std::map<std::string, uint32_t> severityTable = {
-    {"INFO", CStatusDefinitions::SeverityLevels::INFO}   ,
-    {"DEBUG", CStatusDefinitions::SeverityLevels::DEBUG} ,
-    {"WARNING", CStatusDefinitions::SeverityLevels::WARNING},
-    {"SEVERE",  CStatusDefinitions::SeverityLevels::SEVERE},
-    {"DEFECT",  CStatusDefinitions::SeverityLevels::DEFECT}
-};
 
 /**
  * constructor
@@ -338,12 +331,7 @@ CTCLLogMessage::TCLLogMessage::log(
     // Conver the severity string to a severity level -- throw if the string
     // invalid:
     
-    
-    auto p = severityTable.find(severityString);
-    if (p != severityTable.end()) {
-        uint32_t severity = p->second;
-        m_pObject->Log(severity, messageText);
-    } else {
-        throw std::invalid_argument("Invalid messages severity level");
-    }
+    uint32_t severity =
+        TclMessageUtilities::stringToSeverity(severityString.c_str());
+    m_pObject->Log(severity, messageText);
 }
