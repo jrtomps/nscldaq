@@ -178,8 +178,167 @@ tcltest::test must-be-log  {It is an error to feed messages that are not LOG_MES
    catch {$model addMessage $message1} msg
 } -result 1
 
+#  Tests for trim - keep:
 
+tcltest::test trim-keep-ok {Trim database with keep criterion} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    set message1 [list                                                               \
+        [dict create type LOG_MESSAGE severity INFO application Test_App            \
+            source fox.nscl.msu.edu]                                                \
+        [dict create timestamp [clock seconds] message {This is a test message}]    \
+    ]
+   $model addMessage $message1
+   
+   set message2 [list                                                       \
+        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+        [dict create timestamp [clock seconds] message {This is another message}]    \
+    ]                                                  
+   
+   
+   $model addMessage $message2
+   
+   set message3 [list                                                           \
+        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+            [dict create timestamp [clock seconds] message {Something really bad happened}]    \
+    ]
+   $model addMessage $message3
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    # The model has three messages - keep 1:
+    
+    $model trim {keep 1}
+    
+    # The table should only have one record.
 
+    db $fname
+    set count [db eval {SELECT COUNT(*) FROM log_messges}]
+    db close
+    
+    set count
+} -result 1
+
+tcltest::test trim-badkeep {Bad keep value } \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    set message1 [list                                                               \
+        [dict create type LOG_MESSAGE severity INFO application Test_App            \
+            source fox.nscl.msu.edu]                                                \
+        [dict create timestamp [clock seconds] message {This is a test message}]    \
+    ]
+   $model addMessage $message1
+   
+   set message2 [list                                                       \
+        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+        [dict create timestamp [clock seconds] message {This is another message}]    \
+    ]                                                  
+   
+   
+   $model addMessage $message2
+   
+   set message3 [list                                                           \
+        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+            [dict create timestamp [clock seconds] message {Something really bad happened}]    \
+    ]
+   $model addMessage $message3
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    catch {$model trim {keep -1}}
+} -result 1
+
+# tests for trim - since
+
+tcltest::test keep-since-ok {Check keep since criterion} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    set message1 [list                                                               \
+        [dict create type LOG_MESSAGE severity INFO application Test_App            \
+            source fox.nscl.msu.edu]                                                \
+        [dict create timestamp [clock scan 1/1/2016] message {This is a test message}]    \
+    ]
+   $model addMessage $message1
+   
+   set message2 [list                                                       \
+        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+        [dict create timestamp [clock scan 1/2/2016] message {This is another message}]    \
+    ]                                                  
+   
+   
+   $model addMessage $message2
+   
+   set message3 [list                                                           \
+        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+            [dict create timestamp [clock scan 1/3/2016] message {Something really bad happened}]    \
+    ]
+   $model addMessage $message3
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    $model trim {since 1/2/2016}                 ; #Keeps two records.
+    
+    db $fname
+    set result [db eval "SELECT COUNT(*) log_messages"]
+    db close
+    set result
+} -result 2
+
+#  Bad criterion keyword:
+
+tcltest::test bad-trim-criterion {Bad criterion keyword name} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    set message1 [list                                                               \
+        [dict create type LOG_MESSAGE severity INFO application Test_App            \
+            source fox.nscl.msu.edu]                                                \
+        [dict create timestamp [clock scan 1/1/2016] message {This is a test message}]    \
+    ]
+   $model addMessage $message1
+   
+   set message2 [list                                                       \
+        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+        [dict create timestamp [clock scan 1/2/2016] message {This is another message}]    \
+    ]                                                  
+   
+   
+   $model addMessage $message2
+   
+   set message3 [list                                                           \
+        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+            [dict create timestamp [clock scan 1/3/2016] message {Something really bad happened}]    \
+    ]
+   $model addMessage $message3
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    catch {$model trim {junk stuff}}
+     
+} -result 1
 #
 #  Ensure that test failures result in exit failure:
 #

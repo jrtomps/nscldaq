@@ -25,7 +25,7 @@ exec tclsh "$0" ${1+"$@"}
 # @brief Model for log messages.
 # @author Ron Fox <fox@nscl.msu.edu>
 #
-package provide LogModel
+package provide LogModel 1.0
 
 ##
 # This package provides a model for {set log messages.
@@ -95,10 +95,56 @@ snit::type LogModel {
             VALUES ($severity, $app, $source, $tod, $msg)
         }
     }
+    ##
+    # Trims the log_messages table of old messages.
+    #
+    # @param criterion - two element keyword value list that specifies how to trim:
+    #               *  keep n - Keep only the most recent n records.
+    #               *  since date/time - Keep only those records as new
+    #                               or newer than date/time - date/time is anything
+    #                               [clock scan] can handle.
+    # The messages that don't meet the criterion supplied are deleted from the
+    # table.
     method trim {criterion} {
+        # Criterion must be a two element list:
         
+        if {[llength $criterion] != 2} {
+            error "trim criterion must be a two element list"
+        }
+        set whereClause [$self _trimCriterionToWhereClause $criterion] 
+        
+        $dbCommand eval "delete from log_messages $whereClause"
     }
+    ##
+    # get
+    #   Get log records from the database in accordance with the filter
+    #   criteria.
+    #
+    # @param filter - describes any filter criteria as a list of sublists;  An empty
+    #                 filter implies no filtering.  Each sublist contains a
+    #                 fieldname followed by a relational operator followed by a value.
+    #                 The 'timestamp' field is handled specially in that its
+    #                 
+    # @return list of dicts with the key value pairs (note these are field names):
+    #         *  severity - message severity
+    #         *  application - Application name
+    #         *  source      - data source.
+    #         *  timestamp   - Timestamp.
+    #         *  message     - Message string.
+    #
     method get {{filter {}} } {
+        set whereClause [$self _getFilterToWhereClause $filter]
+        
+        set result [list]
+        $dbCommand eval "SELECT severity, application, source timestamp, message \
+                            FROM log_messages $whereClause" record {
+            set row [dict create]
+            foreach key [array names $record] {
+                dict set row $key $record($key)
+            }
+            lappend result $row
+        }
+        return $result
     }
     method count {} {
         
@@ -157,5 +203,43 @@ snit::type LogModel {
             idx_log_timestamp ON log_messages (timestamp)
         "
     }
-    
+    ##
+    # _trimCriterionToWhereClause
+    #    Convert the trim criterion to a delete where clause.  Note that
+    #    the criterion actually specifies what do retain.
+    #
+    # @param criterion - trim criteriion.  See the trim method for information
+    #                    about this.
+    #
+    method _trimCriterionToWhereClause {criterion} {
+        set how  [lindex $criterion 0]
+        set what [lindex $criterion 1]
+        
+         if {$how eq "keep"} {
+            if {![string is integer -strict $what]} {
+                error "keep criterion requires an integer value: '$what'"
+            }
+            if {$how <= 0} {
+                error "keep criterion requires $what > 0"
+            }
+            # Keeping the most recent n requires getting a list of their ids
+            # and generating a NOT IN clause from them to describe what is
+            # to be deleted:
+            
+            set keptIds [list]
+            $dbCommand eval \
+                "SELECT id FROM log_messages ORDER BY id DESC LIMIT $what" record {
+                lappend ketpIds $record($id)
+            }
+            set whereClause "WHERE id NOT IN ("[join $keptIds ", "]")"
+            return $whereClause
+         } elseif {$how eq "since"} {
+            set timestamp [clock scan $what]      ;# Hopefully  errors on bad times.
+            set whereClause "WHERE timstamp < $timestamp"
+            return $whereClause
+         } else {
+            error "Criterion must be a since or keep item instead of $how"
+         }
+         
+    }
 }
