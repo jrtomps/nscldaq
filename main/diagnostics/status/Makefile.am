@@ -3,9 +3,11 @@ bin_PROGRAMS = ringstatusdaemon statusaggregator multiaggregator
 lib_LTLIBRARIES = libStatusMessages.la libTclStatusMessages.la libPyStatusMessages.la
 
 COMPILATION_FLAGS= -I@top_srcdir@/base/os -I@top_srcdir@/base/dataflow \
+	-I@top_srcdir@/servers/portmanager \
 	@LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
 COMMON_LIBS      = @top_builddir@/base/os/libdaqshm.la  \
 	@top_builddir@/base/dataflow/libDataFlow.la	\
+	@top_builddir@/servers/portmanager/libPortManager.la \
 	@ZMQ_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
 libStatusMessages_la_SOURCES=Constants.cpp CZmqContext.cpp \
