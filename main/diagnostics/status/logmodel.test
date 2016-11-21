@@ -1,0 +1,193 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file logmodel.test
+# @brief tests for the LogModel snit object.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+
+# Pull in the package done this way in case it's not yet installed.
+
+set here [file dirname [info script]]
+source [file join LogModel.tcl]
+
+##
+#  Test of constructor:
+#
+
+tcltest::test construct-table {Constructing an object makes a database} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    # There must be a table:
+    
+    sqlite3 mydb $fname
+    set result [mydb eval {SELECT COUNT(*) from sqlite_master where type='table' AND name='log_messages'}]
+    mydb close
+    set result
+} -result 1
+ 
+tcltest::test construct-indices {Be sure the indices got created too} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    sqlite3 mydb $fname
+    
+    set result [list]
+    lappend result [mydb eval {SELECT COUNT(*) FROM sqlite_master
+        WHERE type ='index' AND name = 'idx_log_severity'}]
+    lappend result [mydb eval {SELECT COUNT(*) FROM sqlite_master
+        WHERE type = 'index' AND name = 'idx_log_application'}]
+    lappend result [mydb eval {SELECT COUNT(*) FROM sqlite_master
+        WHERE type = 'index' AND name = 'idx_log_source'}]
+    lappend result [mydb eval {SELECT COUNT(*) FROM sqlite_master
+        WHERE type = 'index' AND name = 'idx_log_timestamp'}]
+    
+    mydb close
+    set result
+} -result [list 1 1 1 1]
+
+
+##
+# Tests of add-message:
+#
+
+tcltest::test add-message {Add a log message - should wind up in database} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+
+    set message [list                                                               \
+        [dict create type LOG_MESSAGE severity INFO application Test_App            \
+            source fox.nscl.msu.edu]                                                \
+        [dict create timestamp [clock seconds] message {This is a test message}]    \
+    ]
+    $model addMessage $message
+    sqlite3 mydb $fname
+    set result [mydb eval {SELECT severity, application, source, message FROM log_messages}]
+    mydb close
+    set result
+}   -result [list INFO Test_App fox.nscl.msu.edu {This is a test message}]
+
+tcltest::test add-message-several {Add a few log messages} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+   set message1 [list                                                               \
+        [dict create type LOG_MESSAGE severity INFO application Test_App            \
+            source fox.nscl.msu.edu]                                                \
+        [dict create timestamp [clock seconds] message {This is a test message}]    \
+    ]
+   $model addMessage $message1
+   
+   set message2 [list                                                       \
+        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+        [dict create timestamp [clock seconds] message {This is another message}]    \
+    ]                                                  
+   
+   
+   $model addMessage $message2
+   
+   set message3 [list                                                           \
+        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
+            source fox.nscl.msu.edu]                                        \
+            [dict create timestamp [clock seconds] message {Something really bad happened}]    \
+    ]
+   $model addMessage $message3
+   
+   sqlite3 mydb $fname
+   set result  [list]
+   mydb eval \
+    {SELECT severity, application, source, message FROM log_messages ORDER BY id} \
+    record \
+    {
+        set flatRecord [list \
+            $record(severity) $record(application) $record(source) \
+            $record(message)]
+        lappend result $flatRecord
+    }
+    set result
+} -result [list \
+            [list INFO Test_App fox.nscl.msu.edu {This is a test message}] \
+            [list DEBUG Test_App fox.nscl.msu.edu {This is another message}] \
+            [list SEVERE Test_App fox.nscl.msu.edu {Something really bad happened}] \
+           ]
+
+tcltest::test must-be-log  {It is an error to feed messages that are not LOG_MESSAGE type} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]    
+} \
+-cleanup {
+    $model destroy
+    file delete $fname    
+} \
+-body {
+    set message1 [list                                                               \
+        [dict create type RING_STATISTICS severity INFO application Test_App            \
+            source fox.nscl.msu.edu]                                                \
+        [dict create timestamp [clock seconds] message {This is a test message}]    \
+    ]
+   catch {$model addMessage $message1} msg
+} -result 1
+
+
+
+#
+#  Ensure that test failures result in exit failure:
+#
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode [expr {$numTests(Failed) > 0}]
+}
+
+
+tcltest::cleanupTests

@@ -2,6 +2,8 @@ bin_PROGRAMS = ringstatusdaemon statusaggregator multiaggregator
 
 lib_LTLIBRARIES = libStatusMessages.la libTclStatusMessages.la libPyStatusMessages.la
 
+TCL_PACKAGES=LogModel.tcl
+
 COMPILATION_FLAGS= -I@top_srcdir@/base/os -I@top_srcdir@/base/dataflow \
 	-I@top_srcdir@/servers/portmanager \
 	@LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
@@ -102,7 +104,8 @@ tclpkgInstall:
 	$(mkinstalldirs) @prefix@/TclLibs @prefix@/TclLibs/status
 	rm -f @prefix@/TclLibs/status/libTclStatusMessages.so
 	$(LN_S) @libdir@/libTclStatusMessages.so @prefix@/TclLibs/status/libTclStatusMessages.so
-	echo pkg_mkIndex -verbose "@prefix@/TclLibs/status *.so" |@TCLSH@
+	$(INSTALL_SCRIPT) $(TCL_PACKAGES) @prefix@/TclLibs/status
+	echo pkg_mkIndex -verbose "@prefix@/TclLibs/status *.so *.tcl" |@TCLSH@
 
 tclAppInstall::
 	$(mkinstalldirs) @bindir@
@@ -135,7 +138,7 @@ PYTHON_TESTS=ringstatisticstests.py readoutstatisticstests.py \
 	logmessagestests.py statemessagetests.py statussub.py
 
 
-TCL_TESTS=statussubtest.test ringdecode.test
+TCL_TESTS=statussubtest.test ringdecode.test logmodel.test
 
 
 TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest ringdaemontests
@@ -193,4 +196,4 @@ clean-local:
 #  Ensure stuff makes it into the tarball:
 
 EXTRA_DIST = $(PYTHON_TESTS) $(TCL_TESTS) ringstatus.ggo multiaggregator.ggo \
-	Log.tcl
+	Log.tcl $(TCL_PACKAGES)
