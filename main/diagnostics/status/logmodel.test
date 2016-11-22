@@ -34,6 +34,21 @@ set here [file dirname [info script]]
 source [file join LogModel.tcl]
 
 ##
+#  Create a log message dict:
+#
+proc logMessage {sev app source message {stamp {}}} {
+    # Default the timestamp to now:
+    
+    if {$stamp == ""} {
+        set stamp [clock seconds]
+    }
+    set header [dict create type LOG_MESSAGE severity $sev application $app source $source]
+    set body   [dict create timestamp $stamp message $message]
+    
+    return [list $header $body]
+}
+
+##
 #  Test of constructor:
 #
 
@@ -97,11 +112,8 @@ tcltest::test add-message {Add a log message - should wind up in database} \
 } \
 -body {
 
-    set message [list                                                               \
-        [dict create type LOG_MESSAGE severity INFO application Test_App            \
-            source fox.nscl.msu.edu]                                                \
-        [dict create timestamp [clock seconds] message {This is a test message}]    \
-    ]
+    set message [logMessage INFO Test_App fox.nscl.msu.edu {This is a test message}]
+
     $model addMessage $message
     sqlite3 mydb $fname
     set result [mydb eval {SELECT severity, application, source, message FROM log_messages}]
@@ -119,27 +131,14 @@ tcltest::test add-message-several {Add a few log messages} \
     file delete $fname
 } \
 -body {
-   set message1 [list                                                               \
-        [dict create type LOG_MESSAGE severity INFO application Test_App            \
-            source fox.nscl.msu.edu]                                                \
-        [dict create timestamp [clock seconds] message {This is a test message}]    \
-    ]
+   set message1 [logMessage INFO Test_App fox.nscl.msu.edu {This is a test message}]
    $model addMessage $message1
    
-   set message2 [list                                                       \
-        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-        [dict create timestamp [clock seconds] message {This is another message}]    \
-    ]                                                  
-   
+   set message2 [logMessage DEBUG Test_App fox.nscl.msu.edu {This is another message}]   
    
    $model addMessage $message2
    
-   set message3 [list                                                           \
-        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-            [dict create timestamp [clock seconds] message {Something really bad happened}]    \
-    ]
+   set message3 [logMessage SEVERE Test_App fox.nscl.msu.edu {Something really bad happened}]
    $model addMessage $message3
    
    sqlite3 mydb $fname
@@ -184,27 +183,15 @@ tcltest::test trim-keep-ok {Trim database with keep criterion} \
 -setup {
     set fname [tcltest::makeFile {} test.db]
     set model [LogModel %AUTO% -file $fname]
-    set message1 [list                                                               \
-        [dict create type LOG_MESSAGE severity INFO application Test_App            \
-            source fox.nscl.msu.edu]                                                \
-        [dict create timestamp [clock seconds] message {This is a test message}]    \
-    ]
+    set message1 [logMessage INFO Test_App fox.nscl.msu.edu {This is a test message}]
    $model addMessage $message1
    
-   set message2 [list                                                       \
-        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-        [dict create timestamp [clock seconds] message {This is another message}]    \
-    ]                                                  
+   set message2 [logMessage DEBUG Test_App fox.nscl.msu.edu {This is another message}]
    
    
    $model addMessage $message2
    
-   set message3 [list                                                           \
-        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-            [dict create timestamp [clock seconds] message {Something really bad happened}]    \
-    ]
+   set message3 [logMessage SEVERE Test_App fox.nscl.msu.edu {Something really bad happened}]
    $model addMessage $message3
 } \
 -cleanup {
@@ -218,8 +205,8 @@ tcltest::test trim-keep-ok {Trim database with keep criterion} \
     
     # The table should only have one record.
 
-    db $fname
-    set count [db eval {SELECT COUNT(*) FROM log_messges}]
+    sqlite3 db $fname
+    set count [db eval {SELECT COUNT(*) FROM log_messages}]
     db close
     
     set count
@@ -229,27 +216,15 @@ tcltest::test trim-badkeep {Bad keep value } \
 -setup {
     set fname [tcltest::makeFile {} test.db]
     set model [LogModel %AUTO% -file $fname]
-    set message1 [list                                                               \
-        [dict create type LOG_MESSAGE severity INFO application Test_App            \
-            source fox.nscl.msu.edu]                                                \
-        [dict create timestamp [clock seconds] message {This is a test message}]    \
-    ]
+    set message1 [logMessage INFO Test_App fox.nscl.msu.edu {This is a test message}]
    $model addMessage $message1
    
-   set message2 [list                                                       \
-        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-        [dict create timestamp [clock seconds] message {This is another message}]    \
-    ]                                                  
+   set message2 [logMessage DEBUG Test_App fox.nscl.msu.edu {This is another message}]
    
    
    $model addMessage $message2
    
-   set message3 [list                                                           \
-        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-            [dict create timestamp [clock seconds] message {Something really bad happened}]    \
-    ]
+   set message3 [logMessage SEVERE Test_App fox.nscl.msu.edu {Something really bad happened}]
    $model addMessage $message3
 } \
 -cleanup {
@@ -266,27 +241,15 @@ tcltest::test keep-since-ok {Check keep since criterion} \
 -setup {
     set fname [tcltest::makeFile {} test.db]
     set model [LogModel %AUTO% -file $fname]
-    set message1 [list                                                               \
-        [dict create type LOG_MESSAGE severity INFO application Test_App            \
-            source fox.nscl.msu.edu]                                                \
-        [dict create timestamp [clock scan 1/1/2016] message {This is a test message}]    \
-    ]
+    set message1 [logMessage INFO Test_App fox.nscl.msu.edu {This is a test message} [clock scan 1/1/2016]]
    $model addMessage $message1
    
-   set message2 [list                                                       \
-        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-        [dict create timestamp [clock scan 1/2/2016] message {This is another message}]    \
-    ]                                                  
+   set message2 [logMessage INFO Test_App fox.nscl.msu.edu {This is another message} [clock scan 1/2/2016]]
    
    
    $model addMessage $message2
    
-   set message3 [list                                                           \
-        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-            [dict create timestamp [clock scan 1/3/2016] message {Something really bad happened}]    \
-    ]
+   set message3 [logMessage SEVERE Test_App fox.nscl.msu.edu {Something really bad happened} [clock scan 1/3/2016]]
    $model addMessage $message3
 } \
 -cleanup {
@@ -296,11 +259,11 @@ tcltest::test keep-since-ok {Check keep since criterion} \
 -body {
     $model trim {since 1/2/2016}                 ; #Keeps two records.
     
-    db $fname
+    sqlite3 db $fname
     set result [db eval "SELECT COUNT(*) log_messages"]
     db close
     set result
-} -result 2
+} -result 1
 
 #  Bad criterion keyword:
 
@@ -308,27 +271,13 @@ tcltest::test bad-trim-criterion {Bad criterion keyword name} \
 -setup {
     set fname [tcltest::makeFile {} test.db]
     set model [LogModel %AUTO% -file $fname]
-    set message1 [list                                                               \
-        [dict create type LOG_MESSAGE severity INFO application Test_App            \
-            source fox.nscl.msu.edu]                                                \
-        [dict create timestamp [clock scan 1/1/2016] message {This is a test message}]    \
-    ]
+    set message1 [logMessage INFO Test_App fox.nscl.msu.edu {This is a test message} [clock scan 1/1/2016]]
    $model addMessage $message1
    
-   set message2 [list                                                       \
-        [dict create type LOG_MESSAGE severity DEBUG application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-        [dict create timestamp [clock scan 1/2/2016] message {This is another message}]    \
-    ]                                                  
-   
-   
+   set message2 [logMessage DEBUG Test_App fox.nscl.msu.edu {This is another message} [clock scan 1/2/2016]]
    $model addMessage $message2
    
-   set message3 [list                                                           \
-        [dict create type LOG_MESSAGE severity SEVERE application Test_App   \
-            source fox.nscl.msu.edu]                                        \
-            [dict create timestamp [clock scan 1/3/2016] message {Something really bad happened}]    \
-    ]
+   set message3 [logMessage SEVERE Test_App fox.nscl.msu.edu {Something really bad happened} [clock scan 1/3/2016]]
    $model addMessage $message3
 } \
 -cleanup {
@@ -339,6 +288,149 @@ tcltest::test bad-trim-criterion {Bad criterion keyword name} \
     catch {$model trim {junk stuff}}
      
 } -result 1
+
+tcltest::test get-all {Get messages without filtering} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    
+    $model addMessage [logMessage DEBUG  App1 fox.nscl.msu.edu {Test msg} [clock scan "1/1/2016 0:0:0"]]
+    $model addMessage [logMessage INFO   App2 fox.nscl.msu.edu {Second message} [clock scan "1/1/2016 01:0:10"]]
+    $model addMessage [logMessage SEVERE App3 fox.nscl.msu.edu {last message} [clock scan "1/1/2016 01:10:00"]]
+    
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    $model get
+} -result [list \
+    [dict create severity DEBUG application App1 source fox.nscl.msu.edu timestamp [clock scan "1/1/2016 0:0:0"] message {Test msg}]         \
+    [dict create severity INFO  application App2 source fox.nscl.msu.edu timestamp [clock scan "1/1/2016 01:0:10"] message {Second message}] \
+    [dict create severity SEVERE application App3 source fox.nscl.msu.edu timestamp [clock scan "1/1/2016 01:10:00"] message {last message}] \
+]
+
+tcltest::test get-specifyApp {Get messages but only from the specified application} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    
+    $model addMessage [logMessage DEBUG  App1 fox.nscl.msu.edu {Test msg} [clock scan "1/1/2016 0:0:0"]]
+    $model addMessage [logMessage INFO   App2 fox.nscl.msu.edu {Second message} [clock scan "1/1/2016 01:0:10"]]
+    $model addMessage [logMessage SEVERE App3 fox.nscl.msu.edu {last message} [clock scan "1/1/2016 01:10:00"]]
+    
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    $model get [list [list application = App2]]
+} -result [list \
+    [dict create severity INFO  application App2 source fox.nscl.msu.edu timestamp [clock scan "1/1/2016 01:0:10"] message {Second message} ] \
+]
+
+tcltest::test get-specify-severity {Get messages filterd by severity} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    
+    $model addMessage [logMessage DEBUG  App1 fox.nscl.msu.edu {Test msg} [clock scan "1/1/2016 0:0:0"]]
+    $model addMessage [logMessage INFO   App2 fox.nscl.msu.edu {Second message} [clock scan "1/1/2016 01:0:10"]]
+    $model addMessage [logMessage SEVERE App3 fox.nscl.msu.edu {last message} [clock scan "1/1/2016 01:10:00"]]
+    
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    $model get [list [list severity = INFO]]
+} -result [list     \
+    [dict create severity INFO  application App2 source fox.nscl.msu.edu timestamp [clock scan "1/1/2016 01:0:10"] message {Second message} ] \
+]
+
+tcltest::test get-specify-host { Get messages filtered by host} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    
+    $model addMessage [logMessage DEBUG  App1 fox.nscl.msu.edu {Test msg} [clock scan "1/1/2016 0:0:0"]]
+    $model addMessage [logMessage INFO   App2 fox.nscl.msu.edu {Second message} [clock scan "1/1/2016 01:0:10"]]
+    $model addMessage [logMessage SEVERE App3 spdaq16.nscl.msu.edu  {last message} [clock scan "1/1/2016 01:10:00"]]
+    
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    $model get [list [list source = spdaq16.nscl.msu.edu]]
+} -result [list \
+    [dict create severity SEVERE application App3 source spdaq16.nscl.msu.edu timestamp [clock scan "1/1/2016 01:10:00"] message {last message}] \
+]
+
+tcltest::test get-specify-time {Get messages filtered by timestamp} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    
+    $model addMessage [logMessage DEBUG  App1 fox.nscl.msu.edu {Test msg} [clock scan "1/1/2016 0:0:0"]]
+    $model addMessage [logMessage INFO   App2 fox.nscl.msu.edu {Second message} [clock scan "1/1/2016 01:0:10"]]
+    $model addMessage [logMessage SEVERE App3 spdaq16.nscl.msu.edu  {last message} [clock scan "1/1/2016 01:10:00"]]
+    
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    $model get [list [list timestamp > "1/1/2016 1:0:10"]]
+} -result [list     \
+    [dict create severity SEVERE application App3 source spdaq16.nscl.msu.edu timestamp [clock scan "1/1/2016 01:10:00"] message {last message}] \
+]
+
+tcltest::test get-multi-filter {Get messages filtered by Application and timestamp} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    
+    $model addMessage [logMessage DEBUG  App1 fox.nscl.msu.edu {Test msg} [clock scan "1/1/2016 0:0:0"]]
+    $model addMessage [logMessage WARNING App3 fox.nscl.msu.edu {Some message} [clock scan "1/1/2016 0:5:0"]]
+    $model addMessage [logMessage INFO   App2 fox.nscl.msu.edu {Second message} [clock scan "1/1/2016 01:0:10"]]
+    $model addMessage [logMessage SEVERE App3 spdaq16.nscl.msu.edu  {last message} [clock scan "1/1/2016 01:10:00"]]
+    
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    $model get [list {application = App3} {timestamp > "1/1/2016 0:5:1"}]
+} -result [list         \
+    [dict create severity SEVERE application App3 source spdaq16.nscl.msu.edu timestamp [clock scan "1/1/2016 01:10:00"] message {last message}] \
+]
+
+tcltest::test count {Ensure we can ask for the number of messages in the database} \
+-setup {
+    set fname [tcltest::makeFile {} test.db]
+    set model [LogModel %AUTO% -file $fname]
+    
+    $model addMessage [logMessage DEBUG  App1 fox.nscl.msu.edu {Test msg} [clock scan "1/1/2016 0:0:0"]]
+    $model addMessage [logMessage WARNING App3 fox.nscl.msu.edu {Some message} [clock scan "1/1/2016 0:5:0"]]
+    $model addMessage [logMessage INFO   App2 fox.nscl.msu.edu {Second message} [clock scan "1/1/2016 01:0:10"]]
+    $model addMessage [logMessage SEVERE App3 spdaq16.nscl.msu.edu  {last message} [clock scan "1/1/2016 01:10:00"]]
+    
+} \
+-cleanup {
+    $model destroy
+    file delete $fname
+} \
+-body {
+    $model count
+} -result 4
+
 #
 #  Ensure that test failures result in exit failure:
 #

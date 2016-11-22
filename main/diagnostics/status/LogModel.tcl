@@ -113,6 +113,7 @@ snit::type LogModel {
         }
         set whereClause [$self _trimCriterionToWhereClause $criterion] 
         
+        
         $dbCommand eval "delete from log_messages $whereClause"
     }
     ##
@@ -123,7 +124,8 @@ snit::type LogModel {
     # @param filter - describes any filter criteria as a list of sublists;  An empty
     #                 filter implies no filtering.  Each sublist contains a
     #                 fieldname followed by a relational operator followed by a value.
-    #                 The 'timestamp' field is handled specially in that its
+    #                 The 'timestamp' field is handled specially in that it is
+    #                 [clock scan]ned
     #                 
     # @return list of dicts with the key value pairs (note these are field names):
     #         *  severity - message severity
@@ -136,18 +138,24 @@ snit::type LogModel {
         set whereClause [$self _getFilterToWhereClause $filter]
         
         set result [list]
-        $dbCommand eval "SELECT severity, application, source timestamp, message \
+        $dbCommand eval "SELECT severity, application, source, timestamp, message \
                             FROM log_messages $whereClause" record {
             set row [dict create]
-            foreach key [array names $record] {
+            foreach key [list severity application source timestamp message] {
                 dict set row $key $record($key)
             }
             lappend result $row
         }
         return $result
     }
+    ##
+    #  Return the number of messages that are in the database.
+    #  This is intended mostly for in memory databases which may need to be
+    #   trimmed to prevent virtual memory exhaustion.
+    # @return integer - number of messages in the database.
+    #
     method count {} {
-        
+        return [$dbCommand eval {SELECT COUNT(*) FROM log_messages}]    
     }
     #--------------------------------------------------------------------------
     #  Private methods.
@@ -219,7 +227,7 @@ snit::type LogModel {
             if {![string is integer -strict $what]} {
                 error "keep criterion requires an integer value: '$what'"
             }
-            if {$how <= 0} {
+            if {$what <= 0} {
                 error "keep criterion requires $what > 0"
             }
             # Keeping the most recent n requires getting a list of their ids
@@ -229,17 +237,55 @@ snit::type LogModel {
             set keptIds [list]
             $dbCommand eval \
                 "SELECT id FROM log_messages ORDER BY id DESC LIMIT $what" record {
-                lappend ketpIds $record($id)
+                lappend keptIds $record(id)
             }
-            set whereClause "WHERE id NOT IN ("[join $keptIds ", "]")"
+            set whereClause "WHERE id NOT IN ([join $keptIds {, }])"
             return $whereClause
          } elseif {$how eq "since"} {
             set timestamp [clock scan $what]      ;# Hopefully  errors on bad times.
-            set whereClause "WHERE timstamp < $timestamp"
+            set whereClause "WHERE timestamp >= $timestamp"
             return $whereClause
          } else {
             error "Criterion must be a since or keep item instead of $how"
          }
          
     }
-}
+    ##
+    # _getFilterToWhereClause
+    #   Turns a filter for the get method into an SQL WHERE clause.
+    #
+    #  Filter clauses are of the form {filename binop value}  e.g.
+    #  {application ==  'george'} is a filter clause that requires
+    #  messages be from the george application.  Note that the
+    #  binop can be any valid SQLITE binary operator e.g:
+    #  {application IN ('a','b','c')} filters to applications that are
+    #  any of a,b,c -- though this is not anticipated to be the normal use.
+    #
+    # @param filter - Filter specification (list of sublists).
+    # @return string a WHERE clause (note that an empty filter spec returns
+    #                  nothing which does not filter any data).
+    #
+    method _getFilterToWhereClause filter {
+        if {[llength $filter] == 0} {
+            return "";                 # No Filter.
+        }
+        #  Build up a list of WHERE subclauses from the filter criteria.
+        #  We're on the lookout for timestamp whose value must be treated specially:
+        #
+        set clauses [list]
+        foreach spec $filter {
+            set field [lindex $spec 0]
+            set op    [lindex $spec 1]
+            set value [lindex $spec 2]
+            if {$field eq "timestamp"}  {
+                set value [clock scan $value];   # Values are stringed dates.cd /
+            }
+            lappend clauses "$field $op '$value'"
+        }
+        # Join the clauses with an AND:
+        
+        set whereClause [join $clauses " AND "]
+        return "WHERE $whereClause"
+    }
+}   
+
