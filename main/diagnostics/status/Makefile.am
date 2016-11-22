@@ -2,7 +2,7 @@ bin_PROGRAMS = ringstatusdaemon statusaggregator multiaggregator
 
 lib_LTLIBRARIES = libStatusMessages.la libTclStatusMessages.la libPyStatusMessages.la
 
-TCL_PACKAGES=LogModel.tcl
+TCL_PACKAGES=LogModel.tcl LogView.tcl
 
 COMPILATION_FLAGS= -I@top_srcdir@/base/os -I@top_srcdir@/base/dataflow \
 	-I@top_srcdir@/servers/portmanager \
