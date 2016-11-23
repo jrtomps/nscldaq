@@ -26,7 +26,7 @@ exec tclsh "$0" ${1+"$@"}
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 
-package provide LogController.tcl
+package provide LogController 1.0
 
 package require snit
 
@@ -77,7 +77,7 @@ snit::type LogController {
     #                     statusdecode applied to a message.
     #
     method addMessage logMessage {
-        $options(-model) add $logMessage
+        $options(-model) addMessage $logMessage
         set messageDict [$self _messageToDict $logMessage];  # turn to dictionary.
         if {[$self _passesFilter $messageDict]} {
             $options(-view) add $messageDict
@@ -150,11 +150,11 @@ snit::type LogController {
             set field [lindex $clause 0]
             set op    [lindex $clause 1]
             set value [lindex $clause 2]
-            if {$field eq timestamp} {
+            if {$field eq "timestamp"} {
                 set value [clock scan $value]
             }
             set messageChunk [dict get $message $field]
-            if {!($messageChunk $op $value)} {
+            if {![::tcl::mathop::$op $messageChunk $value]} {
                 return false
             }
         }

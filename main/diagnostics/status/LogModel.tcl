@@ -136,10 +136,10 @@ snit::type LogModel {
     #
     method get {{filter {}} } {
         set whereClause [$self _getFilterToWhereClause $filter]
-        
+        puts $whereClause
         set result [list]
         $dbCommand eval "SELECT severity, application, source, timestamp, message \
-                            FROM log_messages $whereClause" record {
+                            FROM log_messages $whereClause ORDER BY id ASC" record {
             set row [dict create]
             foreach key [list severity application source timestamp message] {
                 dict set row $key $record($key)
@@ -280,7 +280,18 @@ snit::type LogModel {
             if {$field eq "timestamp"}  {
                 set value [clock scan $value];   # Values are stringed dates.cd /
             }
-            lappend clauses "$field $op '$value'"
+            # If values are a list turn them into ('v1','v2') ...
+            
+            if {[llength $value] > 1} {
+                set valueList [list]
+                foreach v $value {
+                    lappend valueList '$v'
+                }
+                set value "([join $valueList ", "])"
+            } else {
+                set value '$value'
+            }
+            lappend clauses "$field $op $value"
         }
         # Join the clauses with an AND:
         

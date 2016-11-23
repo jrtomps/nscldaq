@@ -151,7 +151,7 @@ snit::widgetadaptor LogView {
     # @param messages - list of messages. See add for the format of a message.
     #
     method load messages {
-        foreach message $messages} {
+        foreach message $messages {
             $self add $message
         }
     }
