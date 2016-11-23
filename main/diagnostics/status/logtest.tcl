@@ -36,6 +36,7 @@ exec tclsh "$0" ${1+"$@"}
 
 package require LogDisplay
 package require statusMessage
+package require dialogWrapper
 
 proc processMessage {rawMessage} {
     set decodedMessage [statusdecode $rawMessage]
@@ -43,7 +44,7 @@ proc processMessage {rawMessage} {
 }
 
 proc updateFilter {} {
-    
+    set filters [list]    
     # Severity selection severity in (all severities with value 1)
     
     set severitiesShown [list]
@@ -55,10 +56,53 @@ proc updateFilter {} {
     }
     if {[llength $severitiesShown] > 1} {
         set sevFilter [list severity in $severitiesShown]
+        lappend filters $sevFilter
     } else  {  
         set sevFilter [list severity = $severitiesShown]
+        lappend filters $sevFilter
     }
-    $::logDisplay setFilter [list $sevFilter]
+    # Application filter:
+    
+    if {$::visibleApplication ne""} {
+        lappend filters [list application == $::visibleApplication]
+    }
+    #  Source filter:
+    
+    if {$::visibleSource ne ""} {
+        lappend filters [list source == $::visibleSource]
+    }
+
+    $::logDisplay setFilter $filters
+}
+
+
+proc setTextFilter which {
+    upvar $which value
+    toplevel .d
+    DialogWrapper .d.prompt -showcancel 1
+    set c [.d.prompt controlarea]
+    entry $c.e
+    $c.e insert end $value
+    .d.prompt configure -form $c.e
+    pack .d.prompt
+    set result [.d.prompt modal]
+    if {$result eq "Ok"} {
+        set value [$c.e get]
+        updateFilter    
+    }
+    destroy .d
+    
+    
+    
+}
+
+proc clearFilters {} {
+    foreach severity [list DEBUG INFO WARNING SEVERE DEFECT] {
+        set ::$severity 1
+    }
+    set ::visibleApplication ""
+    set ::visibleSource ""
+    updateFilter
 }
 
 # Set up log display menu handling
@@ -88,9 +132,18 @@ set WARNING 1
 set SEVERE  1
 set DEFECT  1
 
+set visibleApplication ""
+set visibleSource      ""
+
 .menubar.filter add command -label {Filter Severities:}
 foreach sev [list DEBUG INFO WARNING SEVERE DEFECT] {
     .menubar.filter add checkbutton -onvalue 1 -offvalue 0 -variable $sev \
         -label $sev -command updateFilter
 }
+.menubar.filter add separator
+.menubar.filter add command -label Application... -command [list setTextFilter visibleApplication]
+.menubar.filter add command -label Source...      -command [list setTextFilter visibleSource]
+
+.menubar.filter add separator
+.menubar.filter add command -label Clear -command [list clearFilters]
 

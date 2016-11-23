@@ -136,7 +136,6 @@ snit::type LogModel {
     #
     method get {{filter {}} } {
         set whereClause [$self _getFilterToWhereClause $filter]
-        puts $whereClause
         set result [list]
         $dbCommand eval "SELECT severity, application, source, timestamp, message \
                             FROM log_messages $whereClause ORDER BY id ASC" record {
