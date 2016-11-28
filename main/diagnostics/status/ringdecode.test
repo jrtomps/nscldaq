@@ -28,8 +28,13 @@ exec tclsh "$0" ${1+"$@"}
 package require tcltest
 package require statusMessage
 
+proc alen string {
+    set alen [string length $string]
+    incr alen
+    return $alen
+}
 proc makeHeader {type} {
-    set header [binary format iia32a128 0 1 testapp fox.nscl.msu.edu]
+    set header [binary format iia32a128 $type 1 testapp fox.nscl.msu.edu]
     return $header
 }
 
@@ -42,14 +47,35 @@ proc makeMinimal {} {
         
 }
 proc makeStat {ops bytes producer backlog pid program} {
-    set format wwwwi[lrepeat [llength $program] a* ]
-    set item [binary format $format $ops $bytes $backlog $pid $producer {*}$program]
+    set format wwwwi
+    foreach string $program {
+        set size [alen $string]
+        append format a$size 
+    }
+    append format a1;            # Double null
+    set item [binary format $format $ops $bytes $backlog $pid $producer {*}$program ""]
     
     return $item
 }
 
+proc makeRunInfo {start run title} {
+    set alength [alen $title]
+    
+    set item [binary format wia$alength [clock scan $start] $run $title]
+    return $item
+}
+
+proc makeRunStats {time elapsed triggers events bytes} {
+
+    set item [binary format wwwww [clock scan $time] $elapsed $triggers $events $bytes]
+}
+
+proc makeStateChange {time from to} {
+    set item [binary format wa32a32 [clock scan $time] $from $to]
+    return $item
+}
 proc makeLogBody {stamp message} {
-    return [binary format wa* $stamp $message]
+    return [binary format wa[alen $message] $stamp $message]
 }
 
 tcltest::test command-exists {The statusdecode command should exist} \
@@ -73,32 +99,22 @@ tcltest::test decodeRingId {Decode the ring id message part} \
 
 } \
 -body {
-    lindex [statusdecode $message] 0
+    lindex [statusdecode $message] 1
 } -result [dict create timestamp 12345678 name somering]
 
 tcltest::test decodeClients {Decode client items} \
 -setup {
     set message [makeMinimal]
-    lappend message [makeStat 100 1000 0 10 1 {This is a test}]
-    lappend message [makeStat 250 12345 1234 20 0 {dumping the data}]
+    lappend message [makeStat 100 1000 1 10 1 {This is a test}]
+    lappend message [makeStat 250 12345 0 20 2 {dumping the data}]
     
 } \
 -body {
     set decodedMessage [statusdecode $message]
     
     lrange $decodedMessage 2 3
-} -result [list [dict create ops 100 bytes 1000 backlog 0 pid 10 producer 1 command {This is a test}] \
-          [dict create ops 250 bytes 12345678 backlog 1234 pid 20 producer 0 command {dumping the data}]]
-
-tcltest::test notheader {If a message has a header that is invalid should have an error} \
--setup {
-    set notheader [binary format iii 1 2 3]
-    
-} \
--body {
-    catch [statusdecode $notheader]
-} -result 1
-
+} -result [list [dict create ops 100 bytes 1000 backlog 10 pid 1 producer 1 command {This is a test}] \
+          [dict create ops 250 bytes 12345 backlog 20 pid 2 producer 0 command {dumping the data}]]
 
 
 tcltest::test decode-log {Decode a log message } \
@@ -109,10 +125,49 @@ tcltest::test decode-log {Decode a log message } \
 } \
 -body {
     statusdecode $message
-} -result [list [dict create type RING_STATISTICS severity INFO application testapp source fox.nscl.msu.edu] \
+} -result [list [dict create type LOG_MESSAGE severity INFO application testapp source fox.nscl.msu.edu] \
            [dict create timestamp 1234 message "This is a test"]]
 
+tcltest::test decode-runstat-minimal {Decode a run statistics message with no counters}  \
+-setup {
+    set header [makeHeader 2]
+    set body   [makeRunInfo "Nov 28, 2016 12:30" 123 "This is a test"]
+    set message [list $header $body]
+} \
+-body {
+    statusdecode $message
+} -result [list \
+    [dict create type READOUT_STATISTICS severity INFO application testapp source fox.nscl.msu.edu]  \
+    [dict create starttime [clock scan "Nov 28, 2016 12:30"] run 123 title "This is a test"]        \
+]
 
+tcltest::test decode-runstat-full {Decode a run statistics message with counters} \
+-setup {
+    set header [makeHeader 2]
+    set info   [makeRunInfo "Nov 28, 2016 12:30" 123 "This is a test"]
+    set stats  [makeRunStats "Nov 28, 2016 12:40" 600 100 80 1000]
+    set message [list $header $info $stats]
+} \
+-body {
+    statusdecode $message
+} -result  [list \
+    [dict create type READOUT_STATISTICS severity INFO application testapp source fox.nscl.msu.edu]  \
+    [dict create starttime [clock scan "Nov 28, 2016 12:30"] run 123 title "This is a test"]        \
+    [dict create timestamp [clock scan "Nov 28, 2016 12:40"] elapsed 600 triggers 100 events 80 bytes 1000] \
+]
+
+tcltest::test decode-state-transition {Decode a state transition item} \
+-setup {
+    set header [makeHeader 4]
+    set body   [makeStateChange "Nov 28, 2016 12:05" Ready Beginning]
+    set message [list $header $body]
+} \
+-body {
+    statusdecode $message
+} -result [list                \
+     [dict create type STATE_CHANGE severity INFO application testapp source fox.nscl.msu.edu]  \
+    [dict create timestamp [clock scan "Nov 28, 2016 12:05"] leaving Ready entering Beginning] \
+]
 #
 #  Ensure that test failures result in exit failure:
 #
