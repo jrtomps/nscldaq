@@ -1877,6 +1877,115 @@ msg_encodeLogMessage(PyObject* result, PyObject* message)
     
 }
 /**
+ * msg_decodeRunId
+ *   Decode the run identification message part.  The dict items in this
+ *   message are:
+ *   -  starttime - Timestamp for the start of the run.
+ *   -  run       - run number.
+ *   -  title     - run title.
+ *
+ *  @param partObj - The message part.
+ *  @return PyObject* - Dict as descsribed above.
+ */
+static PyObject*
+msg_decodeRunId(PyObject* partObj)
+{
+    CStatusDefinitions::ReadoutStatRunInfo* pInfo =
+        reinterpret_cast<CStatusDefinitions::ReadoutStatRunInfo*>(PyString_AS_STRING(partObj));
+    PyObject* result = PyDict_New();
+    
+    SetItem(result, "starttime", pInfo->s_startTime);
+    SetItem(result, "run", pInfo->s_runNumber);
+    SetItem(result, "title", pInfo->s_title);
+    
+    return result;
+}
+/**
+ * msg_decodeRunCounters
+ *   Formats a RunStatCounters message part as a dict.  The dict will have
+ *   the following keys:
+ *   -  timestamp -  Time at which the item was emitted.
+ *   -  elapsed   -  Seconds into the run at which the item was emitted.
+ *   -  triggers  -  Number of processed triggers.
+ *   -  events    -  Number of emitted events.
+ *   -  bytes     -  Number of emitted bytes of data.
+ *
+ *  @param part   - Message part to decode.
+ *  @return PyObject* - dict as described above.
+ */
+static PyObject*
+msg_decodeRunCounters(PyObject* part)
+{
+    CStatusDefinitions::ReadoutStatCounters* pCounters =
+        reinterpret_cast<CStatusDefinitions::ReadoutStatCounters*>(PyString_AS_STRING(part));
+    
+    PyObject* result = PyDict_New();
+    
+    SetItem(result, "timestamp", pCounters->s_tod);
+    SetItem(result, "elapsed", pCounters->s_elapsedTime);
+    SetItem(result, "triggers", pCounters->s_triggers);
+    SetItem(result, "events", pCounters->s_events);
+    SetItem(result, "bytes", pCounters->s_bytes);
+    
+    return result;
+}
+/**
+ * msg_encodeReadoutStatistics
+ *    Encode a readout statistics message.  This message has a header
+ *    (already decoded), a mandatory run id part and an optional
+ *    counters part.
+ *    See msg_decodeRunId and msg_decodeRunCounters for information
+ *    about the dicts produced by each of these message parts.
+ *
+ *  @param PyObject* result - Result that we are appending to (note that
+ *                            the header is already there).
+ *  @param PyObject parts   - A tuple containing all message parts.
+ */
+static void
+msg_encodeReadoutStatistics(PyObject* result, PyObject* parts)
+{
+    PyObject* runIdObj     = PyTuple_GET_ITEM(parts, 1);
+    PyObject* decodedRunid = msg_decodeRunId(runIdObj);
+    Py_INCREF(decodedRunid);
+    PyList_Append(result, decodedRunid);
+    
+    if (PyTuple_Size(parts) > 2) {
+        PyObject* counterObj = PyTuple_GET_ITEM(parts, 2);
+        PyObject* decodedCounters = msg_decodeRunCounters(counterObj);
+        Py_INCREF(decodedCounters);
+        PyList_Append(result, decodedCounters);
+    }
+}
+/**
+ * msg_encodeStateTransition
+ *    Encodes a state transition item for Python applications.
+ *    The header has already been encoded.  We just need to encode the
+ *    StateChangeBody part of the message.  This will be a dict with the
+ *    following keys:
+ *    -  timestamp - Time at which the item was emitted.
+ *    -  leaving   - State being left.
+ *    -  entering  - State being entered.
+ *
+ *    @param result list of dicts being generated as the final resul.t
+ *    @param message parts (Tuple).
+ */
+static void
+msg_encodeStateTransition(PyObject* result, PyObject* parts)
+{
+    PyObject* bodyObj = PyTuple_GET_ITEM(parts, 1);
+    CStatusDefinitions::StateChangeBody* pBody =
+        reinterpret_cast<CStatusDefinitions::StateChangeBody*>(PyString_AS_STRING(bodyObj));
+    
+    PyObject* bodyDict = PyDict_New();
+    
+    SetItem(bodyDict, "timestamp", pBody->s_tod);
+    SetItem(bodyDict, "leaving", pBody->s_leaving);
+    SetItem(bodyDict, "entering", pBody->s_entering);
+    
+    Py_INCREF(bodyDict);
+    PyList_Append(result, bodyDict);
+}
+/**
  * msg_decode
  *    Decode a message from binary into something usable by python.
  *
@@ -1910,6 +2019,10 @@ msg_decode(PyObject* self, PyObject* args) {
         msg_encodeRingStatistics(result, msgParts);
     } else if (pHeader->s_type == CStatusDefinitions::MessageTypes::LOG_MESSAGE) {
         msg_encodeLogMessage(result, msgParts);
+    } else if (pHeader->s_type == CStatusDefinitions::MessageTypes::READOUT_STATISTICS) {
+        msg_encodeReadoutStatistics(result, msgParts);
+    } else if (pHeader->s_type == CStatusDefinitions::MessageTypes::STATE_CHANGE) {
+        msg_encodeStateTransition(result, msgParts);
     } else {
         PyErr_SetString(exception, "Message type not supported (yet)");
         return NULL;
