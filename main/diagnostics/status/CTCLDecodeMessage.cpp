@@ -83,6 +83,10 @@ CTCLDecodeMessage::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& 
             decodeRingStatistics(interp, messageParts);
         } else if (header->s_type == CStatusDefinitions::MessageTypes::LOG_MESSAGE) {
             decodeLogMessage(interp, messageParts);
+        } else if (header->s_type == CStatusDefinitions::MessageTypes::READOUT_STATISTICS) {
+            decodeReadoutStatistics(interp, messageParts);
+        } else if (header->s_type == CStatusDefinitions::MessageTypes::STATE_CHANGE) {
+            decodeStateChange(interp, messageParts);
         } else {
             throw std::invalid_argument("Unsupported message type");
         }
@@ -195,6 +199,102 @@ CTCLDecodeMessage::decodeLogMessage(CTCLInterpreter& interp, CTCLObject& msg)
     CTCLObject decodedBody = decodeLogBody(interp, *extractLogMessageBody(bodyObj));
     decodedBody.Bind(interp);
     result += decodedBody;
+    
+    interp.setResult(result);
+}
+/**
+ * decodeReadoutStatistics
+ *   Readout statistics are messages with two or three parts.  The first part is,
+ *   as always ta header while the second, mandatory part, identifies the
+ *   run.  The final, optional part, identifies statistics associated with
+ *   the run.
+ *
+ *  @param interp - TCLInterpreter that is running this command.
+ *  @param msg    - list of raw message parts.
+ *  
+ *  @note On success, the interpreter result is set with the decoded message
+ *        parts.  See the individual members used to decode each message part
+ *        for information about the format of these decoded parts.
+ *        On error, an exception is thrown.
+ */
+void
+CTCLDecodeMessage::decodeReadoutStatistics(CTCLInterpreter& interp, CTCLObject& msg)
+{
+    CTCLObject result;
+    result.Bind(interp);
+    
+    // Pull out the required message parts:
+    
+    CTCLObject hdrObj = msg.lindex(0);
+    hdrObj.Bind(interp);
+    
+    CTCLObject runInfoObj = msg.lindex(1);
+    runInfoObj.Bind(interp);
+    
+    // Add the decoded header to the result:
+    
+    CTCLObject decodedHeader = decodeHeader(interp, *extractHeader(hdrObj));
+    decodedHeader.Bind(interp);
+    result += decodedHeader;
+    
+    // Add the run id information to the result:
+    
+    CTCLObject decodedRunInfo = decodeRunStatInfo(interp, *extractRunStatInfo(runInfoObj));
+    decodedRunInfo.Bind(interp);
+    result += decodedRunInfo;
+    
+    // If there's a statistics part extract and decode it.
+    
+    if (msg.llength() >= 3) {
+        CTCLObject runStatsObj = msg.lindex(2);
+        runStatsObj.Bind(interp);
+        CTCLObject readoutStats = decodeReadoutCounters(interp, *extractReadoutCounters(runStatsObj));
+        readoutStats.Bind(interp);
+        result += readoutStats;
+    }
+    
+    interp.setResult(result);
+}
+/**
+ * decodeStateChange
+ *    decode a state change message into a pair of dicts, one for each of the
+ *    message parts that are mandatory and all there are for a state change
+ *    message.
+ *
+ *  @param interp - Interpreter that's running the command.
+ *  @param msg    - Object containing the message parts.
+ *  @note  - On success, the interpreteer result is set to the list of decoded
+ *           message part dicts (see individual methods used for more information
+ *           about the keys each dict has).  On failure an exception is thrown.
+ */
+void
+CTCLDecodeMessage::decodeStateChange(CTCLInterpreter& interp, CTCLObject& msg)
+{
+    CTCLObject result;
+    result.Bind(interp);
+    
+    CTCLObject headerObj = msg.lindex(0);
+    headerObj.Bind(interp);
+    
+    CTCLObject bodyObj   = msg.lindex(1);
+    bodyObj.Bind(interp);
+    
+    // Add the decoded header to the result:
+    
+    CTCLObject decodedHeader = decodeHeader(interp, *extractHeader(headerObj));
+    decodedHeader.Bind(interp);
+    result += decodedHeader;
+    
+    // Add the decoded body to the result as well:
+    
+    CTCLObject decodedBody = decodeStateChangeBody(
+        interp,
+        *extractStateChangeBody(bodyObj)
+    );
+    decodedBody.Bind(interp);
+    result += decodedBody;
+    
+    // Return the resulting list:
     
     interp.setResult(result);
 }
@@ -399,6 +499,166 @@ CTCLDecodeMessage::decodeLogBody(
     
     TclMessageUtilities::addToDictionary(interp, result, "timestamp", body.s_tod);
     TclMessageUtilities::addToDictionary(interp, result, "message", body.s_message);
+    
+    return result;
+}
+/**
+ * extractRunStatInfo
+ *    Given a CTCLObject reference, assume it contains a byte array,
+ *    Pull a pointer to the bytes back out cast to a
+ *    ReadoutStateRunInfo struct.
+ *
+ *  @param obj - The object we're extracting from.
+ *  @return const CStatusDefinitions::ReadoutStatRunInfo*
+ */
+const CStatusDefinitions::ReadoutStatRunInfo*
+CTCLDecodeMessage::extractRunStatInfo(CTCLObject& obj)
+{
+    Tcl_Obj* rawObject = obj.getObject();
+    int size;
+    return reinterpret_cast<const CStatusDefinitions::ReadoutStatRunInfo*>(
+        Tcl_GetByteArrayFromObj(rawObject, &size)
+    );
+}
+/**
+ * decodeRunStateInfo
+ *   Take a ReadoutStateRunInfo struct and turn it into a Tcl dict.
+ *   The resulting dict is then returned to the caller.  The dict has the
+ *   following fields:
+ *   -  starttime   - [clock seconds] when the run started.
+ *   -  run         - run number.
+ *   -  title       - Run title.
+ *
+ *  @param interp   - interpreter used in object maniuplations.
+ *  @param runInfo  - Run information message part.
+ *  @return CTCLObject - see above.
+ */
+CTCLObject
+CTCLDecodeMessage::decodeRunStatInfo(
+    CTCLInterpreter& interp,
+    const CStatusDefinitions::ReadoutStatRunInfo& runInfo
+)
+{
+    CTCLObject result;
+    result.Bind(interp);
+    
+    TclMessageUtilities::addToDictionary(
+        interp, result, "starttime", runInfo.s_startTime
+    );
+    TclMessageUtilities::addToDictionary(interp, result, "run", runInfo.s_runNumber);
+    TclMessageUtilities::addToDictionary(interp, result, "title", runInfo.s_title);
+    
+    return result;
+}
+/**
+ * extractReadoutCounters
+ *    Given a CTCLObject that is a byte array, returns a pointer to the object's
+ *    data that is cast as a CStatusDefinitions::ReadoutStatCounters*.
+ *
+ *  @param obj  - Object we're operating on.
+ *  @return const const CStatusDefinitions::ReadoutStatCounters*
+ */
+const CStatusDefinitions::ReadoutStatCounters*
+CTCLDecodeMessage::extractReadoutCounters(CTCLObject& obj)
+{
+    Tcl_Obj* rawObject = obj.getObject();
+    int size;
+    
+    return reinterpret_cast<const CStatusDefinitions::ReadoutStatCounters*>(
+        Tcl_GetByteArrayFromObj(rawObject, &size)
+    );
+}
+/**
+ * decodeReadoutCounters
+ *    Given a ReadoutStatCounters message part, produce/return a dict
+ *    that contains the information in that message part.  The dict
+ *    will have the following keys:
+ *    -  timestamp   - Time at which the message was produced.
+ *    -  elapsed     - Number of seconds into the run at which the message was produced.
+ *    -  triggers    - Number of triggers processed.
+ *    -  events      - Number of events produced.
+ *    -  bytes       - Number of bytes produced.
+ *
+ *  @param interp   - interpreter used to perform object operations that need one
+ *  @param counters - The decodeReadoutCounters message part.
+ *  @return CTCLObject - The resulting dict (see above).
+ */
+CTCLObject
+CTCLDecodeMessage::decodeReadoutCounters(
+    CTCLInterpreter& interp,
+    const CStatusDefinitions::ReadoutStatCounters& counters
+)
+{
+    CTCLObject result;
+    result.Bind(interp);
+    
+    TclMessageUtilities::addToDictionary(
+        interp, result, "timestamp", counters.s_tod
+    );
+    TclMessageUtilities::addToDictionary(
+        interp, result, "elapsed", counters.s_elapsedTime
+    );
+    TclMessageUtilities::addToDictionary(
+        interp, result, "triggers", counters.s_triggers
+    );
+    TclMessageUtilities::addToDictionary(
+        interp, result, "events", counters.s_events
+    );
+    TclMessageUtilities::addToDictionary(
+        interp, result, "bytes", counters.s_bytes
+    );
+    
+    return result;
+}
+/**
+ * extractStateChangeBody
+ *     Given a CTCLObject that has a byte array that is actually a
+ *     CStatusDefinitions::StateChangeBody returns a pointer to that body.
+ *
+ *   @param obj - The object from which we're extracting the pointer.
+ *   @return const CStatusDefinitions::StateChangeBody* 
+ */
+const CStatusDefinitions::StateChangeBody*
+CTCLDecodeMessage::extractStateChangeBody(CTCLObject& obj)
+{
+    Tcl_Obj* rawObject = obj.getObject();
+    int size;
+    
+    return reinterpret_cast<const CStatusDefinitions::StateChangeBody*>(
+        Tcl_GetByteArrayFromObj(rawObject, &size)
+    );
+}
+/**
+ * decodeStateChangeBody
+ *   Given a StateChangeBody reference, returns a CTCLObject that is a dict
+ *   containng the following fields:
+ *   - timestamp -  Time at which the state change item was emitted.
+ *   - leaving   - State being left.
+ *   - entering  - State being entered.
+ *
+ *  @param interp    - Interp being used to do object operations.
+ *  @param body      - Body message part for a state change message.
+ *  @return CTCLObject
+ * 
+ */
+CTCLObject
+CTCLDecodeMessage::decodeStateChangeBody(
+    CTCLInterpreter& interp,
+    const CStatusDefinitions::StateChangeBody& body
+)
+{
+    CTCLObject result;
+    result.Bind(interp);
+    
+    TclMessageUtilities::addToDictionary(
+        interp, result, "timestamp", body.s_tod
+    );
+    TclMessageUtilities::addToDictionary(
+        interp, result, "leaving", body.s_leaving
+    );
+    TclMessageUtilities::addToDictionary(
+        interp, result, "entering", body.s_entering
+    );
     
     return result;
 }

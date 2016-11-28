@@ -49,6 +49,8 @@ public:
 private:
     void decodeRingStatistics(CTCLInterpreter& interp, CTCLObject& msg);
     void decodeLogMessage(CTCLInterpreter& interp, CTCLObject& msg);
+    void decodeReadoutStatistics(CTCLInterpreter& interp, CTCLObject& msg);
+    void decodeStateChange(CTCLInterpreter& interp, CTCLObject& msg);
 
     // Header handling:    
     
@@ -69,6 +71,26 @@ private:
     const CStatusDefinitions::LogMessageBody* extractLogMessageBody(CTCLObject& logBodyObj);
     CTCLObject decodeLogBody(
       CTCLInterpreter& interp, const CStatusDefinitions::LogMessageBody& body
+    );
+    
+    // promises:
+    
+    const CStatusDefinitions::ReadoutStatRunInfo* extractRunStatInfo(CTCLObject& obj);
+    CTCLObject decodeRunStatInfo(
+        CTCLInterpreter& interp,
+        const CStatusDefinitions::ReadoutStatRunInfo& runInfo
+    );
+    
+    const CStatusDefinitions::ReadoutStatCounters* extractReadoutCounters(CTCLObject& obj);
+    CTCLObject decodeReadoutCounters(
+        CTCLInterpreter& interp,
+        const CStatusDefinitions::ReadoutStatCounters& counters
+    );
+    
+    const CStatusDefinitions::StateChangeBody* extractStateChangeBody(CTCLObject& obj);
+    CTCLObject decodeStateChangeBody(
+        CTCLInterpreter& interp,
+        const CStatusDefinitions::StateChangeBody& body
     );
 };
 

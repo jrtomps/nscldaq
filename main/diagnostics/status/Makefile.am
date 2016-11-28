@@ -106,7 +106,7 @@ tclpkgInstall:
 	$(mkinstalldirs) @prefix@/TclLibs @prefix@/TclLibs/status
 	rm -f @prefix@/TclLibs/status/libTclStatusMessages.so
 	$(LN_S) @libdir@/libTclStatusMessages.so @prefix@/TclLibs/status/libTclStatusMessages.so
-	$(INSTALL_SCRIPT) $(TCL_PACKAGES) @prefix@/TclLibs/status
+	for f in $(TCL_PACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/TclLibs/status; done
 	echo pkg_mkIndex -verbose "@prefix@/TclLibs/status *.so *.tcl" |@TCLSH@
 
 tclAppInstall::
