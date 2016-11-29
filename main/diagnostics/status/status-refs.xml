@@ -2927,7 +2927,173 @@ set decoded [statusdecode $rawmessage]
               </varlistentry>
             </variablelist>
            </refsect2>
-           
+           <refsect2>
+            <title>LOG_MESSAGE</title>
+            <para>
+              These messages allow applications to emit arbitrary messages.  They
+              consist of a standard message header (already described) and a
+              body that is decoded as a dict with the following keys:
+            </para>
+            <variablelist>
+              <varlistentry>
+                  <term><literal>timestamp</literal></term>
+                  <listitem>
+                      <para>
+                        A timestamp of <literal>clock seconds</literal> that
+                        provides the data and time at which the message was
+                        emitted.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>message</literal></term>
+                  <listitem>
+                      <para>
+                        The message string that was emitted.
+                      </para>
+                  </listitem>
+              </varlistentry>
+            </variablelist>
+           </refsect2>
+           <refsect2>
+            <title>READOUT_STATISTICS</title>
+            <para>
+              These messages are produced by event readout programs.  They
+              consist of either two or three message parts.  The first two parts
+              are always the message header and a run identification message part.
+              The third, optional part, provides the actual statistics.
+            </para>
+            <para>
+              The run identification part is decoded to a dict that contains
+              the following keys:
+            </para>
+            <variablelist>
+              <varlistentry>
+                  <term><literal>starttime</literal></term>
+                  <listitem>
+                      <para>
+                        A <command>clock time</command> that describes the
+                        time and date at which this run started.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>run</literal></term>
+                  <listitem>
+                      <para>
+                        The run number of the run that is active.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>title</literal></term>
+                  <listitem>
+                      <para>
+                        The title string for the active run.
+                      </para>
+                  </listitem>
+              </varlistentry>
+            </variablelist>
+            <para>
+              The statistics message part, if present, is decoded to a dict
+              with the following keys:
+            </para>
+            <variablelist>
+              <varlistentry>
+                  <term><literal>timestamp</literal></term>
+                  <listitem>
+                      <para>
+                        The <command>clock seconds</command> at the time
+                        this statistics item was emitted.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                    <literal>elapsed</literal>
+                  </term>
+                  <listitem>
+                      <para>
+                        Number of seconds into the run at which this
+                        item was emitted.  Note that this should be
+                        the difference between the timestamp of this message part
+                        and the start time in the run id message part.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>triggers</literal></term>
+                  <listitem>
+                      <para>
+                        The number of triggers the readout program has received
+                        so far in this run.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>events</literal></term>
+                  <listitem>
+                      <para>
+                        The number of events the readout program emitted. This
+                        can be smaller (event filtering) 
+                        or larger (single trigger for multiple events)
+                        than the number of triggers.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>bytes</literal></term>
+                  <listitem>
+                      <para>
+                        Number of bytes of data the readout program emitted.
+                        This value is the sum of the bodies of ring items
+                        emitted.  It does not include any header information.
+                      </para>
+                  </listitem>
+              </varlistentry>
+            </variablelist>
+           </refsect2>
+           <refsect2>
+            <title>STATE_CHANGE</title>
+            <para>
+              Indicates the application changed state.  This might happen
+              as a single readout program transitions to <literal>Active</literal>
+              as part of a global state transition, for example.
+            </para>
+            <para>
+              This message consists of a header and a body. The body is encoded
+              as a dict with the following keys:
+            </para>
+            <variablelist>
+              <varlistentry>
+                  <term><literal>timestamp</literal></term>
+                  <listitem>
+                      <para>
+                        The <command>clock seconds</command> at which the item
+                        was emitted.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>leaving</literal></term>
+                  <listitem>
+                      <para>
+                        The textual name of the state that was exited by
+                        the reporting program.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><literal>entering</literal></term>
+                  <listitem>
+                      <para>
+                        The textual name of the new state that is being entered
+                        by the reporting program.
+                      </para>
+                  </listitem>
+              </varlistentry>
+            </variablelist>
+           </refsect2>
         </refsect1>
 
       </refentry>
@@ -4015,6 +4181,178 @@ decodedMessage = statusmessages.decode(rawMessage)
       </varlistentry>
     </variablelist>
    </refsect2>
+    <refsect2>
+      <title>statsumessages.MessageTypes.LOG_MESSAGE</title>
+      <para>
+        This sort of message is intended to allow applications to emit arbitrary
+        textual messages.  These messages consist of the standard header
+        message part and a body that is encoded as a dict with the
+        following keys:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><literal>timestamp</literal></term>
+            <listitem>
+                <para>
+                  The <function>time.clock()</function> at which the message
+                  was emitted.  
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>message</literal></term>
+            <listitem>
+                <para>
+                  The text of the message that was emitted.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+    <refsect2>
+      <title>statusmessages.MessageTypes.READOUT_STATISTICS</title>
+      <para>
+        These messages enable readout programs to report  run information
+        and statistics associated with an active run.  The messages consist of
+        two or three message parts.
+      </para>
+      <para>
+        The first part is the standard header.  The second part (mandatory)
+        identifies the run.  The third part (optional) provides statistics
+        for the run.
+      </para>
+      <para>
+        Normall a readout program will emit a two part message at the start
+        of a run followed by a series of three part messages throughout the
+        run's duration.
+      </para>
+      <para>
+        The run identification message part is formatted as a dict
+        that contains the following keys:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><literal>startime</literal></term>
+            <listitem>
+                <para>
+                  The <function>time.clock()</function> at which the run
+                  started.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>run</literal></term>
+            <listitem>
+                <para>
+                  The run number of the run.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>title</literal></term>
+            <listitem>
+                <para>
+                  The title string for the current run.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        The optional statistics message part is encoded as a dict with the
+        following keys:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><literal>timestamp</literal></term>
+            <listitem>
+                <para>
+                  The time at which the message was emitted.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>elapsed</literal></term>
+            <listitem>
+                <para>
+                  The number of seconds into the run at which the message was
+                  emitted. This is normally the difference betwee our
+                  <literal>timestamp</literal> and the
+                  <literal>starttime</literal> values int the run id message
+                  part.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>triggers</literal></term>
+            <listitem>
+                <para>
+                  Number of triggers the readout responded to.  This is the
+                  number of external 'signals' that lead to a readout
+                  happening.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>events</literal></term>
+            <listitem>
+                <para>
+                  Number of events emitted by the program.  This can be
+                  the same smaller (event filtering) or larger (event
+                  batching) than <literal>triggers</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>bytes</literal></term>
+            <listitem>
+                <para>
+                  Number of bytes of data emitted by the readout program.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+    <refsect2>
+      <title>STATE_CHANGE</title>
+      <para>
+        These messages are emitted when a program changes state.  This normally
+        occurs because the program is participating in a global state transition.
+        State change messages always have two message parts. The first is the
+        standard header.  The second describes the state change.
+      </para>
+      <para>
+        The state change description part is encoded as a dict with the
+        following keys:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><literal>timestamp</literal></term>
+            <listitem>
+                <para>
+                  A <function>time.clock()</function> value that describes
+                  when this message was emitted.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>leaving</literal></term>
+            <listitem>
+                <para>
+                  The text name of the state the program has left.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>entering</literal></term>
+            <listitem>
+                <para>
+                  The textual name of the state the program has now entered.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
   </refsect1>
 </refentry>
 
