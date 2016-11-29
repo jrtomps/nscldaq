@@ -156,6 +156,94 @@ class TestStatusSubscription(unittest.TestCase):
         self.assertEqual(20, consumer['pid'])
         self.assertEqual(False, consumer['producer'])
         self.assertEqual(["a", "consumer"], consumer['command'])
+    
+    def test_decode_readoutstats_minimal(self):
+        self._log = None                        # Get rid of old source.
+        time.sleep(1)                           # takes time in some implementations.
+        
+        self._readout = statusmessages.ReadoutStatistics(self._pubUri, 'readout')
+        self._sub     = statusmessages.Subscription(self._subUri)  # renew connection
+        self._sub.subscribe(
+            [statusmessages.MessageTypes.READOUT_STATISTICS],
+            []
+        )
+        
+        # Send the minimal message:
+        
+        self._readout.beginRun(1234, 'This is a test title')
+        rawMessage = self._sub.receive()
+        
+        # Now decode and check:
+        
+        decodedMessage = statusmessages.decode(rawMessage)
+        self.assertEqual(2, len(decodedMessage))    # 2 message parts.
+    
+        #  Check header type, application, severity and source:
+        
+        header = decodedMessage[0]
+        self.assertEqual(statusmessages.MessageTypes.READOUT_STATISTICS, header['type'])
+        self.assertEqual(statusmessages.SeverityLevels.INFO, header['severity'])
+        self.assertEqual('readout', header['app'])
+        self.assertEqual(socket.getfqdn(), header['src'])
+        
+        #  Check run and title in runid - we're  not checking the starttime
+        
+        runId = decodedMessage[1]
+        self.assertEqual(1234, runId['run'])
+        self.assertEqual('This is a test title', runId['title'])
+    
+    def test_decode_readoutstats_full(self):
+        # Setup and set the run id info by using test_decode_readoutstats_minimal:
+        
+        self.test_decode_readoutstats_minimal()
+        
+        #  Now we can emit statistics and receive them:
+        
+        self._readout.emitStatistics(100, 50, 1000)
+        rawMessage = self._sub.receive()
+        self.assertEqual(3, len(rawMessage))
+        
+        #  Assume the header and body are already correct (common code)
+        #  just check the statistics:
+        
+        decodedMessage = statusmessages.decode(rawMessage)
+        stats = decodedMessage[2]
+        
+        self.assertEqual(100, stats['triggers'])
+        self.assertEqual(50, stats['events'])
+        self.assertEqual(1000, stats['bytes'])
+    
+    def test_decode_statechange(self):
+        self._log = None                        # Get rid of old source.
+        time.sleep(1)                           # takes time in some implementations.
+        
+        sc = statusmessages.StateChange(self._pubUri, 'TestApp')
+        self._sub     = statusmessages.Subscription(self._subUri)  # renew connection
+        self._sub.subscribe(
+            [statusmessages.MessageTypes.STATE_CHANGE],
+            []
+        )
+        
+        sc.logChange('Begining', 'Active')
+        rawMessage = self._sub.receive()
+        self.assertEqual(2, len(rawMessage))   # Header & body.
+        
+        decodedMessage = statusmessages.decode(rawMessage)
+        header = decodedMessage[0]
+        body   = decodedMessage[1]
+        
+        #  Check header fields:
+        
+        self.assertEqual(statusmessages.MessageTypes.STATE_CHANGE, header['type'])
+        self.assertEqual(statusmessages.SeverityLevels.INFO, header['severity'])
+        self.assertEqual('TestApp', header['app'])
+        self.assertEqual(socket.getfqdn(), header['src'])
+        
+        # Check body fields:
+        
+        self.assertEqual('Begining', body['leaving'])
+        self.assertEqual('Active', body['entering'])
+        
         
 if __name__ == '__main__':
     unittest.main()
