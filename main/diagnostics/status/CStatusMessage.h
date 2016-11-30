@@ -95,7 +95,7 @@ public:
         // State change message parts:
         
         struct StateChangeBody {
-            uint64_t s_tod;
+            int64_t  s_tod;
             char     s_leaving[32];
             char     s_entering[32];
         };

@@ -7,11 +7,12 @@ TCL_PACKAGES=LogModel.tcl LogView.tcl LogController.tcl LogDisplay.tcl
 
 
 COMPILATION_FLAGS= -I@top_srcdir@/base/os -I@top_srcdir@/base/dataflow \
-	-I@top_srcdir@/servers/portmanager \
+	-I@top_srcdir@/servers/portmanager -I@top_srcdir@/base/sqlite++ \
 	@LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
 COMMON_LIBS      = @top_builddir@/base/os/libdaqshm.la  \
 	@top_builddir@/base/dataflow/libDataFlow.la	\
 	@top_builddir@/servers/portmanager/libPortManager.la \
+	@top_builddir@/base/sqlite++/libsqlite3pp.la	\
 	@ZMQ_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
 libStatusMessages_la_SOURCES=Constants.cpp CZmqContext.cpp \
@@ -21,7 +22,8 @@ libStatusMessages_la_SOURCES=Constants.cpp CZmqContext.cpp \
 	LogMessage.cpp		\
 	StateChange.cpp		\
 	CStatusSubscription.cpp  \
-	CPublishRingStatistics.cpp CMultiAggregator.cpp 
+	CPublishRingStatistics.cpp CMultiAggregator.cpp  \
+	CStatusDb.cpp CStatusDb.h
 
 
 
@@ -111,7 +113,7 @@ tclpkgInstall:
 
 tclAppInstall::
 	$(mkinstalldirs) @bindir@
-	$(INSTALL_SCRIPT) Log.tcl @bindir@/Log
+	$(INSTALL_SCRIPT) @srcdir@/Log.tcl @bindir@/Log
 
 
 #------------------- Python Bindings -
