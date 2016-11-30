@@ -376,7 +376,7 @@ CTCLSubscription::SubscriptionInstance::onMessage(
     try {
         Tcl_Obj* result = Tcl_NewListObj(0, nullptr);
         uint64_t haveMore(0);
-        size_t   n;
+        size_t   n(sizeof(haveMore));
         Tcl_Interp* pInterp = getInterpreter()->getInterpreter();
         // Get the first message segment (could block)
         
