@@ -259,6 +259,14 @@ public:
         static void reset();                // Used for testing.
     };
     /*-------------------------------------------------------------------------
+     * Useful utilities everyone should have:
+     */
+    public:
+        static std::string messageTypeToString(uint32_t type);
+        static uint32_t stringToMessageType(const char* typeString);
+        static std::string severityToString(uint32_t severity);
+        static uint32_t stringToSeverity(const char* severityString);
+    /*-------------------------------------------------------------------------
      */
     // Utility methods for building messages:
     

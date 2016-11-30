@@ -24,6 +24,7 @@
 #include <CSqlite.h>
 #include <CSqliteStatement.h>
 #include <CSqliteTransaction.h>
+#include "CStatusMessage.h"
 
 
 /**
@@ -40,7 +41,8 @@
  * @param flags - Database open flags (see constructor for CSqlite)
  */
 CStatusDb::CStatusDb(const char* dbSpec, int flags) :
-    m_handle(*(new CSqlite(dbSpec, flags)))
+    m_handle(*(new CSqlite(dbSpec, flags))),
+    m_pLogInsert(0)
 {
     if (flags &  CSqlite::readwrite) {
         createSchema();
@@ -54,8 +56,35 @@ CStatusDb::~CStatusDb() {
     delete &m_handle;
 }
 
+/**
+ * addLogMessage
+ *     Adds a new log message to the database.  This is just an insertion into the
+ *     log_messages table.
+ *
+ *   @param severity  - Message severity, should be one of
+ *                      CStatusDefinitions::SeverityLevels
+ *   @param app       - Application name.
+ *   @param src       - Where the message came from (fqdn).
+ *   @param time      - time_t at which the message was emitted.
+ *   @param message   - message text.
+ */
+void
+CStatusDb::addLogMessage(uint32_t severity, const char* app, const char* src,
+                            int64_t time, const char* message)
+{
+    // only parse this insert once:
+    
+    if (!m_pLogInsert) {
+        m_pLogInsert = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO log_messages                                           \
+                (severity, application, source, timestamp, message)            \
+                VALUES (?,?,?,?,?)"
+        );
+    }
+    // single insert is atomic so no need for a transaction.
 
-
+}
 /*------------------------------------------------------------------------------
  * private utilities
  */

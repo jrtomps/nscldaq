@@ -27,6 +27,7 @@
 #include "CStatusMessage.h"
 
 class CSqlite;
+class CSqliteStatement;
 
 /**
   * @class CSqlite
@@ -47,6 +48,10 @@ class CSqlite;
 class CStatusDb {
 private:
     CSqlite&        m_handle;             // Database handle.
+    
+    // Stored creation queries.
+    
+    CSqliteStatement* m_pLogInsert;      // Insert log message.
 
 public:
     CStatusDb(const char* dbSpec, int flags);
