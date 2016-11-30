@@ -145,9 +145,14 @@ PYTHON_TESTS=ringstatisticstests.py readoutstatisticstests.py \
 TCL_TESTS=statussubtest.test ringdecode.test logmodel.test
 
 
-TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest ringdaemontests
+TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest ringdaemontests \
+	dbtests
 
 noinst_PROGRAMS=$(TEST_PROGS) testringstatus
+
+dbtests_SOURCES=TestRunner.cpp Asserts.h statusdbSchema.cpp
+dbtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
+dbtests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 
 
 ringstattests_SOURCES=TestRunner.cpp Asserts.h ringstattests.cpp \

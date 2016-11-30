@@ -75,14 +75,15 @@ CStatusDb::createSchema()
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS log_messages (          \
-            id          INTEGER PRIMARY KEY AUTOINCREMENT   \
-            severity    TEXT(10)                            \
-            application TEXT(32)                            \
-            source      TEXT(128)                           \
-            timestamp   INTEGER                             \
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,   \
+            severity    TEXT(10),                            \
+            application TEXT(32),                            \
+            source      TEXT(128),                           \
+            timestamp   INTEGER,                             \
             message     TEXT                                \
         )"
     );
+
     CSqliteStatement::execute(
         m_handle,
         "CREATE INDEX IF NOT EXISTS                         \
@@ -103,6 +104,7 @@ CStatusDb::createSchema()
         "CREATE INDEX IF NOT EXISTS                         \
             idx_log_timestamp ON log_messages (timestamp)"
     );
+    
     // Ring buffer statistics - there's a ring_buffer table
     // a consumer table and a statistics table that contains statistics
     // that update.
@@ -110,8 +112,8 @@ CStatusDb::createSchema()
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS  ring_buffer (              \
-            id        INTEGER PRIMARY KEY AUTOINCREMENT         \
-            name      TEXT(64)                                  \
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,         \
+            name      TEXT(64),                                  \
             host      TEXT(32)                                  \
         )"
     );
@@ -120,12 +122,12 @@ CStatusDb::createSchema()
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS ring_client (               \
-            id        INTEGER PRIMARY KEY AUTOINCREMENT         \
-            ring_id   INTEGER CONSTRAINT ring_client_ring       \
-                      REFERENCES ring_buffer (id)               \
-            pid       INTEGER                                   \
-            producer  INTEGER                                   \
-            command   TEXT                                      \
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,         \
+            ring_id   INTEGER,                                  \
+            pid       INTEGER,                                   \
+            producer  INTEGER,                                   \
+            command   TEXT,                                      \
+            FOREIGN KEY (ring_id) REFERENCES ring_buffer (id)      \
         )"
     );
         // statistics are on rings and are also associated with
@@ -136,15 +138,15 @@ CStatusDb::createSchema()
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS ring_client_statistics (    \
-            id      INTEGER PRIMARY KEY AUTOINCREMENT           \
-            ring_id INTEGER CONSTRAINT ring_stats_ring          \
-                    REFERENCES ring_buffer (id)                 \
-            client_id INTEGER CONSTRAINT ring_stats_client      \
-                    REFERENCES ring_client (id)                 \
-            timestamp INTEGER                                   \
-            operations INTEGER                                  \
-            bytes   INTEGER                                     \
-            backlog INTEGER                                     \
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,           \
+            ring_id INTEGER ,                                    \
+            client_id INTEGER,                                   \
+            timestamp INTEGER,                                   \
+            operations INTEGER,                                  \
+            bytes   INTEGER,                                     \
+            backlog INTEGER,                                     \
+            FOREIGN KEY (ring_id) REFERENCES ring_buffer (id),   \
+            FOREIGN KEY (client_id) REFERENCES ring_client (id)  \
         )"
     );
         // Ring buffer indices:
@@ -192,20 +194,20 @@ CStatusDb::createSchema()
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS state_application (         \
-            id          INTEGER PRIMARY KEY AUTOINCREMENT       \
-            name        TEXT(32)                                \
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,       \
+            name        TEXT(32),                                \
             host        TEXT(128)                               \
         )"
     );
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS state_transitions (         \
-            id          INTEGER PRIMARY KEY AUTOINCREMENT       \
-            app_id      INTEGER CONSTRAINT state_transitions_app \
-                        REFERENCES state_application (id)       \
-            timestamp   INTEGER                                 \
-            leaving     TEXT(32)                                \
-            entering    TEXT(32)                                \
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,       \
+            app_id      INTEGER,                                \
+            timestamp   INTEGER,                                 \
+            leaving     TEXT(32),                                \
+            entering    TEXT(32),                                \
+            FOREIGN KEY (app_id) REFERENCES state_application (id) \
         )"
     );
             // Indices for state changes:
@@ -217,7 +219,7 @@ CStatusDb::createSchema()
     );
     CSqliteStatement::execute(
         m_handle,
-        "CREATE INDEX IF NOT EXISTS state_application_host      \
+        "CREATE INDEX IF NOT EXISTS state_application_host_idx    \
             ON state_application (host)"
     );
     
@@ -237,36 +239,35 @@ CStatusDb::createSchema()
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS readout_program (           \
-            id      INTEGER PRIMARY KEY AUTOINCREMENT           \
-            name    TEXT(32)                                    \
-            host    TEXT(128)                                   \
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,           \
+            name    TEXT(32),                                    \
+            host    TEXT(128)                                  \
         )"
     );
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS  run_info (                 \
-            id      INTEGER PRIMARY KEY AUTOINCREMENT           \
-            readout_id INTEGER                                  \
-                    CONSTRAINT run_info_readout                 \
-                    REFERENCES readout_program (id)             \
-            start   INTEGER                                     \
-            run     INTEGER                                     \
-            title   TEXT(80)                                    \
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,           \
+            readout_id INTEGER,                                  \
+            start   INTEGER,                                     \
+            run     INTEGER,                                     \
+            title   TEXT(80),                                    \
+            FOREIGN KEY (readout_id) REFERENCES readout_program (id) \
         )"
     );
     CSqliteStatement::execute(
         m_handle,
         "CREATE TABLE IF NOT EXISTS readout_statistics (        \
-            id      INTEGER PRIMARY KEY AUTOINCREMENT           \
-            run_id  INTEGER CONSTRAINT readout_statistics_run   \
-                    REFERENCES run_info (id)                    \
-            readout_id INTEGER CONSTRAINT readout_statistics_readout \
-                    REFERENCES readout_program (id)             \
-            timestamp   INTEGER                                 \
-            elapsedtime INTEGER                                 \
-            triggers    INTEGER                                 \
-            events  INTEGER                                     \
-            bytes   INTEGER                                     \
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,           \
+            run_id  INTEGER,                                    \
+            readout_id INTEGER,                                 \
+            timestamp   INTEGER,                                 \
+            elapsedtime INTEGER,                                 \
+            triggers    INTEGER,                                 \
+            events  INTEGER,                                     \
+            bytes   INTEGER,                                     \
+            FOREIGN KEY (run_id) REFERENCES run_info (id),         \
+            FOREIGN KEY (readout_id) REFERENCES readout_program (id) \
         )"
     );
     
