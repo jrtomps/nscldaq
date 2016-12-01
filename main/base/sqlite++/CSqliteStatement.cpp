@@ -282,7 +282,6 @@ CSqliteStatement::reset()
         sqlite3_reset(m_statement)
     );
     sqlite3_reset(m_statement);
-    sqlite3_clear_bindings(m_statement);
     m_cursorState = interior;
 }
 
