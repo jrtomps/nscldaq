@@ -452,7 +452,7 @@ CStatusDb::getRingId(const char* name, const char* host)
 int
 CStatusDb::addRingBuffer(const char* name, const char* host)
 {
-    if (m_addRingBuffer) {
+    if (!m_addRingBuffer) {
         m_addRingBuffer = new CSqliteStatement(
             m_handle,
             "INSERT INTO ring_buffer (name, host) VALUES (?,?)"
@@ -546,7 +546,7 @@ CStatusDb::addRingClient(
     // Bind the prepared statement parameters and run the insert:
     
     m_addRingClient->bind(1, ringId);
-    m_addRingClient->bind(2, client.s_pid);
+    m_addRingClient->bind(2, static_cast<int>(client.s_pid));
     m_addRingClient->bind(3, client.s_isProducer ? 1 : 0);
     m_addRingClient->bind(4, command.c_str(), -1, SQLITE_STATIC);
     
@@ -581,7 +581,7 @@ CStatusDb::addRingClientStatistics(
     if (!m_addRingStats) {
         m_addRingStats = new CSqliteStatement(
             m_handle,
-            "INSERT INTO ring_statistics                                    \
+            "INSERT INTO ring_client_statistics                                    \
             (ring_id, client_id, timestamp, operations, bytes, backlog)     \
             VALUES (?,?,?,?,?,?)                                            \
             "
@@ -591,13 +591,16 @@ CStatusDb::addRingClientStatistics(
     
     m_addRingStats->bind(1, ringId);
     m_addRingStats->bind(2, clientId);
-    m_addRingStats->bind(3, timestamp);
-    m_addRingStats->bind(4, client.s_operations);
-    m_addRingStats->bind(5, client.s_bytes);
-    m_addRingStats->bind(6, client.s_backlog);
+    m_addRingStats->bind(3, static_cast<int>(timestamp));
+    m_addRingStats->bind(4, static_cast<int>(client.s_operations));
+    m_addRingStats->bind(5, static_cast<int>(client.s_bytes));
+    m_addRingStats->bind(6, static_cast<int>(client.s_backlog));
     
     ++(*m_addRingStats);
+    int result = m_addRingStats->lastInsertId();
+    m_addRingStats->reset();
     
+    return result;
 }
 
 

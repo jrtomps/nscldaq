@@ -49,9 +49,7 @@ class CSqliteStatement;
   *   table cases simpler.
   */
 class CStatusDb {
-    // Caching structs:
-private:
-    
+
 private:
     CSqlite&        m_handle;             // Database handle.
     
