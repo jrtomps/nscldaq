@@ -26,6 +26,7 @@
 #include <vector>
 #include "CStatusMessage.h"
 
+
 class CSqlite;
 class CSqliteStatement;
 
@@ -44,8 +45,13 @@ class CSqliteStatement;
   *   -   To provide the ability to generate reports/queries that span
   *       status message types (e.g. what log messages were emitted during
   *       run 23).
+  *
+  *   table cases simpler.
   */
 class CStatusDb {
+    // Caching structs:
+private:
+    
 private:
     CSqlite&        m_handle;             // Database handle.
     
@@ -53,6 +59,15 @@ private:
     
     CSqliteStatement* m_pLogInsert;      // Insert log message.
 
+    CSqliteStatement* m_addRingBuffer;   // Insert into ring_buffer.
+    CSqliteStatement* m_addRingClient;   // Insert into ring client.
+    CSqliteStatement* m_addRingStats;    // Add statistics for a ring/client.
+        
+    CSqliteStatement* m_getRingId;    // Check existence of a ring buffer.
+    CSqliteStatement* m_getClientId;  // Check for sqlite client.
+
+        
+    
 public:
     CStatusDb(const char* dbSpec, int flags);
     virtual ~CStatusDb();
@@ -63,7 +78,7 @@ public:
     void insert(const std::vector<zmq::message_t*>& message);
     void addRingStatistics(
         uint32_t severity, const char* app, const char* src,
-        const CStatusDefinitions::RingStatIdentification& id,
+        const CStatusDefinitions::RingStatIdentification& ringId,
         const std::vector<CStatusDefinitions::RingStatClient*>& clients
     );
     void addReadoutStatistics(
@@ -82,6 +97,21 @@ public:
 
 private:
     void createSchema();
+    
+    int getRingId(const char* name, const char* host);
+    int addRingBuffer(const char* name, const char* host);
+    int getRingClientId(
+        int ringId, const CStatusDefinitions::RingStatClient& client
+    );
+    int addRingClient(
+        int ringId, const CStatusDefinitions::RingStatClient& client
+    );
+    int addRingClientStatistics(
+        int ringId, int clientId, uint64_t timestamp,
+        const CStatusDefinitions::RingStatClient& client
+    );
+    
+    std::string marshallWords(const char* words);
 };  
 
 #endif

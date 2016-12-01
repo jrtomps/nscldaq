@@ -150,7 +150,9 @@ TEST_PROGS=ringstattests tclpkgtests subtests ringpubclasstest ringdaemontests \
 
 noinst_PROGRAMS=$(TEST_PROGS) testringstatus
 
-dbtests_SOURCES=TestRunner.cpp Asserts.h statusdbSchema.cpp
+dbtests_SOURCES=TestRunner.cpp Asserts.h statusdbSchema.cpp \
+	dblogtests.cpp
+
 dbtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@
 dbtests_LDFLAGS=libStatusMessages.la $(COMMON_LIBS) @CPPUNIT_LDFLAGS@
 

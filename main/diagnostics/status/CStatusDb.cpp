@@ -26,6 +26,8 @@
 #include <CSqliteTransaction.h>
 #include "CStatusMessage.h"
 
+#include <cstring>
+
 
 /**
  *  constructor
@@ -42,7 +44,9 @@
  */
 CStatusDb::CStatusDb(const char* dbSpec, int flags) :
     m_handle(*(new CSqlite(dbSpec, flags))),
-    m_pLogInsert(0)
+    m_pLogInsert(0),
+    m_addRingBuffer(0), m_addRingClient(0), m_addRingStats(0),
+    m_getRingId(0), m_getClientId(0)
 {
     if (flags &  CSqlite::readwrite) {
         createSchema();
@@ -53,6 +57,13 @@ CStatusDb::CStatusDb(const char* dbSpec, int flags) :
  *   Kill off the database handle:
  */
 CStatusDb::~CStatusDb() {
+    delete m_pLogInsert;
+    delete m_addRingBuffer;
+    delete m_addRingClient;
+    delete m_addRingStats;
+    delete m_getRingId;
+    delete m_getClientId;
+    
     delete &m_handle;
 }
 
@@ -83,7 +94,65 @@ CStatusDb::addLogMessage(uint32_t severity, const char* app, const char* src,
         );
     }
     // single insert is atomic so no need for a transaction.
+    
+    m_pLogInsert->bind(
+        1, CStatusDefinitions::severityToString(severity).c_str(),
+        -1, SQLITE_STATIC
+    );
+    m_pLogInsert->bind(2, app, -1, SQLITE_STATIC);
+    m_pLogInsert->bind(3, src, -1, SQLITE_STATIC);
+    m_pLogInsert->bind(4, time);
+    m_pLogInsert->bind(5, message, -1, SQLITE_STATIC);
+    
+    ++(*m_pLogInsert);
+    m_pLogInsert->reset();
 
+}
+/**
+ * addRingStatistics
+ *    Add a ring statistics entry.  If need be, the ring identification
+ *    and ring client records are created for the entry.
+ *
+ *   @param severity - Severity of the message (ought to be info).
+ *   @param app      - Application that emitted the message.
+ *   @param src      - host that emitted the message (where the ring lives).
+ *   @param ringId   - Ring identifiation message part struct.
+ *   @param clients  - Vector of ring client statistics message parts.
+ */
+void
+CStatusDb::addRingStatistics(
+    uint32_t severity, const char* app, const char* src,
+    const CStatusDefinitions::RingStatIdentification& ringInfo,
+    const std::vector<CStatusDefinitions::RingStatClient*>& clients
+)
+{
+    // all of this is done as a transaction:
+    
+    CSqliteTransaction t(m_handle);
+    
+    try {
+        // Get the id of the ring buffer or create it if it does not yet
+        // exist.
+        
+        int ringId = getRingId(ringInfo.s_ringName, src);
+        if (ringId == -1) {
+            ringId = addRingBuffer(ringInfo.s_ringName, src);
+        }
+        
+        for (int i = 0; i < clients.size(); i++) {
+            const CStatusDefinitions::RingStatClient& client(*(clients[i]));
+            int clientId = getRingClientId(ringId, client);
+            if (clientId == -1) {
+                clientId = addRingClient(ringId, client);
+            }
+            addRingClientStatistics(ringId, clientId, ringInfo.s_tod, client);
+        }
+    }
+    catch(...) {
+        t.rollback();            // Exceptions fail the inserts.
+        throw;                   // propagate the exception upwards.
+    }
+    // destruction of t commits the changes.
 }
 /*------------------------------------------------------------------------------
  * private utilities
@@ -332,4 +401,231 @@ CStatusDb::createSchema()
         "CREATE INDEX IF NOT EXISTS readout_stats_time_idx      \
             ON readout_statistics (timestamp)"
     );
+}
+/**
+ * getRingId
+ *   Returns the primary key (ring id) of a ring buffer.  This is
+ *   used to link items to that record (e.g. set FK fields in related
+ *   tables).
+ *
+ *  @param name - Name of the ring buffer.
+ *  @param host - Host in which the ringbuffer lives.
+ *  @return int - If the ringbuffer exists, returns its primary key
+ *  @retval -1 if the ringbuffer does not exist.
+ *  @note - if the m_getRingId statement does not exist is is created here.
+ *          that's a cached statement with slots into which the ring name
+ *          and host can be plugged for the query.
+ */
+int
+CStatusDb::getRingId(const char* name, const char* host)
+{
+    int result = -1;               // Assume there's no match.
+    
+    if (!m_getRingId) {
+        m_getRingId = new CSqliteStatement(
+            m_handle,
+            "SELECT id FROM ring_buffer WHERE name = ? AND host = ?"
+        );
+    }
+    m_getRingId->bind(1, name, -1, SQLITE_STATIC);
+    m_getRingId->bind(2, host, -1, SQLITE_STATIC);
+    
+    // Step the statement - we'll be at end if there's no rows:
+    
+    ++(*m_getRingId);
+    if (!m_getRingId->atEnd()) {                 // Got a match
+        result = m_getRingId->getInt(0);
+    }
+    m_getRingId->reset();                        // So we can re-use the statement.
+    
+    return result;
+}
+/**
+ * addRingBuffer
+ *   Add a new ring buffer item to the ring_buffer table.
+ *
+ *  @param name - name of the ring buffer.
+ *  @param host - host in which the ring buffer lives.
+ *  @return int - Id of the created ring buffer.
+ *  @note the m_addRingBuffer saved/prepared statement is created if needed.
+ */
+int
+CStatusDb::addRingBuffer(const char* name, const char* host)
+{
+    if (m_addRingBuffer) {
+        m_addRingBuffer = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO ring_buffer (name, host) VALUES (?,?)"
+        );
+    }
+    // Bind the parameters, execute the statement and return the generated id:
+    
+    m_addRingBuffer->bind(1, name, -1, SQLITE_STATIC);
+    m_addRingBuffer->bind(2, host, -1, SQLITE_STATIC);
+    
+    ++(*m_addRingBuffer);
+    int result = m_addRingBuffer->lastInsertId();
+    m_addRingBuffer->reset();                       // This might wipe out last id.
+    
+    return result;
+}
+/**
+ * getRingClientId
+ *   Returns the id (primary key) of the specified ring buffer client record
+ *   (ring_client) table.
+ *
+ *  @param ringid - primary key of the ring buffer this is a client of.
+ *  @param client - The message part that describes the client.
+ *  @return int   - Primary key of the client if found.
+ *  @retval -1    - No such record.
+ *  @note m_getClientId is created (saved/prepared statement) if necessary.
+ */
+int
+CStatusDb::getRingClientId(
+    int ringId, const CStatusDefinitions::RingStatClient& client
+)
+{
+    int result = -1;
+    
+    if (!m_getClientId) {
+        m_getClientId = new CSqliteStatement(
+            m_handle,
+            "SELECT id FROM ring_client                                  \
+                       WHERE ring_id = ? AND pid = ? AND command = ?    \
+            "
+        );
+    }
+    // We need to marshall the client's command into a string.
+    // By convention the string is space separated words.
+    
+    std::string command = marshallWords(client.s_command);
+    
+    // Bind the query parameters.
+    
+    m_getClientId->bind(1, ringId);
+    m_getClientId->bind(2, client.s_pid);
+    m_getClientId->bind(3, command.c_str(), -1, SQLITE_STATIC);
+    
+    // See if we have a match and pull out the id if so:
+    
+    ++(*m_getClientId);
+    if (!m_getClientId->atEnd()) {   // Match
+        result = m_getClientId->getInt(0);
+    }
+    m_getClientId->reset();
+    
+    return result;
+}
+/**
+ * int addRingClient
+ *    Add a ring_client record.  These records are linked via ring_id to
+ *    entries in the ring_buffer table.
+ *
+ *  @param ringId  - ring_id foreign key value for the new record.
+ *  @param client  - ring client message part.
+ *  @return int    - Primary key of the inserted record.
+ *  @note If neceersary the m_addRingClient prepared statement is created.
+ *        for this and future use.
+ */
+int
+CStatusDb::addRingClient(
+    int ringId, const CStatusDefinitions::RingStatClient& client
+)
+{
+    if (!m_addRingClient) {
+        m_addRingClient = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO ring_client (ring_id, pid, producer, command) \
+                    VALUES (?, ?, ?, ?)"
+        );
+    }
+    // Turn the command into a string that can be bound:
+    
+    std::string command = marshallWords(client.s_command);
+    
+    // Bind the prepared statement parameters and run the insert:
+    
+    m_addRingClient->bind(1, ringId);
+    m_addRingClient->bind(2, client.s_pid);
+    m_addRingClient->bind(3, client.s_isProducer ? 1 : 0);
+    m_addRingClient->bind(4, command.c_str(), -1, SQLITE_STATIC);
+    
+    ++(*m_addRingClient);
+    int result = m_addRingClient->lastInsertId();
+    m_addRingClient->reset();
+    
+    return result;
+
+}
+/**
+ * addRingClientStatistics
+ *    Adds a new set of client statistics associated with both a client and
+ *    a ring buffer.  While technically we only need foreign keys to the client,
+ *    containing a FK for the ring allows us to be a joint table for the ring/client
+ *    correspondence for queries that benefit from that so...
+ *
+ *  @param ringId - primary key of the ring buffer that this statistics
+ *                  entry is for.
+ *  @param clientId - primary key for the client that this statistics entry is for.
+ *  @param client   - the full client message part.
+ *  @param timestamp - time stamp for the statistics record.
+ *  @return int     - Primary key of the added record.
+ *  @note   if needed, the m_addRingStats prepared statement is created.
+ */
+int
+CStatusDb::addRingClientStatistics(
+    int ringId, int clientId, uint64_t timestamp,
+    const CStatusDefinitions::RingStatClient& client
+)
+{
+    if (!m_addRingStats) {
+        m_addRingStats = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO ring_statistics                                    \
+            (ring_id, client_id, timestamp, operations, bytes, backlog)     \
+            VALUES (?,?,?,?,?,?)                                            \
+            "
+        );
+    }
+    // Bind the parameters to the prepared statement:
+    
+    m_addRingStats->bind(1, ringId);
+    m_addRingStats->bind(2, clientId);
+    m_addRingStats->bind(3, timestamp);
+    m_addRingStats->bind(4, client.s_operations);
+    m_addRingStats->bind(5, client.s_bytes);
+    m_addRingStats->bind(6, client.s_backlog);
+    
+    ++(*m_addRingStats);
+    
+}
+
+
+/**
+ * marshallWords
+ *    Takes a C word list and turns it into a space separated string.  A word
+ *    list is a pointer to a set of strings.  Each string is null terminated and
+ *    an additional null terminates the list.
+ *
+ *  @param words - the word list.
+ *  @return std::string - the result string.
+ */
+std::string
+CStatusDb::marshallWords(const char* words)
+{
+    std::string result;
+    bool initial(true);
+    while (*words) {
+        // All but the first word is led in by a space:
+        
+        if (!initial) {
+            result += " ";
+            
+        } else {
+            initial = false;
+        }
+        result += words;
+        words += std::strlen(words) + 1;              // Next string or null if done.
+    }
+    return result;
 }
