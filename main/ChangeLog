@@ -1132,6 +1132,9 @@ Work on 11.0-rc11 begins
 	every run which led to an 8192 kB leak in memory each begin run. There was
 	also a deadlock condition that could occur when the user attempted to end
 	a run when the trigger loop was attempting to do a scaler read.
+	* Bug #6248 enable keepalive and shorten timing parameters for ring2stdin
+	when stdin is a socket so remote failures can be seen and seen
+	reasonably quickly.
 11.2-000
 	* CRingBuffer constructor throws if it fails to map the shared memory
 	region and thereby avoiding delayed failures.
