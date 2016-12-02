@@ -46,7 +46,8 @@ CStatusDb::CStatusDb(const char* dbSpec, int flags) :
     m_handle(*(new CSqlite(dbSpec, flags))),
     m_pLogInsert(0),
     m_addRingBuffer(0), m_addRingClient(0), m_addRingStats(0),
-    m_getRingId(0), m_getClientId(0)
+    m_getRingId(0), m_getClientId(0),
+    m_getSCAppId(0), m_addSCApp(0), m_addSC(0)
 {
     if (flags &  CSqlite::readwrite) {
         createSchema();
@@ -63,6 +64,9 @@ CStatusDb::~CStatusDb() {
     delete m_addRingStats;
     delete m_getRingId;
     delete m_getClientId;
+    delete m_getSCAppId;
+    delete m_addSCApp;
+    delete m_addSC;
     
     delete &m_handle;
 }
@@ -153,6 +157,38 @@ CStatusDb::addRingStatistics(
         throw;                   // propagate the exception upwards.
     }
     // destruction of t commits the changes.
+}
+/**
+ * addStateChange
+ *    Add a state change record.  If necessary a state change application is
+ *    added.  The state change from/to states are then linked to that application.
+ *    The strategy is very much like what's done with ringbuffers.
+ *
+ *  @param severity   - Severity of the operation (ignored).
+ *  @param app        - Name of the app that emitted the message.
+ *  @param src        - System in which app is running.
+ *  @param tod        - Unix timestamp indicating when the messages was emitted.
+ *  @param from       - State being left.
+ *  @param to         - New state transtioned to.l
+ */
+void
+CStatusDb::addStateChange(
+    uint32_t severity, const char* app, const char* src,
+    int64_t  tod, const char* from, const char* to    
+)
+{
+    CSqliteTransaction t(m_handle);
+    try {
+        int appId = getStateChangeAppId(app, src);
+        if (appId == -1) {
+            appId = addStateChangeApp(app, src);
+        }
+        addStateChange(appId, tod, from, to);
+    }
+    catch (...) {
+        t.rollback();
+        throw;
+    }
 }
 /*------------------------------------------------------------------------------
  * private utilities
@@ -602,8 +638,115 @@ CStatusDb::addRingClientStatistics(
     
     return result;
 }
-
-
+/**
+ * getStateChangeAppId
+ *   Return the id (primary key value) of the specified state change application.
+ *
+ * @param name  - Name of the application.
+ * @param host  - Host in which the application is running.
+ * @return int  - ID of the app.
+ * @retval -1   - App did not exist.
+ */
+int
+CStatusDb::getStateChangeAppId(const char* appName, const char* host)
+{
+    int result = -1;
+    // If necessary, prepare the statement and save it in m_getSCAppId:
+    
+    if (!m_getSCAppId) {
+        m_getSCAppId = new CSqliteStatement(
+            m_handle,
+            "SELECT id FROM state_application WHERE name = ? and host = ?"
+        );
+    }
+    // Bind the new parameters to the query:
+    
+    m_getSCAppId->bind(1, appName, -1, SQLITE_STATIC);
+    m_getSCAppId->bind(2, host,    -1, SQLITE_STATIC);
+    
+    // return the match if there is one:
+    
+    ++(*m_getSCAppId);
+    if (!m_getSCAppId->atEnd()) {
+        result = m_getSCAppId->getInt(0);
+    }
+    
+    m_getSCAppId->reset();                   // Make the statement re-usable.
+    return result;
+}
+/**
+ * addStateChangeApp
+ *   Add a new state change application to the state_appliction table.
+ *
+ * @param appName - name of the application.
+ * @param host    - host in which the application runs.
+ * @return int    - the id (Primary key) of the newly added record.
+ * @note If necessary, the m_addSCApp prepared statement is created to
+ *                  support this query.
+ */
+int
+CStatusDb::addStateChangeApp(const char* appName, const char* host)
+{
+    if (!m_addSCApp) {
+        m_addSCApp = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO state_application (name, host)                      \
+                    VALUES (?, ?)"
+        );
+    }
+    // Bind the parameters to the query:
+    
+    m_addSCApp->bind(1, appName, -1, SQLITE_STATIC);
+    m_addSCApp->bind(2, host,    -1, SQLITE_STATIC);
+    
+    ++(*m_addSCApp);
+    int id = m_addSCApp->lastInsertId();
+    
+    m_addSCApp->reset();
+    
+    return id;
+}
+/**
+ * addStateChange
+ *   Add a state change record to the state_change_transitions table.
+ *   state changes are linked back to applications in the state_application table.
+ *
+ *  @param appId   - ID of the application that made the state change.
+ *  @param timestamp - Time at which the state change occured.
+ *  @param from      - The state being left.
+ *  @param to        - The new state being entered.
+ *  @return int      - Primary key of the added record (id).
+ *  @note if m_addSC is null a prepared insert query is created and saved in it
+ *                   and used in this and future calls.
+ */
+int
+CStatusDb::addStateChange(
+    int appId, int64_t timestamp, const char* from, const char* to
+)
+{
+    if (!m_addSC) {
+        m_addSC = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO state_transitions (app_id, timestamp, leaving, entering) \
+                    VALUES (?, ?, ?, ?)"
+        );
+    }
+    // Bind the parameters and perform the query.
+    
+    m_addSC->bind(1, appId);
+    m_addSC->bind(2, static_cast<int>(timestamp));
+    m_addSC->bind(3, from, -1, SQLITE_STATIC);
+    m_addSC->bind(4, to,   -1, SQLITE_STATIC);
+    
+    ++(*m_addSC);
+    
+    // Fetch the id of the added record and make the query useable next time
+    
+    int id = m_addSC->lastInsertId();
+    m_addSC->reset();
+    
+    return id;
+}
 /**
  * marshallWords
  *    Takes a C word list and turns it into a space separated string.  A word

@@ -63,6 +63,10 @@ private:
         
     CSqliteStatement* m_getRingId;    // Check existence of a ring buffer.
     CSqliteStatement* m_getClientId;  // Check for sqlite client.
+    
+    CSqliteStatement* m_getSCAppId;
+    CSqliteStatement* m_addSCApp;
+    CSqliteStatement* m_addSC;
 
         
     
@@ -79,6 +83,10 @@ public:
         const CStatusDefinitions::RingStatIdentification& ringId,
         const std::vector<CStatusDefinitions::RingStatClient*>& clients
     );
+    void addStateChange(
+        uint32_t severity, const char* app, const char* src,
+        int64_t  tod, const char* from, const char* to
+    );
     void addReadoutStatistics(
         uint32_t severity, const char* app, const char* src,
         int64_t startTime, uint32_t runNumber, const char* title,
@@ -88,10 +96,7 @@ public:
         uint32_t severity, const char* app, const char* src,
         int64_t  time, const char* message
     );
-    void addStateChange(
-        uint32_t severity, const char* app, const char* src,
-        int64_t  tod, const char* from, const char* to
-    );
+
 
 private:
     void createSchema();
@@ -108,6 +113,10 @@ private:
         int ringId, int clientId, uint64_t timestamp,
         const CStatusDefinitions::RingStatClient& client
     );
+    
+    int getStateChangeAppId(const char* appName, const char* host);
+    int addStateChangeApp(const char* appName, const char* host);
+    int addStateChange(int appId, int64_t timestamp, const char* from, const char* to);
     
     std::string marshallWords(const char* words);
 };  
