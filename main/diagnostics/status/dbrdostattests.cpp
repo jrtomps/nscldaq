@@ -20,8 +20,8 @@ class RdoDbStatTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(programAndTwoRuns);
   CPPUNIT_TEST(twoprogramswithruns);
   CPPUNIT_TEST(programwithstats);
-//  CPPUNIT_TEST(programwithtwostats);
-  // CPPUNIT_TEST(twoprogramswithstats);
+  CPPUNIT_TEST(programwithtwostats);
+  CPPUNIT_TEST(twoprogramswithstats);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -40,6 +40,8 @@ protected:
   void programAndTwoRuns();
   void twoprogramswithruns();
   void programwithstats();
+  void programwithtwostats();
+  void twoprogramswithstats();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RdoDbStatTests);
@@ -229,4 +231,143 @@ void RdoDbStatTests::programwithstats()
   
   ++getInfo;
   ASSERT(getInfo.atEnd());
+}
+// Add two statistics messages for one program:
+
+void RdoDbStatTests::programwithtwostats()
+{
+  CStatusDefinitions::ReadoutStatCounters stats1 = {
+    123466, 10, 150, 100, 1024  
+  };
+  CStatusDefinitions::ReadoutStatCounters stats2 = {
+    123476, 20, 200, 175, 2048  
+  };
+  m_db->addReadoutStatistics(
+    CStatusDefinitions::SeverityLevels::INFO, "Readout", "charlie.nscl.msu.edu",
+    123456, 10, "A test title", &stats1
+  );
+  m_db->addReadoutStatistics(
+    CStatusDefinitions::SeverityLevels::INFO, "Readout", "charlie.nscl.msu.edu",
+    123456, 10, "A test title", &stats2
+  );
+  
+  // Use an inner joing and sort on the statistics id to pull out the data
+  // ensuring it has the proper associations:
+  
+  CSqliteStatement getInfo(
+    m_db->m_handle,
+    "SELECT r.run, st.run_id, st.readout_id, st.timestamp, st.elapsedtime,    \
+            st.triggers, st.events, st.bytes                                  \
+            FROM readout_statistics AS st                                     \
+            INNER JOIN readout_program AS p ON p.id = st.readout_id           \
+            INNER JOIN run_info AS r ON r.id = st.run_id                      \
+            ORDER BY st.id ASC                                                \
+    "
+  );
+  
+  // First record is the stats1 data:
+  
+  ++getInfo;
+  ASSERT(!getInfo.atEnd());
+  
+  EQ(10, getInfo.getInt(0));              // r.run
+  EQ(1, getInfo.getInt(1));               // st.run_id  -- link to run table
+  EQ(1, getInfo.getInt(2));               // st.readout_id - link to readout table
+  EQ(123466, getInfo.getInt(3));          // st.timestamp
+  EQ(10, getInfo.getInt(4));              // st.elapsedtime.
+  EQ(150, getInfo.getInt(5));             // st.triggers.
+  EQ(100, getInfo.getInt(6));             // st.events.
+  EQ(1024, getInfo.getInt(7));            // st.bytes.
+    
+  
+  // Second record is the stats2 data
+  
+  ++getInfo;
+  ASSERT(!getInfo.atEnd());
+  
+  EQ(10,   getInfo.getInt(0));              // r.run
+  EQ(1,    getInfo.getInt(1));              // st.run_id  -- link to run table
+  EQ(1,    getInfo.getInt(2));              // st.readout_id - link to readout table
+  EQ(123476, getInfo.getInt(3));            // st.timestamp
+  EQ(20,   getInfo.getInt(4));              // st.elapsedtime.
+  EQ(200,  getInfo.getInt(5));              // st.triggers.
+  EQ(175,  getInfo.getInt(6));              // st.events.
+  EQ(2048, getInfo.getInt(7));              // st.bytes.
+  
+  
+  // No third record.
+  
+  ++getInfo;
+  ASSERT(getInfo.atEnd());
+  
+  
+}
+// Two programs each with their own statistics records:
+
+void RdoDbStatTests::twoprogramswithstats()
+{
+  CStatusDefinitions::ReadoutStatCounters stats1 = {
+    123466, 10, 150, 100, 1024  
+  };
+  CStatusDefinitions::ReadoutStatCounters stats2 = {
+    123476, 20, 200, 175, 2048  
+  };
+  m_db->addReadoutStatistics(
+    CStatusDefinitions::SeverityLevels::INFO, "Readout", "charlie.nscl.msu.edu",
+    123456, 10, "A test title", &stats1
+  );
+  m_db->addReadoutStatistics(
+    CStatusDefinitions::SeverityLevels::INFO, "Readout", "spdaq20.nscl.msu.edu",
+    123456, 10, "A test title", &stats2
+  );
+  
+  // Use an inner joing and sort on the statistics id to pull out the data
+  // ensuring it has the proper associations:
+  
+  CSqliteStatement getInfo(
+    m_db->m_handle,
+    "SELECT r.run, st.run_id, st.readout_id, st.timestamp, st.elapsedtime,    \
+            st.triggers, st.events, st.bytes                                  \
+            FROM readout_statistics AS st                                     \
+            INNER JOIN readout_program AS p ON p.id = st.readout_id           \
+            INNER JOIN run_info AS r ON r.id = st.run_id                      \
+            ORDER BY st.id ASC                                                \
+    "
+  );
+  
+  // First record is the stats1 data:
+  
+  ++getInfo;
+  ASSERT(!getInfo.atEnd());
+  
+  EQ(10, getInfo.getInt(0));              // r.run
+  EQ(1, getInfo.getInt(1));               // st.run_id  -- link to run table
+  EQ(1, getInfo.getInt(2));               // st.readout_id - link to readout table
+  EQ(123466, getInfo.getInt(3));          // st.timestamp
+  EQ(10, getInfo.getInt(4));              // st.elapsedtime.
+  EQ(150, getInfo.getInt(5));             // st.triggers.
+  EQ(100, getInfo.getInt(6));             // st.events.
+  EQ(1024, getInfo.getInt(7));            // st.bytes.
+    
+  
+  // Second record is the stats2 data
+  
+  ++getInfo;
+  ASSERT(!getInfo.atEnd());
+  
+  EQ(10,   getInfo.getInt(0));              // r.run
+  EQ(2,    getInfo.getInt(1));              // st.run_id  -- link to run table
+  EQ(2,    getInfo.getInt(2));              // st.readout_id - link to readout table
+  EQ(123476, getInfo.getInt(3));            // st.timestamp
+  EQ(20,   getInfo.getInt(4));              // st.elapsedtime.
+  EQ(200,  getInfo.getInt(5));              // st.triggers.
+  EQ(175,  getInfo.getInt(6));              // st.events.
+  EQ(2048, getInfo.getInt(7));              // st.bytes.
+  
+  
+  // No third record.
+  
+  ++getInfo;
+  ASSERT(getInfo.atEnd());
+  
 }
