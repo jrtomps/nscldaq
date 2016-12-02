@@ -294,13 +294,13 @@ proc Unregister {socket client tail} {
     if {$which != -1} {
       emitLogMsg info "Killing clients of ring(=$ring)"
       killClients $ring
-      emitLogMsg info "Removing $ring from list of known rings"
+      emitLogMsg info "Removing ring(=$ring) from list of known rings"
       emitLogMsg debug "Removing $ring from $::knownRings"
       set ::knownRings [lreplace $::knownRings $which $which]
       puts $socket "OK"
     } else {
-      emitLogMsg error "Failed to unregister ring(=$ring). The ring was not already registered."
-      puts $socket "ERROR $ring was not registered"
+      emitLogMsg info "Ignoring attempt to unregister ring(=$ring). The ring is already unregistered."
+      puts $socket "OK"
     }
 }
 
@@ -340,8 +340,9 @@ proc Register {socket client tail} {
       lappend ::knownRings $ring
       puts $socket "OK"
     } else {
-      emitLogMsg error "Attempted duplicate registration of ring(=$ring)"
-      puts $socket "ERROR $ring is already registered"
+      # we don't care about duplicate registration. 
+      emitLogMsg info "Ignoring duplicate registration attempt for ring(=$ring)"
+      puts $socket "OK"
     }
 
 }
