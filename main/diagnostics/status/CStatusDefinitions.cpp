@@ -24,6 +24,7 @@
 #include <string>
 #include <map>
 #include <os.h>
+#include <stdexcept>
 
 static std::map<std::string, std::uint32_t> messageTypeLookup = {
         {"RING_STATISTICS", CStatusDefinitions::MessageTypes::RING_STATISTICS},
