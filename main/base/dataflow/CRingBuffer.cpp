@@ -463,6 +463,9 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
     throw CErrnoException("CRingBuffer::CRingBuffer - not a ring");
   }
   m_pRing = mapRingBuffer(shmName(name));
+  if (m_pRing == nullptr) {
+    throw std::string("CRingBuffer::CRingBuffer - failed to map shared memory region.");
+  }
 
   // Now that we're mapped the remainder of the constructor must execute in a try
   // block so that failure will allow us to unmap the ring.

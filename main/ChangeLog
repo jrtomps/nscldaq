@@ -1133,3 +1133,5 @@ Work on 11.0-rc11 begins
 	also a deadlock condition that could occur when the user attempted to end
 	a run when the trigger loop was attempting to do a scaler read.
 11.2-000
+	* CRingBuffer constructor throws if it fails to map the shared memory
+	region and thereby avoiding delayed failures.
