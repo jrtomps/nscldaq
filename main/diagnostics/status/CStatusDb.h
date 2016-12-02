@@ -68,7 +68,11 @@ private:
     CSqliteStatement* m_addSCApp;
     CSqliteStatement* m_addSC;
 
-        
+    CSqliteStatement* m_getReadoutId;
+    CSqliteStatement* m_addReadout;
+    CSqliteStatement* m_getRunId;
+    CSqliteStatement* m_addRun;
+    CSqliteStatement* m_addRunStats;
     
 public:
     CStatusDb(const char* dbSpec, int flags);
@@ -117,6 +121,15 @@ private:
     int getStateChangeAppId(const char* appName, const char* host);
     int addStateChangeApp(const char* appName, const char* host);
     int addStateChange(int appId, int64_t timestamp, const char* from, const char* to);
+    
+    int getReadoutProgramId(const char* app, const char* src);
+    int addReadoutProgram(const char* app, const char* src);
+    int getRunInfoId(int rdoId, int runNumber, const char* title, int64_t startTime);
+    int addRunInfo(int rdoId, int runNumber, const char* title, int64_t startTime);
+    int addRdoStats(
+        int readoutId, int runId, int64_t timestamp, int64_t elapsedTime,
+        int64_t triggers, int64_t events, int64_t bytes
+    );
     
     std::string marshallWords(const char* words);
 };  

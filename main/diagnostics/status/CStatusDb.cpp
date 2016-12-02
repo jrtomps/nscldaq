@@ -47,7 +47,9 @@ CStatusDb::CStatusDb(const char* dbSpec, int flags) :
     m_pLogInsert(0),
     m_addRingBuffer(0), m_addRingClient(0), m_addRingStats(0),
     m_getRingId(0), m_getClientId(0),
-    m_getSCAppId(0), m_addSCApp(0), m_addSC(0)
+    m_getSCAppId(0), m_addSCApp(0), m_addSC(0),
+    m_getReadoutId(0), m_addReadout(0), m_getRunId(0), m_addRun(0),
+    m_addRunStats(0)
 {
     if (flags &  CSqlite::readwrite) {
         createSchema();
@@ -67,6 +69,11 @@ CStatusDb::~CStatusDb() {
     delete m_getSCAppId;
     delete m_addSCApp;
     delete m_addSC;
+    delete m_getReadoutId;
+    delete m_addReadout;
+    delete m_getRunId;
+    delete m_addRun;
+    delete m_addRunStats;
     
     delete &m_handle;
 }
@@ -184,6 +191,60 @@ CStatusDb::addStateChange(
             appId = addStateChangeApp(app, src);
         }
         addStateChange(appId, tod, from, to);
+    }
+    catch (...) {
+        t.rollback();
+        throw;
+    }
+}
+/**
+ * addReadoutStatistics
+ *    Adds readout statistics entries. If necessary adds an entry to the
+ *    readout_program table for new application/host pairs.
+ *    If necessary, add a new run_info record, for a new bit of run information.
+ *    If provided add an entry to the readout_statistics table.
+ *
+ * @param severity   - Message severity (INFO).
+ * @param app        - Name of application emitting the message.
+ * @param src        - FQDN of h ost emitting the message.
+ * @param start      - unix timestamp for the start of the run.
+ * @param runNumber  - Number of the run.
+ * @param title      - Run title string.
+ * @param pCounters  - Pointer (possibly null) to the counters record.
+ *                     If null, no counter record is produced.
+ */
+void
+CStatusDb::addReadoutStatistics(
+        uint32_t severity, const char* app, const char* src,
+        int64_t startTime, uint32_t runNumber, const char* title,
+        const CStatusDefinitions::ReadoutStatCounters* pCounters
+)
+{
+        
+    
+    CSqliteTransaction t(m_handle);
+    try {
+        // If necessary add the readout_program:
+        
+        int pgmId = getReadoutProgramId(app, src);
+        if (pgmId == -1) {
+            pgmId = addReadoutProgram(app, src);
+        }
+        
+        // If necessary add the run id:
+        
+        int runId = getRunInfoId(pgmId, runNumber, title, startTime);
+        if (runId == -1) {
+            runId = addRunInfo(pgmId, runNumber, title, startTime);
+        }
+        // Add the statistics:
+        
+        if (pCounters) {
+            addRdoStats(
+                pgmId, runId, pCounters->s_tod, pCounters->s_elapsedTime,
+                pCounters->s_triggers, pCounters->s_events, pCounters->s_bytes
+            );
+        }
     }
     catch (...) {
         t.rollback();
@@ -746,6 +807,206 @@ CStatusDb::addStateChange(
     m_addSC->reset();
     
     return id;
+}
+/**
+ * getReadoutProgramId
+ *    Returns the id (primary key value) of a specific readout program.
+ *
+ * @param app   - Name of the application.
+ * @param src   - FQDN of the host it is running in.
+ * @return int  - Primary key of the associated record.
+ * @retval  -1  - No match
+ */
+int
+CStatusDb::getReadoutProgramId(const char* app, const char* src)
+{
+    // if necessary create the prepared statement and save it in m_getReadoutId
+    
+    if (!m_getReadoutId) {
+        m_getReadoutId = new CSqliteStatement(
+            m_handle,
+            "SELECT id FROM readout_program WHERE name = ? AND host  = ?"
+        );
+    }
+    // Bind the search parameters:
+    
+    m_getReadoutId->bind(1, app, -1, SQLITE_STATIC);
+    m_getReadoutId->bind(2, src, -1, SQLITE_STATIC);
+    
+    ++(*m_getReadoutId);
+    int result = -1;
+    if (!m_getReadoutId->atEnd()) {
+        result = m_getReadoutId->getInt(0);
+    }
+    
+    m_getReadoutId->reset();               // Make the statement ready to reuse.
+    
+    return result;
+}
+/**
+ * addReadoutProgram
+ *    Adds a new record to the readout_program table.
+ *
+ * @param name   - name of the program/application.
+ * @param src    - host in which the program/application runs.
+ * @return int   - Id (Primary key value) of the new record.
+ */
+int
+CStatusDb::addReadoutProgram(const char* app, const char* src)
+{
+    // If necessary create the insertion prepared statement and save it in
+    // m_addReadout
+    
+    if (!m_addReadout) {
+        m_addReadout = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO readout_program (name, host) VALUES (?,?)"
+        );
+    }
+    // bind the query parameters:
+    
+    m_addReadout->bind(1, app, -1, SQLITE_STATIC);
+    m_addReadout->bind(2, src, -1, SQLITE_STATIC);
+    
+    ++(*m_addReadout);
+    
+    int result = m_addReadout->lastInsertId();
+    m_addReadout->reset();
+    return result;
+}
+/**
+ * getRunInfoId
+ *    Returns the id (primary key value) of a run identification record.
+ *    These records represent data taking runs.
+ *
+ *  @param rdoId   - Id of the readout program for which this run began.
+ *  @param runNumber - Number of the run.
+ *  @param title    - Run title string.
+ *  @param startTime - UNIX timestamp describing when the run started.
+ *  @return int - id of matching record.
+ *  @retval -1  - No record matched.
+ */
+int
+CStatusDb::getRunInfoId(
+    int rdoId, int runNumber, const char* title, int64_t startTime
+)
+{
+    // If necessary create the query and save it in m_getRunId
+    
+    if (!m_getRunId) {
+        m_getRunId = new CSqliteStatement(
+            m_handle,
+            "SELECT id FROM run_info                        \
+                WHERE readout_id = ? AND start = ?  AND run = ? AND title = ?"
+        );
+    }
+    // Bind the parameters to the statement:
+    
+    m_getRunId->bind(1, rdoId);
+    m_getRunId->bind(2, static_cast<int>(startTime));
+    m_getRunId->bind(3, runNumber);
+    m_getRunId->bind(4, title, -1, SQLITE_STATIC);
+    
+    // Run the query and see what falls out:
+    
+    ++(*m_getRunId);
+    int result = -1;
+    if(!m_getRunId->atEnd()) {
+        result = m_getRunId->getInt(0);
+    }
+    m_getRunId->reset();
+    
+    return result;
+}
+/**
+ * addRunInfo
+ *    Adds information associated with a run in a specific readout program.
+ *
+ *  @param rdoId   - Id of the program that initiated the run.
+ *  @param runNumber - run n umber.
+ *  @param title     - Run title.
+ *  @param startTime - Time at which the run started.
+ *  @return int - id (primary key value) of the new record).
+ */
+int
+CStatusDb::addRunInfo(
+    int rdoId, int runNumber, const char* title, int64_t startTime
+)
+{
+    // If necessary create the prepared query and stor it in m_addRun:
+    
+    if (!m_addRun) {
+        m_addRun = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO run_info (readout_id, start, run, title)       \
+                    VALUES (?, ?, ?, ?)"  
+        );
+    }
+    // Bind the parameters to the query:'
+    
+    m_addRun->bind(1, rdoId);
+    m_addRun->bind(2, static_cast<int>(startTime));
+    m_addRun->bind(3, runNumber);
+    m_addRun->bind(4, title, -1, SQLITE_STATIC);
+    
+    // Run the query and return the inserted record's id
+    
+    ++(*m_addRun);
+    int result = m_addRun->lastInsertId();
+    m_addRun->reset();
+    
+    return result;
+}
+/**
+ * addRdoStats
+ *    Add a readout statistics record to the readout_statistics table.  This
+ *    record is associated both with a run and a readout program.
+ *
+ *  @param readoutId   - Id of the readout program that created the statistics.
+ *  @param runId       - Id of the run for which the record was emitted.
+ *  @param timestamp   - Time at which the entry was emitted.
+ *  @param elapsedTime - Number of seconds into the run at which the record was emitted.
+ *  @param triggers    - Number of triggers processed by the readout program.
+ *  @param events      - Number of events generated by the readout program.
+ *  @param bytes       - Number of bytes of event data emitted by the program.
+ *  @return int   - Id (Primary key value) of the inserted record.
+ */
+int
+CStatusDb::addRdoStats(
+    int readoutId, int runId, int64_t timestamp, int64_t elapsedTime,
+    int64_t triggers, int64_t events, int64_t bytes
+)
+{
+    // if necessary prepare the statement and save it in m_addRunStats.
+    
+    if (!m_addRunStats) {
+        m_addRunStats = new CSqliteStatement(
+            m_handle,
+            "INSERT INTO readout_statistics                                 \
+                (run_id, readout_id, timestamp,                             \
+                elapsedtime, triggers, events, bytes)                       \
+                VALUES (?, ?, ?, ?, ?, ?, ?)                                \
+            "
+        );
+    }
+    // Bind the parameters and run the query:
+    
+    m_addRunStats->bind(1, readoutId);
+    m_addRunStats->bind(2, runId);
+    m_addRunStats->bind(3, static_cast<int>(timestamp));
+    m_addRunStats->bind(4, static_cast<int>(elapsedTime));
+    m_addRunStats->bind(5, static_cast<int>(triggers));
+    m_addRunStats->bind(6, static_cast<int>(events));
+    m_addRunStats->bind(7, static_cast<int>(bytes));
+    
+    ++(*m_addRunStats);
+    
+    // Get the insert id, prepare the query for re-use and return the id:
+    
+    int result = m_addRunStats->lastInsertId();
+    m_addRunStats->reset();
+    
+    return result;
 }
 /**
  * marshallWords
