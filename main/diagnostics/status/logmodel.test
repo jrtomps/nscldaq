@@ -31,7 +31,7 @@ package require tcltest
 # Pull in the package done this way in case it's not yet installed.
 
 set here [file dirname [info script]]
-source [file join LogModel.tcl]
+source [file join $here  LogModel.tcl]
 
 ##
 #  Create a log message dict:
