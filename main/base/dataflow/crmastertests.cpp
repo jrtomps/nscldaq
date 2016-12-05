@@ -27,8 +27,12 @@ using namespace std;
 class rmasterTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(rmasterTests);
   CPPUNIT_TEST(creation);
-  CPPUNIT_TEST(registration);
-  CPPUNIT_TEST(unregister);
+  CPPUNIT_TEST(registration_0);
+  CPPUNIT_TEST(registration_1);
+  CPPUNIT_TEST(registration_2);
+  CPPUNIT_TEST(unregister_0);
+  CPPUNIT_TEST(unregister_1);
+  CPPUNIT_TEST(unregister_2);
   CPPUNIT_TEST(duplicatereg);
   CPPUNIT_TEST(getdata);
   
@@ -49,8 +53,12 @@ public:
   }
 protected:
   void creation();
-  void registration();
-  void unregister();
+  void registration_0();
+  void registration_1();
+  void registration_2();
+  void unregister_0();
+  void unregister_1();
+  void unregister_2();
   void duplicatereg();
   void getdata();
   
@@ -77,9 +85,10 @@ void rmasterTests::creation() {
 // Test registration interactions:
 // registration indicates a new ring buffer has come into existence.
 
-void rmasterTests::registration() 
+void rmasterTests::registration_0() 
 {
-  // local host can register:
+  // local host can register, but only if the shared memory exists. 
+  // this will fail because no shared memory has been created 
   try {
     CRingMaster localMaster;
 
@@ -90,15 +99,24 @@ void rmasterTests::registration()
     catch(...) {
       thrown = true;
     }
+
     if (thrown) {
-      ASSERT(!thrown);
+      ASSERT(thrown);
     } else {
       localMaster.notifyDestroy(uniqueRing("dummyring"));
     }
+  } catch (CException& exc) {
+    std::cout << "registration exception CException " << exc.WasDoing() << std::endl;
+    ASSERT(0);
+  }
+}
+    
 
+void rmasterTests::registration_1() { 
     // non local can't and throws an ENOTSUPP errno exception.
 
-    thrown  = false;
+  try {
+    bool thrown  = false;
     bool wrongException(false);
 
     char hostname[1000];
@@ -126,12 +144,22 @@ void rmasterTests::registration()
     ASSERT(0);
   }
 }
+
+void rmasterTests::registration_2() {
+  // local ringmaster can register (i.e. create) if the shared memory already exists...
+  //  we will use the CRingBuffer class to test this.
+  CPPUNIT_ASSERT_NO_THROW_MESSAGE(
+      "Registering ring buffer with existing shared mem", 
+      CRingBuffer::create("_mytestring_") );
+   
+  CRingBuffer::remove("_mytestring_");
+}
 // Ensure we can remove rings.
 // 1. Removing a ring that exists should work as localhost
 // 2. Removing a ring that exists should fail as remote host.
 // 3. Removing a ring that does not exist should fail as localhost.
 //
-void rmasterTests::unregister()
+void rmasterTests::unregister_0()
 {
   try {
     char host[1000];
@@ -144,8 +172,7 @@ void rmasterTests::unregister()
 
 
     // Add a test ring...
-
-    localMaster.notifyCreate(uniqueRing("testRing"));
+    CRingBuffer::create(uniqueRing("testRing"));
 
     // Should not be able to remove from the remote:
 
@@ -163,44 +190,49 @@ void rmasterTests::unregister()
       thrown = true;
       wrongException = false;
     }
+
     ASSERT(thrown);
     ASSERT(!wrongException);
     EQ(ENOTSUP, code);
+  } catch (CException& exc) {
+    std::cout << "unregister exception CException " << exc.WasDoing() << std::endl;
+    ASSERT(0);
+  }
+}
 
+void rmasterTests::unregister_1()
+{
 
     // Should be able to remove as local:
+  try {
+    CRingBuffer::create(uniqueRing("testRing"));
 
-    thrown = false;
+    CRingMaster localMaster;
+    bool thrown = false;
     try {
-      localMaster.notifyDestroy(uniqueRing("testRing"));
+      // does a local remove and also cleans up the shared memory
+      CRingBuffer::remove(uniqueRing("testRing"));
     }
     catch (...) {
       thrown = true;
     }
     ASSERT(!thrown);
-
-    // Removing testRing again should fail, string exception.
-
-    thrown         = false;
-    wrongException = false;
-
-    try {
-      localMaster.notifyDestroy(uniqueRing("testRing"));
-    }
-    catch(string msg) {
-      thrown = true;
-    }
-    catch (...) {
-      thrown = true;
-      wrongException = true;
-    }
-    ASSERT(thrown);
-    ASSERT(!wrongException);
-
   } catch (CException& exc) {
     std::cout << "registration exception CException " << exc.WasDoing() << std::endl;
     ASSERT(0);
   }
+}
+
+void rmasterTests::unregister_2()
+{
+    // Removing a non-existing ring should not fail
+    CRingMaster localMaster;
+
+    // does a local remove and also cleans up the shared memory
+    CPPUNIT_ASSERT_NO_THROW_MESSAGE( 
+        "unregistering nonexistent ring",
+        localMaster.notifyDestroy( uniqueRing("testRing") ) );
+
 }
 // It is an error to register a duplicate ring.
 
@@ -224,8 +256,7 @@ void rmasterTests::duplicatereg()
     wrongException = false;
   }
 
-  ASSERT(thrown);
-  ASSERT(!wrongException);
+  ASSERT(!thrown);
   
   master.notifyDestroy(uniqueRing("duplicate"));
 }
