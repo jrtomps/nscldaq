@@ -21,7 +21,14 @@ DAQHOME=@prefix@
 #export TCLLIBPATH="${DAQHOME}/Scripts" #not sure why this is here, nothing uses it
 BIT3DEVICES=5       # Number of bit 3 devices.
 PORTMGRSWITCHES="-log `pwd`/portman.log -portfile `pwd`/test.port -pidfile `pwd`/pid"  
-RINGMASTERSWITCHES="-f /var/log/nscldaq/ringmaster.log -v 1"
+if [ -z $RINGMASTER_LOGFILE ] ; then
+  RINGMASTER_LOGFILE=/var/log/nscldaq/ringmaster.log
+fi
+
+if [ -z $RINGMASTER_VERBOSITYLEVEL ] ; then
+  RINGMASTER_VERBOSITYLEVEL=1
+fi
+RINGMASTERSWITCHES="-f $RINGMASTER_LOGFILE -v $RINGMASTER_VERBOSITYLEVEL"
 
 # load daq defaults overrides
 [ -r /etc/default/nscldaq ] && . /etc/default/nscldaq

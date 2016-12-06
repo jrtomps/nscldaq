@@ -21,7 +21,7 @@ cd `basename ${tarball} .tar.gz`
 make clean all
 make install
 chmod u+x nscldaq
-./nscldaq start
+RINGMASTER_LOGFILE=$PWD/ringmaster_dist.log ./nscldaq start
 sleep 10
 make check-TESTS
 ./nscldaq stop
