@@ -191,6 +191,8 @@ void rmasterTests::unregister_0()
       wrongException = false;
     }
 
+    CRingBuffer::remove(uniqueRing("testRing"));
+
     ASSERT(thrown);
     ASSERT(!wrongException);
     EQ(ENOTSUP, code);
@@ -212,6 +214,14 @@ void rmasterTests::unregister_1()
     try {
       // does a local remove and also cleans up the shared memory
       CRingBuffer::remove(uniqueRing("testRing"));
+    }
+    catch (std::string& msg) {
+      std::cout << "failure : " << msg << std::endl;
+      thrown = true;
+    }
+    catch (std::exception& msg) {
+      std::cout << "failure : " << msg.what() << std::endl;
+      thrown = true;
     }
     catch (...) {
       thrown = true;
@@ -240,25 +250,14 @@ void rmasterTests::duplicatereg()
 {
   CRingMaster master;
 
-  master.notifyCreate(uniqueRing("duplicate"));
+  CRingBuffer::create(uniqueRing("duplicate"));
 
-  bool thrown(false);
-  bool wrongException(false);
-
-  try {
-    master.notifyCreate(uniqueRing("duplicate"));
-  } 
-  catch (string msg) {
-    thrown = true;
-  }
-  catch (...) {
-    thrown = true;
-    wrongException = false;
-  }
-
-  ASSERT(!thrown);
+  CPPUNIT_ASSERT_NO_THROW_MESSAGE(
+      "Duplicate registration is allowed",
+      master.notifyCreate(uniqueRing("duplicate"))
+      );
   
-  master.notifyDestroy(uniqueRing("duplicate"));
+  CRingBuffer::remove(uniqueRing("duplicate"));
 }
 
 // Get data from a remote ring.
