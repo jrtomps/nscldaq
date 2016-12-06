@@ -81,11 +81,11 @@ public:
     // Insertion operations:
     
 public:    
-    void insert(const std::vector<zmq::message_t*>& message);
+    void insert(std::vector<zmq::message_t*>& message);
     void addRingStatistics(
         uint32_t severity, const char* app, const char* src,
         const CStatusDefinitions::RingStatIdentification& ringId,
-        const std::vector<CStatusDefinitions::RingStatClient*>& clients
+        const std::vector<const CStatusDefinitions::RingStatClient*>& clients
     );
     void addStateChange(
         uint32_t severity, const char* app, const char* src,
@@ -100,8 +100,24 @@ public:
         uint32_t severity, const char* app, const char* src,
         int64_t  time, const char* message
     );
-
-
+            // Transitional methods between insert and addXXXX
+private:
+    void marshallRingStatistics(
+        const CStatusDefinitions::Header*   header,
+        const std::vector<zmq::message_t*>& message
+    );
+    void marshallStateChange(
+        const CStatusDefinitions::Header*   header,
+        const std::vector<zmq::message_t*>& message
+    );
+    void marshallReadoutStatistics(
+        const CStatusDefinitions::Header*   header,
+        const std::vector<zmq::message_t*>& message    
+    );
+    void marshallLogMessage(
+        const CStatusDefinitions::Header*   header,
+        const std::vector<zmq::message_t*>& message 
+    );
 private:
     void createSchema();
     

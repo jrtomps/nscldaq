@@ -53,7 +53,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(RingTests);
 // Should, however create a new ring_buffer table entry.
 
 void RingTests::addMinimal() {
-  std::vector<CStatusDefinitions::RingStatClient*> empty;
+  std::vector<const CStatusDefinitions::RingStatClient*> empty;
   CStatusDefinitions::RingStatIdentification*  pRingId  =
     reinterpret_cast<CStatusDefinitions::RingStatIdentification*>(std::malloc(
       sizeof(CStatusDefinitions::RingStatIdentification) +
@@ -99,7 +99,7 @@ void RingTests::addMinimal() {
 //    Add two different ring buffers -- cheat with same name different host.
 
 void RingTests::addMinimal2() {
-  std::vector<CStatusDefinitions::RingStatClient*> empty;
+  std::vector<const CStatusDefinitions::RingStatClient*> empty;
   CStatusDefinitions::RingStatIdentification*  pRingId  =
     reinterpret_cast<CStatusDefinitions::RingStatIdentification*>(std::malloc(
       sizeof(CStatusDefinitions::RingStatIdentification) +
@@ -168,7 +168,7 @@ void RingTests::addMinimal2() {
 // a single ring_buffer table entry.
 
 void RingTests::addMinimalDup() {
-  std::vector<CStatusDefinitions::RingStatClient*> empty;
+  std::vector<const CStatusDefinitions::RingStatClient*> empty;
   CStatusDefinitions::RingStatIdentification*  pRingId  =
     reinterpret_cast<CStatusDefinitions::RingStatIdentification*>(std::malloc(
       sizeof(CStatusDefinitions::RingStatIdentification) +
@@ -231,7 +231,7 @@ void RingTests::addClient1()
     pStats->s_command, "this\0is\0a\0test\0\0",
     std::strlen("this is a test ") + 1
   );
-  std::vector<CStatusDefinitions::RingStatClient*> clients = {pStats};
+  std::vector<const CStatusDefinitions::RingStatClient*> clients = {pStats};
   
   try {
     m_pDb->addRingStatistics(
@@ -332,7 +332,7 @@ void RingTests::addClient2()
     std::strlen("this is another test ") + 1
   );
   
-  std::vector<CStatusDefinitions::RingStatClient*> clients = {pStats, pStats2};
+  std::vector<const CStatusDefinitions::RingStatClient*> clients = {pStats, pStats2};
   
   try {
     m_pDb->addRingStatistics(
@@ -429,7 +429,7 @@ void RingTests::addMultiStat()
     pStats->s_command, "this\0is\0a\0test\0\0",
     std::strlen("this is a test ") + 1
   );
-  std::vector<CStatusDefinitions::RingStatClient*> clients = {pStats};
+  std::vector<const CStatusDefinitions::RingStatClient*> clients = {pStats};
   try {
     m_pDb->addRingStatistics(
       CStatusDefinitions::SeverityLevels::INFO, "ringdaemon", "charlie.nscl.msu.edu",

@@ -27,6 +27,7 @@
 #include "CStatusMessage.h"
 
 #include <cstring>
+#include <stdexcept>
 
 
 /**
@@ -77,6 +78,44 @@ CStatusDb::~CStatusDb() {
     
     delete &m_handle;
 }
+/**
+ * insert
+ *    Depending on the type of message, pull out pieces and dispatch to the
+ *    appropriate add method.  Note that unrecognized message types
+ *    result in an std::invalid_argument exceptions.
+ *
+ *  @param message - a vector of message parts.
+ *  @note There can be significatn processing to get from a message parts
+ *        vector to an addXxxxx call.  In such cases, private helper methods
+ *        of the form marshallxxxx will be used to streamline the logic of
+ *        this method.
+ */
+void
+CStatusDb::insert(std::vector<zmq::message_t*>& message)
+{
+    // There must be at least one message part:
+    
+    if (message.size() < 1) {
+        throw std::length_error(
+            "There must be at least one message part (CStatusDb::insert)"
+        );
+    }
+    const CStatusDefinitions::Header* h =
+        reinterpret_cast<CStatusDefinitions::Header*>(message[0]->data());
+    
+    if (h->s_type == CStatusDefinitions::MessageTypes::RING_STATISTICS) {
+        marshallRingStatistics(h, message);
+    } else if (h->s_type == CStatusDefinitions::MessageTypes::READOUT_STATISTICS) {
+        marshallReadoutStatistics(h, message);        
+    } else if (h->s_type == CStatusDefinitions::MessageTypes::LOG_MESSAGE) {
+        marshallLogMessage(h, message);
+    } else if (h->s_type == CStatusDefinitions::MessageTypes::STATE_CHANGE) {
+        marshallStateChange(h, message);
+    } else {
+        throw std::invalid_argument("Unrecognized messaeg type (CSstatusDb::insert)");
+    }
+}
+
 
 /**
  * addLogMessage
@@ -134,7 +173,7 @@ void
 CStatusDb::addRingStatistics(
     uint32_t severity, const char* app, const char* src,
     const CStatusDefinitions::RingStatIdentification& ringInfo,
-    const std::vector<CStatusDefinitions::RingStatClient*>& clients
+    const std::vector<const CStatusDefinitions::RingStatClient*>& clients
 )
 {
     // all of this is done as a transaction:
@@ -250,6 +289,159 @@ CStatusDb::addReadoutStatistics(
         t.rollback();
         throw;
     }
+}
+/*------------------------------------------------------------------------------\
+ *  Bridge methods between insert and addXxxx
+ */
+
+/**
+ * marshallRingStatistics
+ *   Bridges the gap between insert and addRingStatistics:
+ *
+ *  @param header  - Message header all pulled out for us.
+ *  @param message - Message parts of the entire message ([0] is the header).
+ */
+void
+CStatusDb::marshallRingStatistics(
+    const CStatusDefinitions::Header*   header,
+    const std::vector<zmq::message_t*>& message 
+)
+{
+    // There must be at least two message segments;
+    
+    if (message.size() < 2) {
+        throw std::length_error(
+            "Ring Statistics message with only a header (CStatusDb)"
+        );
+    }
+    const CStatusDefinitions::RingStatIdentification* ringId =
+        reinterpret_cast<CStatusDefinitions::RingStatIdentification*>(message[1]->data());
+        
+    std::vector<const CStatusDefinitions::RingStatClient*> clients;
+    for (int i = 2; i < message.size(); i++) {
+        const CStatusDefinitions::RingStatClient* client =
+            reinterpret_cast<const CStatusDefinitions::RingStatClient*>(message[i]->data());
+        clients.push_back(client);
+    }
+    addRingStatistics(
+        header->s_severity, header->s_application, header->s_source,
+        *ringId, clients
+    );
+}
+/**
+ * marshallStateChange
+ *   Bridges the gap between insert and addStateChange.
+ *   The message must be exactly two parts, the header and body.
+ *
+ *  @param header   - The message header.
+ *  @param message  - The complete viector of message parts.
+ */
+void CStatusDb::marshallStateChange(
+    const CStatusDefinitions::Header*   header,
+    const std::vector<zmq::message_t*>& message    
+)
+{
+    // There must be exactly two message parts:
+    
+    if (message.size() != 2) {
+        throw std::length_error(
+            "Stater change message did not have exactly two parts (CStatusDb)"
+        );
+    }
+    const CStatusDefinitions::StateChangeBody* pBody =
+        reinterpret_cast<const CStatusDefinitions::StateChangeBody*>(
+            message[1]->data()
+    );
+    addStateChange(
+        header->s_severity, header->s_application, header->s_source,
+        pBody->s_tod, pBody->s_leaving, pBody->s_entering
+    );
+    
+}
+/**
+ * marshallReadoutStatistics
+ *    Bridges the gap between insert and addReadoutStatistics.
+ *    Note that there can be 2 or three message parts.
+ *    - Header
+ *    - required run stat info part.
+ *    - optional readout statistics counters part.
+ *
+ *    If there is no readout statistics counters part, nullptr is supplied to
+ *    addReadoutstatistics for that struct.
+ *
+ * @param header   Message header part.
+ * @param message - Vector of message parts (includes header).
+ */
+void
+CStatusDb::marshallReadoutStatistics(
+    const CStatusDefinitions::Header*   header,
+    const std::vector<zmq::message_t*>& message  
+)
+{
+    // Enforce length restrictions on the message:
+    
+    if (message.size() < 2) {                     // At least 2 parts.
+        throw std::length_error(
+            "Readout statistics message with fewer than two parts (CStatusDb)"
+        );
+    }
+    if (message.size() > 3) {
+        throw std::length_error(
+            "Readout statistics message with more than three parts (CStatusDb)"
+        );
+    }
+    // Pull out the mandatory ReadoutStateRunInfo message part pointer:
+    
+    const CStatusDefinitions::ReadoutStatRunInfo* pRunInfo =
+        reinterpret_cast<const CStatusDefinitions::ReadoutStatRunInfo*>(
+            message[1]->data()
+        );
+    // figure out the value for the pointer to the statistics counters struct:
+    
+    const CStatusDefinitions::ReadoutStatCounters* pCounter = nullptr;
+    if (message.size() == 3) {
+        pCounter =
+            reinterpret_cast<const CStatusDefinitions::ReadoutStatCounters*>(
+                message[2]->data()
+            );
+    }
+    // Now we can do the add:
+    
+    addReadoutStatistics(
+        header->s_severity, header->s_application, header->s_source,
+        pRunInfo->s_startTime,  pRunInfo->s_runNumber, pRunInfo->s_title,
+        pCounter
+    );
+}
+/**
+ * marshallLogMessage
+ *   Bridges the gap between insert and addLogMessage.
+ *
+ * @param header  - Header message part all decoded.
+ * @param message - Entire message.
+ */
+void
+CStatusDb::marshallLogMessage(
+        const CStatusDefinitions::Header*   header,
+        const std::vector<zmq::message_t*>& message 
+)
+{
+    // Log messages have exactly two message parts.
+    
+    if (message.size() != 2) {
+        throw std::length_error(
+            "Log message that does noth ave 2 message aprts (CStatusDb)"
+        );
+    }
+    const CStatusDefinitions::LogMessageBody* pBody =
+        reinterpret_cast<const CStatusDefinitions::LogMessageBody*>(
+            message[1]->data()
+        );
+    
+    addLogMessage(
+        header->s_severity, header->s_application, header->s_source,
+        pBody->s_tod, pBody->s_message
+    );
 }
 /*------------------------------------------------------------------------------
  * private utilities
