@@ -553,7 +553,7 @@ proc List {socket client message} {
 	if {![catch {ringbuffer usage $ring} usage]} {
 	    lappend result [list $ring $usage]
 	} else {
-    emitLogMsg warning "Failed while retrieve usage information for registered ring '$ring'"
+    emitLogMsg warning "Failed while retrieving usage information for registered ring(=$ring)"
   }
     }
     puts $socket "OK"
