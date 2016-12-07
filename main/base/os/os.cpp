@@ -176,16 +176,15 @@ int Os::checkNegativeStatus(int returnStatus)
 std::string
 Os::getfqdn(const char* host)
 {
-  struct hostent result;
-  struct hostent* pResult;
-  char   buffer[8192];                 // Ought to be big enough.
-  int    errorCode;
-  
-  gethostbyname_r(
-    host, &result, buffer, sizeof(buffer), &pResult, &errorCode
-  );
-  if (!pResult) {
-    throw std::string(hstrerror(errorCode));
-  }
-  return result.h_name;
+  struct addrinfo  hints = {AI_CANONNAME | AI_V4MAPPED | AI_ADDRCONFIG,
+			    AF_UNSPEC, 0, 0, 
+			    0, NULL, NULL, NULL};
+			    
+  struct addrinfo* hostInfo;
+  checkNegativeStatus( getaddrinfo(host, NULL, &hints, &hostInfo) );
+
+  std::string fqhostname(hostInfo->ai_canonname);
+  freeaddrinfo(hostInfo);
+
+  return fqhostname;
 }
