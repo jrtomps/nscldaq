@@ -404,7 +404,9 @@ CRingAccess::local(std::string host)
     // fqhostname..and append the domain to the host:
 
     size_t domainStartsAt = fqhostname.find(".");
-    host += fqhostname.substr(domainStartsAt);
+    if (domainStartsAt != std::string::npos) {
+      host += fqhostname.substr(domainStartsAt);
+    }
   }
 
   return host == fqhostname;
