@@ -57,6 +57,7 @@ libRingBuffer_la_CXXFLAGS	=	-I@top_srcdir@/base/os \
 
 #  Python bindings to CRingMaster entries that are useful.
 
+libRingPy_la_DEPENDENCIES = libDataFlow.la
 libRingPy_la_SOURCES  = PyRingMaster.cpp
 libRingPy_la_CPPFLAGS = -I@top_srcdir@/base/os @PYTHON_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@
 libRingPy_la_LDFLAGS  =   @PYTHON_LDFLAGS@ @builddir@/libDataFlow.la \

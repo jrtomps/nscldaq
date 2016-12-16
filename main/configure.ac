@@ -469,6 +469,7 @@ AC_CONFIG_FILES([Makefile
     		utilities/format/V8/Makefile
     		utilities/format/V10/Makefile
     		utilities/format/V11/Makefile
+    		utilities/format/V12/Makefile
     		utilities/IO/Makefile
     		utilities/FormattedIO/Makefile
 		 utilities/newscaler/Makefile
