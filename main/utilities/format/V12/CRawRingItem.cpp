@@ -69,10 +69,19 @@ namespace DAQ {
 
     CRawRingItem& CRawRingItem::operator=(const CRawRingItem& rhs) {}
 
+    int CRawRingItem::operator==(const CRawRingItem& rhs) const {
+      if (m_timestamp != rhs.m_timestamp) return 0;
+      if (m_type != rhs.m_type) return 0;
+      if (m_sourceId != rhs.m_sourceId) return 0;
+      if (m_body != rhs.m_body) return 0;
+      if (m_mustSwap != rhs.m_mustSwap) return 0;
 
+      return 1;
+    }
 
-    int CRawRingItem::operator==(const CRawRingItem& rhs) const {}
-    int CRawRingItem::operator!=(const CRawRingItem& rhs) const {}
+    int CRawRingItem::operator!=(const CRawRingItem& rhs) const {
+      return ( *this == rhs ? 0 : 1 );  
+    }
 
     // Virtual methods that all ring items must provide:
     uint32_t CRawRingItem::size() const { return 3*sizeof(uint32_t)+sizeof(uint64_t)+m_body.size(); }

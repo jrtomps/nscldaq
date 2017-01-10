@@ -57,6 +57,8 @@ class CRawRingItemTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(isComposite_1);
   CPPUNIT_TEST(toString_0);
   CPPUNIT_TEST(toString_1);
+  CPPUNIT_TEST(compare_0);
+  CPPUNIT_TEST(compare_1);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -319,6 +321,19 @@ public:
       msg += "02 \n";
 
       EQMSG("toString (odd byte count)", msg, item.toString());
+  }
+
+  void compare_0() {
+    V12::CRawRingItem item1(1, 23, 1234, {2});
+
+    CPPUNIT_ASSERT_MESSAGE("comparison", item1 == item1);
+  }
+
+  void compare_1() {
+    V12::CRawRingItem item1(1, 23, 1234, {2});
+    V12::CRawRingItem item2(2, 45, 5678, {3});
+
+    CPPUNIT_ASSERT_MESSAGE("different", item1 != item2);
   }
 };
 
