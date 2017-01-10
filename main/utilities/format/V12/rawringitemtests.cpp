@@ -59,6 +59,10 @@ class CRawRingItemTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(toString_1);
   CPPUNIT_TEST(compare_0);
   CPPUNIT_TEST(compare_1);
+  CPPUNIT_TEST(compare_2);
+  CPPUNIT_TEST(compare_3);
+  CPPUNIT_TEST(compare_4);
+  CPPUNIT_TEST(compare_5);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -332,6 +336,34 @@ public:
   void compare_1() {
     V12::CRawRingItem item1(1, 23, 1234, {2});
     V12::CRawRingItem item2(2, 45, 5678, {3});
+
+    CPPUNIT_ASSERT_MESSAGE("different", item1 != item2);
+  }
+
+  void compare_2() {
+    V12::CRawRingItem item1(1, 23, 1234, {2});
+    V12::CRawRingItem item2(2, 23, 1234, {2});
+
+    CPPUNIT_ASSERT_MESSAGE("different", item1 != item2);
+  }
+
+  void compare_3() {
+    V12::CRawRingItem item1(1, 23, 1234, {2});
+    V12::CRawRingItem item2(1, 34, 1234, {2});
+
+    CPPUNIT_ASSERT_MESSAGE("different", item1 != item2);
+  }
+
+  void compare_4() {
+    V12::CRawRingItem item1(1, 23, 1234, {2});
+    V12::CRawRingItem item2(1, 23, 5678, {2});
+
+    CPPUNIT_ASSERT_MESSAGE("different", item1 != item2);
+  }
+
+  void compare_5() {
+    V12::CRawRingItem item1(1, 23, 1234, {2});
+    V12::CRawRingItem item2(1, 23, 1234, {3});
 
     CPPUNIT_ASSERT_MESSAGE("different", item1 != item2);
   }
