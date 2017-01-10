@@ -43,6 +43,7 @@ public:
 
   virtual bool     isComposite() const;
   virtual bool     mustSwap() const;
+  virtual void     setMustSwap(bool on);
 
   virtual std::string typeName() const;	// Textual type of item.
   virtual std::string toString() const; // Provide string dump of the item.

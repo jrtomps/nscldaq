@@ -158,6 +158,10 @@ namespace DAQ {
         return m_mustSwap;
     }
 
+    void CRawRingItem::setMustSwap(bool on) {
+      m_mustSwap = on;
+    }
+
     std::string CRawRingItem::headerToString() const {
 
       std::ostringstream result;
