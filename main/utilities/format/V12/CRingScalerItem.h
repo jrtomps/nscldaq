@@ -1,5 +1,5 @@
-#ifndef NSCLDAQ11_CRINGSCALERITEM_H
-#define NSCLDAQ11_CRINGSCALERITEM_H
+#ifndef NSCLDAQ12_CRINGSCALERITEM_H
+#define NSCLDAQ12_CRINGSCALERITEM_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
@@ -19,6 +19,7 @@
 
 
 #include "V12/CRingItem.h"
+#include "V12/DataFormat.h"
 
 #include <vector>
 #include <typeinfo>
@@ -28,6 +29,8 @@
 namespace DAQ {
   namespace V12 {
 
+  class CRawRingItem;
+
 /*!
    This class derived from CRingItem and represents a set of scalers that have been 
    formatted as a ring item.  
@@ -35,12 +38,14 @@ namespace DAQ {
 class CRingScalerItem : public CRingItem
 {
 public:
-  static uint32_t m_ScalerFormatMask;
+  uint32_t        m_sourceId;
+  uint64_t        m_evtTimestamp;
+  bool            m_mustSwap;
   uint32_t        m_intervalStartOffset;
   uint32_t        m_intervalEndOffset;
   uint32_t        m_timestamp;
   uint32_t        m_intervalDivisor;  /* 11.0 sub second time intervals */
-  uint32_t        m_isIncremental;    /* 11.0 non-incremental scaler flag */
+  bool            m_isIncremental;    /* 11.0 non-incremental scaler flag */
   uint32_t        m_scalerWidth;
   std::vector<uint32_t>       m_scalers;
 
@@ -53,41 +58,51 @@ public:
                   time_t   timestamp,
                   std::vector<uint32_t> scalers,
                   bool                  isIncremental = true,
-                  uint32_t              timeOffsetDivisor = 1);
+                  uint32_t              timeOffsetDivisor = 1,
+                  uint32_t width=32);
   CRingScalerItem(uint64_t eventTimestamp, uint32_t source, uint32_t barrier,
                   uint32_t startTime,
-		  uint32_t stopTime,
-		  time_t   timestamp,
-		  std::vector<uint32_t> scalers,
-                  uint32_t timeDivisor = 1, bool incremental=true);
-  CRingScalerItem(const CRingItem& rhs) throw(std::bad_cast);
+                  uint32_t stopTime,
+                  time_t   timestamp,
+                  std::vector<uint32_t> scalers,
+                  uint32_t timeDivisor = 1, bool incremental=true,
+                  uint32_t scalerWidth=32);
+
+  CRingScalerItem(const CRawRingItem& rhs);
   CRingScalerItem(const CRingScalerItem& rhs);
   
   virtual ~CRingScalerItem();
 
-  CRingScalerItem& operator=(const CRingScalerItem& rhs);
-  int operator==(const CRingScalerItem& rhs) const;
-  int operator!=(const CRingScalerItem& rhs) const;
+//  CRingScalerItem& operator=(const CRingScalerItem& rhs);
+//  int operator==(const CRingScalerItem& rhs) const;
+//  int operator!=(const CRingScalerItem& rhs) const;
 
   // Accessor member functions.
+  uint32_t  type() const { return PERIODIC_SCALERS; }
+  void      setType(uint32_t type);
+  uint32_t  size() const;
+  uint64_t  getEventTimestamp() const;
+  void      setEventTimestamp(uint64_t tstamp);
+  uint32_t  getSourceId() const;
+  void      setSourceId(uint32_t sid);
+  bool      isComposite() const;
+  bool      mustSwap() const;
+  void      toRawRingItem(CRawRingItem& item) const;
 
   void     setStartTime(uint32_t startTime);
   uint32_t getStartTime() const;
   float    computeStartTime() const;
-  
   void     setEndTime(uint32_t endTime);
   uint32_t getEndTime() const;
   float    computeEndTime() const;
-
   uint32_t getTimeDivisor() const;
-
   void     setTimestamp(time_t stamp);
   time_t   getTimestamp() const;
   
   bool isIncremental() const;
 
-  void     setScaler(uint32_t channel, uint32_t value) throw(CRangeError);
-  uint32_t getScaler(uint32_t channel) const throw(CRangeError);
+  void     setScaler(uint32_t channel, uint32_t value);
+  uint32_t getScaler(uint32_t channel) const;
   std::vector<uint32_t> getScalers() const;
   void setScalers(const std::vector<uint32_t>& values);
 
@@ -104,10 +119,10 @@ public:
   // utility.
 
 private:
-  size_t bodySize(size_t n);
-  void init(size_t n);
-  void throwIfInvalidChannel(uint32_t channel, 
-			     const char* message) const throw(CRangeError);
+  size_t bodySize() const;
+  void throwIfInvalidChannel(uint32_t channel,
+                 const char* message) const;
+  std::string headerToString() const;
 };
    
 } // end of V12 namespace
