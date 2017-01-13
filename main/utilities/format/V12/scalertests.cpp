@@ -42,6 +42,7 @@ class scltests : public CppUnit::TestFixture {
   CPPUNIT_TEST(tstampCons);
   CPPUNIT_TEST(fractionalRunTime);
   CPPUNIT_TEST(setScalers_0);
+  CPPUNIT_TEST(assign_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -73,6 +74,7 @@ protected:
   void comparison_1();
   void fractionalRunTime();
   void setScalers_0();
+  void assign_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
@@ -381,4 +383,16 @@ void scltests::setScalers_0()
 
     ASSERT( values == sclr.getScalers() );
     EQ( values.size(), static_cast<size_t>(sclr.getScalerCount()) );
+}
+
+
+void scltests::assign_0()
+{
+  CRingScalerItem sclr = createAccessorTestItem();
+
+
+  CRingScalerItem item(10);
+  item = sclr;
+
+  CPPUNIT_ASSERT_MESSAGE("assignment", item == sclr);
 }

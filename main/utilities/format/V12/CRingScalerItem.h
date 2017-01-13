@@ -72,7 +72,7 @@ public:
   
   virtual ~CRingScalerItem();
 
-//  CRingScalerItem& operator=(const CRingScalerItem& rhs);
+  CRingScalerItem& operator=(const CRingScalerItem& rhs);
   int operator==(const CRingScalerItem& rhs) const;
   int operator!=(const CRingScalerItem& rhs) const;
 

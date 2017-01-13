@@ -170,18 +170,23 @@ CRingScalerItem::~CRingScalerItem()
   \return CRingScalerItem&
   \retval *this
 */
-//CRingScalerItem&
-//CRingScalerItem::operator=(const CRingScalerItem& rhs)
-//{
-//  if (this != &rhs) {
-//    CRingItem::operator=(rhs);
-//    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+CRingScalerItem&
+CRingScalerItem::operator=(const CRingScalerItem& rhs)
+{
+  if (this != &rhs) {
+    m_sourceId = rhs.m_sourceId;
+    m_evtTimestamp = rhs.m_evtTimestamp;
+    m_intervalStartOffset = rhs.m_intervalStartOffset;
+    m_intervalEndOffset = rhs.m_intervalEndOffset;
+    m_timestamp = rhs.m_timestamp;
+    m_intervalDivisor = rhs.m_intervalDivisor;
+    m_isIncremental = rhs.m_isIncremental;
+    m_scalerWidth = rhs.m_scalerWidth;
+    m_scalers = rhs.m_scalers;
+  }
 
-//    init(pScalers->s_scalerCount);
-    
-//  }
-//  return *this;
-//}
+  return *this;
+}
 /*!
     Equality comparison.. there's no point in looking a the pointers.
     so the base class comparison is just fine.
