@@ -40,7 +40,6 @@ class CRingScalerItem : public CRingItem
 public:
   uint32_t        m_sourceId;
   uint64_t        m_evtTimestamp;
-  bool            m_mustSwap;
   uint32_t        m_intervalStartOffset;
   uint32_t        m_intervalEndOffset;
   uint32_t        m_timestamp;
@@ -60,7 +59,7 @@ public:
                   bool                  isIncremental = true,
                   uint32_t              timeOffsetDivisor = 1,
                   uint32_t width=32);
-  CRingScalerItem(uint64_t eventTimestamp, uint32_t source, uint32_t barrier,
+  CRingScalerItem(uint64_t eventTimestamp, uint32_t source,
                   uint32_t startTime,
                   uint32_t stopTime,
                   time_t   timestamp,
@@ -74,8 +73,8 @@ public:
   virtual ~CRingScalerItem();
 
 //  CRingScalerItem& operator=(const CRingScalerItem& rhs);
-//  int operator==(const CRingScalerItem& rhs) const;
-//  int operator!=(const CRingScalerItem& rhs) const;
+  int operator==(const CRingScalerItem& rhs) const;
+  int operator!=(const CRingScalerItem& rhs) const;
 
   // Accessor member functions.
   uint32_t  type() const { return PERIODIC_SCALERS; }
@@ -95,10 +94,12 @@ public:
   void     setEndTime(uint32_t endTime);
   uint32_t getEndTime() const;
   float    computeEndTime() const;
+  void     setTimeDivisor(uint32_t value);
   uint32_t getTimeDivisor() const;
   void     setTimestamp(time_t stamp);
   time_t   getTimestamp() const;
   
+  void setIncremental(bool enable);
   bool isIncremental() const;
 
   void     setScaler(uint32_t channel, uint32_t value);

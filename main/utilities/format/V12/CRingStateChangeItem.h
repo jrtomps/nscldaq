@@ -24,9 +24,7 @@
 #include <RangeError.h>
 
 namespace DAQ {
-  namespace V11 {
-
-struct _StateChangeItemBody;
+  namespace V12 {
 
 /*!
   This class represents a state change item.
@@ -50,55 +48,76 @@ class CRingStateChangeItem : public CRingItem
   // construction and other canonicals
 public:
   CRingStateChangeItem(uint16_t reason = 1);
-  CRingStateChangeItem(uint16_t reason,
-		       uint32_t runNumber,
-		       uint32_t timeOffset,
-		       time_t   timestamp,
-		       std::string title) throw(CRangeError);
-  CRingStateChangeItem(uint64_t eventTimestamp, uint32_t sourceId, uint32_t barrierType,
-                       uint16_t reason,
-		       uint32_t runNumber,
-		       uint32_t timeOffset,
-		       time_t   timestamp,
-		       std::string title,
-                       uint32_t offsetDivisor = 1);
-  
-  CRingStateChangeItem(const CRingItem& item) throw(std::bad_cast);
-  CRingStateChangeItem(const CRingStateChangeItem& rhs);
-  virtual ~CRingStateChangeItem();
 
-  CRingStateChangeItem& operator=(const CRingStateChangeItem& rhs);
-  int operator==(const CRingStateChangeItem& rhs) const;
-  int operator!=(const CRingStateChangeItem& rhs) const;
+  virtual uint32_t type() const;
+  virtual void setType(uint32_t type);
 
-  // Accessors for elements of the item (selectors and mutators both).
+  virtual uint32_t size() const;
 
-  void setRunNumber(uint32_t run);
-  uint32_t getRunNumber() const;
+  virtual uint64_t getEventTimestamp() const;
+  virtual void setEventTimestamp(uint64_t tstamp);
 
-  void     setElapsedTime(uint32_t offset);
-  uint32_t getElapsedTime() const;
-  float    computeElapsedTime() const;
+  virtual uint32_t getSourceId() const;
+  virtual void setSourceId(uint32_t id);
 
-  void setTitle(std::string title) throw(CRangeError);
-  std::string getTitle() const;
+  virtual bool     isComposite() const;
 
-  void setTimestamp(time_t stamp);
-  time_t getTimestamp() const;
-
-  void setOffsetDivisor(uint32_t divisor);
-  uint32_t getOffsetDivisor() const;
-  // Virtual method overrides.
+  virtual bool     mustSwap() const;
 
   virtual std::string typeName() const;
   virtual std::string toString() const;
 
-  // Utitlity functions..
+  virtual void toRawRingItem(CRawRingItem& item) const;
 
-private:
-  void init();
-  bool isStateChange();
-  _StateChangeItemBody* getStateChangeBody();
+  //  CRingStateChangeItem(uint16_t reason,
+//		       uint32_t runNumber,
+//		       uint32_t timeOffset,
+//		       time_t   timestamp,
+//		       std::string title) throw(CRangeError);
+//  CRingStateChangeItem(uint64_t eventTimestamp, uint32_t sourceId, uint32_t barrierType,
+//                       uint16_t reason,
+//		       uint32_t runNumber,
+//		       uint32_t timeOffset,
+//		       time_t   timestamp,
+//		       std::string title,
+//                       uint32_t offsetDivisor = 1);
+  
+//  CRingStateChangeItem(const CRingItem& item) throw(std::bad_cast);
+//  CRingStateChangeItem(const CRingStateChangeItem& rhs);
+//  virtual ~CRingStateChangeItem();
+
+//  CRingStateChangeItem& operator=(const CRingStateChangeItem& rhs);
+//  int operator==(const CRingStateChangeItem& rhs) const;
+//  int operator!=(const CRingStateChangeItem& rhs) const;
+
+//  // Accessors for elements of the item (selectors and mutators both).
+
+//  void setRunNumber(uint32_t run);
+//  uint32_t getRunNumber() const;
+
+//  void     setElapsedTime(uint32_t offset);
+//  uint32_t getElapsedTime() const;
+//  float    computeElapsedTime() const;
+
+//  void setTitle(std::string title) throw(CRangeError);
+//  std::string getTitle() const;
+
+//  void setTimestamp(time_t stamp);
+//  time_t getTimestamp() const;
+
+//  void setOffsetDivisor(uint32_t divisor);
+//  uint32_t getOffsetDivisor() const;
+//  // Virtual method overrides.
+
+//  virtual std::string typeName() const;
+//  virtual std::string toString() const;
+
+//  // Utitlity functions..
+
+//private:
+//  void init();
+//  bool isStateChange();
+//  _StateChangeItemBody* getStateChangeBody();
 };
 
   } // end of V11 namespace

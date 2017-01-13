@@ -87,10 +87,18 @@ CRingScalerItem::CRingScalerItem(uint32_t startTime,
   @param incremental - True (default) if the scaler item is incremental.
  */
 CRingScalerItem::CRingScalerItem(
-    uint64_t eventTimestamp, uint32_t source, uint32_t barrier, uint32_t startTime,
+    uint64_t eventTimestamp, uint32_t source, uint32_t startTime,
     uint32_t stopTime, time_t   timestamp, std::vector<uint32_t> scalers,
     uint32_t timeDivisor, bool incremental, uint32_t scalerWidth)
-
+    : m_sourceId(source), \
+      m_evtTimestamp(eventTimestamp),
+      m_intervalStartOffset(startTime),
+      m_intervalEndOffset(stopTime),
+      m_timestamp(timestamp),
+      m_intervalDivisor(timeDivisor),
+      m_isIncremental(incremental),
+      m_scalerWidth(scalerWidth),
+      m_scalers(scalers)
 {
 }
 
@@ -138,10 +146,16 @@ CRingScalerItem::CRingScalerItem(const CRawRingItem& rhs)
   \param rhs - The item we are copying into *this
 */
 CRingScalerItem::CRingScalerItem(const CRingScalerItem& rhs) :
-  CRingItem(rhs)
-{
-    
-}
+  m_sourceId(rhs.m_sourceId),
+  m_evtTimestamp(rhs.m_evtTimestamp),
+  m_intervalStartOffset(rhs.m_intervalStartOffset),
+  m_intervalEndOffset(rhs.m_intervalEndOffset),
+  m_timestamp(rhs.m_timestamp),
+  m_intervalDivisor(rhs.m_intervalDivisor),
+  m_isIncremental(rhs.m_isIncremental),
+  m_scalerWidth(rhs.m_scalerWidth),
+  m_scalers(rhs.m_scalers)
+{}
 
 /*!
   Destruction just delegates.
@@ -176,11 +190,21 @@ CRingScalerItem::~CRingScalerItem()
     \retval 0 - Not equal
     \retval 1 - Equal
 */
-//int
-//CRingScalerItem::operator==(const CRingScalerItem& rhs) const
-//{
-//  return CRingItem::operator==(rhs);
-//}
+int
+CRingScalerItem::operator==(const CRingScalerItem& rhs) const
+{
+  if (m_sourceId != rhs.m_sourceId) return 0;
+  if (m_evtTimestamp != rhs.m_evtTimestamp) return 0;
+  if (m_intervalStartOffset != rhs.m_intervalStartOffset) return 0;
+  if (m_intervalEndOffset != rhs.m_intervalEndOffset) return 0;
+  if (m_timestamp != rhs.m_timestamp) return 0;
+  if (m_intervalDivisor != rhs.m_intervalDivisor) return 0;
+  if (m_isIncremental != rhs.m_isIncremental) return 0;
+  if (m_scalerWidth != rhs.m_scalerWidth) return 0;
+  if (m_scalers != rhs.m_scalers) return 0;
+
+  return 1;
+}
 /*!
    Inequality is the logical inverse of equality.
    \rhs - Item being compared to *thisl
@@ -188,11 +212,11 @@ CRingScalerItem::~CRingScalerItem()
    \retval 0 - not unequal
    \retval 1 - unequal
 */
-//int
-//CRingScalerItem::operator!=(const CRingScalerItem& rhs) const
-//{
-//  return !(*this == rhs);
-//}
+int
+CRingScalerItem::operator!=(const CRingScalerItem& rhs) const
+{
+  return !(*this == rhs);
+}
     
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -238,7 +262,10 @@ bool      CRingScalerItem::isComposite() const
 
 bool      CRingScalerItem::mustSwap() const
 {
-    return m_mustSwap;
+    // this is never swapped. If the raw buffer is swapped at construction
+    // it is handled then. The contents of objects belonging to this class
+    // are always in the native byte ordering.
+    return false;
 }
 
 void CRingScalerItem::toRawRingItem(DAQ::V12::CRawRingItem& item) const
@@ -333,6 +360,18 @@ CRingScalerItem::computeEndTime() const
     float divisor = m_intervalDivisor;
     return end/divisor;   
 }
+
+/*!
+ * \brief CRingScalerItem::setTimeDivisor
+ *
+ * \param value     the divisor value
+ */
+void
+CRingScalerItem::setTimeDivisor(uint32_t value)
+{
+    m_intervalDivisor = value;
+}
+
 /**
  * getTimestampDivisor
  *   Get the divisor that must be applied to get a real time offset.
@@ -343,6 +382,15 @@ uint32_t
 CRingScalerItem::getTimeDivisor() const
 {
     return m_intervalDivisor;
+}
+
+/*!
+ * \brief CRingScalerItem::setIncremental
+ * \param enable    enable or disable the incremental mode
+ */
+void CRingScalerItem::setIncremental(bool enable)
+{
+    m_isIncremental = enable;
 }
 
 /**

@@ -6,11 +6,16 @@
 
 #include <V12/DataFormat.h>
 #include <V12/CRawRingItem.h>
+#include <V12/CRingScalerItem.h>
+#include <V12/CPhysicsEventItem.h>
 #include <ByteBuffer.h>
 #include <iostream>
 
 using namespace std;
 using namespace DAQ;
+
+
+
 
 std::ostream& operator<<(std::ostream& stream, const Buffer::ByteBuffer& buffer) {
 
@@ -63,6 +68,9 @@ class CRawRingItemTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(compare_3);
   CPPUNIT_TEST(compare_4);
   CPPUNIT_TEST(compare_5);
+  CPPUNIT_TEST(assign_0);
+  CPPUNIT_TEST(as_0);
+  CPPUNIT_TEST(as_1);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -367,6 +375,33 @@ public:
 
     CPPUNIT_ASSERT_MESSAGE("different", item1 != item2);
   }
+
+
+  void assign_0() {
+      V12::CRawRingItem item(1, 23, 1234, {1,2,3,4,5});
+      V12::CRawRingItem item2(V12::VOID);
+
+      item2 = item;
+      CPPUNIT_ASSERT_MESSAGE("assignment", item == item2);
+  }
+
+
+  void as_0() {
+      V12::CRawRingItem item(V12::PHYSICS_EVENT, 23, 1234, {1,2,3});
+
+      CPPUNIT_ASSERT_NO_THROW_MESSAGE("valid conversion doesn't throw",
+                                      item.as<V12::CPhysicsEventItem>());
+  }
+
+  void as_1() {
+      V12::CRawRingItem item(V12::PHYSICS_EVENT, 23, 1234, {1,2,3});
+
+      CPPUNIT_ASSERT_THROW_MESSAGE("invalid conversion throws",
+                                      item.as<V12::CRingScalerItem>(),
+                                   std::bad_cast);
+
+  }
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CRawRingItemTests);

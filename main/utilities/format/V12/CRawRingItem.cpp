@@ -67,7 +67,18 @@ namespace DAQ {
 
     CRawRingItem::~CRawRingItem() {}
 
-    CRawRingItem& CRawRingItem::operator=(const CRawRingItem& rhs) {}
+    CRawRingItem& CRawRingItem::operator=(const CRawRingItem& rhs)
+    {
+        if (&rhs != this) {
+            m_timestamp = rhs.m_timestamp;
+            m_type      = rhs.m_type;
+            m_sourceId  = rhs.m_sourceId;
+            m_body      = rhs.m_body;
+            m_mustSwap  = rhs.m_mustSwap;
+        }
+
+        return *this;
+    }
 
     int CRawRingItem::operator==(const CRawRingItem& rhs) const {
       if (m_timestamp != rhs.m_timestamp) return 0;

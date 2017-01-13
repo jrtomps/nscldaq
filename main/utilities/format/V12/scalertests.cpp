@@ -27,13 +27,21 @@ class scltests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fullcons);
   CPPUNIT_TEST(castcons_0);
   CPPUNIT_TEST(castcons_1);
-//  CPPUNIT_TEST(accessors);
-//  CPPUNIT_TEST(copycons);
-//  CPPUNIT_TEST(tstampCons);
-//  CPPUNIT_TEST(tstampCopyCons);
-//  CPPUNIT_TEST(fractionalRunTime);
-//  CPPUNIT_TEST(incremental);
-//  CPPUNIT_TEST(setScalers_0);
+  CPPUNIT_TEST(accessors_0);
+  CPPUNIT_TEST(accessors_1);
+  CPPUNIT_TEST(accessors_2);
+  CPPUNIT_TEST(accessors_4);
+  CPPUNIT_TEST(accessors_5);
+  CPPUNIT_TEST(accessors_6);
+  CPPUNIT_TEST(accessors_7);
+  CPPUNIT_TEST(accessors_8);
+  CPPUNIT_TEST(accessors_9);
+  CPPUNIT_TEST(copycons);
+  CPPUNIT_TEST(comparison_0);
+  CPPUNIT_TEST(comparison_1);
+  CPPUNIT_TEST(tstampCons);
+  CPPUNIT_TEST(fractionalRunTime);
+  CPPUNIT_TEST(setScalers_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -44,18 +52,27 @@ public:
   }
   void tearDown() {
   }
+  CRingScalerItem createAccessorTestItem();
 protected:
   void simplecons();
   void fullcons();
   void castcons_0();
   void castcons_1();
-//  void accessors();
-//  void copycons();
-//  void tstampCons();
-//  void tstampCopyCons();
-//  void fractionalRunTime();
-//  void incremental();
-//  void setScalers_0();
+  void accessors_0();
+  void accessors_1();
+  void accessors_2();
+  void accessors_4();
+  void accessors_5();
+  void accessors_6();
+  void accessors_7();
+  void accessors_8();
+  void accessors_9();
+  void tstampCons();
+  void copycons();
+  void comparison_0();
+  void comparison_1();
+  void fractionalRunTime();
+  void setScalers_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
@@ -195,191 +212,173 @@ void scltests::castcons_1()
 
 // Test the setting accessors.
 
-//void scltests::accessors()
-//{
-//  CRingScalerItem s(32);
-//  s.setStartTime(100);
-//  s.setEndTime(105);
-//  for (int i = 0; i < 32; i++) {
-//    s.setScaler(i, i);
-//  }
+CRingScalerItem scltests::createAccessorTestItem()
+{
+    CRingScalerItem s(32);
+    s.setStartTime(100);
+    s.setEndTime(105);
+    for (int i = 0; i < 32; i++) {
+      s.setScaler(i, i);
+    }
+    s.setEventTimestamp(0x123456789);
+    s.setTimeDivisor(2345);
+    s.setTimestamp(0xa0a0);
+    s.setIncremental(true);
+    s.setScalerWidth(67);
+    return s;
+}
 
-//  EQ((uint32_t)100, s.getStartTime());
-//  EQ((uint32_t)105, s.getEndTime());
-//  for (uint32_t i = 0; i < 32; i++) {
-//    EQ(i, s.getScaler(i));
-//  }
-//}
+void scltests::accessors_0()
+{
+  CRingScalerItem s = createAccessorTestItem();
+
+  EQMSG("start time", (uint32_t)100, s.getStartTime());
+ }
+
+void scltests::accessors_1()
+{
+    CRingScalerItem s = createAccessorTestItem();
+
+    EQMSG("end time", (uint32_t)105, s.getEndTime());
+}
+
+void scltests::accessors_2()
+{
+    CRingScalerItem s = createAccessorTestItem();
+
+    for (uint32_t i = 0; i < 32; i++) {
+        EQMSG("scaler value", i, s.getScaler(i));
+    }
+}
+
+
+void scltests::accessors_4()
+{
+    CRingScalerItem s = createAccessorTestItem();
+
+    EQMSG("evt timestamp", uint64_t(0x123456789), s.getEventTimestamp());
+}
+
+void scltests::accessors_5()
+{
+    CRingScalerItem s = createAccessorTestItem();
+
+    EQMSG("type", V12::PERIODIC_SCALERS, s.type());
+}
+
+void scltests::accessors_6()
+{
+    CRingScalerItem s = createAccessorTestItem();
+
+    EQMSG("time divisor", uint32_t(2345), s.getTimeDivisor());
+}
+
+void scltests::accessors_7()
+{
+    CRingScalerItem s = createAccessorTestItem();
+
+    EQMSG("unix timestamp", time_t(0xa0a0), s.getTimestamp());
+}
+
+
+void scltests::accessors_8()
+{
+    CRingScalerItem s = createAccessorTestItem();
+
+    EQMSG("count", uint32_t(32), s.getScalerCount());
+}
+
+void scltests::accessors_9()
+{
+    CRingScalerItem s = createAccessorTestItem();
+
+    EQMSG("width", uint32_t(67), s.getScalerWidth());
+}
+
 //// Test copy construction.
 
-//void scltests::copycons()
-//{
-//  vector<uint32_t> simulatedScaler;
-//  for (uint32_t i=0; i < 64; i++) {
-//    simulatedScaler.push_back(i);
-//  }
+void scltests::copycons()
+{
 
-//  CRingScalerItem original(0, 10, 12345, simulatedScaler);
-//  CRingScalerItem copy(original);
-
-//  EQ(original.getBodySize(), copy.getBodySize());
-//  _RingItem* porig = original.getItemPointer();
-//  _RingItem* pcopy = copy.getItemPointer();
-
-//  // headers must match
-
-//  EQ(porig->s_header.s_size, pcopy->s_header.s_size);
-//  EQ(porig->s_header.s_type, pcopy->s_header.s_type);
-
-//  // Contents must match:
+    V12::CRingScalerItem item(12, 34, 56, {1,2,3,4}, false, 2, 48);
 
 
-//  EQ(original.getStartTime(),   copy.getStartTime());
-//  EQ(original.getEndTime(),    copy.getEndTime());
-//  EQ(original.getTimestamp(),  copy .getTimestamp());
-//  EQ(original.getScalerCount(), copy.getScalerCount());
-//  for (uint32_t i =0; i < 64; i++) {
-//    EQ(i, copy.getScaler(i));
-//  }
-  
-//}
-///*
-//  Test construction of timestamped scaler items.
-//*/
-//void
-//scltests::tstampCons()
-//{
-//    std::vector<uint32_t> scalers;
-//    for(int i=0; i < 16; i++) {
-//        scalers.push_back(i);
-//    }
-//    CRingScalerItem item(
-//        0x1234567887654321ll, 1, 0,
-//        10, 20, (time_t)1111, scalers
-//    );
+    V12::CRingScalerItem item2(item);
+
+    CPPUNIT_ASSERT_MESSAGE("copy constructor", item2 == item);
+}
+
+void scltests::comparison_0()
+{
+    V12::CRingScalerItem item(12, 34, 56, {1,2,3,4}, false, 2, 48);
+    CPPUNIT_ASSERT_MESSAGE("identity comparison", item == item);
+}
+
+void scltests::comparison_1()
+{
+    V12::CRingScalerItem item(12, 34, 56, {1,2,3,4}, false, 2, 48);
+    V12::CRingScalerItem item2(4);
+    CPPUNIT_ASSERT_MESSAGE("comparison of different items", item != item2);
+}
+
+/*
+  Test construction of timestamped scaler items.
+*/
+void
+scltests::tstampCons()
+{
+    std::vector<uint32_t> scalers;
+    for(int i=0; i < 16; i++) {
+        scalers.push_back(i);
+    }
+    CRingScalerItem item(
+        0x1234567887654321ll, 1,
+        10, 20, (time_t)1111, scalers
+    );
     
-//    // Ensure we can get the body header stuff:
+    // Ensure we can get the body header stuff:
     
-//    EQ(true, item.hasBodyHeader());
-//    EQ(static_cast<uint64_t>(0x1234567887654321ll), item.getEventTimestamp());
-//    EQ(static_cast<uint32_t>(1), item.getSourceId());
-//    EQ(static_cast<uint32_t>(0), item.getBarrierType());
+    EQMSG("event timestamp", static_cast<uint64_t>(0x1234567887654321ll), item.getEventTimestamp());
+    EQMSG("source id", static_cast<uint32_t>(1), item.getSourceId());
+
+    // And that we can still get the stuff from the event body:
     
-//    // And that we can still get the stuff from the event body:
+    EQMSG("start time", static_cast<uint32_t>(10), item.getStartTime());
+    EQMSG("end time", static_cast<uint32_t>(20), item.getEndTime());
+    EQMSG("unix timestamp", static_cast<time_t>(1111), item.getTimestamp());
+    EQMSG("count", static_cast<uint32_t>(16), item.getScalerCount());
+    EQMSG("scaler width", static_cast<uint32_t>(32), item.getScalerWidth());
+    EQMSG("incremental", true, item.isIncremental());
+
+    for(int i = 0; i < 16; i++) {
+        EQ(static_cast<uint32_t>(i), item.getScaler(i));
+    }
+    CPPUNIT_ASSERT_MESSAGE("bulk value compare", scalers == item.getScalers());
     
-//    EQ(static_cast<uint32_t>(10), item.getStartTime());
-//    EQ(static_cast<uint32_t>(20), item.getEndTime());
-//    EQ(static_cast<time_t>(1111), item.getTimestamp());
-//    EQ(static_cast<uint32_t>(16), item.getScalerCount());
-    
-//    for(int i = 0; i < 16; i++) {
-//        EQ(static_cast<uint32_t>(i), item.getScaler(i));
-//    }
-    
-//    // Make sure that scaler value alterations work too:
-    
-//    for(int i = 0; i < 16; i++) {
-//        item.setScaler(i, 100-i);
-//    }
-//    for (int i = 0; i < 16; i++) {
-//        EQ(static_cast<uint32_t>(100-i), item.getScaler(i));
-//    }
-//}
-///*
-//  test copy construction with body headers:
-//*/
-//void
-//scltests::tstampCopyCons()
-//{
-//    std::vector<uint32_t> scalers;
-//    for(int i=0; i < 16; i++) {
-//        scalers.push_back(i);
-//    }
-//    CRingScalerItem orig(
-//        0x1234567887654321ll, 1, 0,
-//        10, 20, (time_t)1111, scalers
-//    );
-//    CRingScalerItem item(orig);
-    
-//    // Ensure we can get the body header stuff:
-    
-//    EQ(true, item.hasBodyHeader());
-//    EQ(static_cast<uint64_t>(0x1234567887654321ll), item.getEventTimestamp());
-//    EQ(static_cast<uint32_t>(1), item.getSourceId());
-//    EQ(static_cast<uint32_t>(0), item.getBarrierType());
-    
-//    // And that we can still get the stuff from the event body:
-    
-//    EQ(static_cast<uint32_t>(10), item.getStartTime());
-//    EQ(static_cast<uint32_t>(20), item.getEndTime());
-//    EQ(static_cast<time_t>(1111), item.getTimestamp());
-//    EQ(static_cast<uint32_t>(16), item.getScalerCount());
-    
-//    for(int i = 0; i < 16; i++) {
-//        EQ(static_cast<uint32_t>(i), item.getScaler(i));
-//    }
-    
-//    // Make sure that scaler value alterations work too:
-    
-//    for(int i = 0; i < 16; i++) {
-//        item.setScaler(i, 100-i);
-//    }
-//    for (int i = 0; i < 16; i++) {
-//        EQ(static_cast<uint32_t>(100-i), item.getScaler(i));
-//    }
-//}
-///*
-//* tests for the compute*Time methods
-//*/
-//void
-//scltests::fractionalRunTime()
-//{
-//    std::vector<uint32_t> scalers;
-//    for(int i=0; i < 16; i++) {
-//        scalers.push_back(i);
-//    }
-//    CRingScalerItem orig(
-//        0x1234567887654321ll, 1, 0,
-//        10, 20, (time_t)1111, scalers, 2
-//    );
-//    EQ(static_cast<float>(10.0/2.0), orig.computeStartTime());
-//    EQ(static_cast<float>(20.0/2.0), orig.computeEndTime());
-//}
-///**
-// * test isIncremental.
-// */
-//void
-//scltests::incremental()
-//{
-//    std::vector<uint32_t> scalers;
-//    for(int i=0; i < 16; i++) {
-//        scalers.push_back(i);
-//    }
-//    CRingScalerItem inc(
-//        0x1234567887654321ll, 1, 0,
-//        10, 20, (time_t)1111, scalers, 2
-//    );
-//    CRingScalerItem notinc(
-//        0x1234567887654321ll, 1, 0,
-//        10, 20, (time_t)1111, scalers, 2, false
-//    );
-//    ASSERT(inc.isIncremental());
-//    ASSERT(!notinc.isIncremental());
-    
-//}
+}
+/*
+* tests for the compute*Time methods
+*/
+void
+scltests::fractionalRunTime()
+{
+    CRingScalerItem orig(
+        0x1234567887654321ll, 1, 10, 20, (time_t)1111, {1,2,3,4}, 2 );
+
+    EQ(static_cast<float>(10.0/2.0), orig.computeStartTime());
+    EQ(static_cast<float>(20.0/2.0), orig.computeEndTime());
+}
 
 
-//void scltests::setScalers_0()
-//{
-//    CRingScalerItem sclr(32);
+void scltests::setScalers_0()
+{
+    CRingScalerItem sclr(10);
 
-//    // we only support the setting of scalers with a vector whose
-//    // size is the same as what currently exist
-//    vector<uint32_t> values(sclr.getScalerCount());
-//    iota(begin(values), end(values), 0);
+    vector<uint32_t> values(sclr.getScalerCount());
+    iota(begin(values), end(values), 0);
 
-//    sclr.setScalers(values);
+    CPPUNIT_ASSERT_NO_THROW_MESSAGE("set scalers", sclr.setScalers(values));
 
-//    ASSERT( values == sclr.getScalers() );
-//    EQ( values.size(), static_cast<size_t>(sclr.getScalerCount()) );
-//}
+    ASSERT( values == sclr.getScalers() );
+    EQ( values.size(), static_cast<size_t>(sclr.getScalerCount()) );
+}

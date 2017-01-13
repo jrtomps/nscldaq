@@ -53,25 +53,25 @@ namespace DAQ {
 
   CPhysicsEventItem::~CPhysicsEventItem() {}
 
-  //CPhysicsEventItem&
-  //CPhysicsEventItem::operator=(const CPhysicsEventItem& rhs)
-  //{
-  //  CRingItem::operator=(rhs);
-  //  return *this;
-  //}
-  //
-  //int
-  //CPhysicsEventItem::operator==(const CPhysicsEventItem& rhs) const
-  //{
-  //  return CRingItem::operator==(rhs);
-  //}
-  //
-  //int
-  //CPhysicsEventItem::operator!=(const CPhysicsEventItem& rhs) const
-  //{
-  //  return CRingItem::operator!=(rhs);
-  //}
-  //
+  CPhysicsEventItem&
+  CPhysicsEventItem::operator=(const CPhysicsEventItem& rhs)
+  {
+    CRawRingItem::operator=(rhs);
+    return *this;
+  }
+
+  int
+  CPhysicsEventItem::operator==(const CPhysicsEventItem& rhs) const
+  {
+    return CRawRingItem::operator==(rhs);
+  }
+
+  int
+  CPhysicsEventItem::operator!=(const CPhysicsEventItem& rhs) const
+  {
+    return CRawRingItem::operator!=(rhs);
+  }
+
   /*--------------------------------------------------
  *
  * Virtual method overrides.

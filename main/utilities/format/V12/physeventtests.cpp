@@ -16,6 +16,7 @@ using namespace DAQ;
 class physeventtests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(physeventtests);
   CPPUNIT_TEST( ringitemcopy );
+  CPPUNIT_TEST( ringitemassign_0 );
   CPPUNIT_TEST( badcast );
   CPPUNIT_TEST_SUITE_END();
 
@@ -27,6 +28,9 @@ public:
 protected:
   void ringitemcopy();
   void badcast();
+  void comparison_0();
+  void comparison_1();
+  void ringitemassign_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(physeventtests);
@@ -52,4 +56,38 @@ void physeventtests::badcast()
   
   V12::CPhysicsEventItem newitem;
   CPPUNIT_ASSERT_THROW( newitem = V12::CPhysicsEventItem(myitem), std::bad_cast );
+}
+
+
+void physeventtests::comparison_0()
+{
+    V12::CPhysicsEventItem newItm;
+    CPPUNIT_ASSERT_MESSAGE("identity comparison", newItm == newItm);
+}
+
+void physeventtests::comparison_1()
+{
+    V12::CPhysicsEventItem newItem;
+
+    V12::CPhysicsEventItem phys_item;
+
+    auto& body = phys_item.getBody();
+    for (uint16_t i = 0; i < 10; i++) {
+      body << i;
+    }
+
+    CPPUNIT_ASSERT_MESSAGE("compare different", newItem != phys_item);
+
+}
+
+
+void physeventtests::ringitemassign_0()
+{
+    V12::CPhysicsEventItem item(0x1234, 0x45, {1,2,3,4,5,6});
+
+    V12::CPhysicsEventItem item2;
+
+    item2 = item;
+    CPPUNIT_ASSERT_MESSAGE("assigment creates same", item == item2 );
+
 }

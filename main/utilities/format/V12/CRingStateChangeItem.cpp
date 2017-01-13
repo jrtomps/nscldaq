@@ -42,18 +42,18 @@ namespace DAQ {
 CRingStateChangeItem::CRingStateChangeItem(uint16_t reason) :
   CRingItem(reason, sizeof(StateChangeItem))
 {
-  init();
+//  init();
 
-  // Fill in the body:
+//  // Fill in the body:
 
 
-  pStateChangeItemBody pItem =
-    reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-  pItem->s_runNumber    = 0;
-  pItem->s_timeOffset   = 0;
-  pItem->s_Timestamp = static_cast<uint32_t>(time(NULL));
-  memset(pItem->s_title, 0, TITLE_MAXSIZE+1);
-  pItem->s_offsetDivisor = 1;
+//  pStateChangeItemBody pItem =
+//    reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+//  pItem->s_runNumber    = 0;
+//  pItem->s_timeOffset   = 0;
+//  pItem->s_Timestamp = static_cast<uint32_t>(time(NULL));
+//  memset(pItem->s_title, 0, TITLE_MAXSIZE+1);
+//  pItem->s_offsetDivisor = 1;
 }
 /*!
    Fully specified construction the initial values of the various
