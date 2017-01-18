@@ -4,13 +4,9 @@
 #include <cppunit/Asserter.h>
 #include "Asserts.h"
 
-#include <V11/DataFormatV11.h>
-
-#define private public
-#define protected public
-#include <V11/CRingTextItem.h>
-#undef private
-#undef protected
+#include <V12/DataFormat.h>
+#include <V12/CRingTextItem.h>
+#include <V12/CRawRingItem.h>
 
 #include <string>
 #include <vector>
@@ -19,19 +15,30 @@
 #include <iostream>
 
 using namespace std;
-using namespace DAQ::V11;
+using namespace DAQ;
 
 class texttests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(texttests);
-  CPPUNIT_TEST(simplecons);
-  CPPUNIT_TEST(fullcons);
-  CPPUNIT_TEST(castcons);
-  CPPUNIT_TEST(accessors);
+  CPPUNIT_TEST(simplecons_0);
+  CPPUNIT_TEST(simplecons_1);
+  CPPUNIT_TEST(fullcons_0);
+  CPPUNIT_TEST(fullcons_1);
+  CPPUNIT_TEST(castcons_0);
+  CPPUNIT_TEST(castcons_1);
+  CPPUNIT_TEST(accessors_0);
+  CPPUNIT_TEST(comparison_0);
+  CPPUNIT_TEST(comparison_1);
+  CPPUNIT_TEST(comparison_2);
+  CPPUNIT_TEST(comparison_3);
+  CPPUNIT_TEST(comparison_4);
+  CPPUNIT_TEST(comparison_5);
+  CPPUNIT_TEST(comparison_6);
+  CPPUNIT_TEST(comparison_7);
   CPPUNIT_TEST(copycons);
-  CPPUNIT_TEST(tscons);
+  CPPUNIT_TEST(tscons_0);
+  CPPUNIT_TEST(tscons_1);
   CPPUNIT_TEST(fractionalRunTime);
-  CPPUNIT_TEST( getStringCount_0 );
-  CPPUNIT_TEST( setTimeDivisor_0 );
+  CPPUNIT_TEST(assert_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -43,22 +50,33 @@ public:
   void tearDown() {
   }
 protected:
-  void simplecons();
-  void fullcons();
-  void castcons();
-  void accessors();
+  void simplecons_0();
+  void simplecons_1();
+  void fullcons_0();
+  void fullcons_1();
+  void castcons_0();
+  void castcons_1();
+  void accessors_0();
+  void comparison_0();
+  void comparison_1();
+  void comparison_2();
+  void comparison_3();
+  void comparison_4();
+  void comparison_5();
+  void comparison_6();
+  void comparison_7();
   void copycons();
-  void tscons();
+  void tscons_0();
+  void tscons_1();
   void fractionalRunTime();
-  void getStringCount_0();
-  void setTimeDivisor_0();
+  void assert_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(texttests);
 
 // Test simple construction
 
-void texttests::simplecons() {
+void texttests::simplecons_0() {
   // Make some strings:
 
   string s1("String 1");
@@ -72,29 +90,33 @@ void texttests::simplecons() {
   strings.push_back(s3);
   strings.push_back(s4);
 
-  CRingTextItem item(PACKET_TYPES, strings);
+  V12::CRingTextItem item(V12::PACKET_TYPES, strings);
   
-  pTextItem pItem = reinterpret_cast<pTextItem>(item.getItemPointer());
   
-  EQ((uint32_t)0, pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
-  EQ((uint32_t)4, pItem->s_body.u_noBodyHeader.s_body.s_stringCount);
+  EQMSG("offset", (uint32_t)0, item.getTimeOffset());
+  EQMSG("string count", (uint32_t)4, item.getStringCount());
 
   // Check the contents:
 
-  const char* p = pItem->s_body.u_noBodyHeader.s_body.s_strings;
-  EQ(s1, string(p));
-  p  += strlen(p) + 1;
-  EQ(s2, string(p));
-  p += strlen(p) +1;
-  EQ(s3, string(p));
-  p += strlen(p) + 1;
-  EQ(s4, string(p));
+  std::vector<std::string> storedStrings = item.getStrings();
+  EQ(s1, storedStrings[0]);
+  EQ(s2, storedStrings[1]);
+  EQ(s3, storedStrings[2]);
+  EQ(s4, storedStrings[3]);
 
+}
+
+void texttests::simplecons_1() {
+  // Make some strings:
+
+  CPPUNIT_ASSERT_THROW_MESSAGE( "text items must have a text type",
+                                V12::CRingTextItem item(V12::VOID, {}),
+                                std::invalid_argument);
 }
 
 // Test the full constructor.
 
-void texttests::fullcons()
+void texttests::fullcons_0()
 {
   string s1("String 1");
   string s2("string 2");
@@ -107,105 +129,86 @@ void texttests::fullcons()
   strings.push_back(s3);
   strings.push_back(s4);
 
-  CRingTextItem item(PACKET_TYPES, strings,
-		     1234,
-		     5678);
+  V12::CRingTextItem item(V12::PACKET_TYPES, strings,
+             1234,
+             5678);
   
-  pTextItem pItem = reinterpret_cast<pTextItem>(item.getItemPointer());
-  EQ((uint32_t)1234, pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
-  EQ((uint32_t)4, pItem->s_body.u_noBodyHeader.s_body.s_stringCount);
-  EQ((uint32_t)5678, pItem->s_body.u_noBodyHeader.s_body.s_timestamp);
+  EQMSG("offset",(uint32_t)1234, item.getTimeOffset());
+  EQMSG("string count", (uint32_t)4, item.getStringCount());
+  EQMSG("timestamp", (time_t)5678, item.getTimestamp());
 
+  // Check the contents:
 
-
-   // Check the contents:
-
-  const char* p = pItem->s_body.u_noBodyHeader.s_body.s_strings;
-  EQ(s1, string(p));
-  p  += strlen(p) + 1;
-  EQ(s2, string(p));
-  p += strlen(p) +1;
-  EQ(s3, string(p));
-  p += strlen(p) + 1;
-  EQ(s4, string(p));
+  auto& itemStrings = item.getStrings();
+  EQ(s1, itemStrings[0]);
+  EQ(s2, itemStrings[1]);
+  EQ(s3, itemStrings[2]);
+  EQ(s4, itemStrings[3]);
 }
+
+
+void texttests::fullcons_1() {
+    CPPUNIT_ASSERT_THROW_MESSAGE( "text items must have a text type",
+                                  V12::CRingTextItem item(V12::VOID, {}, 0, 0),
+                                  std::invalid_argument);
+}
+
 // test the 'casting' constructor.
 
-void texttests::castcons()
+void texttests::castcons_0()
 {
   // Create a RingItem that is actually a text ring item:
 
-  CRingItem ritem(PACKET_TYPES);
-  
-  pTextItem pText = reinterpret_cast<pTextItem>(ritem.getItemPointer());
-  pText->s_body.u_noBodyHeader.s_body.s_timeOffset = 1234;
-  pText->s_body.u_noBodyHeader.s_body.s_timestamp  = 4321;
-  pText->s_body.u_noBodyHeader.s_body.s_stringCount= 4;
-  char* p = &(pText->s_body.u_noBodyHeader.s_body.s_strings[0]);
+  V12::CRawRingItem ritem(V12::PACKET_TYPES);
+  ritem.setSourceId(123);
+  ritem.setEventTimestamp(0x12345654321);
+
+  auto& body = ritem.getBody();
+  body << uint32_t(1234);
+  body << uint32_t(4321);
+  body << uint32_t(4);
+  body << uint32_t(1);
 
   string s1("String 1");
   string s2("string 2");
   string s3("string 3");
   string s4("last string");
 
+  body.insert(body.end(), s1.begin(), s1.end());
+  body.push_back(0); // null terminate
+  body.insert(body.end(), s2.begin(), s2.end());
+  body.push_back(0);// null terminate
+  body.insert(body.end(), s3.begin(), s3.end());
+  body.push_back(0);// null terminate
+  body.insert(body.end(), s4.begin(), s4.end());
+  body.push_back(0);// null terminate
 
+  V12::CRingTextItem item(ritem);
+  EQMSG("offset",(uint32_t)1234, item.getTimeOffset());
+  EQMSG("timestamp", (time_t)4321, item.getTimestamp());
+  EQMSG("count", (uint32_t)4, item.getStringCount());
+  EQMSG("divisor", uint32_t(1), item.getTimeDivisor());
 
+  auto strings = item.getStrings();
+  EQMSG("string 0", s1, strings[0]);
+  EQMSG("string 1", s2, strings[1]);
+  EQMSG("string 2", s3, strings[2]);
+  EQMSG("string 3", s4, strings[3]);
 
-  memcpy(p, s1.c_str(), strlen(s1.c_str()) + 1 );
-  p += strlen(s1.c_str())+1;
-  memcpy(p, s2.c_str(), strlen(s2.c_str()) + 1);
-  p += strlen(s2.c_str())+1;
-  memcpy(p, s3.c_str(), strlen(s3.c_str()) + 1);
-  p += strlen(s3.c_str())+1;
-  memcpy(p, s4.c_str(), strlen(s4.c_str()) +1 );
-  p += strlen(s4.c_str())+1;
-  ritem.setBodyCursor(p);
-  ritem.updateSize();
+}
 
-  bool thrown = false;
-
-  try {
-    CRingTextItem item(ritem);
-    pText = reinterpret_cast<pTextItem>(item.getItemPointer());
-    EQ((uint32_t)1234, pText->s_body.u_noBodyHeader.s_body.s_timeOffset);
-    EQ((uint32_t)4321, pText->s_body.u_noBodyHeader.s_body.s_timestamp);
-    EQ((uint32_t)4,    pText->s_body.u_noBodyHeader.s_body.s_stringCount);
-    
-    // Check the contents:
-    
-    char* p = pText->s_body.u_noBodyHeader.s_body.s_strings;
-    EQ(s1, string(p));
-    p  += strlen(p) + 1;
-    EQ(s2, string(p));
-    p += strlen(p) +1;
-    EQ(s3, string(p));
-    p += strlen(p) + 1;
-    EQ(s4, string(p));
-    
-  }
-  catch (...) {
-    thrown = true;
-  }
-  ASSERT(!thrown);
-
-
-  // Should fail:
-
-  CRingItem bad(BEGIN_RUN);
-  thrown = false;
-  try {
-    CRingTextItem item(bad);
-  }
-  catch (...) {
-    thrown = true;
-  }
-  ASSERT(thrown);
+void texttests::castcons_1()
+{
+    V12::CRawRingItem bad(V12::VOID);
+    CPPUNIT_ASSERT_THROW_MESSAGE( "cannot construct from non-text type",
+                                  V12::CRingTextItem item(bad),
+                                  std::bad_cast );
 }
 
 
 // test the accessor functions:
 
-void texttests::accessors()
+void texttests::accessors_0()
 {
   string s1("String 1");
   string s2("string 2");
@@ -219,20 +222,108 @@ void texttests::accessors()
   strings.push_back(s4);
 
 
-  CRingTextItem item(PACKET_TYPES, strings );
+  V12::CRingTextItem item(V12::PACKET_TYPES, strings);
 
   vector<string> content = item.getStrings();
- ASSERT(strings ==  content);
+  ASSERT(strings == content);
 
   //  The simpler ones.
 
- item.setTimeOffset(1234);
- EQ((uint32_t)1234, item.getTimeOffset());
+  item.setEventTimestamp(0x1234235);
+  EQMSG("evt timestamp", uint64_t(0x1234235), item.getEventTimestamp());
 
- item.setTimestamp(66776);
- EQ((time_t)66776, item.getTimestamp());
+  item.setSourceId(890);
+  EQMSG("source id", uint32_t(890), item.getSourceId());
+
+  item.setTimeOffset(1234);
+  EQMSG("offset", (uint32_t)1234, item.getTimeOffset());
+
+  item.setTimestamp(66776);
+  EQMSG("timestamp", (time_t)66776, item.getTimestamp());
+
+  item.setTimeDivisor(54733);
+  EQMSG("divisor", uint32_t(54733), item.getTimeDivisor());
+
+  CPPUNIT_ASSERT_NO_THROW_MESSAGE("Text item  can become other text type",
+                               item.setType(V12::MONITORED_VARIABLES));
+
+  CPPUNIT_ASSERT_THROW_MESSAGE("Cannot set text item to non-text type",
+                               item.setType(V12::PHYSICS_EVENT),
+                               std::invalid_argument);
+
+  item.setType(V12::MONITORED_VARIABLES);
+  EQMSG("type", V12::MONITORED_VARIABLES, item.type());
+
+
 
 }
+
+
+void texttests::comparison_0()
+{
+    V12::CRingTextItem item(V12::PACKET_TYPES, {"s0", "s1", "s2"});
+
+    CPPUNIT_ASSERT_MESSAGE("identity comparison", item == item);
+}
+
+void texttests::comparison_1()
+{
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 567, 2);
+    V12::CRingTextItem item2(V12::MONITORED_VARIABLES, 0x12345, 12, {"s1"}, 234, 567, 2);
+
+    CPPUNIT_ASSERT_MESSAGE("different type", item != item2);
+
+}
+
+void texttests::comparison_2()
+{
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 567, 2);
+    V12::CRingTextItem item2(V12::PACKET_TYPES, 0x22345, 12, {"s1"}, 234, 567, 2);
+
+    CPPUNIT_ASSERT_MESSAGE("different evt timestamp", item != item2);
+}
+
+
+void texttests::comparison_3()
+{
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 567, 2);
+    V12::CRingTextItem item2(V12::PACKET_TYPES, 0x12345, 22, {"s1"}, 234, 567, 2);
+
+    CPPUNIT_ASSERT_MESSAGE("different source ids", item != item2);
+}
+
+void texttests::comparison_4()
+{
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 567, 2);
+    V12::CRingTextItem item2(V12::PACKET_TYPES, 0x12345, 12, {"s2"}, 234, 567, 2);
+
+    CPPUNIT_ASSERT_MESSAGE("different strings", item != item2);
+}
+
+void texttests::comparison_5()
+{
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 567, 2);
+    V12::CRingTextItem item2(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 235, 567, 2);
+
+    CPPUNIT_ASSERT_MESSAGE("different offsets", item != item2);
+}
+
+void texttests::comparison_6()
+{
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 567, 2);
+    V12::CRingTextItem item2(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 568, 2);
+
+    CPPUNIT_ASSERT_MESSAGE("different timestamps", item != item2);
+}
+
+void texttests::comparison_7()
+{
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 567, 2);
+    V12::CRingTextItem item2(V12::PACKET_TYPES, 0x12345, 12, {"s1"}, 234, 567, 3);
+
+    CPPUNIT_ASSERT_MESSAGE("different divisor", item != item2);
+}
+
 // test coyp construction.
 
 void texttests::copycons()
@@ -243,38 +334,19 @@ void texttests::copycons()
   testStrings.push_back("three strings more");
   testStrings.push_back("red string");
   testStrings.push_back("blue string");
-  size_t stringCount = testStrings.size();
+  testStrings.push_back("theres the door..."); // added later :)
 
-  CRingTextItem original(MONITORED_VARIABLES,
-			 testStrings,
-			 1234, 5678);
-  CRingTextItem copy(original);
+  V12::CRingTextItem original(V12::MONITORED_VARIABLES,
+             testStrings,
+             1234, 5678);
+  V12::CRingTextItem copy(original);
 
-  EQ(original.getBodySize(), copy.getBodySize());
-  _RingItem* porig = original.getItemPointer();
-  _RingItem* pcopy = copy.getItemPointer();
-
-  // headers must match 
-
-  EQ(porig->s_header.s_size, pcopy->s_header.s_size);
-  EQ(porig->s_header.s_type, pcopy->s_header.s_type);
-
-  // Contents must match:
-
-  EQ(original.getTimeOffset(), copy.getTimeOffset());
-  EQ(original.getTimestamp(),  copy.getTimestamp());
-  
-  vector<string> copiedStrings = copy.getStrings();
-  EQ(stringCount, copiedStrings.size());
-  for (int i = 0; i < stringCount; i++ ) {
-    EQ (testStrings[i], copiedStrings[i]);
-  }
-  
+  ASSERT(original == copy);
 }
-// Test construction with timestamps:
+//// Test construction with timestamps:
 
 void
-texttests::tscons()
+texttests::tscons_0()
 {
     string s1("String 1");
     string s2("string 2");
@@ -287,101 +359,67 @@ texttests::tscons()
     strings.push_back(s3);
     strings.push_back(s4);
 
-    time_t stamp = time(NULL);  
+    time_t stamp = time(NULL);
   
     size_t stringSize = 0;
     for (int i = 0; i < strings.size(); i++) {
         stringSize += strlen(strings[i].c_str()) + 1;
     }
   
-    CRingTextItem item(
-      PACKET_TYPES, static_cast<uint64_t>(0x8877665544332211ll), 1, 2,
-      strings, 1234, stamp, 1
+    V12::CRingTextItem item(
+      V12::PACKET_TYPES, static_cast<uint64_t>(0x8877665544332211ll), 1,
+      strings, 1234, stamp, 2
     );
-    pTextItem pItem = reinterpret_cast<pTextItem>(item.getItemPointer());
-    
+
     //Check out the header:
     
-    EQ(PACKET_TYPES, pItem->s_header.s_type);
-    EQ(
-        static_cast<uint32_t>(
-            sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(TextItemBody)
-            + stringSize 
-        ), pItem->s_header.s_size
-    );
-    // The body header:
+    EQMSG("type", V12::PACKET_TYPES, item.type());
+    EQMSG("size", uint32_t(67), item.size());
     
-    pBodyHeader pH = &(pItem->s_body.u_hasBodyHeader.s_bodyHeader);
-    EQ(static_cast<uint32_t>(sizeof(BodyHeader)), pH->s_size);
-    EQ(static_cast<uint64_t>(0x8877665544332211ll), pH->s_timestamp);
-    EQ(static_cast<uint32_t>(1), pH->s_sourceId);
-    EQ(static_cast<uint32_t>(2), pH->s_barrier);
-    
+    EQMSG("evt timestamp", uint64_t(0x8877665544332211ll),
+          item.getEventTimestamp());
+    EQMSG("source id", uint32_t(1), item.getSourceId());
+
     // Ensure the body pointers from pItem and from the class jibe:
     
-    pTextItemBody pBody = reinterpret_cast<pTextItemBody>(item.getBodyPointer());
-    EQ(
-       pBody,
-       reinterpret_cast<pTextItemBody>(&(pItem->s_body.u_hasBodyHeader.s_body))
-    );
     // Check the body contents against what was constructed:
     
-    EQ(static_cast<uint32_t>(1234), pBody->s_timeOffset);
-    EQ(static_cast<uint32_t>(stamp), pBody->s_timestamp);
-    EQ(static_cast<uint32_t>(strings.size()), pBody->s_stringCount);
-    EQ(static_cast<uint32_t>(1), pBody->s_offsetDivisor);
-    
-    const char* pStrings = pBody->s_strings;
+    EQMSG("offset", uint32_t(1234), item.getTimeOffset());
+    EQMSG("timestamp", time_t(stamp), item.getTimestamp());
+    EQMSG("string count", uint32_t(strings.size()), item.getStringCount());
+    EQMSG("offset divisor", uint32_t(2), item.getTimeDivisor());
+
+    auto itemStrings = item.getStrings();
     for (int i = 0; i < strings.size(); i++) {
-        EQ(strings[i], std::string(pStrings));
-        pStrings += strlen(pStrings) + 1;
+        EQ(strings[i], itemStrings[i]);
     }
 }
+
+void
+texttests::tscons_1()
+{
+    CPPUNIT_ASSERT_THROW_MESSAGE("text item must have text type",
+                                 V12::CRingTextItem item(V12::BEGIN_RUN, 0, 1, {}, 1234, 0, 2 ),
+                                 std::invalid_argument);
+
+}
+
+
 // Test computeElapsedTime
 //
 void
 texttests::fractionalRunTime()
 {
-    string s1("String 1");
-    string s2("string 2");
-    string s3("string 3");
-    string s4("last string");
-  
-    vector<string> strings;
-    strings.push_back(s1);
-    strings.push_back(s2);
-    strings.push_back(s3);
-    strings.push_back(s4);
-
-    time_t stamp = time(NULL);  
-  
-    size_t stringSize = 0;
-    for (int i = 0; i < strings.size(); i++) {
-        stringSize += strlen(strings[i].c_str()) + 1;
-    }
-  
-    CRingTextItem item(
-      PACKET_TYPES, static_cast<uint64_t>(0x8877665544332211ll), 1, 2,
-      strings, 1234, stamp, 3
-    );
-    EQ(static_cast<float>(1234.0/3.0), item.computeElapsedTime());
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0, 0, {}, 1234, time(nullptr), 3);
+    EQ(float(1234.0/3.0), item.computeElapsedTime());
 }
 
-
-void texttests::getStringCount_0()
+void texttests::assert_0()
 {
-    vector<string> testStrings = {"one", "two", "three"};
-    CRingTextItem item(MONITORED_VARIABLES, testStrings);
+    V12::CRingTextItem item(V12::PACKET_TYPES, 0, 0, {}, 1234, time(nullptr), 3);
+    V12::CRingTextItem item2(V12::MONITORED_VARIABLES, {});
 
-    EQ( uint32_t(3), item.getStringCount() );
-}
+    item2 = item;
 
-void texttests::setTimeDivisor_0()
-{
-    vector<string> testStrings = {"one", "two", "three"};
-    CRingTextItem item(MONITORED_VARIABLES, testStrings);
-    item.setTimeDivisor(234);
-
-    pTextItemBody pBody = reinterpret_cast<pTextItemBody>(item.getBodyPointer());
-    EQ( uint32_t(234), pBody->s_offsetDivisor);
+    ASSERT(item == item2);
 }

@@ -16,13 +16,16 @@
 */
 
 #include <config.h>
-#include "V11/CRingTextItem.h"
-#include <string.h>
+#include "V12/CRingTextItem.h"
+#include <V12/CRawRingItem.h>
+#include <Deserializer.h>
 #include <sstream>
+#include <ctime>
+#include <algorithm>
 using namespace std;
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
 ///////////////////////////////////////////////////////////////////////////////////
 //
@@ -37,16 +40,9 @@ namespace DAQ {
    \param theStrings - the set of strings in the ring buffer item.
 
 */
-CRingTextItem::CRingTextItem(uint16_t type, vector<string> theStrings) :
-  CRingItem(type, bodySize(theStrings) + sizeof(BodyHeader))
+CRingTextItem::CRingTextItem(uint16_t type, vector<string> theStrings)
+ : CRingTextItem(type, V12::NULL_TIMESTAMP, 0, theStrings, 0, time(nullptr), 1)
 {
-    init();			
-    copyStrings(theStrings);
-  
-    pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());      
-    pItem->s_timeOffset = 0;
-    pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
-    pItem->s_offsetDivisor = 1;
 }
 /*!
   Construct a ring buffer, but this time provide actual values for the
@@ -58,49 +54,43 @@ CRingTextItem::CRingTextItem(uint16_t type, vector<string> theStrings) :
 
 */
 CRingTextItem::CRingTextItem(uint16_t       type,
-			     vector<string> strings,
-			     uint32_t       offsetTime,
-			     time_t         timestamp) :
-  CRingItem(type, bodySize(strings) + sizeof(BodyHeader))
+                 vector<string> strings,
+                 uint32_t       offsetTime,
+                 time_t         timestamp)
+    : CRingTextItem(type, V12::NULL_TIMESTAMP, 0, strings, offsetTime, timestamp)
 {
-  init();
-  copyStrings(strings);
-
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer()); 
-  pItem->s_timeOffset = offsetTime;
-  pItem->s_timestamp  = timestamp;
-  pItem->s_offsetDivisor = 1;
-  
 }
 /**
  * constructor
- * 
+ *
  * Construct a text item that has a body header as well as the strings and
  * timestamp.
  *
  * @param type           - Type of ring item.
  * @param eventTimestamp - Event clock time at which this occured.
  * @param source         - Id of the data source.
- * @param barrier        - Type of barrier (or 0 if not a barrier).;
   \param strings - The strings to put in the buffer.
   \param offsetTime - The time in to the run at which this is being inserted.
   \param timestamp  - The absolute time when this is being created.
   @param divisor    - offsetTime/divisor = seconds into the run (default: 1)
  */
 CRingTextItem::CRingTextItem(
-    uint16_t type, uint64_t eventTimestamp, uint32_t source, uint32_t barrier,
+    uint16_t type, uint64_t eventTimestamp, uint32_t source,
     std::vector<std::string> theStrings, uint32_t offsetTime, time_t timestamp,
     int divisor) :
-    CRingItem(type, eventTimestamp, source, barrier,
-    bodySize(theStrings) + sizeof(BodyHeader))
+    m_type(type),
+    m_evtTimestamp(eventTimestamp),
+    m_sourceId(source),
+    m_timeOffset(offsetTime),
+    m_timestamp(timestamp),
+    m_offsetDivisor(divisor),
+    m_strings(theStrings)
 {
-    init();
-    pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer()); 
-    pItem->s_timeOffset = offsetTime;
-    pItem->s_timestamp  = timestamp;
-    pItem->s_offsetDivisor = divisor;
-    copyStrings(theStrings);
-
+    if (type != PACKET_TYPES && type != MONITORED_VARIABLES ) {
+        std::string errmsg = "CRingTextItem may only take a text type ";
+        errmsg += "(i.e. PACKET_TYPES, MONITORED_VARIABLES)";
+        throw std::invalid_argument(errmsg);
+    }
 }
 
 /*!
@@ -111,22 +101,35 @@ CRingTextItem::CRingTextItem(
    
    \throw bad_cast - if rhs is not a text ring item.
 */
-CRingTextItem::CRingTextItem(const CRingItem& rhs) throw(bad_cast): 
-  CRingItem(rhs)
+CRingTextItem::CRingTextItem(const CRawRingItem& rhs)
 {
-  if (!validType()) throw bad_cast();
+  if (!validType(rhs)) throw bad_cast();
 
-  init();
-}
+  m_sourceId     = rhs.getSourceId();
+  m_evtTimestamp = rhs.getEventTimestamp();
 
-/*!
-  Copy construction.  
-  \param rhs - the item we are being copied from.
-*/
-CRingTextItem::CRingTextItem(const CRingTextItem& rhs) :
-  CRingItem(rhs)
-{
-  init();
+  auto& body = rhs.getBody();
+  Buffer::Deserializer<Buffer::ByteBuffer> rhsBody(body, rhs.mustSwap());
+
+  uint32_t stringCount, temp;
+  rhsBody >> m_timeOffset;
+  rhsBody >> temp; m_timestamp = temp;
+  rhsBody >> stringCount;
+  rhsBody >> m_offsetDivisor;
+
+  m_strings.reserve(stringCount);
+
+  auto iter = rhsBody.pos();
+  auto next = iter;
+  while (iter != body.end()) {
+    next = std::find(iter, body.end(), '\0');
+
+    if (next != body.end()) {
+        m_strings.emplace_back(iter, next);
+        next++;
+        iter = next;
+    }
+  }
 }
 
 /*!
@@ -135,21 +138,22 @@ CRingTextItem::CRingTextItem(const CRingTextItem& rhs) :
 CRingTextItem::~CRingTextItem()
 {}
 
-/*!
-  Assignment
-  \param rhs - the item being assigned to this.
-  \return CRingTextItem&
-  \retval *this
-*/
-CRingTextItem&
-CRingTextItem::operator=(const CRingTextItem& rhs)
-{
-  if (this != &rhs) {
-    CRingItem::operator=(rhs);
-    init();
-  }
-  return *this;
-}
+///*!
+//  Assignment
+//  \param rhs - the item being assigned to this.
+//  \return CRingTextItem&
+//  \retval *this
+//*/
+//CRingTextItem&
+//CRingTextItem::operator=(const CRingTextItem& rhs)
+//{
+//  if (this != &rhs) {
+//    CRingItem::operator=(rhs);
+//    init();
+//  }
+//  return *this;
+//}
+
 /*!
   Comparison for equality.  No real point in comparing the item pointers.
   unless this == &rhs they will always differ.
@@ -161,7 +165,14 @@ CRingTextItem::operator=(const CRingTextItem& rhs)
 int
 CRingTextItem::operator==(const CRingTextItem& rhs) const
 {
-  return CRingItem::operator==(rhs);
+    if (m_type != rhs.m_type) return 0;
+    if (m_evtTimestamp != rhs.m_evtTimestamp) return 0;
+    if (m_sourceId != rhs.m_sourceId) return 0;
+    if (m_timeOffset != rhs.m_timeOffset) return 0;
+    if (m_offsetDivisor != rhs.m_offsetDivisor) return 0;
+    if (m_timestamp != rhs.m_timestamp) return 0;
+    if (m_strings != rhs.m_strings) return 0;
+    return 1;
 }
 /*!
   Comparison for inequality.
@@ -169,14 +180,14 @@ CRingTextItem::operator==(const CRingTextItem& rhs) const
   \retval 0       - Items are not inequal
   \retval nonzero - items are inequal
 
-  \note My stilted English is because C++ allows perverse cases where 
+  \note My stilted English is because C++ allows perverse cases where
   a == b  does not necesarily imply !(a != b) and vica versa. In fact, these
   operators can be defined in  such a way that they have nothing whatever to do
-  with comparison (just as ostream::operator<< has nothing to do with 
-  shifting). however  my definition is sensible in that a == b is the logical converse of 
+  with comparison (just as ostream::operator<< has nothing to do with
+  shifting). however  my definition is sensible in that a == b is the logical converse of
   a != b, and vicaversa, and these operators really do compare.
 */
-int 
+int
 CRingTextItem::operator!=(const CRingTextItem& rhs) const
 {
   return !(*this == rhs);
@@ -188,6 +199,70 @@ CRingTextItem::operator!=(const CRingTextItem& rhs) const
 // accessors (both selectors and mutators).
 //
 
+uint32_t CRingTextItem::type() const
+{
+    return m_type;
+}
+
+void CRingTextItem::setType(uint32_t type)
+{
+    if (type != MONITORED_VARIABLES && type != PACKET_TYPES) {
+        std::string errmsg ="V12::CRingTextItem ";
+        errmsg += "Text items may only take two types (V12::MONITORED_VARIABLES";
+        errmsg += " or V12::PACKET_TYPES)";
+        throw std::invalid_argument(errmsg);
+    }
+    m_type = type;
+}
+
+uint32_t CRingTextItem::size() const
+{
+    size_t cumulativeLength = 0;
+
+    for (auto& s : m_strings ) {
+        cumulativeLength += s.size();
+    }
+
+    return 7*sizeof(uint32_t) + m_strings.size() + cumulativeLength;
+}
+
+
+uint64_t CRingTextItem::getEventTimestamp() const
+{
+    return m_evtTimestamp;
+}
+
+void CRingTextItem::setEventTimestamp(uint64_t stamp)
+{
+    m_evtTimestamp = stamp;
+}
+
+uint32_t CRingTextItem::getSourceId() const
+{
+    return m_sourceId;
+}
+
+void CRingTextItem::setSourceId(uint32_t id)
+{
+    m_sourceId = id;
+}
+
+bool CRingTextItem::isComposite() const
+{
+    return false;
+}
+
+bool CRingTextItem::mustSwap() const
+{
+    return false;
+}
+
+void CRingTextItem::toRawRingItem(CRawRingItem& buffer) const
+{
+
+}
+
+
 /*!
     \return vector<string>
     \retval The strings that were put in the item unpacked into elements of the vector.
@@ -195,26 +270,18 @@ CRingTextItem::operator!=(const CRingTextItem& rhs) const
 vector<string>
 CRingTextItem::getStrings() const
 {
-  vector<string> result;
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-  
-  const char*     pNextString = pItem->s_strings;
+   return m_strings;
+}
 
-  for (int i = 0; i < pItem->s_stringCount; i++) {
-    string aString = pNextString;
-    pNextString   += aString.size() + 1;  // +1 for the trailing null.
-
-    result.push_back(aString);
-
-  }
-
-  return result;
+vector<string>&
+CRingTextItem::getStrings()
+{
+   return m_strings;
 }
 
 uint32_t
 CRingTextItem::getStringCount() const {
-    pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-    return pItem->s_stringCount;
+    return m_strings.size();
 }
 /*!
    Modify the buffered value of the run time offset.  This may be done if you use the
@@ -224,8 +291,7 @@ CRingTextItem::getStringCount() const {
 void
 CRingTextItem::setTimeOffset(uint32_t offset)
 {
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());    
-  pItem->s_timeOffset = offset;
+    m_timeOffset = offset;
 }
 /*!
    \return uint32_t
@@ -234,8 +300,7 @@ CRingTextItem::setTimeOffset(uint32_t offset)
 uint32_t
 CRingTextItem::getTimeOffset() const
 {
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-  return pItem->s_timeOffset;
+  return m_timeOffset;
 }
 /**
  * computeElapsedTime
@@ -248,9 +313,8 @@ CRingTextItem::getTimeOffset() const
 float
 CRingTextItem::computeElapsedTime() const
 {
-    pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-    float time   = pItem->s_timeOffset;
-    float divisor= pItem->s_offsetDivisor;
+    float time   = m_timeOffset;
+    float divisor= m_offsetDivisor;
     
     return time/divisor;
 }
@@ -260,15 +324,13 @@ CRingTextItem::computeElapsedTime() const
 uint32_t
 CRingTextItem::getTimeDivisor() const
 {
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-  return pItem->s_offsetDivisor;
+  return m_offsetDivisor;
 }
 
 void
 CRingTextItem::setTimeDivisor(uint32_t divisor)
 {
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-  pItem->s_offsetDivisor = divisor;
+    m_offsetDivisor = divisor;
 }
 
 /*!
@@ -277,8 +339,7 @@ CRingTextItem::setTimeDivisor(uint32_t divisor)
 void
 CRingTextItem::setTimestamp(time_t stamp)
 {
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-  pItem->s_timestamp = stamp;
+    m_timestamp = stamp;
 }
 /*!
    \return time_t
@@ -288,8 +349,7 @@ CRingTextItem::setTimestamp(time_t stamp)
 time_t
 CRingTextItem::getTimestamp() const
 {
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-  return pItem->s_timestamp;
+  return m_timestamp;
 }
 
 ///////////////////////////////////////////////////////////
@@ -328,12 +388,13 @@ CRingTextItem::toString() const
   std::ostringstream out;
 
   uint32_t elapsed  = getTimeOffset();
-  string   time     = timeString(getTimestamp());
+  time_t time = getTimestamp();
+  string   timeString = std::ctime(&time);
   vector<string> strings = getStrings();
 
-  out << time << " : Documentation item ";
+  out << timeString << " : Documentation item ";
   out << typeName();
-  out << bodyHeaderToString();
+  out << headerToString(*this);
 
   out << elapsed << " seconds in to the run\n";
   for (int i = 0; i < strings.size(); i++) {
@@ -350,60 +411,14 @@ CRingTextItem::toString() const
 //
 
 /*
-**  Compute the size of the body of a text item buffer.  This is the sum of the sizes of the string
-**  +1 for each string to allow for the null termination byte, + sizeof(TextItem) 
-**   - sizeof(RingItemHeader) - sizeof(char) 
-** (this last - sizeof(char) is the dummy s_strings[] array size.
-*/
-size_t 
-CRingTextItem::bodySize(vector<string> strings) const
-{
-  size_t result = sizeof(TextItemBody) - sizeof(char);
-  for (int i=0; i < strings.size(); i++) {
-    result += strings[i].size() + 1;
-  }
-  return result;
-}
-/*
 **  Returns true if the type of the current item is a valid text item.
 **
 */
 bool
-CRingTextItem::validType() const
+CRingTextItem::validType(const CRingItem& item) const
 {
-  uint32_t t = type();
-  return ((t == PACKET_TYPES)               ||
-	  (t == MONITORED_VARIABLES));
-}
-/*
-** Copies a set of strings into the item's 
-** s_scalers region.   Each string is followed by a 
-** null.  
-**   When done the cursor is updated to point past the item.
-**   When done, s_stringCount is updated to the number of strings.
-*/
-void
-CRingTextItem::copyStrings(vector<string> strings)
-{
-  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
-  pItem->s_stringCount = strings.size();
-  char* p                = pItem->s_strings;
-  for (int i = 0; i < strings.size(); i++) {
-    strcpy(p, strings[i].c_str());
-    p += strlen(strings[i].c_str()) + 1;
-  }
-  setBodyCursor(p);
-  updateSize();
-}
-/*
-** Initialize m_pItem from the underlying item.
-*/
-void
-CRingTextItem::init()
-{
-
+  return ((item.type() == PACKET_TYPES) || (item.type() == MONITORED_VARIABLES));
 }
 
-
-  } // end of V11 namespace
+  } // end of V12 namespace
 } // end DAQ

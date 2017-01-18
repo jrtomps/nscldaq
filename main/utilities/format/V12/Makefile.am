@@ -4,6 +4,7 @@ libdataformatv12_la_SOURCES = CRingItem.cpp \
                               CRawRingItem.cpp \
                               CPhysicsEventItem.cpp \
                               CRingScalerItem.cpp \
+                              CRingTextItem.cpp \
                               CRingStateChangeItem.cpp
 
 #                           CAbnormalEndItem.cpp \
@@ -24,12 +25,12 @@ nscldaq12_HEADERS = CRingItem.h \
                     CRawRingItem.h \
                     CPhysicsEventItem.h \
                     CRingScalerItem.h \
-                    CRingStateChangeItem.h
+                  CRingTextItem.h \
+                  CRingStateChangeItem.h
 
 #                  CAbnormalEndItem.h \
 #                  CPhysicsEventItem.h \
 #                  CRingPhysicsEventCountItem.h \
-#                  CRingTextItem.h \
 #                  CRingFragmentItem.h \
 #                  CGlomParameters.h \
 #                  CUnknownFragment.h \
@@ -53,9 +54,10 @@ unittests_SOURCES	= TestRunner.cpp \
                           rawringitemtests.cpp \
                           physeventtests.cpp \
                             teststate.cpp	\
-                            scalertests.cpp
+                        texttest.cpp  \
+                        scalertests.cpp
 #										ringitemtests.cpp \
-#										 texttest.cpp physcounttests.cpp		\
+#										 physcounttests.cpp		\
 #										formatoutputtests.cpp dataformattests.cpp       \
 #										fragmenttest.cpp glomparamtests.cpp factorytests.cpp
 
