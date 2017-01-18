@@ -14,13 +14,16 @@
 	     East Lansing, MI 48824-1321
 */
 #include <config.h>
-#include "V11/CRingPhysicsEventCountItem.h"
+#include "V12/CRingPhysicsEventCountItem.h"
+#include <V12/CRawRingItem.h>
+#include <Deserializer.h>
 #include <sstream>
+#include <stdexcept>
 
 using namespace std;
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
 ///////////////////////////////////////////////////////////////////////////////////
 //
@@ -30,19 +33,9 @@ namespace DAQ {
    Default constructor has a timestamp of now, a time offset and
    event count of 0.
 */
-CRingPhysicsEventCountItem::CRingPhysicsEventCountItem() :
-  CRingItem(PHYSICS_EVENT_COUNT)
+CRingPhysicsEventCountItem::CRingPhysicsEventCountItem()
+    : CRingPhysicsEventCountItem(V12::NULL_TIMESTAMP, 0, 0, 0, 0, 1)
 {
-  init();
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-    
-  pItem->s_timeOffset = 0;
-  pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
-  pItem->s_eventCount = 0;
-  pItem->s_offsetDivisor = 1;
-  setBodyCursor(&(pItem[1]));
-  updateSize();
 }
 /*!
    Creates an event count item timestamped to now with a specified
@@ -53,19 +46,10 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem() :
                         was produced.
 */
 CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
-						       uint32_t timeOffset) :
-  CRingItem(PHYSICS_EVENT_COUNT)
+                               uint32_t timeOffset)
+    : CRingPhysicsEventCountItem(V12::NULL_TIMESTAMP, 0, count, timeOffset, 0, 1)
 {
 
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-  
-  pItem->s_timeOffset  = timeOffset;
-  pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
-  pItem->s_eventCount = count;
-  pItem->s_offsetDivisor = 1;
-  setBodyCursor(&(pItem[1]));
-  updateSize();
 }
 /*!
   Creates an event count item that is fully specified.
@@ -74,20 +58,10 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
    \param stamp       - Timestamp at which the event was produced.
 */
 CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
-						       uint32_t timeOffset,
-						       time_t   stamp) :
-  CRingItem(PHYSICS_EVENT_COUNT)
+                               uint32_t timeOffset,
+                               time_t   stamp)
+ : CRingPhysicsEventCountItem(V12::NULL_TIMESTAMP, 0, count, timeOffset, stamp, 1)
 {
-  init();
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-
-  pItem->s_timeOffset  = timeOffset;
-  pItem->s_timestamp  = stamp;
-  pItem->s_eventCount = count;
-  pItem->s_offsetDivisor = 1;
-  setBodyCursor(&(pItem[1]));
-  updateSize();
 }
 
 /**
@@ -97,28 +71,22 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
  *
  * @param timestamp - Event timestamp value.
  * @param source    - Id of the data source.
- * @param barrier   - Barrier type or 0 if not a barrier.
  * @param count     - Number of physics events.
  * @param timeoffset  - How long into the run we are.
  * @param stamp      - Unix timestamp.
  * @param divisor    - timeoffset/divisor = seconds.
  */
 CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(
-    uint64_t timestamp, uint32_t source, uint32_t barrier,
+    uint64_t timestamp, uint32_t source,
     uint64_t count, uint32_t timeoffset, time_t stamp,
     int divisor) :
-  CRingItem(PHYSICS_EVENT_COUNT, timestamp, source, barrier)
-{
-  pPhysicsEventCountItemBody pBody =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-  pBody->s_timeOffset    = timeoffset;
-  pBody->s_offsetDivisor = divisor;
-  pBody->s_timestamp     = stamp;
-  pBody->s_eventCount    = count;
-
-  setBodyCursor(&(pBody[1]));
-  updateSize();
-}
+    m_evtTimestamp(timestamp),
+    m_sourceId(source),
+    m_timeOffset(timeoffset),
+    m_offsetDivisor(divisor),
+    m_timestamp(stamp),
+    m_eventCount(count)
+{}
 
  
 /*!
@@ -127,23 +95,22 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(
 
   \throw std::bad_cast if rhs is not a PHYSICS_EVENT_COUNT item.
 */
-CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(const CRingItem& rhs) throw(std::bad_cast)  :
-  CRingItem(rhs)
+CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(const CRawRingItem& rhs)
 {
-  if (type() != PHYSICS_EVENT_COUNT) {
+  if (rhs.type() != PHYSICS_EVENT_COUNT) {
     throw bad_cast();
   }
-  init();
 
-}
-/*!
-  Construction from an existing physics event count item.
-  \param rhs   the existing item.
-*/
-CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(const CRingPhysicsEventCountItem& rhs) :
-  CRingItem(rhs)
-{
-  init();
+  m_evtTimestamp = rhs.getEventTimestamp();
+  m_sourceId = rhs.getSourceId();
+
+  Buffer::Deserializer<Buffer::ByteBuffer> stream(rhs.getBody(), rhs.mustSwap());
+
+  uint32_t temp;
+  stream >> m_timeOffset;
+  stream >> temp; m_timestamp = temp;
+  stream >> m_offsetDivisor;
+  stream >> m_eventCount;
 }
 /*!
   Destructor chaining:
@@ -151,21 +118,21 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(const CRingPhysicsEventCo
 CRingPhysicsEventCountItem::~CRingPhysicsEventCountItem()
 {}
 
-/*!
-   Assignment:
-   \param rhs - Item assigned to *this
-   \return CRingPhysicsEventCountItem&
-   \retval *this
-*/
-CRingPhysicsEventCountItem&
-CRingPhysicsEventCountItem::operator=(const CRingPhysicsEventCountItem& rhs)
-{
-  if (this != &rhs) {
-    CRingItem::operator=(rhs);
-    init();
-  }
-  return *this;
-}
+///*!
+//   Assignment:
+//   \param rhs - Item assigned to *this
+//   \return CRingPhysicsEventCountItem&
+//   \retval *this
+//*/
+//CRingPhysicsEventCountItem&
+//CRingPhysicsEventCountItem::operator=(const CRingPhysicsEventCountItem& rhs)
+//{
+//  if (this != &rhs) {
+//    CRingItem::operator=(rhs);
+//    init();
+//  }
+//  return *this;
+//}
 /*!
    Equality comparison.
    \param rhs - item being compared to *this.
@@ -176,7 +143,13 @@ CRingPhysicsEventCountItem::operator=(const CRingPhysicsEventCountItem& rhs)
 int
 CRingPhysicsEventCountItem::operator==(const CRingPhysicsEventCountItem& rhs) const
 {
-  return CRingItem::operator==(rhs);
+    if (m_evtTimestamp != rhs.getEventTimestamp()) return 0;
+    if (m_sourceId != rhs.getSourceId()) return 0;
+    if (m_timeOffset != rhs.getTimeOffset()) return 0;
+    if (m_timestamp != rhs.getTimestamp()) return 0;
+    if (m_offsetDivisor != rhs.getTimeDivisor()) return 0;
+    if (m_eventCount != rhs.getEventCount()) return 0;
+    return 1;
 }
 /*!
   Inequality compare
@@ -189,10 +162,77 @@ CRingPhysicsEventCountItem::operator!=(const CRingPhysicsEventCountItem& rhs) co
 {
   return !(*this == rhs);
 }
+
 //////////////////////////////////////////////////////////////////////////////////
 //
 //  object interface:
 //
+
+uint32_t CRingPhysicsEventCountItem::type() const
+{
+    return PHYSICS_EVENT_COUNT;
+}
+
+void CRingPhysicsEventCountItem::setType(uint32_t type)
+{
+    if (type != V12::PHYSICS_EVENT_COUNT) {
+        std::string errmsg("CRingPhysicsEventCountItem::setType() only ");
+        errmsg += "accepts V12::PHYSICS_EVENT_COUNT.";
+        throw std::invalid_argument(errmsg);
+    }
+}
+
+uint32_t CRingPhysicsEventCountItem::size() const
+{
+    return 40;
+}
+
+
+uint32_t CRingPhysicsEventCountItem:: getSourceId() const
+{
+    return m_sourceId;
+}
+
+void CRingPhysicsEventCountItem::setSourceId(uint32_t id)
+{
+    m_sourceId = id;
+}
+
+uint64_t CRingPhysicsEventCountItem::getEventTimestamp() const
+{
+    return m_evtTimestamp;
+}
+
+void CRingPhysicsEventCountItem::setEventTimestamp(uint64_t tstamp)
+{
+    m_evtTimestamp = tstamp;
+}
+
+bool CRingPhysicsEventCountItem::mustSwap() const
+{
+    return false;
+}
+
+bool CRingPhysicsEventCountItem::isComposite() const
+{
+    return false;
+}
+
+
+void CRingPhysicsEventCountItem::toRawRingItem(CRawRingItem& item) const
+{
+    item.setType(type());
+    item.setSourceId(m_sourceId);
+    item.setEventTimestamp(m_evtTimestamp);
+
+    auto& body = item.getBody();
+    body.clear();
+
+    body << m_timeOffset;
+    body << uint32_t(m_timestamp);
+    body << m_offsetDivisor;
+    body << m_eventCount;
+}
 
 /*!
     \return uint32_t
@@ -201,10 +241,7 @@ CRingPhysicsEventCountItem::operator!=(const CRingPhysicsEventCountItem& rhs) co
 uint32_t
 CRingPhysicsEventCountItem::getTimeOffset() const
 {
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-
-  return pItem->s_timeOffset;
+  return m_timeOffset;
 }
 /**
  * computeTimeOffset
@@ -217,11 +254,8 @@ CRingPhysicsEventCountItem::getTimeOffset() const
 float
 CRingPhysicsEventCountItem::computeElapsedTime() const
 {
-    pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-    
-    float timeOffset = pItem->s_timeOffset;
-    float divisor    = pItem->s_offsetDivisor;
+    float timeOffset = m_timeOffset;
+    float divisor    = m_offsetDivisor;
     
     return timeOffset/divisor;
 }
@@ -234,9 +268,7 @@ CRingPhysicsEventCountItem::computeElapsedTime() const
 uint32_t
 CRingPhysicsEventCountItem::getTimeDivisor() const
 {
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-  return pItem->s_offsetDivisor;
+  return m_offsetDivisor;
 }
 /*!
    set the time offset.
@@ -245,10 +277,7 @@ CRingPhysicsEventCountItem::getTimeDivisor() const
 void
 CRingPhysicsEventCountItem::setTimeOffset(uint32_t offset)
 {
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-
-  pItem->s_timeOffset = offset;
+  m_timeOffset = offset;
 }
 
 /*!
@@ -258,10 +287,7 @@ CRingPhysicsEventCountItem::setTimeOffset(uint32_t offset)
 time_t
 CRingPhysicsEventCountItem::getTimestamp() const
 {
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-
-  return pItem->s_timestamp;
+  return m_timestamp;
 }
 /*!
   \param stamp - New value for the timestamp.
@@ -269,10 +295,7 @@ CRingPhysicsEventCountItem::getTimestamp() const
 void
 CRingPhysicsEventCountItem::setTimestamp(time_t stamp)
 {
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-
-  pItem->s_timestamp = stamp;
+  m_timestamp = stamp;
 }
 
 /*!
@@ -282,10 +305,7 @@ CRingPhysicsEventCountItem::setTimestamp(time_t stamp)
 uint64_t
 CRingPhysicsEventCountItem::getEventCount() const
 {
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-
-  return pItem->s_eventCount;
+  return m_eventCount;
 }
 /*!
   \param count - new value for number of events submitted.
@@ -293,10 +313,7 @@ CRingPhysicsEventCountItem::getEventCount() const
 void
 CRingPhysicsEventCountItem::setEventCount(uint64_t count)
 {
-  pPhysicsEventCountItemBody pItem =
-    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
-
-  pItem->s_eventCount = count;
+  m_eventCount = count;
 }
 //////////////////////////////////////////////////////////
 //
@@ -327,12 +344,13 @@ CRingPhysicsEventCountItem::toString() const
 {
   std::ostringstream out;
 
-  string   time   = timeString(getTimestamp());
+  time_t time = getTimestamp();
+  string   timeString   = std::ctime(&time);
   uint32_t offset = getTimeOffset();
   uint64_t events = getEventCount();
 
-  out << bodyHeaderToString();
-  out << time << " : " << events << " Triggers accepted as of " 
+  out << headerToString(*this);
+  out << timeString << " : " << events << " Triggers accepted as of "
       << offset << " seconds into the run\n";
   out << " Average accepted trigger rate: " 
       <<  (static_cast<double>(events)/static_cast<double>(offset))
@@ -341,23 +359,6 @@ CRingPhysicsEventCountItem::toString() const
   return out.str();
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Private utilities.
-//
 
-
-/*
-** initialize by setting the item pointer and body cursor
-** appropriatly.
-*/
-void
-CRingPhysicsEventCountItem::init()
-{
-
-
-}
-
-
-} // end of V11 namespace
+} // end of V12 namespace
 } // end DAQ

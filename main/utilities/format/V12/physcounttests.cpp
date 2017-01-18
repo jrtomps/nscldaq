@@ -5,26 +5,38 @@
 #include "Asserts.h"
 
 
-#include <V11/CRingPhysicsEventCountItem.h>
-#include <V11/CRingStateChangeItem.h>
+#include <V12/CRingPhysicsEventCountItem.h>
+#include <V12/CRawRingItem.h>
+#include <Deserializer.h>
 
 #include <string.h>
 #include <time.h>
 #include <chrono>
 
-using namespace DAQ::V11;
+using namespace DAQ;
 
 class physcounttests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(physcounttests);
   CPPUNIT_TEST(simplecons);
   CPPUNIT_TEST(partialcons);
   CPPUNIT_TEST(fullcons);
-  CPPUNIT_TEST(castcons);
+  CPPUNIT_TEST(castcons_0);
   CPPUNIT_TEST(castcons_1);
+  CPPUNIT_TEST(castcons_2);
   CPPUNIT_TEST(accessors);
+  CPPUNIT_TEST(comparison_0);
+  CPPUNIT_TEST(comparison_1);
+  CPPUNIT_TEST(comparison_2);
+  CPPUNIT_TEST(comparison_3);
+  CPPUNIT_TEST(comparison_4);
+  CPPUNIT_TEST(comparison_5);
+  CPPUNIT_TEST(comparison_6);
   CPPUNIT_TEST(copycons);
+  CPPUNIT_TEST(assign);
   CPPUNIT_TEST(tscons);
   CPPUNIT_TEST(fractionalTime);
+  CPPUNIT_TEST(toRawRingItem_0);
+  CPPUNIT_TEST(toRawRingItem_1);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -39,12 +51,23 @@ protected:
   void simplecons();
   void partialcons();
   void fullcons();
-  void castcons();
+  void castcons_0();
   void castcons_1();
+  void castcons_2();
   void accessors();
+  void comparison_0();
+  void comparison_1();
+  void comparison_2();
+  void comparison_3();
+  void comparison_4();
+  void comparison_5();
+  void comparison_6();
   void copycons();
+  void assign();
   void tscons();
   void fractionalTime();
+  void toRawRingItem_0();
+  void toRawRingItem_1();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(physcounttests);
@@ -52,20 +75,27 @@ CPPUNIT_TEST_SUITE_REGISTRATION(physcounttests);
 // Test construction with default constructor.
 
 void physcounttests::simplecons() {
-  CRingPhysicsEventCountItem instance;
+  V12::CRingPhysicsEventCountItem instance;
 
-  EQ(PHYSICS_EVENT_COUNT, instance.type());
-  EQ((uint32_t)0, instance.getTimeOffset());
-  EQ((uint64_t)0, instance.getEventCount());
+  EQMSG("type", V12::PHYSICS_EVENT_COUNT, instance.type());
+  EQMSG("evt timestamp", V12::NULL_TIMESTAMP, instance.getEventTimestamp());
+  EQMSG("source id", uint32_t(0), instance.getSourceId());
+  EQMSG("offset",(uint32_t)0, instance.getTimeOffset());
+  EQMSG("divisor", uint32_t(1), instance.getTimeDivisor());
+  EQMSG("count", (uint64_t)0, instance.getEventCount());
   
 }
-// Test construction given count and offset.
+//// Test construction given count and offset.
 
 void physcounttests::partialcons()
 {
-  CRingPhysicsEventCountItem i(12345678, 100);
-  EQ((uint64_t)12345678, i.getEventCount());
-  EQ((uint32_t)100, i.getTimeOffset());
+  V12::CRingPhysicsEventCountItem i(12345678, 100);
+  EQMSG("count", (uint64_t)12345678, i.getEventCount());
+  EQMSG("offset", (uint32_t)100, i.getTimeOffset());
+  EQMSG("type", V12::PHYSICS_EVENT_COUNT, i.type());
+  EQMSG("evt timestamp", V12::NULL_TIMESTAMP, i.getEventTimestamp());
+  EQMSG("source id", uint32_t(0), i.getSourceId());
+  EQMSG("divisor", uint32_t(1), i.getTimeDivisor());
 
 }
 
@@ -76,76 +106,72 @@ void physcounttests::fullcons()
   time_t t;
   time(&t);
 
-  CRingPhysicsEventCountItem i(12345678, 100, t);
+  V12::CRingPhysicsEventCountItem i(12345678, 100, t);
 
-  EQ((uint64_t)12345678, i.getEventCount());
-  EQ((uint32_t)100, i.getTimeOffset());
-  EQ(t, i.getTimestamp());
+  EQMSG("timestamp", t, i.getTimestamp());
+  EQMSG("count", (uint64_t)12345678, i.getEventCount());
+  EQMSG("offset", (uint32_t)100, i.getTimeOffset());
+  EQMSG("type", V12::PHYSICS_EVENT_COUNT, i.type());
+  EQMSG("evt timestamp", V12::NULL_TIMESTAMP, i.getEventTimestamp());
+  EQMSG("source id", uint32_t(0), i.getSourceId());
+  EQMSG("divisor", uint32_t(1), i.getTimeDivisor());
+
 }
 
 
 // Construct from ring item.. good and bad.
 //
-void physcounttests::castcons()
+void physcounttests::castcons_0()
 {
-    CRingItem            good(PHYSICS_EVENT_COUNT);
-    CRingStateChangeItem bad;
 
-    time_t now;
-    time(&now);
+    V12::CRawRingItem item(V12::PHYSICS_EVENT_COUNT);
+    item.setSourceId(12);
+    item.setEventTimestamp(134);
 
-    PhysicsEventCountItem body = {sizeof(PhysicsEventCountItem),
-                                  PHYSICS_EVENT_COUNT,
-                                  1234, static_cast<uint32_t>(now), 1234568};
-    memcpy(good.getItemPointer(), &body, sizeof(body));
-    uint8_t* p = reinterpret_cast<uint8_t*>(good.getBodyCursor());
-    p          += sizeof(PhysicsEventCountItem) - sizeof(RingItemHeader);
-    good.setBodyCursor(p);
+    auto& body = item.getBody();
+    body << uint32_t(34) << uint32_t(45) << std::uint32_t(56) << std::uint64_t(1234567);
 
-    bool thrown(false);
-    try {
-        CRingPhysicsEventCountItem i(good);
-    }
-    catch(...) {
-        thrown = true;
-    }
-    ASSERT(!thrown);
+    CPPUNIT_ASSERT_NO_THROW( V12::CRingPhysicsEventCountItem(item));
+}
+
+// Construct from ring item.. good and bad.
+//
+void physcounttests::castcons_1()
+{
+
+    V12::CRawRingItem item(V12::PHYSICS_EVENT_COUNT);
+    item.setSourceId(12);
+    item.setEventTimestamp(134);
+
+    auto& body = item.getBody();
+    body << uint32_t(34) << uint32_t(45) << std::uint32_t(56) << std::uint64_t(1234567);
+
+    V12::CRingPhysicsEventCountItem i(item);
+    EQMSG("type", V12::PHYSICS_EVENT_COUNT, i.type());
+    EQMSG("evt timestamp", uint64_t(134), i.getEventTimestamp());
+    EQMSG("source id", uint32_t(12), i.getSourceId());
+    EQMSG("offset", (uint32_t)34, i.getTimeOffset());
+    EQMSG("timestamp", time_t(45), i.getTimestamp());
+    EQMSG("divisor", uint32_t(56), i.getTimeDivisor());
+    EQMSG("count", (uint64_t)1234567, i.getEventCount());
+
+}
+
+
+void physcounttests::castcons_2()
+{
+
+    V12::CRawRingItem item(V12::VOID);
+    item.setSourceId(12);
+    item.setEventTimestamp(134);
+
+    auto& body = item.getBody();
+    body << uint32_t(34) << uint32_t(45) << std::uint32_t(56) << std::uint64_t(1234567);
+
 
     // Bad construction should throw a bad cast:
 
-    bool rightexception(false);
-    thrown = false;
-    try {
-        CRingPhysicsEventCountItem i(bad);
-    }
-    catch (std::bad_cast c) {
-        thrown = true;
-        rightexception = true;
-    }
-    catch(...) {
-        thrown = true;
-        rightexception = false;
-    }
-    ASSERT(thrown);
-    ASSERT(rightexception);
-}
-
-void physcounttests::castcons_1()
-{
-    using namespace std::chrono;
-    // good constructor should cause identical body layout
-
-    auto time_now = system_clock::to_time_t( system_clock::now() );
-
-    CRingPhysicsEventCountItem orig(123, 345, time_now);
-    CRingItem base(orig);
-    CRingPhysicsEventCountItem item = base;
-
-    EQ( uint64_t(123), item.getEventCount());
-    EQ( uint32_t(345), item.getTimeOffset());
-    EQ( uint32_t(1), item.getTimeDivisor());
-    EQ( time_now, item.getTimestamp());
-
+    CPPUNIT_ASSERT_THROW(V12::CRingPhysicsEventCountItem i(item), std::bad_cast);
 }
 
 // Test write accessors (reads have already been tested.
@@ -153,82 +179,130 @@ void physcounttests::castcons_1()
 
 void physcounttests::accessors()
 {
-  CRingPhysicsEventCountItem i(0,0,0);
+  V12::CRingPhysicsEventCountItem i(0,0,0);
+
+  i.setEventTimestamp(12345);
+  EQMSG("evt timestamp", uint64_t(12345), i.getEventTimestamp());
+
+  i.setSourceId(135);
+  EQMSG("source id", uint32_t(135), i.getSourceId());
 
   i.setTimeOffset(1234);
+  EQMSG("offset", (uint32_t)1234, i.getTimeOffset());
+
   time_t now = time(NULL);
   i.setTimestamp(now);
-  i.setEventCount(12345678);
+  EQMSG("timestamp", now, i.getTimestamp());
 
-  EQ((uint32_t)1234, i.getTimeOffset());
-  EQ(now, i.getTimestamp());
-  EQ((uint64_t)12345678, i.getEventCount());
+  i.setEventCount(12345678);
+  EQMSG("count", (uint64_t)12345678, i.getEventCount());
+
+  CPPUNIT_ASSERT_THROW_MESSAGE("cannot change type of physics event count item",
+                               i.setType(V12::VOID),
+                               std::invalid_argument);
+
+  CPPUNIT_ASSERT_NO_THROW(i.setType(V12::PHYSICS_EVENT_COUNT));
+
 }
 // Test copy construction
 
 void physcounttests::copycons()
 {
-  CRingPhysicsEventCountItem original(1234, 10, 5678);
-  CRingPhysicsEventCountItem copy(original);
+  V12::CRingPhysicsEventCountItem original(1234, 23, 1234, 10, 5678, 4);
+  V12::CRingPhysicsEventCountItem copy(original);
 
-  EQ(original.getBodySize(), copy.getBodySize());
-  _RingItem* porig = original.getItemPointer();
-  _RingItem* pcopy = copy.getItemPointer();
-
-  // headers must match 
-
-  EQ(porig->s_header.s_size, pcopy->s_header.s_size);
-  EQ(porig->s_header.s_type, pcopy->s_header.s_type);
-
-  // Contents must match:
-
-  EQ(original.getTimeOffset(),    copy.getTimeOffset());
-  EQ(original.getTimestamp(),     copy.getTimestamp());
-  EQ(original.getEventCount(),    copy.getEventCount());
+  ASSERT(original == copy);
 }
+
+void physcounttests::assign()
+{
+  V12::CRingPhysicsEventCountItem original(1234, 23, 1234, 10, 5678, 4);
+  V12::CRingPhysicsEventCountItem copy;
+
+  copy = original;
+  ASSERT(original == copy);
+}
+
+
 // test construction with timestamps>
 
 void
 physcounttests::tscons()
 {
-  time_t stamp = time(NULL);
-  CRingPhysicsEventCountItem item(
-      static_cast<uint64_t>(0x112233445567788ll), 1, 2, 
-      static_cast<uint64_t>(54321), 100, stamp, 1 
-  );
-
-  pPhysicsEventCountItem pItem = 
-    reinterpret_cast<pPhysicsEventCountItem>(item.getItemPointer());
-  pBodyHeader pB = &(pItem->s_body.u_hasBodyHeader.s_bodyHeader);
-  pPhysicsEventCountItemBody pBody = &(pItem->s_body.u_hasBodyHeader.s_body);
-
+  V12::CRingPhysicsEventCountItem item( 0x5567788ll, 1, 54321, 100, 2342, 1 );
   // Check the header
 
-  EQ(PHYSICS_EVENT_COUNT, pItem->s_header.s_type);
-  EQ(
-     static_cast<uint32_t>(
-	sizeof(RingItemHeader) +  sizeof(BodyHeader) + sizeof(PhysicsEventCountItemBody)
-     ), pItem->s_header.s_size
-  );
+  EQMSG("type", V12::PHYSICS_EVENT_COUNT, item.type());
+  EQMSG("size", uint32_t(40), item.size());
 
-  // check the body header.
-
-  EQ(static_cast<uint32_t>(sizeof(BodyHeader)), pB->s_size);
-  EQ(static_cast<uint64_t>(0x112233445567788ll), pB->s_timestamp);
-  EQ(static_cast<uint32_t>(1), pB->s_sourceId);
-  EQ(static_cast<uint32_t>(2), pB->s_barrier);
-
-  // make sure getBodyPointer is correct.
-
-  EQ(reinterpret_cast<void*>(pBody), item.getBodyPointer());
+  EQMSG("evt timestamp", uint64_t(0x5567788ll), item.getEventTimestamp());
+  EQMSG("source id", uint32_t(1), item.getSourceId());
 
   // Make sure the body contents are correct.
 
-  EQ(static_cast<uint32_t>(100), pBody->s_timeOffset);
-  EQ(static_cast<uint32_t>(1),     pBody->s_offsetDivisor);
-  EQ(static_cast<uint32_t>(stamp), pBody->s_timestamp);
-  EQ(static_cast<uint64_t>(54321), pBody->s_eventCount);
+  EQMSG("offset", static_cast<uint32_t>(100), item.getTimeOffset());
+  EQMSG("divisor", static_cast<uint32_t>(1),     item.getTimeDivisor());
+  EQMSG("timestamp", static_cast<time_t>(2342), item.getTimestamp());
+  EQMSG("count", static_cast<uint64_t>(54321), item.getEventCount());
 }
+
+void physcounttests::comparison_0()
+{
+    V12::CRingPhysicsEventCountItem item(0x5567788ll, 1, 54321, 100, 2342, 1 );
+
+    CPPUNIT_ASSERT_MESSAGE("identity item", item == item);
+}
+
+void physcounttests::comparison_1()
+{
+    V12::CRingPhysicsEventCountItem item1(0x5567788ll, 1, 54321, 100, 2342, 1 );
+    V12::CRingPhysicsEventCountItem item2(0x1567788ll, 1, 54321, 100, 2342, 1 );
+
+    CPPUNIT_ASSERT_MESSAGE("different evt timestamp", item1 != item2);
+}
+
+void physcounttests::comparison_2()
+{
+    V12::CRingPhysicsEventCountItem item1(0x5567788ll, 1, 54321, 100, 2342, 1 );
+    V12::CRingPhysicsEventCountItem item2(0x5567788ll, 2, 54321, 100, 2342, 1 );
+
+    CPPUNIT_ASSERT_MESSAGE("different source id", item1 != item2);
+}
+
+void physcounttests::comparison_3()
+{
+    V12::CRingPhysicsEventCountItem item1(0x5567788ll, 1, 54321, 100, 2342, 1 );
+    V12::CRingPhysicsEventCountItem item2(0x5567788ll, 1, 64321, 100, 2342, 1 );
+
+    CPPUNIT_ASSERT_MESSAGE("different event count", item1 != item2);
+}
+
+
+void physcounttests::comparison_4()
+{
+    V12::CRingPhysicsEventCountItem item1(0x5567788ll, 1, 54321, 100, 2342, 1 );
+    V12::CRingPhysicsEventCountItem item2(0x5567788ll, 1, 54321, 101, 2342, 1 );
+
+    CPPUNIT_ASSERT_MESSAGE("different offset", item1 != item2);
+}
+
+
+void physcounttests::comparison_5()
+{
+    V12::CRingPhysicsEventCountItem item1(0x5567788ll, 1, 54321, 100, 2342, 1 );
+    V12::CRingPhysicsEventCountItem item2(0x5567788ll, 1, 54321, 100,    0, 1 );
+
+    CPPUNIT_ASSERT_MESSAGE("different timestamp", item1 != item2);
+}
+
+void physcounttests::comparison_6()
+{
+    V12::CRingPhysicsEventCountItem item1(0x5567788ll, 1, 54321, 100, 2342, 1 );
+    V12::CRingPhysicsEventCountItem item2(0x5567788ll, 1, 54321, 100, 2342, 2 );
+
+    CPPUNIT_ASSERT_MESSAGE("different divisor", item1 != item2);
+}
+
 
 // fractionalTime
 //   Test of computeElapsedTime method.
@@ -237,10 +311,53 @@ void
 physcounttests::fractionalTime()
 {
   time_t stamp = time(NULL);
-  CRingPhysicsEventCountItem item(
-      static_cast<uint64_t>(0x112233445567788ll), 1, 2, 
+  V12::CRingPhysicsEventCountItem item(
+      static_cast<uint64_t>(0x112233445567788ll), 1,
       static_cast<uint64_t>(54321), 100, stamp, 3
   );
   
   EQ(static_cast<float>(100.0/3.0), item.computeElapsedTime());
+}
+
+
+
+void physcounttests::toRawRingItem_0()
+{
+    V12::CRawRingItem raw(V12::VOID);
+    V12::CRingPhysicsEventCountItem item(0x11223344ll, 1, 54321, 100, 33, 3);
+
+    item.toRawRingItem(raw);
+
+    EQMSG("size", item.size(), raw.size());
+    EQMSG("type", V12::PHYSICS_EVENT_COUNT, raw.type());
+    EQMSG("source id", uint32_t(1), raw.getSourceId());
+    EQMSG("evt timestamp", uint64_t(0x11223344), raw.getEventTimestamp());
+
+    uint32_t offset, divisor, tstamp;
+    uint64_t count;
+
+    Buffer::Deserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
+    stream >> offset >> tstamp >> divisor >> count;
+
+    EQMSG("time offset", uint32_t(100), offset);
+    EQMSG("timestamp", uint32_t(33), tstamp);
+    EQMSG("divisor", uint32_t(3), divisor);
+    EQMSG("count", uint64_t(54321), count);
+}
+
+void physcounttests::toRawRingItem_1()
+{
+    V12::CRawRingItem raw(V12::VOID);
+
+    // insert some prior data into the body of the raw ring item...
+    // make sure that if this happens, it does not break anything.
+    raw.getBody().push_back(9);
+
+    V12::CRingPhysicsEventCountItem item(0x11223344ll, 1, 54321, 100, 33, 3);
+    item.toRawRingItem(raw);
+
+    uint32_t offset;
+    Buffer::Deserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
+    stream >> offset;
+    EQMSG("time offset", uint32_t(100), offset);
 }

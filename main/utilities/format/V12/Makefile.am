@@ -5,7 +5,8 @@ libdataformatv12_la_SOURCES = CRingItem.cpp \
                               CPhysicsEventItem.cpp \
                               CRingScalerItem.cpp \
                               CRingTextItem.cpp \
-                              CRingStateChangeItem.cpp
+                              CRingStateChangeItem.cpp \
+                              CRingPhysicsEventCountItem.cpp
 
 #                           CAbnormalEndItem.cpp \
 #                           CRingStateChangeItem.cpp \
@@ -26,7 +27,8 @@ nscldaq12_HEADERS = CRingItem.h \
                     CPhysicsEventItem.h \
                     CRingScalerItem.h \
                   CRingTextItem.h \
-                  CRingStateChangeItem.h
+                  CRingStateChangeItem.h \
+                  CRingPhysicsEventCountItem.h
 
 #                  CAbnormalEndItem.h \
 #                  CPhysicsEventItem.h \
@@ -55,7 +57,8 @@ unittests_SOURCES	= TestRunner.cpp \
                           physeventtests.cpp \
                             teststate.cpp	\
                         texttest.cpp  \
-                        scalertests.cpp
+                        scalertests.cpp \
+                        physcounttests.cpp
 #										ringitemtests.cpp \
 #										 physcounttests.cpp		\
 #										formatoutputtests.cpp dataformattests.cpp       \
