@@ -223,7 +223,7 @@ uint32_t CRingTextItem::size() const
         cumulativeLength += s.size();
     }
 
-    return 7*sizeof(uint32_t) + m_strings.size() + cumulativeLength;
+    return 9*sizeof(uint32_t) + m_strings.size() + cumulativeLength;
 }
 
 
@@ -259,7 +259,24 @@ bool CRingTextItem::mustSwap() const
 
 void CRingTextItem::toRawRingItem(CRawRingItem& buffer) const
 {
+    buffer.setType(m_type);
+    buffer.setEventTimestamp(m_evtTimestamp);
+    buffer.setSourceId(m_sourceId);
 
+    // clear the body
+    auto& body = buffer.getBody();
+    body.clear();
+    body.reserve(size());
+
+    body << m_timeOffset;
+    body << uint32_t(m_timestamp);
+    body << uint32_t(m_strings.size());
+    body << m_offsetDivisor;
+
+    for (auto& s : m_strings) {
+        body.insert(body.end(), s.begin(), s.end());
+        body.push_back(0); // null terminate
+    }
 }
 
 

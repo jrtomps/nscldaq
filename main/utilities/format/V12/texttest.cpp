@@ -7,6 +7,7 @@
 #include <V12/DataFormat.h>
 #include <V12/CRingTextItem.h>
 #include <V12/CRawRingItem.h>
+#include <Deserializer.h>
 
 #include <string>
 #include <vector>
@@ -38,7 +39,8 @@ class texttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(tscons_0);
   CPPUNIT_TEST(tscons_1);
   CPPUNIT_TEST(fractionalRunTime);
-  CPPUNIT_TEST(assert_0);
+  CPPUNIT_TEST(assign_0);
+  CPPUNIT_TEST(toRawRingItem_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -69,7 +71,8 @@ protected:
   void tscons_0();
   void tscons_1();
   void fractionalRunTime();
-  void assert_0();
+  void assign_0();
+  void toRawRingItem_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(texttests);
@@ -374,7 +377,7 @@ texttests::tscons_0()
     //Check out the header:
     
     EQMSG("type", V12::PACKET_TYPES, item.type());
-    EQMSG("size", uint32_t(67), item.size());
+    EQMSG("size", uint32_t(75), item.size());
     
     EQMSG("evt timestamp", uint64_t(0x8877665544332211ll),
           item.getEventTimestamp());
@@ -414,7 +417,7 @@ texttests::fractionalRunTime()
     EQ(float(1234.0/3.0), item.computeElapsedTime());
 }
 
-void texttests::assert_0()
+void texttests::assign_0()
 {
     V12::CRingTextItem item(V12::PACKET_TYPES, 0, 0, {}, 1234, time(nullptr), 3);
     V12::CRingTextItem item2(V12::MONITORED_VARIABLES, {});
@@ -422,4 +425,39 @@ void texttests::assert_0()
     item2 = item;
 
     ASSERT(item == item2);
+}
+
+
+
+void texttests::toRawRingItem_0()
+{
+    V12::CRawRingItem empty(V12::VOID);
+    V12::CRingTextItem item(V12::MONITORED_VARIABLES, 12, 34, {"56", "78"}, 1234, 56, 78);
+
+    item.toRawRingItem(empty);
+
+    EQMSG("size", item.size(), empty.size());
+    EQMSG("type", item.type(), empty.type());
+    EQMSG("evt timestamp", item.getEventTimestamp(), empty.getEventTimestamp());
+    EQMSG("source id", item.getSourceId(), empty.getSourceId());
+
+    auto& body = empty.getBody();
+    uint32_t offset, timestamp, divisor, count;
+    unsigned char temp;
+    char str0[2], str1[2];
+    Buffer::Deserializer<Buffer::ByteBuffer> stream(body);
+    stream >> offset >> timestamp >> count >> divisor;
+    stream.extract(str0, str0+2);
+    stream.extract(temp);
+    stream.extract(str1, str1+2);
+    stream.extract(temp);
+
+    EQMSG("offset", uint32_t(1234), offset);
+    EQMSG("timestamp", uint32_t(56), timestamp);
+    EQMSG("divisor", uint32_t(78), divisor);
+    EQMSG("count", uint32_t(2), count);
+    EQMSG("string 0", std::string("56"), std::string(str0, str0+2));
+    EQMSG("string 1", std::string("78"), std::string(str1, str1+2));
+
+
 }
