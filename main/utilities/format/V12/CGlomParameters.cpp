@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -11,17 +11,15 @@
 /**
  * @file CGlomParameters.cpp
  * @brief  Encapsulates a ring item that contains glom parameters.
- * @author  Ron Fox <fox@nscl.msu.edu>
+ * @author  Jeromy Tompkins
  */
-#include "V11/CGlomParameters.h"
-#include "V11/DataFormatV11.h"
-#include <sstream>
-
-
+#include "V12/CGlomParameters.h"
+#include "V12/DataFormat.h"
+#include "V12/CRawRingItem.h"
 #include <sstream>
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
 /**
  * @note the definition below requires that the order of array elements matches
@@ -37,6 +35,17 @@ static const char* policyNames[4] = {
  * Canonical methods
  *-----------------------------------------------------------------------*/
 
+
+CGlomParameters::CGlomParameters(uint64_t interval, bool isBuilding,
+                                 CGlomParameters::TimestampPolicy policy)
+    : CGlomParameters(V12::NULL_TIMESTAMP, 0, interval, isBuilding, policy)
+{
+
+}
+
+
+
+
 /**
  * constructor
  *
@@ -49,21 +58,13 @@ static const char* policyNames[4] = {
  * @param policy     - The timestamp policy used by glom.
  */
 CGlomParameters::CGlomParameters(
-    uint64_t interval, bool isBuilding, CGlomParameters::TimestampPolicy policy
-) :
-    CRingItem(EVB_GLOM_INFO, sizeof(GlomParameters))
+    uint64_t evtTstamp, uint32_t source, uint64_t interval, bool isBuilding, CGlomParameters::TimestampPolicy policy
+) : m_evtTimestamp(evtTstamp),
+    m_sourceId(source),
+    m_coincTicks(interval),
+    m_isBuilding(isBuilding),
+    m_policy(policy)
 {
-    // Fill in the body of the item:
-    
-    pGlomParameters pItem = reinterpret_cast<pGlomParameters>(getItemPointer());
-    pItem->s_coincidenceTicks = interval;
-    pItem->s_isBuilding       = (isBuilding ? 0xffff : 0);
-    pItem->s_timestampPolicy  = policy;
-    
-    // Set the insertion cursor...and compute the final item size.
-    
-    setBodyCursor(&(pItem[1]));
-    updateSize();
 }
 /**
  * destructor
@@ -73,39 +74,15 @@ CGlomParameters::~CGlomParameters()
     
 }
 /**
- * copy constructor - specific
- *
- * @param rhs - The item used as a 'template' for our copy
- */
-CGlomParameters::CGlomParameters(const CGlomParameters& rhs) :
-    CRingItem(rhs)
-{
-        
-}
-/**
  * copy constructor - generic
  *
  * If the rhs is not an EVB_GLOM_INFO item, we'll throw a bad_cast.
  *
  * @param rhs - CRingItem reference from which we will construct.
  */
-CGlomParameters::CGlomParameters(const CRingItem& rhs) throw(std::bad_cast) :
-    CRingItem(rhs)
+CGlomParameters::CGlomParameters(const CRawRingItem& rhs)
 {
     if (type() != EVB_GLOM_INFO) throw std::bad_cast();        
-}
-/**
- * operator=
- *
- * @param rhs - The item being assighned to us.
- *
- * @return CGlomParameters& (*this)
- */
-CGlomParameters&
-CGlomParameters::operator=(const CGlomParameters& rhs)
-{
-    CRingItem::operator=(rhs);
-    return *this;
 }
 /**
  * operator==
@@ -117,7 +94,7 @@ CGlomParameters::operator=(const CGlomParameters& rhs)
 int
 CGlomParameters::operator==(const CGlomParameters& rhs) const
 {
-    return CRingItem::operator==(rhs);
+    return 1;
 }
 /**
  * operator!=
@@ -129,12 +106,70 @@ CGlomParameters::operator==(const CGlomParameters& rhs) const
 int
 CGlomParameters::operator!=(const CGlomParameters& rhs) const
 {
-    return CRingItem::operator!=(rhs);
+    return ! (*this == rhs );
 }
 
 /*----------------------------------------------------------------------------
  * Selectors
  *--------------------------------------------------------------------------*/
+
+
+uint32_t CGlomParameters::type() const
+{
+    return EVB_GLOM_INFO;
+}
+
+void CGlomParameters::setType(uint32_t type)
+{
+    if (type != EVB_GLOM_INFO) {
+        std::string errmsg("CGlomParameters::setType() only accepts V12;:EVB_GLOM_INFO.");
+        throw std::invalid_argument(errmsg);
+    }
+}
+
+uint32_t CGlomParameters::size() const
+{
+    return 36;
+}
+
+uint32_t CGlomParameters::getSourceId() const
+{
+    return m_sourceId;
+}
+
+void CGlomParameters::setSourceId(uint32_t id)
+{
+    m_sourceId = id;
+}
+
+
+uint64_t CGlomParameters::getEventTimestamp() const
+{
+    return m_evtTimestamp;
+}
+
+void CGlomParameters::setEventTimestamp(uint64_t tstamp)
+{
+    m_evtTimestamp = tstamp;
+}
+
+bool CGlomParameters::mustSwap() const
+{
+    return false;
+}
+
+
+bool CGlomParameters::isComposite() const
+{
+    return false;
+}
+
+void CGlomParameters::toRawRingItem(CRawRingItem& raw) const
+{
+
+}
+
+
 
 /**
  * coincidenceTicks
@@ -145,14 +180,8 @@ CGlomParameters::operator!=(const CGlomParameters& rhs) const
  */
 uint64_t
 CGlomParameters::coincidenceTicks() const
-{
-    CGlomParameters* This = const_cast<CGlomParameters*>(this);
-    pGlomParameters pItem =
-        reinterpret_cast<pGlomParameters>(This->getItemPointer());
-    
-    return pItem->s_coincidenceTicks;
-
-    
+{    
+    return m_coincTicks;
 }
 /**
  * isBuilding
@@ -162,11 +191,7 @@ CGlomParameters::coincidenceTicks() const
 bool
 CGlomParameters::isBuilding() const
 {
-    CGlomParameters* This = const_cast<CGlomParameters*>(this);
-    pGlomParameters pItem =
-        reinterpret_cast<pGlomParameters>(This->getItemPointer());
-    
-    return pItem->s_isBuilding;
+    return m_isBuilding;
 }
 /**
  * timestampPolicy
@@ -177,11 +202,7 @@ CGlomParameters::isBuilding() const
 CGlomParameters::TimestampPolicy
 CGlomParameters::timestampPolicy() const
 {
-    CGlomParameters* This = const_cast<CGlomParameters*>(this);
-    pGlomParameters pItem =
-        reinterpret_cast<pGlomParameters>(This->getItemPointer());
-        
-    return static_cast<TimestampPolicy>(pItem->s_timestampPolicy);
+    return static_cast<TimestampPolicy>(m_policy);
 }
 /*---------------------------------------------------------------------------
  * Object methods
@@ -206,10 +227,9 @@ std::string
 CGlomParameters::toString() const
 {
     CGlomParameters* This = const_cast<CGlomParameters*>(this);
-    pGlomParameters pItem =
-        reinterpret_cast<pGlomParameters>(This->getItemPointer());
     std::stringstream    out;
     
+    out << headerToString(*this) << std::endl;
     out << "Glom is " << (isBuilding() ? "" : " not ") << "building events\n";
     if (isBuilding()) {
         out << "Event building coincidence window is: "
@@ -220,7 +240,6 @@ CGlomParameters::toString() const
         tsPolicy = sizeof(policyNames)/sizeof(char*) - 1;
     }
     out << "TimestampPolicy : policyNames[tsPolicy]\n";
-    
     
     return out.str();
 }

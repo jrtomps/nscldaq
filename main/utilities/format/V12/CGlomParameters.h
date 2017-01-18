@@ -1,8 +1,8 @@
-#ifndef CGLOMPARAMETERS_H
-#define CGLOMPARAMETERS_H
+#ifndef DAQ_V12_CGLOMPARAMETERS_H
+#define DAQ_V12_CGLOMPARAMETERS_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -13,15 +13,17 @@
 /**
  * @file CGlomParameters.h
  * @brief  Encapsulates a ring item that contains glom parametrs.
- * @author  Ron Fox <fox@nscl.msu.edu>
+ * @author  Jeromy Tompkins
  */
 
-#include "V11/CRingItem.h"
+#include "V12/CRingItem.h"
 
 #include <typeinfo>
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
+
+  class CRawRingItem;
 
 /**
  * @class CGlomParameters
@@ -37,28 +39,60 @@ class CGlomParameters : public CRingItem
 {
 public:
     // Note the enum values below _must_ match those in DataFormat.h:
-    
-    typedef enum _TimestampPolicy {
+
+    enum TimestampPolicy {
         first = 0, last = 1, average = 2
-    } TimestampPolicy;
-    
-    // Canonicals:
-    
+    };
+
+private:
+    uint32_t m_sourceId;
+    uint64_t m_evtTimestamp;
+    uint64_t m_coincTicks;
+    bool     m_isBuilding;
+    TimestampPolicy m_policy;
+
+
+    // Canonicals
 public:
     CGlomParameters(uint64_t interval, bool isBuilding, TimestampPolicy policy);
+    CGlomParameters(uint64_t tstamp, uint32_t sourceId,
+                    uint64_t interval, bool isBuilding, TimestampPolicy policy);
     virtual ~CGlomParameters();
-    CGlomParameters(const CGlomParameters& rhs);
-    CGlomParameters(const CRingItem& rhs) throw(std::bad_cast);
+    CGlomParameters(const CGlomParameters& rhs) = default;
+    CGlomParameters(const CRawRingItem& rhs);
     
-    CGlomParameters& operator=(const CGlomParameters& rhs);
+    CGlomParameters& operator=(const CGlomParameters& rhs) = default;
     int operator==(const CGlomParameters& rhs) const;
     int operator!=(const CGlomParameters& rhs) const;
     
     // Selectors:
 public:
+
+    uint32_t type() const;
+    void setType(uint32_t type);
+
+    uint32_t size() const;
+
+    uint32_t getSourceId() const;
+    void setSourceId(uint32_t id);
+
+    uint64_t getEventTimestamp() const;
+    void setEventTimestamp(uint64_t tstamp);
+
+    bool mustSwap() const;
+    bool isComposite() const;
+
+    void toRawRingItem(CRawRingItem& raw) const;
+
+
    uint64_t coincidenceTicks() const;
+   void setCoincidenceTicks(uint64_t ticks);
+
    bool     isBuilding() const;
+   void setBuildingState(bool enable);
+
    TimestampPolicy timestampPolicy() const;
+   void setTimestampPolicy(TimestampPolicy policy);
    
    // Object methods:
 public:
@@ -67,7 +101,7 @@ public:
 
 };
 
-  } // end of V11 namespace
+  } // end of V12 namespace
 } // end DAQ
 
 #endif
