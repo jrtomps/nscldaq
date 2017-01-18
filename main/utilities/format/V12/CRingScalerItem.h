@@ -123,7 +123,6 @@ private:
   size_t bodySize() const;
   void throwIfInvalidChannel(uint32_t channel,
                  const char* message) const;
-  std::string headerToString() const;
 };
    
 } // end of V12 namespace

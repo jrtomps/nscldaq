@@ -16,17 +16,18 @@
 
 
 #include <config.h>
-#include "V11/CRingStateChangeItem.h"
-#include <V11/DataFormatV11.h>
-#include <RangeError.h>
+#include "V12/CRingStateChangeItem.h"
+#include <V12/CRawRingItem.h>
+#include <V12/DataFormat.h>
+#include <Deserializer.h>
 #include <sstream>
 #include <string.h>
-
+#include <ctime>
 
 using namespace std;
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -39,25 +40,15 @@ namespace DAQ {
    The title is set to an emtpy string.
    \param reason - Reason for the state change.  This defaults to BEGIN_RUN.
 */
-CRingStateChangeItem::CRingStateChangeItem(uint16_t reason) :
-  CRingItem(reason, sizeof(StateChangeItem))
+CRingStateChangeItem::CRingStateChangeItem(uint16_t reason)
+    :
+    CRingStateChangeItem(V12::NULL_TIMESTAMP, 0, reason,
+                         0, 0, time(NULL), "",1)
 {
-//  init();
-
-//  // Fill in the body:
-
-
-//  pStateChangeItemBody pItem =
-//    reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-//  pItem->s_runNumber    = 0;
-//  pItem->s_timeOffset   = 0;
-//  pItem->s_Timestamp = static_cast<uint32_t>(time(NULL));
-//  memset(pItem->s_title, 0, TITLE_MAXSIZE+1);
-//  pItem->s_offsetDivisor = 1;
 }
 /*!
    Fully specified construction the initial values of the various
-   fields are specified by the constructor parameters. 
+   fields are specified by the constructor parameters.
 
    \param reason     - Why the state change buffer is being emitted (the item type).
    \param runNumber  - Number of the run that is undegoing transitino.
@@ -70,64 +61,43 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason) :
    \throw CRangeError - If the title string can't fit in s_title.
 */
 CRingStateChangeItem::CRingStateChangeItem(uint16_t reason,
-					   uint32_t runNumber,
-					   uint32_t timeOffset,
-					   time_t   timestamp,
-					   std::string title) throw(CRangeError) :
-  CRingItem(reason, sizeof(StateChangeItem))
+                       uint32_t runNumber,
+                       uint32_t timeOffset,
+                       time_t   timestamp,
+                       std::string title)
+    :
+    CRingStateChangeItem(V12::NULL_TIMESTAMP, 0, reason,
+                         runNumber, timeOffset, timestamp, title,1)
+{}
 
-{
-  init();
-
-  // Everything should work just fine now:
-
-  pStateChangeItemBody pItem =
-    reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-  pItem->s_runNumber = runNumber;
-  pItem->s_timeOffset= timeOffset;
-  pItem->s_Timestamp = timestamp;
-  setTitle(title);		// takes care of the exception.
-  pItem->s_offsetDivisor = 1;
-
-}
 /**
  * constructor - for timetamped item.
  *
  * @param eventTimestamp  - Event timestamp
  * @param sourceId   - Source id of the event.
- * @param barrierType - Type of barrier if barrier.
    \param reason     - Why the state change buffer is being emitted (the item type).
    \param runNumber  - Number of the run that is undegoing transitino.
    \param timeOffset - Number of seconds into the run at which this is being emitted.
-   \param timestamp  - Absolute time to be recorded in the buffer.. tyically
+   \param timestamp  - Absolute time to be recorded in the buffer.. typically
                        this should be time(NULL).
-   \param title      - Title string.  The length of this string must be at most
-                       TITLE_MAXSIZE.
+   \param title      - Title string.
    @param offsetDivisor - What timeOffset needs to be divided by to get seconds.
 
-   \throw CRangeError - If the title string can't fit in s_title.
  */
 CRingStateChangeItem::CRingStateChangeItem(
-    uint64_t eventTimestamp, uint32_t sourceId, uint32_t barrierType, uint16_t reason,
-    uint32_t runNumber, uint32_t timeOffset, time_t   timestamp,
-    std::string title, uint32_t offsetDivisor) :
-    CRingItem(
-        reason, eventTimestamp, sourceId, barrierType, sizeof(StateChangeItem)
-    )
-{
-    init();
-    // Everything should work just fine now:
-  
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+        uint64_t eventTimestamp, uint32_t sourceId, uint16_t reason,
+        uint32_t runNumber, uint32_t timeOffset, time_t   timestamp,
+        std::string title, uint32_t offsetDivisor)
+    : m_type(reason),
+      m_evtTimestamp(eventTimestamp),
+      m_sourceId(sourceId),
+      m_runNumber(runNumber),
+      m_timeOffset(timeOffset),
+      m_timestamp(timestamp),
+      m_offsetDivisor(offsetDivisor),
+      m_title(title)
+{}
 
-    pItem->s_runNumber = runNumber;
-    pItem->s_timeOffset= timeOffset;
-    pItem->s_Timestamp = timestamp;
-    setTitle(title);		// takes care of the exception.
-    pItem->s_offsetDivisor = offsetDivisor;    
-}
 /*!
    Constructor that copies/converts an existing ring item into a state change
    item. This is often used to wrap a state change object around a ring item just
@@ -136,25 +106,33 @@ CRingStateChangeItem::CRingStateChangeItem(
    \param item - The source item.
    \throw bad_cast - the item is not a state change item.
 */
-CRingStateChangeItem::CRingStateChangeItem(const CRingItem& item) throw(std::bad_cast) : 
-  CRingItem(item)
+CRingStateChangeItem::CRingStateChangeItem(const CRawRingItem& rhs)
 {
-  if (!isStateChange()) {
-    throw bad_cast();
+
+  if (rhs.type() != V12::BEGIN_RUN &&
+          rhs.type() != V12::END_RUN &&
+          rhs.type() != V12::PAUSE_RUN &&
+          rhs.type() != V12::RESUME_RUN) {
+    throw std::bad_cast();
   }
 
-  init();
-}
-/*!
-  Copy construction.
-  \param rhs - Basis for the construction.
-*/
-CRingStateChangeItem::CRingStateChangeItem(const CRingStateChangeItem& rhs) :
-  CRingItem(rhs)
-{
+  m_type = rhs.type();
+  m_sourceId     = rhs.getSourceId();
+  m_evtTimestamp = rhs.getEventTimestamp();
 
-  init();
+  Buffer::Deserializer<Buffer::ByteBuffer> rhsBody(rhs.getBody(), rhs.mustSwap());
 
+  uint32_t titleLength, temp;
+  rhsBody >> m_runNumber;
+  rhsBody >> m_timeOffset;
+  rhsBody >> temp; m_timestamp = temp;
+  rhsBody >> m_offsetDivisor;
+  rhsBody >> titleLength;
+
+  char * pTitle = new char[titleLength];
+  rhsBody.extract(pTitle, pTitle + titleLength);
+  m_title = std::string(pTitle, pTitle+titleLength);
+  delete [] pTitle;
 }
 
 /*!
@@ -165,20 +143,7 @@ CRingStateChangeItem::~CRingStateChangeItem()
 {
 }
 
-/*!
-  Assignment is base class assignment and then setting the item pointer:
-  \param rhs - The item being assigned to us.
-  \return CRingStateChangeItem&
-  \retval *this
-*/
-CRingStateChangeItem& 
-CRingStateChangeItem::operator=(const CRingStateChangeItem& rhs) 
-{
-  if (this != &rhs) {
-    CRingItem::operator=(rhs);
-  }
-  return *this;
-}
+
 /*!
   Comparison is just the base class compare as comparing the item pointers is a bad
   idea since there could be two very different objects that have equal items.
@@ -188,10 +153,19 @@ CRingStateChangeItem::operator=(const CRingStateChangeItem& rhs)
   \retval 0 not equal
   \retval 1 equal.
 */
-int 
+int
 CRingStateChangeItem::operator==(const CRingStateChangeItem& rhs) const
 {
-  return CRingItem::operator==(rhs);
+  if (m_type != rhs.type()) return 0;
+  if (m_evtTimestamp != rhs.getEventTimestamp()) return 0;
+  if (m_sourceId != rhs.getSourceId()) return 0;
+  if (m_runNumber != rhs.getRunNumber()) return 0;
+  if (m_timeOffset != rhs.getElapsedTime()) return 0;
+  if (m_timestamp != rhs.getTimestamp()) return 0;
+  if (m_offsetDivisor != rhs.getOffsetDivisor()) return 0;
+  if (m_title != rhs.getTitle()) return 0;
+
+  return 1;
 }
 
 /*!
@@ -203,9 +177,75 @@ CRingStateChangeItem::operator!=(const CRingStateChangeItem& rhs) const
   return !(*this == rhs);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//
+/////////////////////////////////////////////////////////////////////////////
 // Accessor methods.
+
+
+uint32_t CRingStateChangeItem::type() const
+{
+    return m_type;
+}
+
+void CRingStateChangeItem::setType(uint32_t type)
+{
+    m_type = type;
+}
+
+uint32_t CRingStateChangeItem::size() const
+{
+    return 20 + 20 + m_title.size();
+}
+
+uint64_t CRingStateChangeItem::getEventTimestamp() const
+{
+    return m_evtTimestamp;
+}
+
+void CRingStateChangeItem::setEventTimestamp(uint64_t tstamp)
+{
+    m_evtTimestamp = tstamp;
+}
+
+uint32_t CRingStateChangeItem::getSourceId() const
+{
+    return m_sourceId;
+}
+
+void CRingStateChangeItem::setSourceId(uint32_t id)
+{
+    m_sourceId = id;
+}
+
+
+bool CRingStateChangeItem::isComposite() const
+{
+    return false;
+}
+
+bool CRingStateChangeItem::mustSwap() const
+{
+    return false;
+}
+
+
+void CRingStateChangeItem::toRawRingItem(CRawRingItem& item) const
+{
+    item.setType(type());
+    item.setEventTimestamp(getEventTimestamp());
+    item.setSourceId(getSourceId());
+
+    Buffer::ByteBuffer& body = item.getBody();
+
+    body << m_runNumber;
+    body << m_timeOffset;
+    body << uint32_t(m_timestamp);
+    body << m_offsetDivisor;
+    body << uint32_t(m_title.size());
+    body.insert(body.end(), m_title.begin(), m_title.end());
+
+}
+
+
 
 /*!
    Set the run number for the item.
@@ -214,10 +254,7 @@ CRingStateChangeItem::operator!=(const CRingStateChangeItem& rhs) const
 void
 CRingStateChangeItem::setRunNumber(uint32_t run)
 {
-    pStateChangeItemBody pItem =
-      reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    pItem->s_runNumber = run;
+        m_runNumber = run;
 }
 /*!
   \return uint32_t
@@ -226,10 +263,7 @@ CRingStateChangeItem::setRunNumber(uint32_t run)
 uint32_t
 CRingStateChangeItem::getRunNumber() const
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    return pItem->s_runNumber;
+    return m_runNumber;
 }
 
 /*!
@@ -239,10 +273,7 @@ CRingStateChangeItem::getRunNumber() const
 void
 CRingStateChangeItem::setElapsedTime(uint32_t offset)
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    pItem->s_timeOffset = offset;
+    m_timeOffset = offset;
 }
 /*!
   \return uint32_t
@@ -251,10 +282,7 @@ CRingStateChangeItem::setElapsedTime(uint32_t offset)
 uint32_t
 CRingStateChangeItem::getElapsedTime() const
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    return pItem->s_timeOffset;
+    return m_timeOffset;
 }
 /**
  * getElapsedTime
@@ -264,11 +292,8 @@ CRingStateChangeItem::getElapsedTime() const
 float
 CRingStateChangeItem::computeElapsedTime() const
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-    
-    float offset = pItem->s_timeOffset;
-    float divisor = pItem->s_offsetDivisor;
+    float offset = m_timeOffset;
+    float divisor = m_offsetDivisor;
     return offset/divisor;
 }
 /*!
@@ -277,18 +302,9 @@ CRingStateChangeItem::computeElapsedTime() const
   \throw CRangeError - if the title string is too long to fit.
 */
 void
-CRingStateChangeItem::setTitle(string title)  throw(CRangeError)
+CRingStateChangeItem::setTitle(string title)
 {
-    // Ensure the title is small enough.
-  
-    if(title.size() > TITLE_MAXSIZE) {
-      throw CRangeError(0, TITLE_MAXSIZE, title.size(),
-                        "Checking size of title against TITLE_MAXSIZE");
-    }
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-      strcpy(pItem->s_title, title.c_str());
+    m_title = title;
 }
 
 /*!
@@ -298,10 +314,7 @@ CRingStateChangeItem::setTitle(string title)  throw(CRangeError)
 string
 CRingStateChangeItem::getTitle() const
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    return string(pItem->s_title);
+    return m_title;
 }
 /*!
    Set the timestamp
@@ -310,10 +323,7 @@ CRingStateChangeItem::getTitle() const
 void
 CRingStateChangeItem::setTimestamp(time_t stamp)
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    pItem->s_Timestamp  = stamp;
+    m_timestamp = stamp;
 }
 /*!
     \return time_t
@@ -322,19 +332,13 @@ CRingStateChangeItem::setTimestamp(time_t stamp)
 time_t
 CRingStateChangeItem::getTimestamp() const
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    return pItem->s_Timestamp;
+    return m_timestamp;
 }
 
 void
 CRingStateChangeItem::setOffsetDivisor(uint32_t divisor)
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    pItem->s_offsetDivisor = divisor;
+    m_offsetDivisor = divisor;
 }
 
 
@@ -342,10 +346,7 @@ CRingStateChangeItem::setOffsetDivisor(uint32_t divisor)
 uint32_t
 CRingStateChangeItem::getOffsetDivisor() const
 {
-    pStateChangeItemBody pItem =
-        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
-
-    return pItem->s_offsetDivisor;
+ return m_offsetDivisor;
 }
 
 
@@ -364,13 +365,13 @@ std::string
 CRingStateChangeItem::typeName() const
 {
   switch (type()) {
-  case BEGIN_RUN:
+  case V12::BEGIN_RUN:
     return "Begin Run";
-  case END_RUN:
+  case V12::END_RUN:
     return "End Run";
-  case PAUSE_RUN:
+  case V12::PAUSE_RUN:
     return "Pause Run";
-  case RESUME_RUN:
+  case V12::RESUME_RUN:
     return "Resume Run";
   }
 }
@@ -389,11 +390,12 @@ CRingStateChangeItem::toString() const
   uint32_t run       = getRunNumber();
   uint32_t elapsed   = getElapsedTime();
   string   title     = getTitle();
-  string   timestamp = timeString(getTimestamp());
+  time_t   wall_time = getTimestamp();
+  string   timestamp = std::ctime(&wall_time);
 
   out <<  timestamp << " : Run State change : " << typeName();
   out << " at " << elapsed << " seconds into the run\n";
-  out << bodyHeaderToString();
+  out << headerToString(*this);
   out << "Title     : " << title << std::endl;
   out << "Run Number: " << run   << endl;
 
@@ -404,19 +406,6 @@ CRingStateChangeItem::toString() const
 ///////////////////////////////////////////////////////////////////////////////
 // Private utilities.
 
-/* 
- *  Initialize member data construction time.
- */
-void 
-CRingStateChangeItem::init()
-{
-
-  uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
-  pCursor         += sizeof(StateChangeItemBody);
-  setBodyCursor(pCursor);
-  updateSize();
-
-}
 
 /*
  * Evaluate wheter or the type of the current ring item is 
@@ -427,12 +416,12 @@ CRingStateChangeItem::isStateChange()
 {
   int t = type();
   return (
-	  (t == BEGIN_RUN )              ||
-	  (t == END_RUN)                 ||
-	  (t == PAUSE_RUN)               ||
-	  (t == RESUME_RUN));
+      (t == V12::BEGIN_RUN )              ||
+      (t == V12::END_RUN)                 ||
+      (t == V12::PAUSE_RUN)               ||
+      (t == V12::RESUME_RUN));
 }
 
 
-} // end of V11 namespace
+} // end of V12 namespace
 } // end DAQ

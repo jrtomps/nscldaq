@@ -49,8 +49,9 @@ namespace DAQ {
         virtual void toRawRingItem(CRawRingItem& item) const = 0;
     };
 
+    std::string headerToString(const CRingItem& item);
 
 } // end of V12 namespace
-} // end DAq
+} // end DAQ
 
 #endif

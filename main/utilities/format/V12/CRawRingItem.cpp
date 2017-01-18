@@ -123,7 +123,7 @@ namespace DAQ {
       Buffer::Deserializer<Buffer::ByteBuffer> bodyStream(getBody());
 
 
-      out << headerToString();
+      out << headerToString(*this);
       out << std::hex << setfill('0');
 
       uint8_t byte0, byte1;
@@ -138,13 +138,14 @@ namespace DAQ {
             // to worry about line endings
             out << std::setw(2) << int(byte0) << " ";
         } else {
+            if ( (i%8) == 0 && i!=0) {
+                out << std::endl;
+            }
+
             uint16_t value = byte1;
             value = (value<<8) | byte0;
             out << std::setw(4) << value << " ";
 
-            if ( (i%4) == 0 && i!=0) {
-                out << std::endl;
-            }
             i++;
         }
       }
@@ -180,17 +181,6 @@ namespace DAQ {
 
     void CRawRingItem::setMustSwap(bool on) {
       m_mustSwap = on;
-    }
-
-    std::string CRawRingItem::headerToString() const {
-
-      std::ostringstream result;
-      result << "Size (bytes): " << size() << std::endl;
-      result << "Type:         " << typeName() << std::endl;
-      result << "Timestamp:    " << m_timestamp << std::endl;
-      result << "Source Id:    " << m_sourceId  << std::endl;
-
-      return result.str();
     }
 
   } // end of V12 namespace

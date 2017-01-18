@@ -546,7 +546,7 @@ CRingScalerItem::toString() const
 
   out << time << " : Scalers:\n";
   out << "Interval start time: " << start << " end: " << end << " seconds in to the run\n\n";
-  out << headerToString();
+  out << headerToString(*this);
   out << (isIncremental() ? "Scalers are incremental" : "Scalers are not incremental") << std::endl;
 
   out << "Index         Counts                 Rate\n";
@@ -590,18 +590,6 @@ CRingScalerItem::throwIfInvalidChannel(uint32_t channel,
     }
 }
 
-
-std::string CRingScalerItem::headerToString() const
-{
-
-    std::ostringstream result;
-    result << "Size (bytes): " << size() << std::endl;
-    result << "Type:         " << typeName() << std::endl;
-    result << "Timestamp:    " << m_timestamp << std::endl;
-    result << "Source Id:    " << m_sourceId  << std::endl;
-
-    return result.str();
-}
 
 } // end of V12 namespace
 } // end DAQ

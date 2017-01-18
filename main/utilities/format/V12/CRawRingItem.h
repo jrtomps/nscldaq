@@ -58,8 +58,6 @@ public:
 
   template<class T> std::unique_ptr<T> as() const;
 
-protected:
-  std::string headerToString() const;
 };
 
 } // end of V12 namespace

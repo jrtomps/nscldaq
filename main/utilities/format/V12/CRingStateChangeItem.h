@@ -1,5 +1,5 @@
-#ifndef NSCLDAQ11_CRINGSTATECHANGEITEM_H
-#define NSCLDAQ11_CRINGSTATECHANGEITEM_H
+#ifndef NSCLDAQ12_CRINGSTATECHANGEITEM_H
+#define NSCLDAQ12_CRINGSTATECHANGEITEM_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
@@ -17,7 +17,7 @@
 */
 
 
-#include <V11/CRingItem.h>
+#include <V12/CRingItem.h>
 
 #include <string>
 #include <typeinfo>
@@ -44,10 +44,45 @@ namespace DAQ {
 */
 class CRingStateChangeItem : public CRingItem
 {
+private:
+    uint32_t    m_type;
+    uint64_t    m_evtTimestamp;
+    uint32_t    m_sourceId;
+    uint32_t    m_runNumber;
+    uint32_t    m_timeOffset;
+    time_t      m_timestamp;
+    uint32_t    m_offsetDivisor;
+    std::string m_title;
 
   // construction and other canonicals
 public:
   CRingStateChangeItem(uint16_t reason = 1);
+  CRingStateChangeItem(uint16_t reason,
+                       uint32_t runNumber,
+                       uint32_t timeOffset,
+                       time_t   timestamp,
+                       std::string title);
+
+  CRingStateChangeItem(uint64_t eventTimestamp, uint32_t sourceId,
+                       uint16_t reason,
+                       uint32_t runNumber,
+                       uint32_t timeOffset,
+                       time_t   timestamp,
+                       std::string title,
+                       uint32_t offsetDivisor = 1);
+
+  CRingStateChangeItem(const CRawRingItem& item);
+  CRingStateChangeItem(const CRingStateChangeItem& rhs) = default;
+  virtual ~CRingStateChangeItem();
+
+  /*!
+      Assignment is base class assignment and then setting the item pointer:
+      \param rhs - The item being assigned to us.
+      \return CRingStateChangeItem&
+      \retval *this
+    */
+  CRingStateChangeItem& operator=(const CRingStateChangeItem& rhs) = default;
+
 
   virtual uint32_t type() const;
   virtual void setType(uint32_t type);
@@ -64,60 +99,35 @@ public:
 
   virtual bool     mustSwap() const;
 
+  virtual void toRawRingItem(CRawRingItem& item) const;
+
+  int operator==(const CRingStateChangeItem& rhs) const;
+  int operator!=(const CRingStateChangeItem& rhs) const;
+
+  // Accessors for elements of the item (selectors and mutators both).
+
+  void setRunNumber(uint32_t run);
+  uint32_t getRunNumber() const;
+
+  void     setElapsedTime(uint32_t offset);
+  uint32_t getElapsedTime() const;
+  float    computeElapsedTime() const;
+
+  void setTitle(std::string title);
+  std::string getTitle() const;
+
+  void setTimestamp(time_t stamp);
+  time_t getTimestamp() const;
+
+  void setOffsetDivisor(uint32_t divisor);
+  uint32_t getOffsetDivisor() const;
+
   virtual std::string typeName() const;
   virtual std::string toString() const;
 
-  virtual void toRawRingItem(CRawRingItem& item) const;
-
-  //  CRingStateChangeItem(uint16_t reason,
-//		       uint32_t runNumber,
-//		       uint32_t timeOffset,
-//		       time_t   timestamp,
-//		       std::string title) throw(CRangeError);
-//  CRingStateChangeItem(uint64_t eventTimestamp, uint32_t sourceId, uint32_t barrierType,
-//                       uint16_t reason,
-//		       uint32_t runNumber,
-//		       uint32_t timeOffset,
-//		       time_t   timestamp,
-//		       std::string title,
-//                       uint32_t offsetDivisor = 1);
-  
-//  CRingStateChangeItem(const CRingItem& item) throw(std::bad_cast);
-//  CRingStateChangeItem(const CRingStateChangeItem& rhs);
-//  virtual ~CRingStateChangeItem();
-
-//  CRingStateChangeItem& operator=(const CRingStateChangeItem& rhs);
-//  int operator==(const CRingStateChangeItem& rhs) const;
-//  int operator!=(const CRingStateChangeItem& rhs) const;
-
-//  // Accessors for elements of the item (selectors and mutators both).
-
-//  void setRunNumber(uint32_t run);
-//  uint32_t getRunNumber() const;
-
-//  void     setElapsedTime(uint32_t offset);
-//  uint32_t getElapsedTime() const;
-//  float    computeElapsedTime() const;
-
-//  void setTitle(std::string title) throw(CRangeError);
-//  std::string getTitle() const;
-
-//  void setTimestamp(time_t stamp);
-//  time_t getTimestamp() const;
-
-//  void setOffsetDivisor(uint32_t divisor);
-//  uint32_t getOffsetDivisor() const;
-//  // Virtual method overrides.
-
-//  virtual std::string typeName() const;
-//  virtual std::string toString() const;
-
-//  // Utitlity functions..
-
-//private:
-//  void init();
-//  bool isStateChange();
-//  _StateChangeItemBody* getStateChangeBody();
+  // Utility functions..
+private:
+  bool isStateChange();
 };
 
   } // end of V11 namespace

@@ -1,8 +1,10 @@
 lib_LTLIBRARIES = libdataformatv12.la
 
-libdataformatv12_la_SOURCES = CRawRingItem.cpp \
+libdataformatv12_la_SOURCES = CRingItem.cpp \
+                              CRawRingItem.cpp \
                               CPhysicsEventItem.cpp \
-                              CRingScalerItem.cpp 
+                              CRingScalerItem.cpp \
+                              CRingStateChangeItem.cpp
 
 #                           CAbnormalEndItem.cpp \
 #                           CRingStateChangeItem.cpp \
@@ -21,10 +23,10 @@ nscldaq12dir = @includedir@/V12
 nscldaq12_HEADERS = CRingItem.h \
                     CRawRingItem.h \
                     CPhysicsEventItem.h \
-                    CRingScalerItem.h 
+                    CRingScalerItem.h \
+                    CRingStateChangeItem.h
 
 #                  CAbnormalEndItem.h \
-#                  CRingStateChangeItem.h \
 #                  CPhysicsEventItem.h \
 #                  CRingPhysicsEventCountItem.h \
 #                  CRingTextItem.h \
@@ -50,8 +52,9 @@ noinst_PROGRAMS = unittests
 unittests_SOURCES	= TestRunner.cpp \
                           rawringitemtests.cpp \
                           physeventtests.cpp \
-													scalertests.cpp
-#										ringitemtests.cpp teststate.cpp	\
+                            teststate.cpp	\
+                            scalertests.cpp
+#										ringitemtests.cpp \
 #										 texttest.cpp physcounttests.cpp		\
 #										formatoutputtests.cpp dataformattests.cpp       \
 #										fragmenttest.cpp glomparamtests.cpp factorytests.cpp
