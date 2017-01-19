@@ -16,6 +16,7 @@
 #include "V12/CGlomParameters.h"
 #include "V12/DataFormat.h"
 #include "V12/CRawRingItem.h"
+#include "Deserializer.h"
 #include <sstream>
 
 namespace DAQ {
@@ -82,7 +83,34 @@ CGlomParameters::~CGlomParameters()
  */
 CGlomParameters::CGlomParameters(const CRawRingItem& rhs)
 {
-    if (type() != EVB_GLOM_INFO) throw std::bad_cast();        
+    if (rhs.type() != EVB_GLOM_INFO) throw std::bad_cast();
+
+    m_sourceId = rhs.getSourceId();
+    m_evtTimestamp = rhs.getEventTimestamp();
+
+    Buffer::Deserializer<Buffer::ByteBuffer> stream(rhs.getBody(), rhs.mustSwap());
+
+    uint16_t temp;
+    stream >> m_coincTicks;
+    stream >> temp; m_isBuilding = temp;
+    stream >> temp;
+
+    switch(temp) {
+    case 0:
+        m_policy = first;
+        break;
+    case 1:
+        m_policy = last;
+        break;
+    case 2:
+        m_policy = average;
+        break;
+    default: {
+        std::string errmsg("CGlomParameters(const CRawRingItem& ) ");
+        errmsg += "Parsed invalid timestamp policy.";
+        throw std::invalid_argument(errmsg);
+    }
+    }
 }
 /**
  * operator==
@@ -94,6 +122,12 @@ CGlomParameters::CGlomParameters(const CRawRingItem& rhs)
 int
 CGlomParameters::operator==(const CGlomParameters& rhs) const
 {
+    if (m_evtTimestamp != rhs.getEventTimestamp()) return 0;
+    if (m_sourceId != rhs.getSourceId()) return 0;
+    if (m_coincTicks != rhs.coincidenceTicks()) return 0;
+    if (m_isBuilding != rhs.isBuilding()) return 0;
+    if (m_policy != rhs.timestampPolicy()) return 0;
+
     return 1;
 }
 /**
@@ -129,7 +163,7 @@ void CGlomParameters::setType(uint32_t type)
 
 uint32_t CGlomParameters::size() const
 {
-    return 36;
+    return 32;
 }
 
 uint32_t CGlomParameters::getSourceId() const
@@ -166,6 +200,16 @@ bool CGlomParameters::isComposite() const
 
 void CGlomParameters::toRawRingItem(CRawRingItem& raw) const
 {
+    raw.setType(EVB_GLOM_INFO);
+    raw.setSourceId(m_sourceId);
+    raw.setEventTimestamp(m_evtTimestamp);
+
+    auto& body = raw.getBody();
+    body.clear();
+
+    body << m_coincTicks;
+    body << (m_isBuilding ? uint16_t(1) : uint16_t(0));
+    body << uint16_t(m_policy);
 
 }
 
@@ -244,5 +288,5 @@ CGlomParameters::toString() const
     return out.str();
 }
 
-  } // end of V11 namespace
+  } // end of V12 namespace
 } // end DAQ
