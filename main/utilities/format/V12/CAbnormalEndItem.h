@@ -19,38 +19,54 @@
 # @brief  Define the wrapper class for the abnormal end run ring item.
 # @author <fox@nscl.msu.edu>
 */
-#ifndef CABNORMALENDITEM_H
-#define CABNORMALENDITEM_H
+#ifndef DAQ_V12_CABNORMALENDITEM_H
+#define DAQ_V12_CABNORMALENDITEM_H
 
-#include "V11/CRingItem.h"
+#include "V12/CRingItem.h"
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
 class CAbnormalEndItem : public CRingItem
 {
+private:
+    uint64_t m_evtTimestamp;
+    uint32_t m_sourceId;
+
 public:
-    CAbnormalEndItem();
-    virtual ~CAbnormalEndItem();
+    CAbnormalEndItem() = default;
+    CAbnormalEndItem(const CAbnormalEndItem& rhs) = default;
+    CAbnormalEndItem& operator=(const CAbnormalEndItem& rhs) = default;
+    CAbnormalEndItem(const CRawRingItem& rhs);
+    virtual ~CAbnormalEndItem() = default;
     
-    CAbnormalEndItem(const CAbnormalEndItem& rhs);
-    CAbnormalEndItem(const CRingItem& rhs);
-    
-    CAbnormalEndItem& operator=(const CAbnormalEndItem& rhs);
     int operator==(const CAbnormalEndItem& rhs) const;
-    int operator==(const CRingItem& rhs) const;
-    
     int operator!=(const CAbnormalEndItem& rhs) const;
-    int operator!=(const CRingItem& rhs) const;
-    
+
     // Formatting:
     
 public:
+    uint64_t getEventTimestamp() const;
+    void setEventTimestamp(uint64_t tstamp);
+
+    uint32_t getSourceId() const;
+    void setSourceId(uint32_t id);
+
+    uint32_t type() const;
+    void setType(uint32_t type);
+
+    uint32_t size() const;
+
+    bool isComposite() const;
+    bool mustSwap() const;
+
+    void toRawRingItem(CRawRingItem& rawItem) const;
+
     virtual std::string typeName() const;
     virtual std::string toString() const;
 };
 
-  } // end of V11 namespace
+  } // end of V12 namespace
 } // end DAQ
 
 #endif
