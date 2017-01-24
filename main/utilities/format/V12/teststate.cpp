@@ -180,7 +180,7 @@ teststate::torawringitem_0()
   // right type.
 
   V12::CRingStateChangeItem original(V12::BEGIN_RUN, 12, 34, 56, "Testing");
-  V12::CRawRingItem rawBuffer(V12::VOID);
+  V12::CRawRingItem rawBuffer;
 
   original.toRawRingItem(rawBuffer);
 
@@ -550,7 +550,7 @@ void teststate::fromRawBuffer_0()
 void teststate::fromRawBuffer_1()
 {
 
-    V12::CRawRingItem rawItem(V12::VOID);
+    V12::CRawRingItem rawItem;
 
     CPPUNIT_ASSERT_THROW_MESSAGE(
                 "cannot construct from raw buffer with non state change type",

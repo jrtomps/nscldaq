@@ -162,7 +162,8 @@ void texttests::castcons_0()
 {
   // Create a RingItem that is actually a text ring item:
 
-  V12::CRawRingItem ritem(V12::PACKET_TYPES);
+  V12::CRawRingItem ritem;
+  ritem.setType(V12::PACKET_TYPES);
   ritem.setSourceId(123);
   ritem.setEventTimestamp(0x12345654321);
 
@@ -202,7 +203,7 @@ void texttests::castcons_0()
 
 void texttests::castcons_1()
 {
-    V12::CRawRingItem bad(V12::VOID);
+    V12::CRawRingItem bad;
     CPPUNIT_ASSERT_THROW_MESSAGE( "cannot construct from non-text type",
                                   V12::CRingTextItem item(bad),
                                   std::bad_cast );
@@ -431,7 +432,7 @@ void texttests::assign_0()
 
 void texttests::toRawRingItem_0()
 {
-    V12::CRawRingItem empty(V12::VOID);
+    V12::CRawRingItem empty;
     V12::CRingTextItem item(V12::MONITORED_VARIABLES, 12, 34, {"56", "78"}, 1234, 56, 78);
 
     item.toRawRingItem(empty);

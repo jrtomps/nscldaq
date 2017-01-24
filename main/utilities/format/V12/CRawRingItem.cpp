@@ -12,7 +12,7 @@ namespace DAQ {
     CRawRingItem::CRawRingItem(uint32_t type, uint64_t timestamp, uint32_t sourceId, const Buffer::ByteBuffer& body)
         : m_type(type), m_timestamp(timestamp), m_sourceId(sourceId), m_body(body), m_mustSwap(false) {}
 
-    CRawRingItem::CRawRingItem(uint32_t type) : CRawRingItem(type, NULL_TIMESTAMP, 0, {}) {}
+    CRawRingItem::CRawRingItem() : CRawRingItem(VOID, NULL_TIMESTAMP, 0, {}) {}
 
     CRawRingItem::CRawRingItem(const Buffer::ByteBuffer &rawData) {
 
@@ -61,9 +61,10 @@ namespace DAQ {
 
     }
 
-    CRawRingItem::CRawRingItem(const CRawRingItem& rhs)
-      : CRawRingItem(rhs.m_type, rhs.m_timestamp, rhs.m_sourceId, rhs.m_body) 
-    {}
+    CRawRingItem::CRawRingItem(const CRingItem& rhs)
+    {
+        rhs.toRawRingItem(*this);
+    }
 
     CRawRingItem::~CRawRingItem() {}
 

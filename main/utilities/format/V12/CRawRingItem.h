@@ -19,10 +19,10 @@ private:
   bool                m_mustSwap;
 
 public:
-  CRawRingItem(uint32_t type);
-  CRawRingItem(uint32_t type, uint64_t timestamp, uint32_t sourceId, const Buffer::ByteBuffer& body=Buffer::ByteBuffer());
-  CRawRingItem(const Buffer::ByteBuffer& rawData);
-  CRawRingItem(const CRawRingItem& rhs);
+  explicit CRawRingItem();
+  explicit CRawRingItem(uint32_t type, uint64_t timestamp, uint32_t sourceId, const Buffer::ByteBuffer& body=Buffer::ByteBuffer());
+  explicit CRawRingItem(const Buffer::ByteBuffer& rawData);
+  explicit CRawRingItem(const CRingItem& rhs);
   virtual ~CRawRingItem();
 
   CRawRingItem& operator=(const CRawRingItem& rhs);
@@ -59,6 +59,7 @@ public:
   template<class T> std::unique_ptr<T> as() const;
 
 };
+
 
 } // end of V12 namespace
 } // end DAQ

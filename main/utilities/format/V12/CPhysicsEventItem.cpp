@@ -30,7 +30,7 @@ namespace DAQ {
 
 
   CPhysicsEventItem::CPhysicsEventItem() :
-      CRawRingItem(PHYSICS_EVENT) {}
+      CRawRingItem() { setType(PHYSICS_EVENT);}
   
   CPhysicsEventItem::CPhysicsEventItem(
           uint64_t timestamp, uint32_t source, const Buffer::ByteBuffer& body) :

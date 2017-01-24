@@ -37,7 +37,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION(physeventtests);
 
 void physeventtests::ringitemcopy()
 {
-  V12::CRawRingItem item(V12::PHYSICS_EVENT);
+  V12::CRawRingItem item;
+  item.setType(V12::PHYSICS_EVENT);
 
   auto& body = item.getBody();
   for (uint16_t i = 0; i < 10; i++) {
@@ -51,8 +52,8 @@ void physeventtests::ringitemcopy()
 
 void physeventtests::badcast()
 {
-  V12::CRawRingItem myitem(V12::PHYSICS_EVENT_COUNT);
-  EQ (V12::PHYSICS_EVENT_COUNT, myitem.type());
+  V12::CRawRingItem myitem;
+  EQ (V12::VOID, myitem.type());
   
   V12::CPhysicsEventItem newitem;
   CPPUNIT_ASSERT_THROW( newitem = V12::CPhysicsEventItem(myitem), std::bad_cast );

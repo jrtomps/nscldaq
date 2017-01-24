@@ -80,32 +80,32 @@ public:
   }
 
   void simpleCtor_0() {
-        V12::CRawRingItem item(23);
-        EQMSG("type", uint32_t(23), item.type());
+        V12::CRawRingItem item;
+        EQMSG("type", V12::VOID, item.type());
   }
 
   void simpleCtor_1() {
-        V12::CRawRingItem item(23);
+        V12::CRawRingItem item;
         EQMSG("sourceId", uint32_t(0), item.getSourceId());
   }
 
   void simpleCtor_2() {
-        V12::CRawRingItem item(23);
+        V12::CRawRingItem item;
         EQMSG("tstamp", V12::NULL_TIMESTAMP, item.getEventTimestamp());
   }
   void simpleCtor_3() {
-        V12::CRawRingItem item(23);
+        V12::CRawRingItem item;
         EQMSG("body empty", size_t(0), item.getBody().size());
   }
 
   void simpleCtor_4() {
-        V12::CRawRingItem item(23);
+        V12::CRawRingItem item;
         EQMSG("size", uint32_t(20), item.size());
   }
 
   void simpleCtor_5 () {
 
-      V12::CRawRingItem item(23);
+      V12::CRawRingItem item;
       EQMSG("swap", false, item.mustSwap());
 
   }
@@ -301,12 +301,14 @@ public:
 
 
   void isComposite_0() {
-      V12::CRawRingItem item(V12::BEGIN_RUN);
+      V12::CRawRingItem item;
+      item.setType(V12::BEGIN_RUN);
       EQMSG("not composite", false, item.isComposite());
   }
 
   void isComposite_1() {
-      V12::CRawRingItem item(V12::COMP_BEGIN_RUN);
+      V12::CRawRingItem item;
+      item.setType(V12::COMP_BEGIN_RUN);
       EQMSG("composite", true, item.isComposite());
   }
 
@@ -379,7 +381,7 @@ public:
 
   void assign_0() {
       V12::CRawRingItem item(1, 23, 1234, {1,2,3,4,5});
-      V12::CRawRingItem item2(V12::VOID);
+      V12::CRawRingItem item2;
 
       item2 = item;
       CPPUNIT_ASSERT_MESSAGE("assignment", item == item2);

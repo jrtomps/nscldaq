@@ -86,7 +86,7 @@ void
 GlomItemTests::structure_0()
 {
     CGlomParameters item(1234, true, CGlomParameters::average);
-    CRawRingItem raw(VOID);
+    CRawRingItem raw;
 
     item.toRawRingItem(raw);
     
@@ -116,7 +116,7 @@ void
 GlomItemTests::structure_1()
 {
     CGlomParameters item(1234, true, CGlomParameters::average);
-    CRawRingItem raw(VOID);
+    CRawRingItem raw;
 
     raw.getBody() << 234; // load the body with some info
 
@@ -181,7 +181,8 @@ void GlomItemTests::comparison_5()
 
 void GlomItemTests::constructFromRaw_0()
 {
-    CRawRingItem raw(EVB_GLOM_INFO);
+    CRawRingItem raw;
+    raw.setType(EVB_GLOM_INFO);
     raw.setSourceId(3);
     raw.setEventTimestamp(2335252);
     auto& body = raw.getBody();
@@ -202,7 +203,7 @@ void GlomItemTests::constructFromRaw_0()
 
 void GlomItemTests::constructFromRaw_1()
 {
-    CRawRingItem raw(VOID);
+    CRawRingItem raw;
 
     CPPUNIT_ASSERT_THROW_MESSAGE("glom parameters must construct from EVB_GLOM_INFO type",
                                  CGlomParameters params(raw),
@@ -212,7 +213,8 @@ void GlomItemTests::constructFromRaw_1()
 
 void GlomItemTests::constructFromRaw_2()
 {
-    CRawRingItem raw(EVB_GLOM_INFO);
+    CRawRingItem raw;
+    raw.setType(EVB_GLOM_INFO);
     raw.setSourceId(3);
     raw.setEventTimestamp(2335252);
     auto& body = raw.getBody();

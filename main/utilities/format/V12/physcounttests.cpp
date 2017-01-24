@@ -124,7 +124,8 @@ void physcounttests::fullcons()
 void physcounttests::castcons_0()
 {
 
-    V12::CRawRingItem item(V12::PHYSICS_EVENT_COUNT);
+    V12::CRawRingItem item;
+    item.setType(V12::PHYSICS_EVENT_COUNT);
     item.setSourceId(12);
     item.setEventTimestamp(134);
 
@@ -139,7 +140,8 @@ void physcounttests::castcons_0()
 void physcounttests::castcons_1()
 {
 
-    V12::CRawRingItem item(V12::PHYSICS_EVENT_COUNT);
+    V12::CRawRingItem item;
+    item.setType(V12::PHYSICS_EVENT_COUNT);
     item.setSourceId(12);
     item.setEventTimestamp(134);
 
@@ -161,7 +163,7 @@ void physcounttests::castcons_1()
 void physcounttests::castcons_2()
 {
 
-    V12::CRawRingItem item(V12::VOID);
+    V12::CRawRingItem item;
     item.setSourceId(12);
     item.setEventTimestamp(134);
 
@@ -323,7 +325,7 @@ physcounttests::fractionalTime()
 
 void physcounttests::toRawRingItem_0()
 {
-    V12::CRawRingItem raw(V12::VOID);
+    V12::CRawRingItem raw;
     V12::CRingPhysicsEventCountItem item(0x11223344ll, 1, 54321, 100, 33, 3);
 
     item.toRawRingItem(raw);
@@ -347,7 +349,7 @@ void physcounttests::toRawRingItem_0()
 
 void physcounttests::toRawRingItem_1()
 {
-    V12::CRawRingItem raw(V12::VOID);
+    V12::CRawRingItem raw;
 
     // insert some prior data into the body of the raw ring item...
     // make sure that if this happens, it does not break anything.

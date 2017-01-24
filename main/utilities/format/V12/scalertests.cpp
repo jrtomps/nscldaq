@@ -133,7 +133,7 @@ void scltests::castcons_0()
     time_t now = time(NULL);
     CRingScalerItem s(1, 2, now, scalerValues, false, 2, 43);
 
-    CRawRingItem item(VOID);
+    CRawRingItem item;
     s.toRawRingItem(item);
 
     EQMSG("type",PERIODIC_SCALERS, s.type());
