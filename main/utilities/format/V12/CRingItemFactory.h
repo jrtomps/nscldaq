@@ -15,13 +15,17 @@
 */
 
 
-#ifndef DAQ_V11_CRINGITEMFACTORY_H
-#define DAQ_V11_CRINGITEMFACTORY_H
+#ifndef DAQ_V12_CRINGITEMFACTORY_H
+#define DAQ_V12_CRINGITEMFACTORY_H
+
+#include <memory>
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
+struct _RingItem;
 class CRingItem;
+class CRawRingItem;
 
 /**
  * This class is a factory for the correct type of ring item.
@@ -33,11 +37,10 @@ class CRingItem;
 class CRingItemFactory
 {
 public:
-  static CRingItem* createRingItem(const CRingItem& item);
-  static CRingItem* createRingItem(const void*     pItem);
-  static bool   isKnownItemType(const void* pItem);
+  static std::unique_ptr<CRingItem> createRingItem(const CRawRingItem& item);
+  static bool   isKnownItemType(const uint32_t type);
 };
 
-} // end of V11 namespace
+} // end of V12 namespace
 } // end DAQ
 #endif

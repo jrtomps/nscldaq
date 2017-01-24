@@ -15,20 +15,16 @@
 */
 
 
-#include "V11/CRingItemFactory.h"
-#include "V11/CRingItem.h"
-#include "V11/CPhysicsEventItem.h"
-#include "V11/CRingFragmentItem.h"
-#include "V11/CRingPhysicsEventCountItem.h"
-#include "V11/CRingScalerItem.h"
-#include "V11/CRingStateChangeItem.h"
-#include "V11/CRingTextItem.h"
-#include "V11/CPhysicsEventItem.h"
-#include "V11/CDataFormatItem.h"
-#include "V11/CUnknownFragment.h"
-#include "V11/CGlomParameters.h"
-#include "V11/CAbnormalEndItem.h"
-#include "V11/DataFormatV11.h"
+#include "V12/CRingItemFactory.h"
+#include "V12/CRingItem.h"
+#include "V12/CPhysicsEventItem.h"
+#include "V12/CRingPhysicsEventCountItem.h"
+#include "V12/CRingScalerItem.h"
+#include "V12/CRingStateChangeItem.h"
+#include "V12/CRingTextItem.h"
+#include "V12/CPhysicsEventItem.h"
+#include "V12/CGlomParameters.h"
+#include "V12/DataFormat.h"
 
 #include <vector>
 #include <string>
@@ -36,7 +32,7 @@
 #include <set>
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
 static std::set<uint32_t> knownItemTypes;
 
@@ -52,10 +48,10 @@ static std::set<uint32_t> knownItemTypes;
  *         ring item type is not recognized, a true CRing Item is produced.
  *
  */
-CRingItem*
-CRingItemFactory::createRingItem(const CRingItem& item)
+std::unique_ptr<CRingItem>
+CRingItemFactory::createRingItem(const CRawRingItem& item)
 {
-  CRingItem& Item (const_cast<CRingItem&>(item)); // We'll need this here&there
+
   switch (item.type()) {
     // State change:
 
@@ -64,7 +60,7 @@ CRingItemFactory::createRingItem(const CRingItem& item)
   case PAUSE_RUN:
   case RESUME_RUN:
     {
-      return new CRingStateChangeItem(item);
+      return item.as<CRingStateChangeItem>();
     }
 
     // String list.
@@ -72,113 +68,58 @@ CRingItemFactory::createRingItem(const CRingItem& item)
   case PACKET_TYPES:
   case MONITORED_VARIABLES:
     {
-      return new CRingTextItem(item);
+      return item.as<CRingTextItem>();
     }
     // Scalers:
 
   case PERIODIC_SCALERS:
     {
-      return new CRingScalerItem(item); 
+      return item.as<CRingScalerItem>();
     }
 
     // Physics trigger:
 
   case PHYSICS_EVENT:
     {
-      CPhysicsEventItem* pItem;
-      if(item.hasBodyHeader()) {
-        pItem = new CPhysicsEventItem(
-            item.getEventTimestamp(), item.getSourceId(), item.getBarrierType(),
-            item.getStorageSize()
-        );
-      } else {
-        pItem = new CPhysicsEventItem(item.getStorageSize());
-      }
-      uint8_t* pDest = reinterpret_cast<uint8_t*>(pItem->getBodyCursor());
-      memcpy(pDest, 
-	     const_cast<CRingItem&>(item).getBodyPointer(), item.getBodySize());
-      pDest += item.getBodySize();
-      pItem->setBodyCursor(pDest);
-      pItem->updateSize();
-      return pItem;
-    }
+      return item.as<CPhysicsEventItem>();
+  }
     // trigger count.
 
   case PHYSICS_EVENT_COUNT:
     {
-      return new CRingPhysicsEventCountItem(item);
-      break;
+      return item.as<CRingPhysicsEventCountItem>();
     }
-  // /Event builder fragment.
-  case EVB_FRAGMENT:
-    {
-      return new CRingFragmentItem(item);
-    }
-  case RING_FORMAT:
-    return new CDataFormatItem(item);
-  case EVB_UNKNOWN_PAYLOAD:
-    return new CUnknownFragment(item);
+//  case RING_FORMAT:
+//    return new CDataFormatItem(item);
+//  case EVB_UNKNOWN_PAYLOAD:
+//    return new CUnknownFragment(item);
   case EVB_GLOM_INFO:
-    return new CGlomParameters(item);
+    return item.as<CGlomParameters>();
     break;
 
-  case ABNORMAL_ENDRUN:
-    return new CAbnormalEndItem(item);
-    break;
+//  case ABNORMAL_ENDRUN:
+//    return new CAbnormalEndItem(item);
+//    break;
     
    // Nothing we know about:
 
   default:
-    return new CRingItem(item);
+      return item.as<CRawRingItem>();
   }
 }
-/**
- *  createRingItem
- *
- *  Create a ring item object given a pointer that is believed to point to a 
- *  ring item structure (pRingItem).
- *
- * @param pItem - Pointer to the pRingItem.
- *
- * @return CRingItem* - dynamically allocated with the underlying type matching that
- *                      of s_header.s_type.
- * @throw std::string if the type does not match a known ring item type.
- */
-CRingItem*
-CRingItemFactory::createRingItem(const void* pItem)
-{
-  if (!isKnownItemType(pItem)) {
-    throw std::string("CRingItemFactory::createRingItem - unknown ring item type");
-  }
-  /* Make a 'vanilla' CRing item that we can pass into the other creator */
 
-  const RingItem* pRitem = reinterpret_cast<const RingItem*>(pItem);
-  CRingItem baseItem(pRitem->s_header.s_type, pRitem->s_header.s_size);
-  uint8_t*  pBody  = reinterpret_cast<uint8_t*>(baseItem.getItemPointer());
-  memcpy(pBody, pRitem, pRitem->s_header.s_size);
-  pBody += pRitem->s_header.s_size;
-  baseItem.setBodyCursor(pBody);
-  baseItem.updateSize();
-
-  return createRingItem(baseItem);
-}
 /**
  * Determines if a  pointer points to something that might be a valid ring item.
  * - Item must have at least the size of a header.
  * - Item must be a recognized ring item.
  *
  * @param pItem - pointer to the data.
- * 
+ *
  * @return bool - true if we htink this is a valid ring item.
  */
 bool
-CRingItemFactory::isKnownItemType(const void* pItem)
+CRingItemFactory::isKnownItemType(const uint32_t type)
 {
-
-  const RingItem* p = reinterpret_cast<const RingItem*>(pItem);
-  if (itemSize(p) < sizeof(RingItemHeader)) {
-    return false;
-  }
 
   // if necessary stock the set of known item types:
 
@@ -195,16 +136,14 @@ CRingItemFactory::isKnownItemType(const void* pItem)
     knownItemTypes.insert(PERIODIC_SCALERS);
     knownItemTypes.insert(PHYSICS_EVENT);
     knownItemTypes.insert(PHYSICS_EVENT_COUNT);
-    knownItemTypes.insert(EVB_FRAGMENT);
-    knownItemTypes.insert(EVB_UNKNOWN_PAYLOAD);
+
     knownItemTypes.insert(EVB_GLOM_INFO);
     
     knownItemTypes.insert(ABNORMAL_ENDRUN);
   }
 
-  return knownItemTypes.count(itemType(p)) > 0;
-
+  return knownItemTypes.count(type) > 0;
 }
 
-  } // end of V11 namespace
+  } // end of V12 namespace
 } // end DAQ
