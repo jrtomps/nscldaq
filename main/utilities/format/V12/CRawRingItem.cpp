@@ -10,7 +10,7 @@ namespace DAQ {
 
 
     CRawRingItem::CRawRingItem(uint32_t type, uint64_t timestamp, uint32_t sourceId, const Buffer::ByteBuffer& body)
-        : m_type(type), m_timestamp(timestamp), m_sourceId(sourceId), m_body(body), m_mustSwap(false) {}
+        : CProductionRingItem(timestamp, sourceId), m_type(type), m_body(body), m_mustSwap(false) {}
 
     CRawRingItem::CRawRingItem() : CRawRingItem(VOID, NULL_TIMESTAMP, 0, {}) {}
 
@@ -43,13 +43,13 @@ namespace DAQ {
             BO::CByteSwapper swapper(true);
             size = swapper.copyAs<uint32_t>(rawSize.s_bytes);
             m_type = swapper.copyAs<uint32_t>(rawType.s_bytes);
-            m_timestamp = swapper.copyAs<uint64_t>(rawTstamp.s_bytes);
-            m_sourceId = swapper.copyAs<uint32_t>(rawSourceId.s_bytes);
+            setEventTimestamp(swapper.copyAs<uint64_t>(rawTstamp.s_bytes));
+            setSourceId(swapper.copyAs<uint32_t>(rawSourceId.s_bytes));
         } else {
             size = rawSize.s_value;
             m_type = rawType.s_value;
-            m_timestamp = rawTstamp.s_value;
-            m_sourceId = rawSourceId.s_value;
+            setEventTimestamp(rawTstamp.s_value);
+            setSourceId(rawSourceId.s_value);
         }
 
         if (rawData.size() < size) {
@@ -71,20 +71,19 @@ namespace DAQ {
     CRawRingItem& CRawRingItem::operator=(const CRawRingItem& rhs)
     {
         if (&rhs != this) {
-            m_timestamp = rhs.m_timestamp;
             m_type      = rhs.m_type;
-            m_sourceId  = rhs.m_sourceId;
             m_body      = rhs.m_body;
             m_mustSwap  = rhs.m_mustSwap;
+            CProductionRingItem::operator=(rhs);
         }
 
         return *this;
     }
 
     int CRawRingItem::operator==(const CRawRingItem& rhs) const {
-      if (m_timestamp != rhs.m_timestamp) return 0;
       if (m_type != rhs.m_type) return 0;
-      if (m_sourceId != rhs.m_sourceId) return 0;
+      if (getSourceId() != rhs.getSourceId()) return 0;
+      if (getEventTimestamp() != rhs.getEventTimestamp()) return 0;
       if (m_body != rhs.m_body) return 0;
       if (m_mustSwap != rhs.m_mustSwap) return 0;
 
@@ -100,13 +99,6 @@ namespace DAQ {
 
     uint32_t CRawRingItem::type() const { return m_type; }
     void CRawRingItem::setType(uint32_t type) { m_type = type; }
-
-
-    uint64_t CRawRingItem::getEventTimestamp() const { return m_timestamp; }
-    void CRawRingItem::setEventTimestamp(uint64_t tstamp) { m_timestamp = tstamp; }
-
-    uint32_t CRawRingItem::getSourceId() const { return m_sourceId; }
-    void CRawRingItem::setSourceId(uint32_t id) { m_sourceId = id; }
 
     bool   CRawRingItem::isComposite() const {
       return ((m_type & 0x8000)==0x8000);

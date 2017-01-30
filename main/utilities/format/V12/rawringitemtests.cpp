@@ -58,6 +58,15 @@ class CRawRingItemTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(constructFromSwappedBuffer_3);
   CPPUNIT_TEST(constructFromSwappedBuffer_4);
   CPPUNIT_TEST(constructFromSwappedBuffer_5);
+  CPPUNIT_TEST(constructFromCompositeBuffer_0);
+  CPPUNIT_TEST(constructFromCompositeBuffer_1);
+  CPPUNIT_TEST(constructFromCompositeBuffer_2);
+  CPPUNIT_TEST(constructFromCompositeBuffer_3);
+  CPPUNIT_TEST(constructFromCompositeBuffer_4);
+  CPPUNIT_TEST(constructFromCompositeBuffer_5);
+  CPPUNIT_TEST(constructFromCompositeBuffer_6);
+  CPPUNIT_TEST(constructFromCompositeBuffer_7);
+  CPPUNIT_TEST(constructFromCompositeBuffer_8);
   CPPUNIT_TEST(isComposite_0);
   CPPUNIT_TEST(isComposite_1);
   CPPUNIT_TEST(toString_0);
@@ -239,6 +248,81 @@ public:
 
   }
 
+  Buffer::ByteBuffer generateRawCompositeData() {
+      uint32_t type = 1234;
+      uint64_t tstamp = 0x56781234;
+      uint32_t id = 345;
+      Buffer::ByteBuffer body = {9};
+
+      Buffer::ByteBuffer buffer;
+      buffer << uint32_t(41);
+      buffer << uint32_t(type | 0x8000);
+      buffer << tstamp;
+      buffer << id;
+      buffer << uint32_t(21);
+      buffer << type;
+      buffer << tstamp;
+      buffer << id;
+      buffer << body;
+
+      return buffer;
+  }
+
+  void constructFromCompositeBuffer_0() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    EQMSG("type",  uint32_t(0x8000 | 1234), item.type());
+  }
+
+  void constructFromCompositeBuffer_1() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    EQMSG("size",  uint32_t(41), item.size());
+  }
+
+  void constructFromCompositeBuffer_2() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    EQMSG("tstamp",  uint64_t(0x56781234), item.getEventTimestamp());
+  }
+
+  void constructFromCompositeBuffer_3() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    EQMSG("id",  uint32_t(345), item.getSourceId());
+  }
+
+  void constructFromCompositeBuffer_4() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    EQMSG("child size",  size_t(1), item.getChildren().size());
+  }
+
+  void constructFromCompositeBuffer_5() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    V12::CRingItem& child = *item.getChildren().at(0);
+    EQMSG("child type",  uint32_t(1234), child.type());
+  }
+
+  void constructFromCompositeBuffer_6() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    V12::CRingItemPtr child = item.getChildren().at(0);
+    EQMSG("child size",  uint32_t(21), child->size());
+  }
+
+  void constructFromCompositeBuffer_7() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    V12::CRingItemPtr child = item.getChildren().at(0);
+    EQMSG("child tstamp",  uint64_t(0x56781234), child->getEventTimestamp());
+  }
+
+  void constructFromCompositeBuffer_8() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    V12::CRingItemPtr child = item.getChildren().at(0);
+    EQMSG("child id",  uint32_t(345), child->getSourceId());
+  }
+
+  void constructFromCompositeBuffer_9() {
+    V12::CRawRingItem item(generateRawCompositeData());
+    V12::CRingItemPtr child = item.getChildren().at(0);
+    V12::CRawRingItem& rawChild = dynamic_cast<V12::CRawRingItem&>(*child);
+    EQMSG("child body",  Buffer::ByteBuffer({9}), rawChild.getBody());
+  }
 
   Buffer::ByteBuffer generateSwappedRawData() {
       uint32_t type = 0x34120000;

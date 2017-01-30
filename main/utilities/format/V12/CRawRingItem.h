@@ -9,12 +9,10 @@
 namespace DAQ {
 namespace V12 {
 
-class CRawRingItem : public CRingItem {
+class CRawRingItem : public CProductionRingItem {
 
 private:
   uint32_t            m_type;
-  uint32_t            m_sourceId;
-  uint64_t            m_timestamp;
   Buffer::ByteBuffer  m_body;
   bool                m_mustSwap;
 
@@ -34,12 +32,6 @@ public:
 
   virtual uint32_t type() const;
   virtual void setType(uint32_t type);
-
-  virtual uint64_t getEventTimestamp() const;
-  virtual void     setEventTimestamp(uint64_t tstamp);
-
-  virtual uint32_t getSourceId() const;
-  virtual void     setSourceId(uint32_t id);
 
   virtual bool     isComposite() const;
   virtual bool     mustSwap() const;

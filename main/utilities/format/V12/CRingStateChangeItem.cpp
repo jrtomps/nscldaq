@@ -88,9 +88,8 @@ CRingStateChangeItem::CRingStateChangeItem(
         uint64_t eventTimestamp, uint32_t sourceId, uint16_t reason,
         uint32_t runNumber, uint32_t timeOffset, time_t   timestamp,
         std::string title, uint32_t offsetDivisor)
-    : m_type(reason),
-      m_evtTimestamp(eventTimestamp),
-      m_sourceId(sourceId),
+    : CProductionRingItem(eventTimestamp, sourceId),
+      m_type(reason),
       m_runNumber(runNumber),
       m_timeOffset(timeOffset),
       m_timestamp(timestamp),
@@ -117,8 +116,8 @@ CRingStateChangeItem::CRingStateChangeItem(const CRawRingItem& rhs)
   }
 
   m_type = rhs.type();
-  m_sourceId     = rhs.getSourceId();
-  m_evtTimestamp = rhs.getEventTimestamp();
+  setSourceId(rhs.getSourceId());
+  setEventTimestamp(rhs.getEventTimestamp());
 
   Buffer::Deserializer<Buffer::ByteBuffer> rhsBody(rhs.getBody(), rhs.mustSwap());
 
@@ -157,8 +156,8 @@ int
 CRingStateChangeItem::operator==(const CRingStateChangeItem& rhs) const
 {
   if (m_type != rhs.type()) return 0;
-  if (m_evtTimestamp != rhs.getEventTimestamp()) return 0;
-  if (m_sourceId != rhs.getSourceId()) return 0;
+  if (getEventTimestamp() != rhs.getEventTimestamp()) return 0;
+  if (getSourceId() != rhs.getSourceId()) return 0;
   if (m_runNumber != rhs.getRunNumber()) return 0;
   if (m_timeOffset != rhs.getElapsedTime()) return 0;
   if (m_timestamp != rhs.getTimestamp()) return 0;
@@ -195,27 +194,6 @@ uint32_t CRingStateChangeItem::size() const
 {
     return 20 + 20 + m_title.size();
 }
-
-uint64_t CRingStateChangeItem::getEventTimestamp() const
-{
-    return m_evtTimestamp;
-}
-
-void CRingStateChangeItem::setEventTimestamp(uint64_t tstamp)
-{
-    m_evtTimestamp = tstamp;
-}
-
-uint32_t CRingStateChangeItem::getSourceId() const
-{
-    return m_sourceId;
-}
-
-void CRingStateChangeItem::setSourceId(uint32_t id)
-{
-    m_sourceId = id;
-}
-
 
 bool CRingStateChangeItem::isComposite() const
 {

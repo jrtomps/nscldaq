@@ -19,14 +19,19 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
+#include <vector>
 
 namespace DAQ {
     namespace V12 {
 
+    // Some type defs:
+    class CRingItem;
+    using CRingItemPtr = std::shared_ptr<CRingItem>;
+
     class CRawRingItem;
 
     class CRingItem {
-
       public:
         virtual uint32_t type() const = 0;
         virtual void setType(uint32_t type) = 0;
@@ -47,9 +52,48 @@ namespace DAQ {
         virtual std::string toString() const = 0;
 
         virtual void toRawRingItem(CRawRingItem& item) const = 0;
+
+        virtual const std::vector<CRingItemPtr>& getChildren() const;
+        virtual std::vector<CRingItemPtr>& getChildren();
     };
 
     std::string headerToString(const CRingItem& item);
+
+
+    class CProductionRingItem : public CRingItem {
+    private:
+        uint64_t m_evtTimestamp;
+        uint32_t m_sourceId;
+        std::vector<CRingItemPtr> m_children;
+
+    public:
+        CProductionRingItem();
+        CProductionRingItem(uint64_t tstamp, uint32_t sourceid, const std::vector<CRingItemPtr>& children={});
+        CProductionRingItem& operator=(const CProductionRingItem& rhs);
+        virtual uint32_t type() const = 0;
+        virtual void setType(uint32_t type) = 0;
+
+        virtual uint32_t size() const = 0;
+
+        virtual uint64_t getEventTimestamp() const;
+        virtual void setEventTimestamp(uint64_t tstamp);
+
+        virtual uint32_t getSourceId() const;
+        virtual void setSourceId(uint32_t id);
+
+        virtual bool     isComposite() const = 0;
+
+        virtual bool     mustSwap() const = 0;
+
+        virtual std::string typeName() const = 0;
+        virtual std::string toString() const = 0;
+
+        virtual void toRawRingItem(CRawRingItem& item) const = 0;
+
+        virtual const std::vector<CRingItemPtr>& getChildren() const;
+        virtual std::vector<CRingItemPtr>& getChildren();
+
+    };
 
 } // end of V12 namespace
 } // end DAQ

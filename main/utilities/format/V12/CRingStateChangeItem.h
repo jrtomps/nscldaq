@@ -42,12 +42,10 @@ namespace DAQ {
 
 
 */
-class CRingStateChangeItem : public CRingItem
+class CRingStateChangeItem : public CProductionRingItem
 {
 private:
     uint32_t    m_type;
-    uint64_t    m_evtTimestamp;
-    uint32_t    m_sourceId;
     uint32_t    m_runNumber;
     uint32_t    m_timeOffset;
     time_t      m_timestamp;
