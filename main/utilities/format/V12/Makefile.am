@@ -34,7 +34,8 @@ nscldaq12_HEADERS = CRingItem.h \
                     CRingPhysicsEventCountItem.h \
                     CGlomParameters.h \
                     CRingItemFactory.h \
-                    CAbnormalEndItem.h
+                    CAbnormalEndItem.h \
+                    CCompoundRingItem.h
 
 #                  CAbnormalEndItem.h \
 #                  CPhysicsEventItem.h \
