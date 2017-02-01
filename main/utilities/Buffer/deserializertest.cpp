@@ -151,6 +151,10 @@ public:
                                  true, stream.eof());
   }
 
+  void peek_0 () {
+
+  }
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(deserializertest);

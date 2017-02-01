@@ -81,18 +81,22 @@ namespace DAQ {
         return *this;
     }
 
-    int CRawRingItem::operator==(const CRawRingItem& rhs) const {
-      if (m_timestamp != rhs.m_timestamp) return 0;
-      if (m_type != rhs.m_type) return 0;
-      if (m_sourceId != rhs.m_sourceId) return 0;
-      if (m_body != rhs.m_body) return 0;
-      if (m_mustSwap != rhs.m_mustSwap) return 0;
+    bool CRawRingItem::operator==(const CRingItem& rhs) const {
 
-      return 1;
+      if (m_timestamp != rhs.getEventTimestamp()) return false;
+      if (m_type != rhs.type()) return false;
+      if (m_sourceId != rhs.getSourceId()) return false;
+      if (m_mustSwap != rhs.mustSwap()) return false;
+
+      const CRawRingItem* pRawItem = dynamic_cast<const CRawRingItem*>(&rhs);
+      if (!pRawItem) return false;
+      if (m_body != pRawItem->getBody()) return false;
+
+      return true;
     }
 
-    int CRawRingItem::operator!=(const CRawRingItem& rhs) const {
-      return ( *this == rhs ? 0 : 1 );  
+    bool CRawRingItem::operator!=(const CRingItem& rhs) const {
+      return !( *this == rhs );
     }
 
     // Virtual methods that all ring items must provide:

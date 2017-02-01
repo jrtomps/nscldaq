@@ -7,7 +7,8 @@ libbuffer_la_SOURCES =  ByteBuffer.cpp \
 include_HEADERS = ByteBuffer.h \
                   ByteOrder.h \
                   BufferPtr.h \
-                  Deserializer.h
+                  Deserializer.h \
+                  Deserializer2.h
 
 
 libbuffer_la_CXXFLAGS = -I@srcdir@ \

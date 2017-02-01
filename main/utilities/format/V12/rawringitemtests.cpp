@@ -71,6 +71,12 @@ class CRawRingItemTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(assign_0);
   CPPUNIT_TEST(as_0);
   CPPUNIT_TEST(as_1);
+  CPPUNIT_TEST(fromRawRange_0);
+  CPPUNIT_TEST(fromRawRange_1);
+  CPPUNIT_TEST(fromRawRange_2);
+  CPPUNIT_TEST(fromRawRange_3);
+  CPPUNIT_TEST(fromRawRange_4);
+  CPPUNIT_TEST(fromRawRange_5);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -404,6 +410,55 @@ public:
 
   }
 
+  void fromRawRange_0 () {
+
+      auto buffer = generateRawData();
+      V12::CRawRingItem item(buffer.begin(), buffer.end());
+      EQMSG("type", uint32_t(1234), item.type());
+
+  }
+
+  void fromRawRange_1 () {
+      auto buffer = generateRawData();
+      V12::CRawRingItem item(buffer.begin(), buffer.end());
+      EQMSG("source id", uint32_t(345), item.getSourceId());
+
+  }
+
+  void fromRawRange_2 () {
+
+      auto buffer = generateRawData();
+
+      V12::CRawRingItem item(buffer.begin(), buffer.end());
+      EQMSG("size", uint32_t(21), item.size());
+
+  }
+
+  void fromRawRange_3 () {
+
+      auto buffer = generateRawData();
+
+      V12::CRawRingItem item(buffer.begin(), buffer.end());
+      EQMSG("body", Buffer::ByteBuffer({9}), item.getBody());
+
+  }
+
+  void fromRawRange_4 () {
+
+      auto buffer = generateRawData();
+
+      V12::CRawRingItem item(buffer.begin(), buffer.end());
+      EQMSG("swap", false, item.mustSwap());
+
+  }
+  void fromRawRange_5 () {
+
+      auto buffer = generateRawData();
+
+      V12::CRawRingItem item(buffer.begin(), buffer.end());
+      EQMSG("tstamp", uint64_t(0x56781234), item.getEventTimestamp());
+
+  }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CRawRingItemTests);

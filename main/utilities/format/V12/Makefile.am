@@ -9,7 +9,9 @@ libdataformatv12_la_SOURCES = CRingItem.cpp \
                               CRingPhysicsEventCountItem.cpp \
                               CGlomParameters.cpp \
                               CRingItemFactory.cpp \
-                              CAbnormalEndItem.cpp
+                              CAbnormalEndItem.cpp \
+                              CCompoundRingItem.cpp \
+                              CRingItemParser.cpp
 
 #                           CAbnormalEndItem.cpp \
 #                           CRingStateChangeItem.cpp \
@@ -35,7 +37,8 @@ nscldaq12_HEADERS = CRingItem.h \
                     CGlomParameters.h \
                     CRingItemFactory.h \
                     CAbnormalEndItem.h \
-                    CCompoundRingItem.h
+                    CCompoundRingItem.h \
+                    CRingItemParser.h
 
 #                  CAbnormalEndItem.h \
 #                  CPhysicsEventItem.h \
@@ -68,7 +71,9 @@ unittests_SOURCES	= TestRunner.cpp \
                         physcounttests.cpp \
                         glomparamtests.cpp \
                         factorytests.cpp \
-                        abnormalendtests.cpp
+                        abnormalendtests.cpp \
+                        compounditemtests.cpp \
+                        ringparsertests.cpp
 
 
 #				ringitemtests.cpp \

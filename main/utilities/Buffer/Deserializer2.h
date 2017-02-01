@@ -1,5 +1,5 @@
-#ifndef DESERIALIZER_H
-#define DESERIALIZER_H
+#ifndef DESERIALIZER2_H
+#define DESERIALIZER2_H
 
 #include <ByteOrder.h>
 
@@ -7,15 +7,16 @@
 #include <iostream>
 #include <iomanip>
 #include <iterator>
+
 using namespace std;
 
 namespace DAQ {
   namespace Buffer {
 
-    template<class Container> class Deserializer
+    template<class Iterator> class Deserializer2
     {
 
-      typedef typename Container::const_iterator iterator;
+      typedef Iterator iterator;
       iterator m_get;
       iterator m_beg;
       iterator m_end;
@@ -27,17 +28,8 @@ namespace DAQ {
       BO::CByteSwapper m_swapper; // whether bytes need to be swapped
 
     public:
-      Deserializer(const Container& container, bool mustSwap=false)
-        : m_get(container.begin()),
-        m_beg(container.begin()),
-        m_end(container.end()),
-        m_fail(false),
-        m_eof(false),
-        m_bad(false),
-        m_swapper(mustSwap)
-      {}
 
-      Deserializer(iterator beg, iterator end, bool mustSwap=false)
+      Deserializer2(iterator beg, iterator end, bool mustSwap=false)
           : m_get(beg),
             m_beg(beg),
             m_end(end),
@@ -49,6 +41,9 @@ namespace DAQ {
 
       iterator pos() { return m_get; }
       void setPosition(iterator pos) { m_get = pos; }
+
+      iterator begin() { return m_beg; }
+      iterator end() { return m_end; }
 
       template<typename T>
       void extract(T& type) {
@@ -95,6 +90,24 @@ namespace DAQ {
 
       };
 
+      template<typename T>
+      T peek() {
+
+          T type;
+
+          auto end = m_get + sizeof(type);
+
+          // do not allow to go past the end
+          if (end > m_end) {
+            m_eof = true;
+            m_fail = true;
+          } else {
+            m_swapper.interpretAs<T>(m_get, type);
+          }
+
+          return type;
+      }
+
       void clear() {
         m_fail = false;
         m_eof = false;
@@ -113,8 +126,8 @@ namespace DAQ {
 
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint8_t& val) {
+DAQ::Buffer::Deserializer2<Container>&
+operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint8_t& val) {
 
   device.extract(val);
 
@@ -122,8 +135,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint8_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int8_t& val) {
+DAQ::Buffer::Deserializer2<Container>&
+operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int8_t& val) {
 
   device.extract(val);
 
@@ -131,8 +144,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int8_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint16_t& val) {
+DAQ::Buffer::Deserializer2<Container>&
+operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint16_t& val) {
 
   device.extract(val);
 
@@ -140,8 +153,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint16_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int16_t& val) {
+DAQ::Buffer::Deserializer2<Container>&
+operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int16_t& val) {
 
   device.extract(val);
 
@@ -149,8 +162,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int16_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint32_t& val) {
+DAQ::Buffer::Deserializer2<Container>&
+operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint32_t& val) {
 
   device.extract(val);
 
@@ -158,8 +171,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint32_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int32_t& val) {
+DAQ::Buffer::Deserializer2<Container>&
+operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int32_t& val) {
 
   device.extract(val);
 
@@ -167,8 +180,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int32_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint64_t& val) {
+DAQ::Buffer::Deserializer2<Container>&
+operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint64_t& val) {
 
   device.extract(val);
 
@@ -176,12 +189,12 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint64_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int64_t& val) {
+DAQ::Buffer::Deserializer2<Container>&
+operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int64_t& val) {
 
   device.extract(val);
 
   return device;
 }
 
-#endif // IOADAPTER_H
+#endif // DESERIALIZER2_H
