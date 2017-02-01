@@ -83,6 +83,10 @@ CFileDataSinkTest::CFileDataSinkTest()
 
 void CFileDataSinkTest::setUp()
 {
+
+    unlink("./dummy");
+    unlink("./testOutFile0.bin");
+
     // create a ring item and fill it
     m_item = CPhysicsEventItem();    
     uint16_t* pCursor = reinterpret_cast<uint16_t*>(m_item.getBodyCursor());

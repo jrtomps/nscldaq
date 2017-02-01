@@ -27,6 +27,8 @@ class CRingItemParserTests : public CppUnit::TestFixture
     CPPUNIT_TEST_SUITE(CRingItemParserTests);
     CPPUNIT_TEST(parse_0);
     CPPUNIT_TEST(parse_1);
+    CPPUNIT_TEST(parse_2);
+    CPPUNIT_TEST(parse_3);
     CPPUNIT_TEST(parseSwapped_0);
     CPPUNIT_TEST(peekHeader_0);
     CPPUNIT_TEST_SUITE_END();
@@ -53,15 +55,15 @@ protected:
     EQMSG("tstamp", uint64_t(12), pItem->getEventTimestamp());
     EQMSG("source id", uint32_t(23), pItem->getSourceId());
 
-    CCompoundRingItem& compound0 = dynamic_cast<CCompoundRingItem&>(*pItem);
+    CCompositeRingItem& Composite0 = dynamic_cast<CCompositeRingItem&>(*pItem);
 
-    EQMSG("n children", size_t(1), compound0.getChildren().size());
-    EQMSG("child size", uint32_t(21), compound0.getChildren()[0]->size());
-    EQMSG("child type", PHYSICS_EVENT, compound0.getChildren()[0]->type());
-    EQMSG("child evt tstamp", uint64_t(12), compound0.getChildren()[0]->getEventTimestamp());
-    EQMSG("child source id", uint32_t(23), compound0.getChildren()[0]->getSourceId());
+    EQMSG("n children", size_t(1), Composite0.getChildren().size());
+    EQMSG("child size", uint32_t(21), Composite0.getChildren()[0]->size());
+    EQMSG("child type", PHYSICS_EVENT, Composite0.getChildren()[0]->type());
+    EQMSG("child evt tstamp", uint64_t(12), Composite0.getChildren()[0]->getEventTimestamp());
+    EQMSG("child source id", uint32_t(23), Composite0.getChildren()[0]->getSourceId());
 
-    auto& physEvent = dynamic_cast<CPhysicsEventItem&>(*compound0.getChildren()[0]);
+    auto& physEvent = dynamic_cast<CPhysicsEventItem&>(*Composite0.getChildren()[0]);
     CPPUNIT_ASSERT_MESSAGE("child body", Buffer::ByteBuffer({1}) == physEvent.getBody());
   }
 
@@ -82,20 +84,46 @@ protected:
       EQMSG("tstamp", uint64_t(12), pItem->getEventTimestamp());
       EQMSG("source id", uint32_t(23), pItem->getSourceId());
 
-      CCompoundRingItem& compound0 = dynamic_cast<CCompoundRingItem&>(*pItem);
+      CCompositeRingItem& Composite0 = dynamic_cast<CCompositeRingItem&>(*pItem);
 
-      EQMSG("n children", size_t(2), compound0.getChildren().size());
+      EQMSG("n children", size_t(2), Composite0.getChildren().size());
 
-      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CCompoundRingItem&>(*compound0.getChildren()[0]));
-      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CPhysicsEventItem&>(*compound0.getChildren()[1]));
+      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CCompositeRingItem&>(*Composite0.getChildren()[0]));
+      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CPhysicsEventItem&>(*Composite0.getChildren()[1]));
 
-      auto& compound = dynamic_cast<CCompoundRingItem&>(*compound0.getChildren()[0]);
-      EQMSG("nchildren of subitem", size_t(1), compound.getChildren().size());
-      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CPhysicsEventItem&>(*compound.getChildren()[0]));
+      auto& Composite = dynamic_cast<CCompositeRingItem&>(*Composite0.getChildren()[0]);
+      EQMSG("nchildren of subitem", size_t(1), Composite.getChildren().size());
+      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CPhysicsEventItem&>(*Composite.getChildren()[0]));
 
-      pItem = compound.getChildren()[0];
+      pItem = Composite.getChildren()[0];
       EQMSG("size of child", uint32_t(21), pItem->size());
   }
+
+  void parse_2() {
+    Buffer::ByteBuffer body;
+    body << uint32_t(44) << COMP_PHYSICS_EVENT << uint64_t(12) << uint32_t(23);
+    body << uint32_t(24) << RING_FORMAT << uint64_t(12) << uint32_t(23);
+    body << uint16_t(1) << uint16_t(2);
+
+    CPPUNIT_ASSERT_THROW_MESSAGE( "inconsistent types should fail",
+                                  Parser::parse(body.begin(), body.end()),
+                                  std::runtime_error);
+  }
+
+
+  void parse_3() {
+    Buffer::ByteBuffer body;
+    body << uint32_t(82) << COMP_PHYSICS_EVENT << uint64_t(12) << uint32_t(23);
+    body << uint32_t(41) << COMP_PHYSICS_EVENT_COUNT << uint64_t(12) << uint32_t(23);
+    body << uint32_t(21) << PHYSICS_EVENT << uint64_t(12) << uint32_t(23);
+    body << uint8_t(1);
+
+    CPPUNIT_ASSERT_THROW_MESSAGE( "inconsistent types should fail",
+                                  Parser::parse(body.begin(), body.end()),
+                                  std::runtime_error);
+  }
+
+
 
   void parseSwapped_0() {
 
@@ -121,18 +149,18 @@ protected:
       EQMSG("tstamp", uint64_t(12), pItem->getEventTimestamp());
       EQMSG("source id", uint32_t(23), pItem->getSourceId());
 
-      CCompoundRingItem& compound0 = dynamic_cast<CCompoundRingItem&>(*pItem);
+      CCompositeRingItem& Composite0 = dynamic_cast<CCompositeRingItem&>(*pItem);
 
-      EQMSG("n children", size_t(2), compound0.getChildren().size());
+      EQMSG("n children", size_t(2), Composite0.getChildren().size());
 
-      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CCompoundRingItem&>(*compound0.getChildren()[0]));
-      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CPhysicsEventItem&>(*compound0.getChildren()[1]));
+      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CCompositeRingItem&>(*Composite0.getChildren()[0]));
+      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CPhysicsEventItem&>(*Composite0.getChildren()[1]));
 
-      auto& compound = dynamic_cast<CCompoundRingItem&>(*compound0.getChildren()[0]);
-      EQMSG("nchildren of subitem", size_t(1), compound.getChildren().size());
-      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CPhysicsEventItem&>(*compound.getChildren()[0]));
+      auto& Composite = dynamic_cast<CCompositeRingItem&>(*Composite0.getChildren()[0]);
+      EQMSG("nchildren of subitem", size_t(1), Composite.getChildren().size());
+      CPPUNIT_ASSERT_NO_THROW(dynamic_cast<CPhysicsEventItem&>(*Composite.getChildren()[0]));
 
-      pItem = compound.getChildren()[0];
+      pItem = Composite.getChildren()[0];
       EQMSG("size of child", uint32_t(21), pItem->size());
   }
 

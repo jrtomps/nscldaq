@@ -14,17 +14,17 @@
 namespace DAQ {
 namespace V12 {
 
-CCompoundRingItem::CCompoundRingItem()
-: CCompoundRingItem(0, NULL_TIMESTAMP, 0, {}) {}
+CCompositeRingItem::CCompositeRingItem()
+: CCompositeRingItem(0, NULL_TIMESTAMP, 0, {}) {}
 
-CCompoundRingItem::CCompoundRingItem(uint32_t type,
+CCompositeRingItem::CCompositeRingItem(uint32_t type,
                                      uint64_t timestamp,
                                      uint32_t sourceId,
                                      const std::vector<CRingItemPtr>& children)
     : m_type(type), m_evtTimestamp(timestamp), m_sourceId(sourceId), m_children()
 {}
 
-CCompoundRingItem::CCompoundRingItem(const CRawRingItem& rawItem)
+CCompositeRingItem::CCompositeRingItem(const CRawRingItem& rawItem)
 {
 
     m_type = rawItem.type();
@@ -43,7 +43,7 @@ CCompoundRingItem::CCompoundRingItem(const CRawRingItem& rawItem)
 
     size_t bytesInBuffer = body.size();
     if (bytesInBuffer < 20) {
-        throw std::runtime_error("DAQ::V12::Parser::parseCompound() insufficient data to parse header");
+        throw std::runtime_error("DAQ::V12::Parser::parseComposite() insufficient data to parse header");
     }
 
     ByteIterator it = body.begin();
@@ -55,26 +55,29 @@ CCompoundRingItem::CCompoundRingItem(const CRawRingItem& rawItem)
         std::pair<CRingItemUPtr, ByteIterator> result;
 
         Parser::peekHeaderType(it, end, size, type, swapNeeded);
-        if (Parser::isCompound(type)) {
-            result = Parser::parseCompound(it, std::min(it+size, end));
+        if (Parser::isComposite(type)) {
+            result = Parser::parseComposite(it, std::min(it+size, end));
         } else {
             result = Parser::parseLeaf(it, std::min(it+size, end));
         }
 
         appendChild(std::move(std::get<0>(result)));
         it = std::get<1>(result);
+    }
 
+    if ( ! Parser::isTypeConsistent(*this, m_type)) {
+        throw std::runtime_error("CCompositeRingItem(CRawRingItem&) type consistency was violated");
     }
 }
 
 
-bool CCompoundRingItem::operator==(const CRingItem& rhs) const
+bool CCompositeRingItem::operator==(const CRingItem& rhs) const
 {
     if (m_type != rhs.type()) return false;
     if (m_evtTimestamp != rhs.getEventTimestamp()) return false;
     if (m_sourceId != rhs.getSourceId()) return false;
 
-    const auto pItem = dynamic_cast<const CCompoundRingItem*>(&rhs);
+    const auto pItem = dynamic_cast<const CCompositeRingItem*>(&rhs);
     auto& rhsChildren = pItem->getChildren();
     if (m_children.size() != rhsChildren.size()) return false;
 
@@ -87,13 +90,13 @@ bool CCompoundRingItem::operator==(const CRingItem& rhs) const
     return true;
 }
 
-bool CCompoundRingItem::operator!=(const CRingItem& rhs) const
+bool CCompositeRingItem::operator!=(const CRingItem& rhs) const
 {
     return !(*this == rhs);
 }
 
 
-uint32_t CCompoundRingItem::size() const {
+uint32_t CCompositeRingItem::size() const {
     uint32_t size = 20; // we have at least a header
     for (auto pChild : m_children) {
         size += pChild->size();
@@ -101,38 +104,38 @@ uint32_t CCompoundRingItem::size() const {
     return size;
 }
 
-uint32_t CCompoundRingItem::type() const {
+uint32_t CCompositeRingItem::type() const {
     return m_type;
 }
-void CCompoundRingItem::setType(uint32_t type) {
+void CCompositeRingItem::setType(uint32_t type) {
     m_type = type;
 }
 
-uint32_t CCompoundRingItem::getSourceId() const {
+uint32_t CCompositeRingItem::getSourceId() const {
     return m_sourceId;
 }
-void CCompoundRingItem::setSourceId(uint32_t id)
+void CCompositeRingItem::setSourceId(uint32_t id)
 {
     m_sourceId = id;
 }
 
-uint64_t CCompoundRingItem::getEventTimestamp() const {
+uint64_t CCompositeRingItem::getEventTimestamp() const {
     return m_evtTimestamp;
 }
-void CCompoundRingItem::setEventTimestamp(uint64_t stamp) {
+void CCompositeRingItem::setEventTimestamp(uint64_t stamp) {
     m_evtTimestamp = stamp;
 }
 
-bool CCompoundRingItem::isComposite() const {
+bool CCompositeRingItem::isComposite() const {
     return true;
 }
-bool CCompoundRingItem::mustSwap() const {
+bool CCompositeRingItem::mustSwap() const {
     return false;
 }
 
-void CCompoundRingItem::toRawRingItem(CRawRingItem& rawBuffer) const {
+void CCompositeRingItem::toRawRingItem(CRawRingItem& rawBuffer) const {
 
-    rawBuffer.setType(type() | 0x8000); // set the compound bit in case it was not set
+    rawBuffer.setType(type() | 0x8000); // set the Composite bit in case it was not set
     rawBuffer.setSourceId(getSourceId());
     rawBuffer.setEventTimestamp(getEventTimestamp());
 
@@ -151,39 +154,39 @@ void CCompoundRingItem::toRawRingItem(CRawRingItem& rawBuffer) const {
     }
 }
 
-std::string CCompoundRingItem::typeName() const {
+std::string CCompositeRingItem::typeName() const {
     switch(0x7fff & type()) {
     case BEGIN_RUN:
-        return "Begin Run";
+        return "Composite Begin Run";
     case END_RUN:
-        return "End Run";
+        return "Composite End Run";
     case PAUSE_RUN:
-        return "Pause Run";
+        return "Composite Pause Run";
     case RESUME_RUN:
-        return "Resume Run";
+        return "Composite Resume Run";
     case ABNORMAL_ENDRUN:
-        return "Abnormal End Run";
+        return "Composite Abnormal End Run";
     case RING_FORMAT:
-        return "Data Format";
+        return "Composite Data Format";
     case PACKET_TYPES:
-        return "Packet Types";
+        return "Composite Packet Types";
     case MONITORED_VARIABLES:
-        return "Monitored Variables";
+        return "Composite Monitored Variables";
     case PERIODIC_SCALERS:
-        return "Periodic Scalers";
+        return "Composite Periodic Scalers";
     case PHYSICS_EVENT:
-        return "Physics Event";
+        return "Composite Physics Event";
     case PHYSICS_EVENT_COUNT:
-        return "Physics Event Count";
+        return "Composite Physics Event Count";
     case EVB_GLOM_INFO:
-        return "Glom Parameters";
+        return "Composite Glom Parameters";
     default:
-        return "Generic Compound Item";
+        return "Generic Composite Item";
     }
 
 }
 
-std::string CCompoundRingItem::toString() const {
+std::string CCompositeRingItem::toString() const {
     std::stringstream result;
     result << "Composite Item" << std::endl;
     result << headerToString(*this);
@@ -197,16 +200,16 @@ std::string CCompoundRingItem::toString() const {
     return result.str();
 }
 
-std::vector<CRingItemPtr>& CCompoundRingItem::getChildren() {
+std::vector<CRingItemPtr>& CCompositeRingItem::getChildren() {
     return m_children;
 }
 
-const std::vector<CRingItemPtr> CCompoundRingItem::getChildren() const
+const std::vector<CRingItemPtr> CCompositeRingItem::getChildren() const
 {
     return m_children;
 }
 
-void CCompoundRingItem::appendChild(CRingItemPtr item)
+void CCompositeRingItem::appendChild(CRingItemPtr item)
 {
     m_children.push_back(item);
 }

@@ -9,7 +9,7 @@
 namespace DAQ {
 namespace V12 {
 
-class CCompoundRingItem : public CRingItem
+class CCompositeRingItem : public CRingItem
 {
 
 private:
@@ -19,11 +19,11 @@ private:
     std::vector<CRingItemPtr> m_children;
 
 public:
-    CCompoundRingItem();
-    CCompoundRingItem(uint32_t type, uint64_t timestamp, uint32_t sourceId,
+    CCompositeRingItem();
+    CCompositeRingItem(uint32_t type, uint64_t timestamp, uint32_t sourceId,
                       const std::vector<CRingItemPtr>& children = std::vector<CRingItemPtr>());
 
-    CCompoundRingItem(const CRawRingItem& rawItem);
+    CCompositeRingItem(const CRawRingItem& rawItem);
 
     virtual bool operator==(const CRingItem& rhs) const;
     virtual bool operator!=(const CRingItem& rhs) const;

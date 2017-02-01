@@ -13,7 +13,7 @@ namespace DAQ {
 namespace V12 {
 namespace Parser {
 
-bool isCompound(uint32_t type);
+bool isComposite(uint32_t type);
 
 template<class ByteIterator>
 bool mustSwap(ByteIterator beg, ByteIterator end) {
@@ -34,7 +34,6 @@ void peekHeaderType(ByteIterator beg, ByteIterator end, uint32_t& size, uint32_t
     DAQ::BO::CByteSwapper swapper(swapRequired);
     swapper.interpretAs(beg, size);
     swapper.interpretAs(beg+4, type);
-
 }
 
 
@@ -62,10 +61,10 @@ parseLeaf(ByteIterator beg, ByteIterator end)
 
 template<class ByteIterator>
 std::pair<CRingItemUPtr, ByteIterator>
-parseCompound(ByteIterator beg, ByteIterator end)
+parseComposite(ByteIterator beg, ByteIterator end)
 {
 
-    std::unique_ptr<CCompoundRingItem> pItem(new CCompoundRingItem);
+    std::unique_ptr<CCompositeRingItem> pItem(new CCompositeRingItem);
 
     bool swapRequired = mustSwap(beg, beg+4);
 
@@ -76,7 +75,7 @@ parseCompound(ByteIterator beg, ByteIterator end)
 
     size_t bytesInBuffer = std::distance(beg, end);
     if (bytesInBuffer < 20) {
-        throw std::runtime_error("DAQ::V12::Parser::parseCompound() insufficient data to parse header");
+        throw std::runtime_error("DAQ::V12::Parser::parseComposite() insufficient data to parse header");
     }
 
     stream >> size >> type >> tstamp >> sourceId;
@@ -86,14 +85,14 @@ parseCompound(ByteIterator beg, ByteIterator end)
     pItem->setSourceId(sourceId);
 
     if (bytesInBuffer < size) {
-        throw std::runtime_error("DAQ::V12::Parser::parseCompound() insufficient data to parse complete item");
+        throw std::runtime_error("DAQ::V12::Parser::parseComposite() insufficient data to parse complete item");
     }
 
-    // parse the body of the compound item
+    // parse the body of the Composite item
     auto it = stream.pos();
     while (it < end) {
 
-        // We know that the first thing in the body of the compound item
+        // We know that the first thing in the body of the Composite item
         // will be a header and it will tell us when to use the
 
         bool swapNeeded;
@@ -102,8 +101,8 @@ parseCompound(ByteIterator beg, ByteIterator end)
         uint32_t size, type;
         peekHeaderType(it, end, size, type, swapNeeded);
 
-        if (isCompound(type)) {
-            result = parseCompound(it, std::min(it+size, end));
+        if (isComposite(type)) {
+            result = parseComposite(it, std::min(it+size, end));
         } else {
             result = parseLeaf(it, std::min(it+size, end));
         }
@@ -116,6 +115,7 @@ parseCompound(ByteIterator beg, ByteIterator end)
     return std::make_pair(std::move(pItem), it);
 }
 
+bool isTypeConsistent(CRingItem& item, uint32_t type);
 
 /*! \brief Parse raw data
  *
@@ -127,11 +127,18 @@ parse(ByteIterator beg, ByteIterator end) {
 
     peekHeaderType(beg, end, size, type, mustSwap);
 
-    if (isCompound(type)) {
-        return parseCompound(beg, std::min(beg+size, end));
+    std::pair<CRingItemUPtr, ByteIterator> result;
+    if (isComposite(type)) {
+        result = parseComposite(beg, std::min(beg+size, end));
     } else {
-        return parseLeaf(beg, std::min(beg+size, end));
+        result = parseLeaf(beg, std::min(beg+size, end));
     }
+
+    if (! isTypeConsistent(*result.first, result.first->type()) ) {
+        throw std::runtime_error("Parser::parse(ByteIterator, ByteIterator) parsed ring item does not have type consistency.");
+    }
+
+    return result;
 }
 
 
