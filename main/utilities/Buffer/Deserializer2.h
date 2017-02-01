@@ -13,7 +13,7 @@ using namespace std;
 namespace DAQ {
   namespace Buffer {
 
-    template<class Iterator> class Deserializer2
+    template<class Iterator> class RangeDeserializer
     {
 
       typedef Iterator iterator;
@@ -29,7 +29,7 @@ namespace DAQ {
 
     public:
 
-      Deserializer2(iterator beg, iterator end, bool mustSwap=false)
+      RangeDeserializer(iterator beg, iterator end, bool mustSwap=false)
           : m_get(beg),
             m_beg(beg),
             m_end(end),
@@ -126,8 +126,8 @@ namespace DAQ {
 
 
 template<class Container>
-DAQ::Buffer::Deserializer2<Container>&
-operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint8_t& val) {
+DAQ::Buffer::RangeDeserializer<Container>&
+operator>>(DAQ::Buffer::RangeDeserializer<Container>& device, std::uint8_t& val) {
 
   device.extract(val);
 
@@ -135,8 +135,8 @@ operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint8_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer2<Container>&
-operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int8_t& val) {
+DAQ::Buffer::RangeDeserializer<Container>&
+operator>>(DAQ::Buffer::RangeDeserializer<Container>& device, std::int8_t& val) {
 
   device.extract(val);
 
@@ -144,8 +144,8 @@ operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int8_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer2<Container>&
-operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint16_t& val) {
+DAQ::Buffer::RangeDeserializer<Container>&
+operator>>(DAQ::Buffer::RangeDeserializer<Container>& device, std::uint16_t& val) {
 
   device.extract(val);
 
@@ -153,8 +153,8 @@ operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint16_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer2<Container>&
-operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int16_t& val) {
+DAQ::Buffer::RangeDeserializer<Container>&
+operator>>(DAQ::Buffer::RangeDeserializer<Container>& device, std::int16_t& val) {
 
   device.extract(val);
 
@@ -162,8 +162,8 @@ operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int16_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer2<Container>&
-operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint32_t& val) {
+DAQ::Buffer::RangeDeserializer<Container>&
+operator>>(DAQ::Buffer::RangeDeserializer<Container>& device, std::uint32_t& val) {
 
   device.extract(val);
 
@@ -171,8 +171,8 @@ operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint32_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer2<Container>&
-operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int32_t& val) {
+DAQ::Buffer::RangeDeserializer<Container>&
+operator>>(DAQ::Buffer::RangeDeserializer<Container>& device, std::int32_t& val) {
 
   device.extract(val);
 
@@ -180,8 +180,8 @@ operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int32_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer2<Container>&
-operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint64_t& val) {
+DAQ::Buffer::RangeDeserializer<Container>&
+operator>>(DAQ::Buffer::RangeDeserializer<Container>& device, std::uint64_t& val) {
 
   device.extract(val);
 
@@ -189,8 +189,8 @@ operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::uint64_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer2<Container>&
-operator>>(DAQ::Buffer::Deserializer2<Container>& device, std::int64_t& val) {
+DAQ::Buffer::RangeDeserializer<Container>&
+operator>>(DAQ::Buffer::RangeDeserializer<Container>& device, std::int64_t& val) {
 
   device.extract(val);
 

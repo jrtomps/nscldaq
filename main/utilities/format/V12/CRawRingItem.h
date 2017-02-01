@@ -84,7 +84,7 @@ template<class ByteIterator> CRawRingItem::CRawRingItem(ByteIterator beg, ByteIt
         char     s_bytes[sizeof(uint64_t)];
     } rawTstamp;
 
-    typename Buffer::Deserializer2<ByteIterator> stream(beg, end);
+    typename Buffer::RangeDeserializer<ByteIterator> stream(beg, end);
     stream >> rawSize.s_value;
     stream >> rawType.s_value;
     stream >> rawTstamp.s_value;

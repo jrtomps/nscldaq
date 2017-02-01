@@ -49,7 +49,7 @@ parseLeaf(ByteIterator beg, ByteIterator end)
     // check the type to see whether we need to swap
     bool swapRequired = mustSwap(beg+4, beg+8);
 
-    Buffer::Deserializer2<ByteIterator> stream(beg, end, swapRequired);
+    Buffer::RangeDeserializer<ByteIterator> stream(beg, end, swapRequired);
 
     auto size = stream.template peek<std::uint32_t>();
 
@@ -69,7 +69,7 @@ parseCompound(ByteIterator beg, ByteIterator end)
 
     bool swapRequired = mustSwap(beg, beg+4);
 
-    Buffer::Deserializer2<ByteIterator> stream(beg, end, swapRequired);
+    Buffer::RangeDeserializer<ByteIterator> stream(beg, end, swapRequired);
 
     uint32_t type, size, sourceId;
     uint64_t tstamp;

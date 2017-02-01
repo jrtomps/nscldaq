@@ -34,7 +34,7 @@ CCompoundRingItem::CCompoundRingItem(const CRawRingItem& rawItem)
     auto& body = rawItem.getBody();
 
     typedef typename Buffer::ByteBuffer::const_iterator ByteIterator;
-    typename Buffer::Deserializer2<ByteIterator> stream(body.begin(),
+    typename Buffer::RangeDeserializer<ByteIterator> stream(body.begin(),
                                                         body.end(),
                                                         rawItem.mustSwap());
 
