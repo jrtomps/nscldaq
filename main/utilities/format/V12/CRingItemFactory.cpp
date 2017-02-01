@@ -24,6 +24,8 @@
 #include "V12/CRingTextItem.h"
 #include "V12/CPhysicsEventItem.h"
 #include "V12/CGlomParameters.h"
+#include "V12/CAbnormalEndItem.h"
+#include "V12/CCompoundRingItem.h"
 #include "V12/DataFormat.h"
 
 #include <vector>
@@ -91,17 +93,25 @@ CRingItemFactory::createRingItem(const CRawRingItem& item)
     }
 //  case RING_FORMAT:
 //    return new CDataFormatItem(item);
-//  case EVB_UNKNOWN_PAYLOAD:
-//    return new CUnknownFragment(item);
   case EVB_GLOM_INFO:
     return item.as<CGlomParameters>();
-    break;
 
-//  case ABNORMAL_ENDRUN:
-//    return new CAbnormalEndItem(item);
-//    break;
-    
-   // Nothing we know about:
+  case ABNORMAL_ENDRUN:
+    return item.as<CAbnormalEndItem>();
+
+  case COMP_BEGIN_RUN:
+  case COMP_END_RUN:
+  case COMP_PAUSE_RUN:
+  case COMP_RESUME_RUN:
+  case COMP_PACKET_TYPES:
+  case COMP_MONITORED_VARIABLES:
+  case COMP_PERIODIC_SCALERS:
+  case COMP_PHYSICS_EVENT:
+  case COMP_PHYSICS_EVENT_COUNT:
+  case COMP_ABNORMAL_ENDRUN:
+  case COMP_RING_FORMAT:
+  case COMP_EVB_GLOM_INFO:
+      return item.as<CCompositeRingItem>();
 
   default:
       return item.as<CRawRingItem>();
