@@ -76,7 +76,7 @@ namespace DAQ
     //
     void CRawBuffer::parseHeader(const Buffer::ByteBuffer &buffer, bool swap)
     {
-      Buffer::Deserializer<Buffer::ByteBuffer> bufstream(buffer, swap);
+      Buffer::ContainerDeserializer<Buffer::ByteBuffer> bufstream(buffer, swap);
 
       std::uint16_t tmp16;
       bufstream >> m_parsedHeader.nwds;

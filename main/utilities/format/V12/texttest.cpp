@@ -446,7 +446,7 @@ void texttests::toRawRingItem_0()
     uint32_t offset, timestamp, divisor, count;
     unsigned char temp;
     char str0[2], str1[2];
-    Buffer::Deserializer<Buffer::ByteBuffer> stream(body);
+    Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(body);
     stream >> offset >> timestamp >> count >> divisor;
     stream.extract(str0, str0+2);
     stream.extract(temp);

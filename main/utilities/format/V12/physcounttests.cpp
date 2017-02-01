@@ -338,7 +338,7 @@ void physcounttests::toRawRingItem_0()
     uint32_t offset, divisor, tstamp;
     uint64_t count;
 
-    Buffer::Deserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
+    Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
     stream >> offset >> tstamp >> divisor >> count;
 
     EQMSG("time offset", uint32_t(100), offset);
@@ -359,7 +359,7 @@ void physcounttests::toRawRingItem_1()
     item.toRawRingItem(raw);
 
     uint32_t offset;
-    Buffer::Deserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
+    Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
     stream >> offset;
     EQMSG("time offset", uint32_t(100), offset);
 }

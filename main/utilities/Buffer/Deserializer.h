@@ -12,7 +12,7 @@ using namespace std;
 namespace DAQ {
   namespace Buffer {
 
-    template<class Container> class Deserializer
+    template<class Container> class ContainerDeserializer
     {
 
       typedef typename Container::const_iterator iterator;
@@ -27,7 +27,7 @@ namespace DAQ {
       BO::CByteSwapper m_swapper; // whether bytes need to be swapped
 
     public:
-      Deserializer(const Container& container, bool mustSwap=false)
+      ContainerDeserializer(const Container& container, bool mustSwap=false)
         : m_get(container.begin()),
         m_beg(container.begin()),
         m_end(container.end()),
@@ -37,7 +37,7 @@ namespace DAQ {
         m_swapper(mustSwap)
       {}
 
-      Deserializer(iterator beg, iterator end, bool mustSwap=false)
+      ContainerDeserializer(iterator beg, iterator end, bool mustSwap=false)
           : m_get(beg),
             m_beg(beg),
             m_end(end),
@@ -113,8 +113,8 @@ namespace DAQ {
 
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint8_t& val) {
+DAQ::Buffer::ContainerDeserializer<Container>&
+operator>>(DAQ::Buffer::ContainerDeserializer<Container>& device, std::uint8_t& val) {
 
   device.extract(val);
 
@@ -122,8 +122,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint8_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int8_t& val) {
+DAQ::Buffer::ContainerDeserializer<Container>&
+operator>>(DAQ::Buffer::ContainerDeserializer<Container>& device, std::int8_t& val) {
 
   device.extract(val);
 
@@ -131,8 +131,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int8_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint16_t& val) {
+DAQ::Buffer::ContainerDeserializer<Container>&
+operator>>(DAQ::Buffer::ContainerDeserializer<Container>& device, std::uint16_t& val) {
 
   device.extract(val);
 
@@ -140,8 +140,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint16_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int16_t& val) {
+DAQ::Buffer::ContainerDeserializer<Container>&
+operator>>(DAQ::Buffer::ContainerDeserializer<Container>& device, std::int16_t& val) {
 
   device.extract(val);
 
@@ -149,8 +149,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int16_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint32_t& val) {
+DAQ::Buffer::ContainerDeserializer<Container>&
+operator>>(DAQ::Buffer::ContainerDeserializer<Container>& device, std::uint32_t& val) {
 
   device.extract(val);
 
@@ -158,8 +158,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint32_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int32_t& val) {
+DAQ::Buffer::ContainerDeserializer<Container>&
+operator>>(DAQ::Buffer::ContainerDeserializer<Container>& device, std::int32_t& val) {
 
   device.extract(val);
 
@@ -167,8 +167,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int32_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint64_t& val) {
+DAQ::Buffer::ContainerDeserializer<Container>&
+operator>>(DAQ::Buffer::ContainerDeserializer<Container>& device, std::uint64_t& val) {
 
   device.extract(val);
 
@@ -176,8 +176,8 @@ operator>>(DAQ::Buffer::Deserializer<Container>& device, std::uint64_t& val) {
 }
 
 template<class Container>
-DAQ::Buffer::Deserializer<Container>&
-operator>>(DAQ::Buffer::Deserializer<Container>& device, std::int64_t& val) {
+DAQ::Buffer::ContainerDeserializer<Container>&
+operator>>(DAQ::Buffer::ContainerDeserializer<Container>& device, std::int64_t& val) {
 
   device.extract(val);
 

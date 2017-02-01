@@ -44,7 +44,7 @@ namespace DAQ
         throw std::runtime_error(errmsg);
       }
 
-      Buffer::Deserializer<Buffer::ByteBuffer> buffer(rawBuffer.getBuffer(),
+      Buffer::ContainerDeserializer<Buffer::ByteBuffer> buffer(rawBuffer.getBuffer(),
                                                       rawBuffer.bufferNeedsSwap());
 
       // skip the header b/c we obtained it from the RawBuffer already

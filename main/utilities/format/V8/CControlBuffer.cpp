@@ -41,7 +41,7 @@ namespace DAQ {
     CControlBuffer::CControlBuffer(const CRawBuffer &rawBuf)
       : m_header(rawBuf.getHeader()), m_title(), m_offset(), m_time()
     {
-      Buffer::Deserializer<Buffer::ByteBuffer> databuf(rawBuf.getBuffer(),
+      Buffer::ContainerDeserializer<Buffer::ByteBuffer> databuf(rawBuf.getBuffer(),
                                                        rawBuf.bufferNeedsSwap());
 
       // skip header

@@ -212,7 +212,7 @@ void castScalerToRaw_1() {
 
   auto rawBuf = format_cast<CRawBuffer>(buffer);
 
-  DAQ::Buffer::Deserializer<ByteBuffer> stream(rawBuf.getBuffer(), false);
+  DAQ::Buffer::ContainerDeserializer<ByteBuffer> stream(rawBuf.getBuffer(), false);
 
   std::uint16_t value;
   for (std::size_t i=0; i<16; ++i) {

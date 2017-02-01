@@ -30,7 +30,7 @@ namespace DAQ {
             char     s_bytes[sizeof(uint64_t)];
         } rawTstamp;
 
-        Buffer::Deserializer<Buffer::ByteBuffer> stream(rawData);
+        Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(rawData);
         stream >> rawSize.s_value;
         stream >> rawType.s_value;
         stream >> rawTstamp.s_value;
@@ -125,7 +125,7 @@ namespace DAQ {
       std::ostringstream out;
       uint32_t  bytes = getBodySize();
 
-      Buffer::Deserializer<Buffer::ByteBuffer> bodyStream(getBody());
+      Buffer::ContainerDeserializer<Buffer::ByteBuffer> bodyStream(getBody());
 
 
       out << headerToString(*this);

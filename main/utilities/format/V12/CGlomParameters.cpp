@@ -88,7 +88,7 @@ CGlomParameters::CGlomParameters(const CRawRingItem& rhs)
     m_sourceId = rhs.getSourceId();
     m_evtTimestamp = rhs.getEventTimestamp();
 
-    Buffer::Deserializer<Buffer::ByteBuffer> stream(rhs.getBody(), rhs.mustSwap());
+    Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(rhs.getBody(), rhs.mustSwap());
 
     uint16_t temp;
     stream >> m_coincTicks;

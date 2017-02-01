@@ -109,7 +109,7 @@ CRingTextItem::CRingTextItem(const CRawRingItem& rhs)
   m_evtTimestamp = rhs.getEventTimestamp();
 
   auto& body = rhs.getBody();
-  Buffer::Deserializer<Buffer::ByteBuffer> rhsBody(body, rhs.mustSwap());
+  Buffer::ContainerDeserializer<Buffer::ByteBuffer> rhsBody(body, rhs.mustSwap());
 
   uint32_t stringCount, temp;
   rhsBody >> m_timeOffset;

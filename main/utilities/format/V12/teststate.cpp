@@ -190,7 +190,7 @@ teststate::torawringitem_0()
   EQMSG("source id", original.getSourceId(), rawBuffer.getSourceId());
 
   auto buffer = rawBuffer.getBody();
-  Buffer::Deserializer<Buffer::ByteBuffer> stream(buffer);
+  Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(buffer);
 
   uint32_t run, offset, tstamp, divisor, titleLength;
 

@@ -43,7 +43,7 @@ public:
     buffer.push_back(0x35);
     buffer.push_back(0x12); // little endian 0x1235
 
-    Deserializer<ByteBuffer> stream(buffer);
+    ContainerDeserializer<ByteBuffer> stream(buffer);
     std::uint16_t value;
     stream.extract(value);
 
@@ -58,7 +58,7 @@ public:
     buffer.push_back(0xff);
     buffer.push_back(0xff); // little endian twos-complement of -1
 
-    Deserializer<ByteBuffer> stream(buffer);
+    ContainerDeserializer<ByteBuffer> stream(buffer);
     std::int32_t value;
     stream.extract(value);
 
@@ -74,7 +74,7 @@ public:
     buffer.push_back(0xff);
 
     std::uint32_t value;
-    Deserializer<ByteBuffer> stream(buffer);
+    ContainerDeserializer<ByteBuffer> stream(buffer);
     stream >> value;
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Extracting 32 bit signed number makes sense",
@@ -88,7 +88,7 @@ public:
     buffer.push_back(0xff);
     buffer.push_back(0xff);
 
-    Deserializer<ByteBuffer> stream(buffer);
+    ContainerDeserializer<ByteBuffer> stream(buffer);
 
     uint32_t value = stream.extract<std::uint32_t>();
 
@@ -103,7 +103,7 @@ public:
     buffer.push_back('c');
     buffer.push_back('d');
 
-    Deserializer<ByteBuffer> stream(buffer);
+    ContainerDeserializer<ByteBuffer> stream(buffer);
 
     char arr[4];
     stream.extract(arr);
@@ -125,7 +125,7 @@ public:
     buffer.push_back('c');
     buffer.push_back('d');
 
-    Deserializer<ByteBuffer> stream(buffer);
+    ContainerDeserializer<ByteBuffer> stream(buffer);
 
     char arr[4];
     stream.extract(arr, arr+4);
@@ -144,7 +144,7 @@ public:
     ByteBuffer buffer;
     buffer.push_back(1);
     std::uint16_t value;
-    Deserializer<ByteBuffer> stream(buffer);
+    ContainerDeserializer<ByteBuffer> stream(buffer);
     stream >> value;
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Extracting past buffer.end() sets eof()",

@@ -115,7 +115,7 @@ CRingScalerItem::CRingScalerItem(const CRawRingItem& rhs)
   m_sourceId     = rhs.getSourceId();
   m_evtTimestamp = rhs.getEventTimestamp();
 
-  Buffer::Deserializer<Buffer::ByteBuffer> rhsBody(rhs.getBody(), rhs.mustSwap());
+  Buffer::ContainerDeserializer<Buffer::ByteBuffer> rhsBody(rhs.getBody(), rhs.mustSwap());
 
   uint32_t scalerCount, temp;
   rhsBody >> m_intervalStartOffset;

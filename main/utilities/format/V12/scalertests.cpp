@@ -141,7 +141,7 @@ void scltests::castcons_0()
     EQMSG("evt tstamp", s.getEventTimestamp(), item.getEventTimestamp());
     EQMSG("source id", s.getSourceId(), item.getSourceId());
 
-    Buffer::Deserializer<Buffer::ByteBuffer> stream(item.getBody());
+    Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(item.getBody());
 
     uint32_t offsetStart, offsetStop, time, divisor, count, incremental, width;
 

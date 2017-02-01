@@ -104,7 +104,7 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(const CRawRingItem& rhs)
   m_evtTimestamp = rhs.getEventTimestamp();
   m_sourceId = rhs.getSourceId();
 
-  Buffer::Deserializer<Buffer::ByteBuffer> stream(rhs.getBody(), rhs.mustSwap());
+  Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(rhs.getBody(), rhs.mustSwap());
 
   uint32_t temp;
   stream >> m_timeOffset;

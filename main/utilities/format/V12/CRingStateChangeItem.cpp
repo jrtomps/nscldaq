@@ -120,7 +120,7 @@ CRingStateChangeItem::CRingStateChangeItem(const CRawRingItem& rhs)
   m_sourceId     = rhs.getSourceId();
   m_evtTimestamp = rhs.getEventTimestamp();
 
-  Buffer::Deserializer<Buffer::ByteBuffer> rhsBody(rhs.getBody(), rhs.mustSwap());
+  Buffer::ContainerDeserializer<Buffer::ByteBuffer> rhsBody(rhs.getBody(), rhs.mustSwap());
 
   uint32_t titleLength, temp;
   rhsBody >> m_runNumber;

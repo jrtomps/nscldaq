@@ -98,7 +98,7 @@ GlomItemTests::structure_0()
     EQMSG("source id", uint32_t(0), raw.getSourceId());
 
     // Body contents:
-    Buffer::Deserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
+    Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
 
     uint64_t ticks;
     uint16_t isBuilding, policy;
@@ -124,7 +124,7 @@ GlomItemTests::structure_1()
     item.toRawRingItem(raw);
 
     // Body contents:
-    Buffer::Deserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
+    Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
 
     uint64_t ticks;
     stream >> ticks;
