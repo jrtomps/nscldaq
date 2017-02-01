@@ -73,8 +73,8 @@ public:
   virtual ~CRingScalerItem();
 
   CRingScalerItem& operator=(const CRingScalerItem& rhs);
-  int operator==(const CRingScalerItem& rhs) const;
-  int operator!=(const CRingScalerItem& rhs) const;
+  virtual bool operator==(const CRingItem& rhs) const;
+  virtual bool operator!=(const CRingItem& rhs) const;
 
   // Accessor member functions.
   uint32_t  type() const { return PERIODIC_SCALERS; }

@@ -62,8 +62,8 @@ public:
     CGlomParameters(const CRawRingItem& rhs);
     
     CGlomParameters& operator=(const CGlomParameters& rhs) = default;
-    int operator==(const CGlomParameters& rhs) const;
-    int operator!=(const CGlomParameters& rhs) const;
+    virtual bool operator==(const CRingItem& rhs) const;
+    virtual bool operator!=(const CRingItem& rhs) const;
     
     // Selectors:
 public:

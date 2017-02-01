@@ -19,14 +19,20 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
+#include <vector>
 
 namespace DAQ {
     namespace V12 {
 
+    // Some type defs:
+    class CRingItem;
+    using CRingItemPtr = std::shared_ptr<CRingItem>;
+    using CRingItemUPtr = std::unique_ptr<CRingItem>;
+
     class CRawRingItem;
 
     class CRingItem {
-
       public:
         virtual uint32_t type() const = 0;
         virtual void setType(uint32_t type) = 0;
@@ -47,6 +53,11 @@ namespace DAQ {
         virtual std::string toString() const = 0;
 
         virtual void toRawRingItem(CRawRingItem& item) const = 0;
+
+        virtual bool operator==(const CRingItem& item) const = 0;
+        virtual bool operator!=(const CRingItem& item) const = 0;
+
+
     };
 
     std::string headerToString(const CRingItem& item);

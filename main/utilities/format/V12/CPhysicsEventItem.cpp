@@ -60,14 +60,14 @@ namespace DAQ {
     return *this;
   }
 
-  int
-  CPhysicsEventItem::operator==(const CPhysicsEventItem& rhs) const
+  bool
+  CPhysicsEventItem::operator==(const CRingItem& rhs) const
   {
     return CRawRingItem::operator==(rhs);
   }
 
-  int
-  CPhysicsEventItem::operator!=(const CPhysicsEventItem& rhs) const
+  bool
+  CPhysicsEventItem::operator!=(const CRingItem& rhs) const
   {
     return CRawRingItem::operator!=(rhs);
   }

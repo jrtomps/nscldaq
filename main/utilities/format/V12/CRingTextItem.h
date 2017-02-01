@@ -69,8 +69,8 @@ public:
   virtual ~CRingTextItem();
 
 
-  int operator==(const CRingTextItem& rhs) const;
-  int operator!=(const CRingTextItem& rhs) const;
+  virtual bool operator==(const CRingItem& rhs) const;
+  virtual bool operator!=(const CRingItem& rhs) const;
 
   // Public interface:
 public:

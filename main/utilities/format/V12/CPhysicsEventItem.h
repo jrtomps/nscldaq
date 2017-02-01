@@ -41,8 +41,8 @@ public:
   virtual ~CPhysicsEventItem();
 
   CPhysicsEventItem& operator=(const CPhysicsEventItem& rhs);
-  int operator==(const CPhysicsEventItem& rhs) const;
-  int operator!=(const CPhysicsEventItem& rhs) const;
+  virtual bool operator==(const CRingItem& rhs) const;
+  virtual bool operator!=(const CRingItem& rhs) const;
 
   // Virtual methods that all ring items must provide:
 

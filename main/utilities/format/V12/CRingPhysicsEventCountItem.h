@@ -68,8 +68,8 @@ public:
 
   virtual ~CRingPhysicsEventCountItem();
 
-  int operator==(const CRingPhysicsEventCountItem& rhs) const;
-  int operator!=(const CRingPhysicsEventCountItem& rhs) const;
+  virtual bool operator==(const CRingItem& rhs) const;
+  virtual bool operator!=(const CRingItem& rhs) const;
 
 
   // public interface:

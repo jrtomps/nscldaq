@@ -119,16 +119,19 @@ CGlomParameters::CGlomParameters(const CRawRingItem& rhs)
  *
  * @return int - nonzero if equality.
  */
-int
-CGlomParameters::operator==(const CGlomParameters& rhs) const
+bool
+CGlomParameters::operator==(const CRingItem& rhs) const
 {
-    if (m_evtTimestamp != rhs.getEventTimestamp()) return 0;
-    if (m_sourceId != rhs.getSourceId()) return 0;
-    if (m_coincTicks != rhs.coincidenceTicks()) return 0;
-    if (m_isBuilding != rhs.isBuilding()) return 0;
-    if (m_policy != rhs.timestampPolicy()) return 0;
+    if (m_evtTimestamp != rhs.getEventTimestamp()) return false;
+    if (m_sourceId != rhs.getSourceId()) return false;
 
-    return 1;
+    const auto pItem = dynamic_cast<const CGlomParameters*>(&rhs);
+    if (!pItem) return false;
+    if (m_coincTicks != pItem->coincidenceTicks()) return false;
+    if (m_isBuilding != pItem->isBuilding()) return false;
+    if (m_policy != pItem->timestampPolicy()) return false;
+
+    return true;
 }
 /**
  * operator!=
@@ -137,8 +140,8 @@ CGlomParameters::operator==(const CGlomParameters& rhs) const
  *
  * @return int  non zero if not equal.
  */
-int
-CGlomParameters::operator!=(const CGlomParameters& rhs) const
+bool
+CGlomParameters::operator!=(const CRingItem& rhs) const
 {
     return ! (*this == rhs );
 }

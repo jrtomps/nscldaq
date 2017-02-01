@@ -153,26 +153,30 @@ CRingStateChangeItem::~CRingStateChangeItem()
   \retval 0 not equal
   \retval 1 equal.
 */
-int
-CRingStateChangeItem::operator==(const CRingStateChangeItem& rhs) const
+bool
+CRingStateChangeItem::operator==(const CRingItem& rhs) const
 {
-  if (m_type != rhs.type()) return 0;
-  if (m_evtTimestamp != rhs.getEventTimestamp()) return 0;
-  if (m_sourceId != rhs.getSourceId()) return 0;
-  if (m_runNumber != rhs.getRunNumber()) return 0;
-  if (m_timeOffset != rhs.getElapsedTime()) return 0;
-  if (m_timestamp != rhs.getTimestamp()) return 0;
-  if (m_offsetDivisor != rhs.getOffsetDivisor()) return 0;
-  if (m_title != rhs.getTitle()) return 0;
+  if (m_type != rhs.type()) return false;
+  if (m_evtTimestamp != rhs.getEventTimestamp()) return false;
+  if (m_sourceId != rhs.getSourceId()) return false;
 
-  return 1;
+  const CRingStateChangeItem* pItem = dynamic_cast<const CRingStateChangeItem*>(&rhs);
+
+  if (!pItem) return false;
+  if (m_runNumber != pItem->getRunNumber()) return false;
+  if (m_timeOffset != pItem->getElapsedTime()) return false;
+  if (m_timestamp != pItem->getTimestamp()) return false;
+  if (m_offsetDivisor != pItem->getOffsetDivisor()) return false;
+  if (m_title != pItem->getTitle()) return false;
+
+  return true;
 }
 
 /*!
    Inequality is just the logical inverse of equality.
 */
-int
-CRingStateChangeItem::operator!=(const CRingStateChangeItem& rhs) const
+bool
+CRingStateChangeItem::operator!=(const CRingItem& rhs) const
 {
   return !(*this == rhs);
 }
@@ -392,8 +396,9 @@ CRingStateChangeItem::toString() const
   string   title     = getTitle();
   time_t   wall_time = getTimestamp();
   string   timestamp = std::ctime(&wall_time);
+  timestamp = std::string(timestamp.begin(), timestamp.end()-1);
 
-  out <<  timestamp << " : Run State change : " << typeName();
+  out <<  timestamp << " : Run State Change : " << typeName();
   out << " at " << elapsed << " seconds into the run\n";
   out << headerToString(*this);
   out << "Title     : " << title << std::endl;

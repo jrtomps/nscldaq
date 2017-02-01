@@ -1,5 +1,6 @@
 
 #include <V12/CRingItem.h>
+#include <V12/DataFormat.h>
 #include <iostream>
 #include <sstream>
 
@@ -16,6 +17,9 @@ std::string headerToString(const DAQ::V12::CRingItem &item) {
 
     return result.str();
     }
+
+
+
 
 } // end V12 namespace
 } // end DAQ namespace

@@ -195,20 +195,23 @@ CRingScalerItem::operator=(const CRingScalerItem& rhs)
     \retval 0 - Not equal
     \retval 1 - Equal
 */
-int
-CRingScalerItem::operator==(const CRingScalerItem& rhs) const
+bool
+CRingScalerItem::operator==(const CRingItem& rhs) const
 {
-  if (m_sourceId != rhs.m_sourceId) return 0;
-  if (m_evtTimestamp != rhs.m_evtTimestamp) return 0;
-  if (m_intervalStartOffset != rhs.m_intervalStartOffset) return 0;
-  if (m_intervalEndOffset != rhs.m_intervalEndOffset) return 0;
-  if (m_timestamp != rhs.m_timestamp) return 0;
-  if (m_intervalDivisor != rhs.m_intervalDivisor) return 0;
-  if (m_isIncremental != rhs.m_isIncremental) return 0;
-  if (m_scalerWidth != rhs.m_scalerWidth) return 0;
-  if (m_scalers != rhs.m_scalers) return 0;
+  if (m_sourceId != rhs.getSourceId()) return false;
+  if (m_evtTimestamp != rhs.getEventTimestamp()) return false;
 
-  return 1;
+  const CRingScalerItem* pItem = dynamic_cast<const CRingScalerItem*>(&rhs);
+  if (!pItem) return false;
+  if (m_intervalStartOffset != pItem->getStartTime()) return false;
+  if (m_intervalEndOffset != pItem->getEndTime()) return false;
+  if (m_timestamp != pItem->getTimestamp()) return false;
+  if (m_intervalDivisor != pItem->getTimeDivisor()) return false;
+  if (m_isIncremental != pItem->isIncremental()) return false;
+  if (m_scalerWidth != pItem->getScalerWidth()) return false;
+  if (m_scalers != pItem->getScalers()) return false;
+
+  return true;
 }
 /*!
    Inequality is the logical inverse of equality.
@@ -217,8 +220,8 @@ CRingScalerItem::operator==(const CRingScalerItem& rhs) const
    \retval 0 - not unequal
    \retval 1 - unequal
 */
-int
-CRingScalerItem::operator!=(const CRingScalerItem& rhs) const
+bool
+CRingScalerItem::operator!=(const CRingItem& rhs) const
 {
   return !(*this == rhs);
 }

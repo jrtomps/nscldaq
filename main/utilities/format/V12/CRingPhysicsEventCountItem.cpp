@@ -140,16 +140,19 @@ CRingPhysicsEventCountItem::~CRingPhysicsEventCountItem()
    \retval 0  - Not equal
    \retval 1  - Equal.
 */
-int
-CRingPhysicsEventCountItem::operator==(const CRingPhysicsEventCountItem& rhs) const
+bool
+CRingPhysicsEventCountItem::operator==(const CRingItem& rhs) const
 {
-    if (m_evtTimestamp != rhs.getEventTimestamp()) return 0;
-    if (m_sourceId != rhs.getSourceId()) return 0;
-    if (m_timeOffset != rhs.getTimeOffset()) return 0;
-    if (m_timestamp != rhs.getTimestamp()) return 0;
-    if (m_offsetDivisor != rhs.getTimeDivisor()) return 0;
-    if (m_eventCount != rhs.getEventCount()) return 0;
-    return 1;
+    if (m_evtTimestamp != rhs.getEventTimestamp()) return false;
+    if (m_sourceId != rhs.getSourceId()) return false;
+
+    const auto pItem = dynamic_cast<const CRingPhysicsEventCountItem*>(&rhs);
+    if (!pItem) return false;
+    if (m_timeOffset != pItem->getTimeOffset()) return false;
+    if (m_timestamp != pItem->getTimestamp()) return false;
+    if (m_offsetDivisor != pItem->getTimeDivisor()) return false;
+    if (m_eventCount != pItem->getEventCount()) return false;
+    return true;
 }
 /*!
   Inequality compare
@@ -157,8 +160,8 @@ CRingPhysicsEventCountItem::operator==(const CRingPhysicsEventCountItem& rhs) co
   \return int
   \retval !(operator==(rhs)).
 */
-int
-CRingPhysicsEventCountItem::operator!=(const CRingPhysicsEventCountItem& rhs) const
+bool
+CRingPhysicsEventCountItem::operator!=(const CRingItem& rhs) const
 {
   return !(*this == rhs);
 }

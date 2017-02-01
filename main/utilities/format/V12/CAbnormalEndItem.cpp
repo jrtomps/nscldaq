@@ -44,21 +44,22 @@ CAbnormalEndItem::CAbnormalEndItem(const CRawRingItem& rhs)
  *   all abnormal end items are the same.
  * @return true
  */
-int
-CAbnormalEndItem::operator==(const CAbnormalEndItem& rhs) const
+bool
+CAbnormalEndItem::operator==(const CRingItem& rhs) const
 {
-    if (m_evtTimestamp != rhs.getEventTimestamp()) return 0;
-    if (m_sourceId != rhs.getSourceId()) return 0;
+    if (ABNORMAL_ENDRUN != rhs.type()) return false;
+    if (m_evtTimestamp != rhs.getEventTimestamp()) return false;
+    if (m_sourceId != rhs.getSourceId()) return false;
 
-    return 1;
+    return true;
 }
 
 /**
  * operator!=
  *  @return !=-
  */
-int
-CAbnormalEndItem::operator!=(const CAbnormalEndItem& rhs) const
+bool
+CAbnormalEndItem::operator!=(const CRingItem& rhs) const
 {
     return !operator==(rhs);
 }

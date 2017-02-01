@@ -162,17 +162,19 @@ CRingTextItem::~CRingTextItem()
   \retval 0        - Not equal
   \retval nonzero  - equal.
 */
-int
-CRingTextItem::operator==(const CRingTextItem& rhs) const
+bool
+CRingTextItem::operator==(const CRingItem& rhs) const
 {
-    if (m_type != rhs.m_type) return 0;
-    if (m_evtTimestamp != rhs.m_evtTimestamp) return 0;
-    if (m_sourceId != rhs.m_sourceId) return 0;
-    if (m_timeOffset != rhs.m_timeOffset) return 0;
-    if (m_offsetDivisor != rhs.m_offsetDivisor) return 0;
-    if (m_timestamp != rhs.m_timestamp) return 0;
-    if (m_strings != rhs.m_strings) return 0;
-    return 1;
+    if (m_evtTimestamp != rhs.getEventTimestamp()) return false;
+    if (m_sourceId != rhs.getSourceId()) return false;
+
+    const auto pItem = dynamic_cast<const CRingTextItem*>(&rhs);
+    if (m_type != pItem->type()) return false;
+    if (m_timeOffset != pItem->getTimeOffset()) return false;
+    if (m_offsetDivisor != pItem->getTimeDivisor()) return false;
+    if (m_timestamp != pItem->getTimestamp()) return false;
+    if (m_strings != pItem->getStrings()) return false;
+    return true;
 }
 /*!
   Comparison for inequality.
@@ -187,8 +189,8 @@ CRingTextItem::operator==(const CRingTextItem& rhs) const
   shifting). however  my definition is sensible in that a == b is the logical converse of
   a != b, and vicaversa, and these operators really do compare.
 */
-int
-CRingTextItem::operator!=(const CRingTextItem& rhs) const
+bool
+CRingTextItem::operator!=(const CRingItem& rhs) const
 {
   return !(*this == rhs);
 }

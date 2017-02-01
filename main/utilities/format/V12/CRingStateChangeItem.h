@@ -101,8 +101,8 @@ public:
 
   virtual void toRawRingItem(CRawRingItem& item) const;
 
-  int operator==(const CRingStateChangeItem& rhs) const;
-  int operator!=(const CRingStateChangeItem& rhs) const;
+  virtual bool operator==(const CRingItem& rhs) const;
+  virtual bool operator!=(const CRingItem& rhs) const;
 
   // Accessors for elements of the item (selectors and mutators both).
 

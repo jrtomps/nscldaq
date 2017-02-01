@@ -40,8 +40,8 @@ public:
     CAbnormalEndItem(const CRawRingItem& rhs);
     virtual ~CAbnormalEndItem() = default;
     
-    int operator==(const CAbnormalEndItem& rhs) const;
-    int operator!=(const CAbnormalEndItem& rhs) const;
+    virtual bool operator==(const CRingItem& rhs) const;
+    virtual bool operator!=(const CRingItem& rhs) const;
 
     // Formatting:
     
