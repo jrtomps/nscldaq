@@ -29,6 +29,8 @@ class CRingItemParserTests : public CppUnit::TestFixture
     CPPUNIT_TEST(parse_1);
     CPPUNIT_TEST(parse_2);
     CPPUNIT_TEST(parse_3);
+    CPPUNIT_TEST(parse_4);
+    CPPUNIT_TEST(parse_5);
     CPPUNIT_TEST(parseSwapped_0);
     CPPUNIT_TEST(peekHeader_0);
     CPPUNIT_TEST_SUITE_END();
@@ -124,6 +126,23 @@ protected:
   }
 
 
+  void parse_4() {
+      Buffer::ByteBuffer body;
+      body << uint32_t(82) << COMP_PHYSICS_EVENT << uint64_t(12) << uint32_t(23);
+      body << uint32_t(41) << COMP_PHYSICS_EVENT_COUNT << uint64_t(12) << uint32_t(23);
+
+      CPPUNIT_ASSERT_THROW_MESSAGE("throw on insufficient data",
+                                   Parser::parse(body.begin(), body.end()),
+                                   std::runtime_error);
+
+  }
+
+  void parse_5() {
+      Buffer::ByteBuffer body; body << 1;
+      CPPUNIT_ASSERT_THROW_MESSAGE("throw on insufficient data for header",
+                                   Parser::parse(body.begin(), body.end()),
+                                   std::runtime_error);
+  }
 
   void parseSwapped_0() {
 
