@@ -28,7 +28,8 @@ nscldaq12_HEADERS = CRingItem.h \
                     CAbnormalEndItem.h \
                     CCompoundRingItem.h \
                     CRingItemParser.h \
-                    CDataFormatItem.h
+                    CDataFormatItem.h \
+                    format_cast.h
 
 libdataformatv12_la_CFLAGS = -I@srcdir@/..
 
@@ -53,7 +54,8 @@ unittests_SOURCES	= TestRunner.cpp \
                         abnormalendtests.cpp \
                         compounditemtests.cpp \
                         ringparsertests.cpp \
-                        dataformattest.cpp
+                        dataformattest.cpp \
+                        formatcasttest.cpp
 
 
 #				ringitemtests.cpp \
