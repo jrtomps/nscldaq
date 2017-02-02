@@ -54,68 +54,62 @@ std::unique_ptr<CRingItem>
 CRingItemFactory::createRingItem(const CRawRingItem& item)
 {
 
-  switch (item.type()) {
+    switch (item.type()) {
     // State change:
 
-  case BEGIN_RUN:
-  case END_RUN:
-  case PAUSE_RUN:
-  case RESUME_RUN:
+    case BEGIN_RUN:
+    case END_RUN:
+    case PAUSE_RUN:
+    case RESUME_RUN:
     {
-      return item.as<CRingStateChangeItem>();
+        return item.as<CRingStateChangeItem>();
     }
 
-    // String list.
+        // String list.
 
-  case PACKET_TYPES:
-  case MONITORED_VARIABLES:
-    {
-      return item.as<CRingTextItem>();
+    case PACKET_TYPES:
+    case MONITORED_VARIABLES:
+        return item.as<CRingTextItem>();
+        // Scalers:
+
+    case PERIODIC_SCALERS:
+        return item.as<CRingScalerItem>();
+
+        // Physics trigger:
+
+    case PHYSICS_EVENT:
+        return item.as<CPhysicsEventItem>();
+        // trigger count.
+
+    case PHYSICS_EVENT_COUNT:
+        return item.as<CRingPhysicsEventCountItem>();
+
+    case RING_FORMAT:
+        return item.as<CDataFormatItem>();
+
+    case EVB_GLOM_INFO:
+        return item.as<CGlomParameters>();
+
+    case ABNORMAL_ENDRUN:
+        return item.as<CAbnormalEndItem>();
+
+    case COMP_BEGIN_RUN:
+    case COMP_END_RUN:
+    case COMP_PAUSE_RUN:
+    case COMP_RESUME_RUN:
+    case COMP_PACKET_TYPES:
+    case COMP_MONITORED_VARIABLES:
+    case COMP_PERIODIC_SCALERS:
+    case COMP_PHYSICS_EVENT:
+    case COMP_PHYSICS_EVENT_COUNT:
+    case COMP_ABNORMAL_ENDRUN:
+    case COMP_RING_FORMAT:
+    case COMP_EVB_GLOM_INFO:
+        return item.as<CCompositeRingItem>();
+
+    default:
+        return item.as<CRawRingItem>();
     }
-    // Scalers:
-
-  case PERIODIC_SCALERS:
-    {
-      return item.as<CRingScalerItem>();
-    }
-
-    // Physics trigger:
-
-  case PHYSICS_EVENT:
-    {
-      return item.as<CPhysicsEventItem>();
-  }
-    // trigger count.
-
-  case PHYSICS_EVENT_COUNT:
-    {
-      return item.as<CRingPhysicsEventCountItem>();
-    }
-//  case RING_FORMAT:
-//    return new CDataFormatItem(item);
-  case EVB_GLOM_INFO:
-    return item.as<CGlomParameters>();
-
-  case ABNORMAL_ENDRUN:
-    return item.as<CAbnormalEndItem>();
-
-  case COMP_BEGIN_RUN:
-  case COMP_END_RUN:
-  case COMP_PAUSE_RUN:
-  case COMP_RESUME_RUN:
-  case COMP_PACKET_TYPES:
-  case COMP_MONITORED_VARIABLES:
-  case COMP_PERIODIC_SCALERS:
-  case COMP_PHYSICS_EVENT:
-  case COMP_PHYSICS_EVENT_COUNT:
-  case COMP_ABNORMAL_ENDRUN:
-  case COMP_RING_FORMAT:
-  case COMP_EVB_GLOM_INFO:
-      return item.as<CCompositeRingItem>();
-
-  default:
-      return item.as<CRawRingItem>();
-  }
 }
 
 /**
