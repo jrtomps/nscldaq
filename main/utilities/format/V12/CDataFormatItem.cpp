@@ -14,13 +14,16 @@
  * @author Ron Fox<fox@nscl.msu.edu>
  */
 
-#include "V11/CDataFormatItem.h"
-#include "V11/DataFormatV11.h"
+#include "V12/CDataFormatItem.h"
+#include "V12/DataFormat.h"
+#include "V12/CRawRingItem.h"
+#include "Deserializer.h"
+#include "ByteBuffer.h"
 
 #include <sstream>
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
 /*-----------------------------------------------------------------------------
  * Canonicals
@@ -32,68 +35,35 @@ namespace DAQ {
  *   Constructs a data format ring item whose payload contains the current
  *   data format major and minor versions encoded in DataFormat.h
  */
-CDataFormatItem::CDataFormatItem() :
-    CRingItem(RING_FORMAT, sizeof(DataFormat))
+CDataFormatItem::CDataFormatItem()
+ : CDataFormatItem(NULL_TIMESTAMP, 0, 12, 0)
+{}
+
+CDataFormatItem::CDataFormatItem(uint64_t tstamp, uint32_t sourceId, uint16_t major, uint16_t minor)
+    : m_evtTimestamp(tstamp),
+      m_sourceId(sourceId),
+      m_major(major),
+      m_minor(minor)
+{}
+
+
+CDataFormatItem::CDataFormatItem(const CRawRingItem& rawItem)
 {
-    init();        
+    m_evtTimestamp = rawItem.getEventTimestamp();
+    m_sourceId = rawItem.getSourceId();
+
+    auto& body = rawItem.getBody();
+
+    if (body.size() < 4) {
+        throw std::runtime_error("CDataFormatItem(const CRawRingItem&) cannot construct from incomplete data buffer");
+    }
+    Buffer::ContainerDeserializer<Buffer::ByteBuffer> bodyStream(body, rawItem.mustSwap());
+
+    bodyStream >> m_major >> m_minor;
 }
 
 CDataFormatItem::~CDataFormatItem() {}
-/**
- * copy constructor
- *
- * @param rhs - The item that will serve as a template for us.
- */
-CDataFormatItem::CDataFormatItem(const CDataFormatItem& rhs) :
-    CRingItem(rhs)
-{}
-/**
- * construct from generic
- * 
- *
- * Constructs from a CRingItem. If the CRingItem type is not RING_FORMAT,
- * a bad_cast is thrown.
- *
- * @param rhs Reference to the ring item that will be used to construct us.
- */
-CDataFormatItem::CDataFormatItem(const CRingItem& rhs) throw(std::bad_cast) :
-    CRingItem(rhs)
-{
-    if (type() != RING_FORMAT) {
-        throw std::bad_cast();
-    }
-}
-/**
- * Assignment
- *
- * @param rhs - Item we are assigning to us.
- *
- * @return CDataFormatItem& (refers to this).
- */
-CDataFormatItem&
-CDataFormatItem::operator=(const CDataFormatItem& rhs) 
-{
-    CRingItem::operator=(rhs);
-    return *this;
-}
-/**
- * generic Assignment
- *
- * Assigns from a CRingItem throws a bad_cast if the rhs is not a
- * RING_FORMAT item.
- *
- * @param rhs - Right hand side of the assigment.
- * @return CDataFormatItem& (*this)
- */
-CDataFormatItem&
-CDataFormatItem::operator=(const CRingItem& rhs) throw(std::bad_cast)
-{
-    if (rhs.type() != RING_FORMAT) {
-        throw std::bad_cast();
-    }
-    CRingItem::operator=(rhs);
-    return *this;
-}
+
 /**
  * operator==
  *
@@ -103,10 +73,21 @@ CDataFormatItem::operator=(const CRingItem& rhs) throw(std::bad_cast)
  *
  *   @return int - nonzero if equal.
  */
-int
-CDataFormatItem::operator==(const CDataFormatItem& rhs) const
+bool
+CDataFormatItem::operator==(const CRingItem& rhs) const
 {
-    return CRingItem::operator==(rhs);
+    if (m_evtTimestamp != rhs.getEventTimestamp()) return false;
+    if (m_sourceId != rhs.getSourceId()) return false;
+
+    auto pItem = dynamic_cast<const CDataFormatItem*>(&rhs);
+    if (!pItem) {
+        return false;
+    }
+
+    if (m_major != pItem->getMajor()) return false;
+    if (m_minor != pItem->getMinor()) return false;
+
+    return true;
 }
 /**
  * operator!=
@@ -115,11 +96,62 @@ CDataFormatItem::operator==(const CDataFormatItem& rhs) const
  *
  * @return int  non zero if unequal.
  */
-int
-CDataFormatItem::operator!=(const CDataFormatItem& rhs) const
+bool
+CDataFormatItem::operator!=(const CRingItem& rhs) const
 {
-    return CRingItem::operator!=(rhs);
+    return !(this->operator==(rhs));
 }
+
+
+uint32_t CDataFormatItem::size() const {
+    return 24;
+}
+
+uint32_t CDataFormatItem::type() const {
+    return RING_FORMAT;
+}
+
+void CDataFormatItem::setType(uint32_t type) {
+    if (type != RING_FORMAT) {
+        throw std::invalid_argument("CDataFormatItem::setType() argument must be RING_FORMAT");
+    }
+}
+
+uint64_t CDataFormatItem::getEventTimestamp() const {
+    return m_evtTimestamp;
+}
+
+void CDataFormatItem::setEventTimestamp(uint64_t tstamp) {
+    m_evtTimestamp = tstamp;
+}
+
+uint32_t CDataFormatItem::getSourceId() const {
+    return m_sourceId;
+}
+
+void CDataFormatItem::setSourceId(uint32_t id) {
+    m_sourceId = id;
+}
+
+bool CDataFormatItem::isComposite() const {
+    return false;
+}
+
+bool CDataFormatItem::mustSwap() const {
+    return false;
+}
+
+void CDataFormatItem::toRawRingItem(CRawRingItem& item) const
+{
+
+    item.setType(type());
+    item.setEventTimestamp(getEventTimestamp());
+    item.setSourceId(getSourceId());
+
+    item.getBody() << m_major << m_minor;
+
+}
+
 /*----------------------------------------------------------------------------
  * Getters.
  */
@@ -134,10 +166,7 @@ CDataFormatItem::operator!=(const CDataFormatItem& rhs) const
 uint16_t
 CDataFormatItem::getMajor() const
 {
-    CDataFormatItem* This = const_cast<CDataFormatItem*>(this);
-    
-    pDataFormat pItem = reinterpret_cast<pDataFormat>(This->getItemPointer());
-    return pItem->s_majorVersion;
+    return m_major;
 }
 /**
  * minor
@@ -149,12 +178,9 @@ CDataFormatItem::getMajor() const
 uint16_t
 CDataFormatItem::getMinor() const
 {
-    CDataFormatItem* This = const_cast<CDataFormatItem*>(this);
-    
-    pDataFormat pItem = reinterpret_cast<pDataFormat>(This->getItemPointer());
-
-    return pItem->s_minorVersion;    
+    return m_minor;
 }
+
 /*----------------------------------------------------------------------------
  * object methods:
  *--------------------------------------------------------------------------*/
@@ -176,36 +202,14 @@ CDataFormatItem::typeName() const
 std::string
 CDataFormatItem::toString() const
 {
-    CDataFormatItem* This = const_cast<CDataFormatItem*>(this);
-    pDataFormat pItem = reinterpret_cast<pDataFormat>(This->getItemPointer());
     std::ostringstream out;
     
-    out << "Ring items formatted for: " << pItem->s_majorVersion << '.'
-        << pItem->s_minorVersion << std::endl;
+    out << "Ring items formatted for: " << m_major << '.'
+        << m_minor << std::endl;
         
     return out.str();
 }
 
-/*----------------------------------------------------------------------------
- * Private utilities.
- *--------------------------------------------------------------------------*/
 
-/**
- * init
- *   Fill in the ring item once the base class has been constructed.
- */
-void
-CDataFormatItem::init()
-{
-    pDataFormat pBody = reinterpret_cast<pDataFormat>(getItemPointer());
-    pBody->s_majorVersion = FORMAT_MAJOR;
-    pBody->s_minorVersion = FORMAT_MINOR;
-    
-    setBodyCursor(&(pBody[1]));
-    updateSize();
-    
-}
-
-
-  } // end of V11 namespace
+  } // end of V12 namespace
 } // end DAQ

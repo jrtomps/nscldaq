@@ -16,12 +16,10 @@
  * @author Ron Fox<fox@nscl.msu.edu>
  */
 
-#include "V11/CRingItem.h"            // Base class.
-
-#include <typeinfo>
+#include "V12/CRingItem.h"            // Base class
 
 namespace DAQ {
-  namespace V11 {
+  namespace V12 {
 
 /**
  * @class CDataFormatItem
@@ -37,26 +35,53 @@ namespace DAQ {
  */
 class CDataFormatItem : public CRingItem
 {
+private:
+    uint64_t m_evtTimestamp;
+    uint32_t m_sourceId;
+    uint16_t m_major;
+    uint16_t m_minor;
+
     // Canonical methods:
 public:
     CDataFormatItem();
+    CDataFormatItem(uint64_t tstamp, uint32_t sourceId, uint16_t major, uint16_t minor);
+    explicit CDataFormatItem(const CRawRingItem& rawItem);
     virtual ~CDataFormatItem();
     
-    CDataFormatItem(const CDataFormatItem& rhs);
-    CDataFormatItem(const CRingItem& rhs) throw(std::bad_cast);
-    
-    CDataFormatItem& operator=(const CDataFormatItem& rhs);
-    CDataFormatItem& operator=(const CRingItem& rhs) throw(std::bad_cast);
+    CDataFormatItem(const CDataFormatItem& rhs) = default;
 
-    int operator==(const CDataFormatItem& rhs) const;
-    int operator!=(const CDataFormatItem& rhs) const;
+    CDataFormatItem& operator=(const CDataFormatItem& rhs) = default;
+
+    virtual bool operator==(const CRingItem& rhs) const;
+    virtual bool operator!=(const CRingItem& rhs) const;
     
 public:
+
+    uint32_t type() const;
+    void setType(uint32_t type);
+
+    uint32_t size() const;
+
+    uint64_t getEventTimestamp() const;
+    void setEventTimestamp(uint64_t tstamp);
+
+    uint32_t getSourceId() const;
+    void setSourceId(uint32_t id);
+
+
+    bool isComposite() const;
+    bool mustSwap() const;
+
+    void toRawRingItem(CRawRingItem& item) const;
+
     // Getters (these are useful when the item was created from a RingItem)
     
     uint16_t getMajor() const;
+    void setMajor(uint16_t major);
+
     uint16_t getMinor() const;
-    
+    void setMinor(uint16_t minor);
+
     // object methods:
 
     virtual std::string typeName() const;
@@ -68,7 +93,7 @@ private:
     
 };
 
-  } // end of V11 namespace
+  } // end of V12 namespace
 } // end DAq
 
 #endif

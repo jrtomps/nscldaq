@@ -11,20 +11,9 @@ libdataformatv12_la_SOURCES = CRingItem.cpp \
                               CRingItemFactory.cpp \
                               CAbnormalEndItem.cpp \
                               CCompoundRingItem.cpp \
-                              CRingItemParser.cpp
+                              CRingItemParser.cpp \
+                              CDataFormatItem.cpp
 
-#                           CAbnormalEndItem.cpp \
-#                           CRingStateChangeItem.cpp \
-#                           CPhysicsEventItem.cpp \
-#                           CRingPhysicsEventCountItem.cpp \
-#                           CRingTextItem.cpp \
-#                           CRingFragmentItem.cpp \
-#                           CGlomParameters.cpp \
-#                           CUnknownFragment.cpp \
-#                           CDataFormatItem.cpp \
-#                           CRingItemFactory.cpp \
-#                                                                                                        RingItemComparisons.cpp \
-#													 ringitem.c
 nscldaq12dir = @includedir@/V12
 
 nscldaq12_HEADERS = CRingItem.h \
@@ -38,18 +27,8 @@ nscldaq12_HEADERS = CRingItem.h \
                     CRingItemFactory.h \
                     CAbnormalEndItem.h \
                     CCompoundRingItem.h \
-                    CRingItemParser.h
-
-#                  CAbnormalEndItem.h \
-#                  CPhysicsEventItem.h \
-#                  CRingPhysicsEventCountItem.h \
-#                  CRingFragmentItem.h \
-#                  CGlomParameters.h \
-#                  CUnknownFragment.h \
-#                  CDataFormatItem.h \
-#                  CRingItemFactory.h \
-#                  RingItemComparisons.h \
-#                  DataFormatV11.h
+                    CRingItemParser.h \
+                    CDataFormatItem.h
 
 libdataformatv12_la_CFLAGS = -I@srcdir@/..
 
@@ -73,7 +52,8 @@ unittests_SOURCES	= TestRunner.cpp \
                         factorytests.cpp \
                         abnormalendtests.cpp \
                         compounditemtests.cpp \
-                        ringparsertests.cpp
+                        ringparsertests.cpp \
+                        dataformattest.cpp
 
 
 #				ringitemtests.cpp \
