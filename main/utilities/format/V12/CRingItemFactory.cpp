@@ -26,6 +26,7 @@
 #include "V12/CGlomParameters.h"
 #include "V12/CAbnormalEndItem.h"
 #include "V12/CCompoundRingItem.h"
+#include "V12/CDataFormatItem.h"
 #include "V12/DataFormat.h"
 
 #include <vector>
