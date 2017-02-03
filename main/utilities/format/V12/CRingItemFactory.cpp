@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2009.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -8,7 +8,7 @@
      http://www.gnu.org/licenses/gpl.txt
 
      Author:
-             Ron Fox
+     Jeromy Tompkins
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -41,14 +41,68 @@ static std::set<uint32_t> knownItemTypes;
 
 /**
  * Create a ring item of the correct underlying type as indicated by the
- * ring item type.  Note that the result is dynamically allocated and must be
- * freed by the caller (via delete).
+ * value returned by CRawRingItem::type().
  *
- * @param item - Reference to the item.
- * 
- * @return CRingItem*
- * @retval Pointer to an object that is some subclass of CRingItem.  Note that if the
- *         ring item type is not recognized, a true CRing Item is produced.
+ * @param item - Reference to a raw ring item.
+ *
+ * If the ring item type is recognized, its type will map to particular
+ * derived type. The mapping is as follows:
+ *
+ * +--------------------------+----------------------------+
+ * | Input type() value       | Output Class Type          |
+ * +--------------------------+----------------------------+
+ * | BEGIN_RUN                | CRingStateChangeItem       |
+ * +--------------------------+----------------------------+
+ * | END_RUN                  | CRingStateChangeItem       |
+ * +--------------------------+----------------------------+
+ * | PAUSE_RUN                | CRingStateChangeItem       |
+ * +--------------------------+----------------------------+
+ * | RESUME_RUN               | CRingStateChangeItem       |
+ * +--------------------------+----------------------------+
+ * | PACKET_TYPES             | CRingTextItem              |
+ * +--------------------------+----------------------------+
+ * | MONITORED_VARIABLES      | CRingTextItem              |
+ * +--------------------------+----------------------------+
+ * | PERIODIC_SCALERS         | CRingScalerItem            |
+ * +--------------------------+----------------------------+
+ * | PHYSICS_EVENT            | CPhysicsEventItem          |
+ * +--------------------------+----------------------------+
+ * | PHYSICS_EVENT_COUNT      | CRingPhysicsEventCountItem |
+ * +--------------------------+----------------------------+
+ * | RING_FORMAT              | CDataFormatItem            |
+ * +--------------------------+----------------------------+
+ * | EVB_BLOM_INFO            | CGlomParameters            |
+ * +--------------------------+----------------------------+
+ * | ABNORMAL_ENDRUN          | CAbnormalEndItem           |
+ * +--------------------------+----------------------------+
+ * | COMP_BEGIN_RUN           | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_END_RUN             | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_PAUSE_RUN           | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_RESUME_RUN          | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_PACKET_TYPES        | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_MONITORED_VARIABLES | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_PERIODIC_SCALERS    | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_PHYSICS_EVENT       | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_PHYSICS_EVENT_COUNT | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_ABNORMAL_ENDRUN     | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_RING_FORMAT         | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | COMP_EVB_GLOM_INFO       | CCompositeRingItem         |
+ * +--------------------------+----------------------------+
+ * | any other types          | CRawRingItem               |
+ * +--------------------------+----------------------------+
+ *
+ * @return CRingItemUPtr (i.e. std::unique_ptr<CRingItem>)
  *
  */
 std::unique_ptr<CRingItem>
@@ -114,13 +168,11 @@ CRingItemFactory::createRingItem(const CRawRingItem& item)
 }
 
 /**
- * Determines if a  pointer points to something that might be a valid ring item.
- * - Item must have at least the size of a header.
- * - Item must be a recognized ring item.
+ * Determines if a type is known
  *
- * @param pItem - pointer to the data.
+ * \param type type to check
  *
- * @return bool - true if we htink this is a valid ring item.
+ * @return bool - true if valid, false otherwise
  */
 bool
 CRingItemFactory::isKnownItemType(const uint32_t type)
