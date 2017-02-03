@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -11,7 +11,6 @@
  * @file CDataFormatItem.h
  * @brief Implement the CDataFormatItem a class for producing data format
  *        ring items.
- * @author Ron Fox<fox@nscl.msu.edu>
  */
 
 #include "V12/CDataFormatItem.h"
