@@ -1,7 +1,6 @@
 /**
-
 #    This software is Copyright by the Board of Trustees of Michigan
-#    State University (c) Copyright 2013.
+#    State University (c) Copyright 2017.
 #
 #    You may use this software under the terms of the GNU public license
 #    (GPL).  The terms of this license are described at:
@@ -9,7 +8,7 @@
 #     http://www.gnu.org/licenses/gpl.txt
 #
 #    Author:
-#            Ron Fox
+#            Jeromy Tompkins
 #            NSCL
 #            Michigan State University
 #            East Lansing, MI 48824-1321
@@ -17,13 +16,20 @@
 ##
 # @file   CAbnormalEndItem.h
 # @brief  Define the wrapper class for the abnormal end run ring item.
-# @author <fox@nscl.msu.edu>
 */
 #ifndef DAQ_V12_CABNORMALENDITEM_H
 #define DAQ_V12_CABNORMALENDITEM_H
 
 #include "V12/CRingItem.h"
 
+
+/*! \brief The Abnormal Ring Item class
+ *
+ * An abnormal ring item is a leaf type. It does not have any children and is
+ * issued by some programs when something bad happens and the run needs to be
+ * shutdown. It has the most fundamental structure with only a head and no body.
+ *
+ */
 namespace DAQ {
   namespace V12 {
 
