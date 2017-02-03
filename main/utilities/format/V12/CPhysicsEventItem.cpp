@@ -109,5 +109,12 @@ namespace DAQ {
       }
   }
 
+  /*!
+   * \return false (Physics events are always leaf types)
+   */
+  bool CPhysicsEventItem::isComposite() const {
+      return false;
+  }
+
   } // end of V12 namespace
 } // end of DAQ

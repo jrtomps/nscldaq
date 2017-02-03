@@ -15,8 +15,8 @@
          East Lansing, MI 48824-1321
 */
 
-#ifndef NSCLDAQV12_CPHYSICSEVENTITEM_H
-#define NSCLDAQV12_CPHYSICSEVENTITEM_H
+#ifndef DAQ_V12_CPHYSICSEVENTITEM_H
+#define DAQ_V12_CPHYSICSEVENTITEM_H
 
 #include <V12/CRawRingItem.h>
 
@@ -29,6 +29,31 @@ namespace DAQ {
  * The physics event is a leaf type that has an amorphous set of data in its body.
  * In essence it is just a raw ring item. The PhysicsEvent class is mainly present
  * so that the typeName() method can be overridden to return a different value.
+ *
+ * The CPhysicsEventItem is always a leaf item. It may or may not require byte swapping,
+ * so anyone parsing the body should be careful to treat it properly. The
+ * Buffer::ContainerDeserializer class is useful for this purpose. For example:
+ *
+ * \code
+ * #include <V12/CPhysicsEventItem.h>
+ * #include <Deserializer.h>
+ *
+ * CRawRingItem rawItem(someDataBuffer);
+ * CPhysicsEventItem item(rawItem);
+ *
+ * // create a deserializer to properly handle the byte swapping
+ * Buffer::Deserializer<Buffer::ByteBuffer>
+ *       bodyStream(rawItem.getBody(), rawItem.mustSwap());
+ *
+ * // Read and print out the body in 16-bit chunks until there is no more data
+ * uint16_t value;
+ * bodyStream >> value;
+ * while (!bodyStream.eof()) {
+ *    std::cout << value << std::endl;
+ *    bodyStream >> value;
+ * }
+ *
+ * \endcode
  */
 class CPhysicsEventItem : public CRawRingItem
 {
@@ -49,6 +74,9 @@ public:
   virtual std::string typeName() const;	// Textual type of item.
   
   virtual void setType(uint32_t type);
+
+  virtual bool isComposite() const;
+
 };
 
 
