@@ -12,7 +12,12 @@ std::string headerToString(const DAQ::V12::CRingItem &item) {
     std::ostringstream result;
     result << "Size (bytes) : " << item.size() << std::endl;
     result << "Type         : " << item.typeName() << std::endl;
-    result << "Timestamp    : " << item.getEventTimestamp() << std::endl;
+    uint64_t tstamp = item.getEventTimestamp();
+    if (tstamp != NULL_TIMESTAMP) {
+        result << "Timestamp    : " << tstamp << std::endl;
+    } else {
+        result << "Timestamp    : NULL_TIMESTAMP" << std::endl;
+    }
     result << "Source Id    : " << item.getSourceId()  << std::endl;
 
     return result.str();

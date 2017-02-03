@@ -36,6 +36,8 @@ class CDataFormatItemTests : public CppUnit::TestFixture
     CPPUNIT_TEST(comparison_3);
     CPPUNIT_TEST(comparison_4);
     CPPUNIT_TEST(toRawRingItem_0);
+    CPPUNIT_TEST(toRawRingItem_1);
+    CPPUNIT_TEST(toString_0);
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -178,6 +180,37 @@ protected:
       EQMSG("source id", uint32_t(45), rawItem.getSourceId());
       EQMSG("major", uint16_t(67), item.getMajor());
       EQMSG("minor", uint16_t(89), item.getMinor());
+  }
+
+
+  void toRawRingItem_1() {
+      // fill the body of the raw ring item with data prior to calling toRawRingItem
+      // it should still succeed
+      CRawRingItem rawItem;
+      rawItem.getBody() << 23 << 23;
+
+      CDataFormatItem item(23, 45, 67, 89);
+      item.toRawRingItem(rawItem);
+
+      EQMSG("size", uint32_t(24), rawItem.size());
+      EQMSG("type", RING_FORMAT, rawItem.type());
+      EQMSG("evt tstamp", uint64_t(23), rawItem.getEventTimestamp());
+      EQMSG("source id", uint32_t(45), rawItem.getSourceId());
+      EQMSG("major", uint16_t(67), item.getMajor());
+      EQMSG("minor", uint16_t(89), item.getMinor());
+  }
+
+
+  void toString_0() {
+      CDataFormatItem item;
+      std::stringstream asString;
+      asString << "Size (bytes) : 24" << std::endl;
+      asString << "Type         : Data Format" << std::endl;
+      asString << "Timestamp    : NULL_TIMESTAMP" << std::endl;
+      asString << "Source Id    : 0" << std::endl;
+      asString << "Data Version : 12.0" << std::endl;
+
+      EQMSG("empty compound item", asString.str(), item.toString());
   }
 
 };

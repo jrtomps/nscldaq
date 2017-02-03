@@ -36,9 +36,17 @@ namespace DAQ {
  *   data format major and minor versions encoded in DataFormat.h
  */
 CDataFormatItem::CDataFormatItem()
- : CDataFormatItem(NULL_TIMESTAMP, 0, 12, 0)
+ : CDataFormatItem(NULL_TIMESTAMP, 0, FORMAT_MAJOR, FORMAT_MINOR)
 {}
 
+/*!
+ * \brief Constructs data format ring item with information provided explicitly
+ *
+ * \param tstamp        event timestamp
+ * \param sourceId      the source id
+ * \param major         major version
+ * \param minor         minor version
+ */
 CDataFormatItem::CDataFormatItem(uint64_t tstamp, uint32_t sourceId, uint16_t major, uint16_t minor)
     : m_evtTimestamp(tstamp),
       m_sourceId(sourceId),
@@ -47,6 +55,15 @@ CDataFormatItem::CDataFormatItem(uint64_t tstamp, uint32_t sourceId, uint16_t ma
 {}
 
 
+/*!
+ * \brief Construct from raw data
+ *
+ * \param rawItem   the raw data item
+ *
+ * Byte swapping is handled automatically.
+ *
+ * \throws std::runtime_error if insufficient data is provided in the body of raw ring item
+ */
 CDataFormatItem::CDataFormatItem(const CRawRingItem& rawItem)
 {
     m_evtTimestamp = rawItem.getEventTimestamp();
@@ -65,13 +82,11 @@ CDataFormatItem::CDataFormatItem(const CRawRingItem& rawItem)
 CDataFormatItem::~CDataFormatItem() {}
 
 /**
- * operator==
- *
- *   Compares for equality.
+ * \brief Equality comparison operator
  *
  *   @param rhs - Item to compare to *this.
  *
- *   @return int - nonzero if equal.
+ *   @return true if major, minor, tstamp, and source id are the same
  */
 bool
 CDataFormatItem::operator==(const CRingItem& rhs) const
@@ -89,12 +104,14 @@ CDataFormatItem::operator==(const CRingItem& rhs) const
 
     return true;
 }
+
 /**
- * operator!=
+ * \brief Inequality comparison operator
  *
- * @param rhs - Item to compare to *this.l
+ * @param rhs - Item to compare to *this.
  *
- * @return int  non zero if unequal.
+ * @return true if major, minor, source id, or tstamp is different
+ * \retval false otherwise
  */
 bool
 CDataFormatItem::operator!=(const CRingItem& rhs) const
@@ -102,15 +119,27 @@ CDataFormatItem::operator!=(const CRingItem& rhs) const
     return !(this->operator==(rhs));
 }
 
-
+/*!
+ * \return 24 (always the same number of bytes)
+ */
 uint32_t CDataFormatItem::size() const {
     return 24;
 }
 
+/*!
+ * \return V12::RING_FORMAT
+ */
 uint32_t CDataFormatItem::type() const {
     return RING_FORMAT;
 }
 
+/*!
+ * \brief Set the type
+ *
+ * \param type  must be V12::RING_FORMAT
+ *
+ * \throws std::invalid_argument if user passes type other than V12::RING_FORMAT
+ */
 void CDataFormatItem::setType(uint32_t type) {
     if (type != RING_FORMAT) {
         throw std::invalid_argument("CDataFormatItem::setType() argument must be RING_FORMAT");
@@ -133,16 +162,32 @@ void CDataFormatItem::setSourceId(uint32_t id) {
     m_sourceId = id;
 }
 
+
+/*!
+ * CDataFormatItems are always leaf types
+ *
+ * \return false
+ */
 bool CDataFormatItem::isComposite() const {
     return false;
 }
 
+/*!
+ * CDataFormatItems are always stored in native byte order
+ *
+ * \return false
+ */
 bool CDataFormatItem::mustSwap() const {
     return false;
 }
 
+/*!
+ * \brief Serialize data into a raw ring item
+ * \param item  the raw ring item to fill with the data
+ */
 void CDataFormatItem::toRawRingItem(CRawRingItem& item) const
 {
+    item.getBody().clear();
 
     item.setType(type());
     item.setEventTimestamp(getEventTimestamp());
@@ -152,9 +197,6 @@ void CDataFormatItem::toRawRingItem(CRawRingItem& item) const
 
 }
 
-/*----------------------------------------------------------------------------
- * Getters.
- */
 
 /**
  * major
@@ -181,9 +223,6 @@ CDataFormatItem::getMinor() const
     return m_minor;
 }
 
-/*----------------------------------------------------------------------------
- * object methods:
- *--------------------------------------------------------------------------*/
 /**
  * typeName
  *
@@ -192,7 +231,7 @@ CDataFormatItem::getMinor() const
 std::string
 CDataFormatItem::typeName() const
 {
-    return std::string("Ring Item format version");
+    return std::string("Data Format");
 }
 /**
  * toString
@@ -204,7 +243,9 @@ CDataFormatItem::toString() const
 {
     std::ostringstream out;
     
-    out << "Ring items formatted for: " << m_major << '.'
+    out << headerToString(*this);
+
+    out << "Data Version : " << m_major << '.'
         << m_minor << std::endl;
         
     return out.str();

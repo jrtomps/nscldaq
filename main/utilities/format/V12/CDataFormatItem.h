@@ -2,7 +2,7 @@
 #define DAQ_V12_CDATAFORMATITEM_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -13,7 +13,6 @@
 /**
  * @file CDataFormatItem.h
  * @brief Define the CDataFormatItem a class for producing data format ring items.
- * @author Ron Fox<fox@nscl.msu.edu>
  */
 
 #include "V12/CRingItem.h"            // Base class
@@ -27,11 +26,14 @@ namespace DAQ {
  * This class encapsulates ring items of the type DataFormat (RING_FORMAT).
  * It is used to provide an indicator to the user of the format of data that is
  * being inserted into a ring.  This can be used by data decoders to determine
- * how to handle the specific data types.  If a ring does not ever get a
+ * how to handle the specific data types.  If a data source never provides a
  * RING_FORMAT item, you can assume the format to be for NSCLDAQ-10.* as this
  * ring type was added in NSCLDAQ 11.0.
  * The ring format will contain the major and minor versions of the
  * lowest NSCLDAQ version that can process this data format.
+ *
+ * The data format item is always a leaf item.
+ *
  */
 class CDataFormatItem : public CRingItem
 {
@@ -73,8 +75,6 @@ public:
     bool mustSwap() const;
 
     void toRawRingItem(CRawRingItem& item) const;
-
-    // Getters (these are useful when the item was created from a RingItem)
     
     uint16_t getMajor() const;
     void setMajor(uint16_t major);
