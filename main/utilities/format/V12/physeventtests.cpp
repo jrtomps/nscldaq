@@ -18,6 +18,7 @@ class physeventtests : public CppUnit::TestFixture {
   CPPUNIT_TEST( ringitemcopy );
   CPPUNIT_TEST( ringitemassign_0 );
   CPPUNIT_TEST( badcast );
+  CPPUNIT_TEST( setType_0);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -31,6 +32,7 @@ protected:
   void comparison_0();
   void comparison_1();
   void ringitemassign_0();
+  void setType_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(physeventtests);
@@ -91,4 +93,11 @@ void physeventtests::ringitemassign_0()
     item2 = item;
     CPPUNIT_ASSERT_MESSAGE("assigment creates same", item == item2 );
 
+}
+
+void physeventtests::setType_0() {
+    V12::CPhysicsEventItem item;
+    CPPUNIT_ASSERT_THROW_MESSAGE("physics event type must be PHYSICS_EVENT",
+                                 item.setType(V12::VOID),
+                                 std::invalid_argument);
 }
