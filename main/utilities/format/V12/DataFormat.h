@@ -1,5 +1,5 @@
-#ifndef DAQ12_DATAFORMAT_H
-#define DAQ12_DATAFORMAT_H
+#ifndef DAQ_V12_DATAFORMAT_H
+#define DAQ_V12_DATAFORMAT_H
 
 /*
     This software is Copyright by the Board of Trustees of Michigan
@@ -19,8 +19,7 @@
 
 /*!
   \file DataFormat.h
-  This file contains typedefs for the structures that will be put into
-  ring buffers for event data.  Event data Ring buffers are filled with items.
+  This file contains typedefs for the structures that represent leaf ring items.
   An item has the structure:
 
 \verbatim
@@ -29,16 +28,46 @@
  +----------------------------------+
  |  32 bit type code of item        |
  +----------------------------------+
+ |  64 bit event timestamp          |
+ +----------------------------------+
+ |  32 bit source id                |
+ +----------------------------------+
  |  body (size - 8 bytes of data    |
  +----------------------------------+
 \endverbatim
 
-  Where the 32 bit type code is really a 16 bit type code stored in the lower 16 bits of the 
+ Where the 32 bit type code is really a 15 bit type code stored in the lower 15 bits of the
 32 bit word in the native byte ordering of the originating system.  This allows it to serve as 
 a byte order indicator, as data type 0 is not legal, and the top bits of the type code must
 be zero.
 
-Further as of nscldaq-12.0, each body has a minimal form of:
+New in version 12.0 is the ability for ring items to nest. As a result, a ring item can
+contain a series of ring items in its body. There is therefore a distinction between
+ring items that are leafs and composites. You can think of a ring item as representing
+a tree structure. Often we like to diagram these as shown below:
+
+\verbatim
+
+                * (composite)
+               / \
+  (composite) *   * (leaf)
+             / \
+     (leaf) *   * (leaf)
+
+\endverbatim
+
+Each node in the graph has an associated ring item header that specifies a size,
+type, source id, and event timestamp. The body of a composite is just a series of
+ring items, whereas the body of a leaf has some predefined structure.
+
+Composite and leaf types are differentiated by bit 16 of the type code. If set,
+the item is composite. Otherwise, it is a leaf. The concept of type consistency is also
+part of version 12.0. The rule of type consistency is that all children of a parent
+ring item must have the same fundamental type (only least significant 15 bits included).
+
+In version 12.0, the support for the C-style structs is limited. The user is encouraged
+to use the CRingItem class and its derived types. Those classes are suitable for IO
+and general usage moreso than the structs provided in this header.
 
 */
 
@@ -62,16 +91,17 @@ namespace DAQ {
     so that decoders know what format the ring is in.
 */
 
-static const uint16_t FORMAT_MAJOR  = 11;  /* nscldaq-11. */
+static const uint16_t FORMAT_MAJOR  = 12;  /* nscldaq-12. */
 static const uint16_t FORMAT_MINOR  =  0;  /* nscldaq-x.0 */
 
-/* state change item type codes: */
 static const uint32_t VOID = 0;
+
+/* state change item type codes: */
 
 static const uint32_t BEGIN_RUN       = 0x0001;
 static const uint32_t COMP_BEGIN_RUN  = 0x8001;
 static const uint32_t END_RUN         = 0x0002;
-static const uint32_t COMP_END_RUN     = 0x8002;
+static const uint32_t COMP_END_RUN    = 0x8002;
 static const uint32_t PAUSE_RUN       = 0x0003;
 static const uint32_t COMP_PAUSE_RUN  = 0x8003;
 static const uint32_t RESUME_RUN      = 0x0004;
@@ -96,9 +126,6 @@ static const uint32_t COMP_RING_FORMAT          = 0x800c;
 static const uint32_t PERIODIC_SCALERS      = 0x0014;
 static const uint32_t COMP_PERIODIC_SCALERS = 0x8014;
 
-
-/* Note timestamped nonincremental scalers absorbed into incremental scalers. */
-
 /* Physics events: */
 
 static const uint32_t PHYSICS_EVENT             = 0x001e;
@@ -121,16 +148,15 @@ static const uint32_t COMP_FIRST_USER_ITEM_CODE = 0xc000; /* 0x8000 */
 
 static const uint16_t GLOM_TIMESTAMP_FIRST   =  0;
 static const uint16_t GLOM_TIMESTAMP_LAST    =  1;
-static const uint16_t GLOM_TIMESTAMP_AVERAGE = 2;
+static const uint16_t GLOM_TIMESTAMP_AVERAGE =  2;
 
+
+/* Default timestamp for all types that gets special treatment by the event builder */
 static const uint64_t NULL_TIMESTAMP = UINT64_MAX;
 
 
-/* Longest allowed title: */
-
 
 // Macro to make packed structs:
-
 
 
 #define PSTRUCT struct __attribute__((__packed__))
@@ -148,9 +174,7 @@ typedef PSTRUCT _RingItemHeader {
 
 /*!
   Run state changes are documented by inserting state change items that have the
-  structure shown below.  After 11.0, they may or mey  not have abody header
-  as reflected by the fact that they contain a union as shown below:
-
+  structure shown below.
 */
 typedef PSTRUCT _StateChangeItemBody {
   uint32_t        s_runNumber;
@@ -163,8 +187,7 @@ typedef PSTRUCT _StateChangeItemBody {
 
 
 /*!
-   Scaler items contain run time counters.  As of 11.0 they may or may  not have
-   a body header too:
+   Scaler items contain run time counters.
 */
 
 typedef PSTRUCT _ScalerItemBody {
@@ -189,11 +212,11 @@ typedef PSTRUCT _TextItemBody {
   uint32_t       s_timestamp;
   uint32_t       s_stringCount;
   uint32_t       s_offsetDivisor;
-  char**           s_strings;
+  char**         s_strings;
 } TextItemBody, *pTextItemBody;
 
 /*!
-  For now a physics event is just a header and a body of uint16_t's.
+  For now a physics event is just a header and a body of raw bytes.
 */
 
 typedef PSTRUCT _PhysicsEventBody {
@@ -218,115 +241,42 @@ typedef PSTRUCT __PhysicsEventCountItemBody {
  */
 
 typedef PSTRUCT _DataFormatBody {
-    uint16_t       s_majorVersion;     /* FORMAT_MAJOR */
-    uint16_t       s_minorVersion;     /* FORMAT_MINOR */
-} DataFormat, *pDataFormat;
+    uint16_t       s_majorVersion;     /* default:FORMAT_MAJOR */
+    uint16_t       s_minorVersion;     /* default:FORMAT_MINOR */
+} DataFormatBody, *pDataFormatBody;
 
 /**
  *  Information about glom parameters:
  */
-typedef PSTRUCT _GlomParameters  {
-    RingItemHeader s_header;
-    uint32_t       s_mbz;
+typedef PSTRUCT _GlomParametersBody  {
     uint64_t       s_coincidenceTicks;
     uint16_t       s_isBuilding;
-    uint16_t       s_timestampPolicy;   /* See GLOM_TIMESTAMP_* above */
-    
-} GlomParameters, *pGlomParameters;
+    uint16_t       s_timestampPolicy;
+} GlomParametersBody, *pGlomParametersBody;
 
 
 /*!
-  This  is the most basic item.. a generic item.  It consists only of the
-  header and a generic body
+  This is a generic ring item.
 */
 
 typedef PSTRUCT _RingItem {
-  RingItemHeader s_header;
-  union {
-    StateChangeItemBody       s_stateChange;
-    ScalerItemBody            s_scaler;
-    TextItemBody              s_text;
-    PhysicsEventBody          s_event;
-    PhysicsEventCountItemBody s_physCount;
-    DataFormat                s_format;
-    GlomParameters            s_glom;
-
-  } s_body;
+    RingItemHeader s_header;
+    union {
+        union {
+            StateChangeItemBody       s_stateChange;
+            ScalerItemBody            s_scaler;
+            TextItemBody              s_text;
+            PhysicsEventBody          s_event;
+            PhysicsEventCountItemBody s_physCount;
+            DataFormatBody            s_format;
+            GlomParametersBody        s_glom;
+        } s_leafBody;
+        _RingItem** s_compositeBody;
+    } s_body;
 } RingItem, *pRingItem;
 
-/**
-  Below are functions that are available to format ring types.
-  Note that all of these return a pointer that must be free(3)'d.
-*/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-//  pPhysicsEventItem  formatEventItem(size_t nWords, void* pPayload);
-//  pPhysicsEventCountItem formatTriggerCountItem(uint32_t runTime, time_t stamp,
-//                                                uint64_t triggerCount);
-//  pScalerItem         formatScalerItem(unsigned scalerCount, time_t timestamp,
-//				      uint32_t btime, uint32_t etime,
-//                                      void* pCounters);
-//  pScalerItem         formatNonIncrTSScalerItem(unsigned scalerCount, time_t timestamp,
-//						       uint32_t btime, uint32_t etime,
-//						       uint64_t eventTimestamp, void* pCounters,
-//						       uint32_t timebaseDivisor);
-//  pTextItem          formatTextItem(unsigned nStrings, time_t stamp, uint32_t runTime,
-//				    const char** pStrings, int type);
-//  pStateChangeItem   formatStateChange(time_t stamp, uint32_t offset, uint32_t runNumber,
-//				       const char* pTitle, int type);
-  
-//  /* Since 11.0 these functions were added: */
-  
-//  pDataFormat           formatDataFormat();
-//  pGlomParameters       formatGlomParameters(uint64_t coincidenceWindow, int isBuilding,
-//                                             int timestampPolicy);
-  
-//  pEventBuilderFragment formatEVBFragment(
-//    uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
-//    uint32_t payloadSize, const void* pPayload
-//  );
-//  pEventBuilderFragment formatEVBFragmentUnknown (
-//    uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
-//    uint32_t payloadSize, const void* pPayload
-//  );
-//  pPhysicsEventItem formatTimestampedEventItem(
-//    uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
-//    uint32_t payloadSize, const void* pPayload
-//  );
-//  pPhysicsEventCountItem formatTimestampedTriggerCountItem (
-//    uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
-//    uint32_t runTime, uint32_t offsetDivisor, time_t stamp, uint64_t triggerCount
-//  );
-//  pScalerItem formatTimestampedScalerItem(
-//    uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
-//    int isIncremental, uint32_t timeIntervalDivisor, uint32_t timeofday,
-//    uint32_t btime, uint32_t etime, uint32_t nScalers, void* pCounters
-//  );
-//  pTextItem formatTimestampedTextItem(
-//    uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
-//    unsigned nStrings, time_t stamp, uint32_t runTime,
-//    const char**pStrings, int type,
-//    uint32_t timeIntervalDivisor
-//  );
-//  pStateChangeItem formatTimestampedStateChange(
-//    uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
-//    time_t stamp, uint32_t offset, uint32_t runNumber, uint32_t offsetDivisor,
-//    const char* pTitle, int type
-//  );
-//  pAbnormalEndItem formatAbnormalEndItem();
-  
-//  void* bodyPointer(pRingItem pItem);
-//  uint32_t itemSize(const RingItem* pItem);
-//  uint16_t itemType(const RingItem* pItem);
-//  int      mustSwap(const RingItem* pItem);
-
-#ifdef __cplusplus
-} // end of extern
-
-  } // end of V11 namespace
+  } // end of V12 namespace
 } // end DAQ
-#endif
 
 #endif
+
