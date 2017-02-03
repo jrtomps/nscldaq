@@ -62,6 +62,7 @@ class CRawRingItemTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(isComposite_1);
   CPPUNIT_TEST(toString_0);
   CPPUNIT_TEST(toString_1);
+  CPPUNIT_TEST(toString_2);
   CPPUNIT_TEST(compare_0);
   CPPUNIT_TEST(compare_1);
   CPPUNIT_TEST(compare_2);
@@ -341,6 +342,23 @@ public:
       msg += "02 \n";
 
       EQMSG("toString (odd byte count)", msg, item.toString());
+  }
+
+  void toString_2() {
+      Buffer::ByteBuffer body;
+      body << uint32_t(0x18000000) << uint32_t(0x1e000000) << uint64_t(0)
+           << uint32_t(0);
+      body << uint32_t(0x12340000);
+      V12::CRawRingItem item(body);
+      std::string msg;
+      msg += "Size (bytes) : 24\n";
+      msg += "Type         : RawRingItem\n";
+      msg += "Timestamp    : 0\n";
+      msg += "Source Id    : 0\n";
+      msg += "** Data is NOT in native byte order **\n";
+      msg += "0000 1234 \n";
+
+      EQMSG("toString for swappable", msg, item.toString());
   }
 
   void compare_0() {

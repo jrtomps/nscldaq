@@ -1,6 +1,21 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2017.
 
-#ifndef NSCLDAQV12_CRAWRINGITEM_H
-#define NSCLDAQV12_CRAWRINGITEM_H 1
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+            Jeromy Tompkins
+         NSCL
+         Michigan State University
+         East Lansing, MI 48824-1321
+*/
+
+#ifndef DAQ_V12_CRAWRINGITEM_H
+#define DAQ_V12_CRAWRINGITEM_H
 
 #include "V12/CRingItem.h"
 #include <V12/DataFormat.h>
@@ -8,11 +23,54 @@
 #include <ByteBuffer.h>
 #include <Deserializer2.h>
 
-#include <memory>
-
 namespace DAQ {
 namespace V12 {
 
+/*!
+ * \brief The CRawRingItem class
+ *
+ * The CRawRingItem class is the most general class of the version 12.0 data
+ * format classes. It is intended to represent any type of ring item as a blob of
+ * byte data. Every ring item has a gauranteed header of source id, type, size, and
+ * event timestamp. The body of each item, if present, depends on the type. However,
+ * we can store it as a serialized set of bytes. The CRawRingItem is for this purpose.
+ * In fact, we intend for it to be used for IO type purposes.
+ *
+ * \code
+ * #include <V12/CRawRingItem.h>
+ *
+ * using namespace DAQ::V12;
+ *
+ * CRawRingItem rawItem;
+ * std::cin >> rawItem;
+ *
+ * // from here we can construct any ring item
+ * // here are a few methods to do so:
+ * // 1. Use the CRingItemFactory
+ * CRingItemPtr pItem = RingItemFactory::createRingItem(rawItem);
+ *
+ * // 2. Use the V12::format_cast. This may fail at runtime.
+ * CRingScalerItem item = format_cast<CRingScalerItem>(rawItem);
+ *
+ * // 3. Explicit construction
+ * CRingScalerItem item(rawItem);
+ *
+ * // then maybe you will want to go the other way. that can be done
+ * // two ways:
+ * // 1. Use the toRawRingItem
+ * CRawRingItem toOutput;
+ * pItem->toRawRingItem(toOutput);
+ *
+ * // 2. Use format cast
+ * CRawRingItem toOutput = format_cast<CRawRingItem>(*pItem);
+ *
+ * \endcode
+ *
+ * The other interesting thing about the CRawRingItem is that its type can be both a
+ * composite or a leaf item. This is different than all other classes that
+ * derive from the CRingItem base class. The body of the object may have a different
+ * endianness than the native machine.
+ */
 class CRawRingItem : public CRingItem {
 
 private:
@@ -32,7 +90,7 @@ public:
   explicit CRawRingItem(const CRingItem& rhs);
   virtual ~CRawRingItem();
 
-  CRawRingItem& operator=(const CRawRingItem& rhs);
+  CRawRingItem& operator=(const CRawRingItem& rhs) = default;
   virtual bool operator==(const CRingItem& rhs) const;
   virtual bool operator!=(const CRingItem& rhs) const;
 
