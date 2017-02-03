@@ -36,7 +36,15 @@ static const char* policyNames[4] = {
  * Canonical methods
  *-----------------------------------------------------------------------*/
 
-
+/*!
+ * \brief Constructor for the glom parameters
+ * \param interval      number of ticks to use for correlation window
+ * \param isBuilding    whether glom was correlating events
+ * \param policy        how glom assigned a timestamp to the built event
+ *
+ * The timestamp and source id are implicitly defined to be NULL_TIMESTAMP and
+ * 0, respectively.
+ */
 CGlomParameters::CGlomParameters(uint64_t interval, bool isBuilding,
                                  CGlomParameters::TimestampPolicy policy)
     : CGlomParameters(V12::NULL_TIMESTAMP, 0, interval, isBuilding, policy)
@@ -44,19 +52,25 @@ CGlomParameters::CGlomParameters(uint64_t interval, bool isBuilding,
 
 }
 
-
-
-
 /**
- * constructor
- *
- * This is the 'normal' constructor.  It builds a fully fledged glom parameters
- * data item.
+ * \brief Construct from data explicitly
  *
  * @param interval   - Number of ticks in the event building coincidence window.
  * @param isBuilding - If true the output of glom is built rather than just
  *                     ordered/formatted events.
  * @param policy     - The timestamp policy used by glom.
+ */
+
+/*!
+ * \brief CGlomParameters::CGlomParameters
+ *
+ * \param evtTstamp     the event timestamp
+ * \param source        the source id
+ * \param interval      the number of ticks to use for the correlation window
+ * \param isBuilding    whether glom was correlating events
+ * \param policy        how glom assigned a timestamp to the built event
+ *
+ *
  */
 CGlomParameters::CGlomParameters(
     uint64_t evtTstamp, uint32_t source, uint64_t interval, bool isBuilding, CGlomParameters::TimestampPolicy policy
@@ -74,12 +88,15 @@ CGlomParameters::~CGlomParameters()
 {
     
 }
+
+
 /**
- * copy constructor - generic
+ * \brief Construct from a raw ring item
  *
- * If the rhs is not an EVB_GLOM_INFO item, we'll throw a bad_cast.
+ * \param rhs - CRingItem reference from which we will construct.
  *
- * @param rhs - CRingItem reference from which we will construct.
+ * \throws std::bad_cast if the rhs is not representing an EVB_GLOM_INFO item
+ * \throws std::invalid_argument if policy is not one of the enumerated values provided
  */
 CGlomParameters::CGlomParameters(const CRawRingItem& rhs)
 {
@@ -112,12 +129,14 @@ CGlomParameters::CGlomParameters(const CRawRingItem& rhs)
     }
     }
 }
-/**
- * operator==
+
+/*!
+ * \brief Equality comparison operator
  *
- * @param rhs the item being compared to *this
+ * \param rhs the item being compared to *this
  *
- * @return int - nonzero if equality.
+ * \return true  if all data members are not the same
+ * \retval false otherwise
  */
 bool
 CGlomParameters::operator==(const CRingItem& rhs) const
@@ -133,12 +152,13 @@ CGlomParameters::operator==(const CRingItem& rhs) const
 
     return true;
 }
-/**
- * operator!=
+/*!
+ * \brief Inequality comparison operator
  *
  * @param rhs the item being compared to *this.
  *
- * @return int  non zero if not equal.
+ * @return true if at least one data member is not the same
+ * \retval false otherwise
  */
 bool
 CGlomParameters::operator!=(const CRingItem& rhs) const
@@ -146,16 +166,23 @@ CGlomParameters::operator!=(const CRingItem& rhs) const
     return ! (*this == rhs );
 }
 
-/*----------------------------------------------------------------------------
- * Selectors
- *--------------------------------------------------------------------------*/
-
-
+/*!
+ * Always returns V12::EVB_GLOM_INFO
+ * \return V12::EVB_GLOM_INFO
+ */
 uint32_t CGlomParameters::type() const
 {
     return EVB_GLOM_INFO;
 }
 
+/*!
+ * \brief CGlomParameters::setType
+ * \param type  must be V12::EVB_GLOM_INFO
+ *
+ * CGlomParameters objects _must_ always have the type V12::EVB_GLOM_INFO
+ *
+ * \throws std::invalid_argument if called with type other than V12::EVB_GLOM_INFO
+ */
 void CGlomParameters::setType(uint32_t type)
 {
     if (type != EVB_GLOM_INFO) {
@@ -164,6 +191,7 @@ void CGlomParameters::setType(uint32_t type)
     }
 }
 
+/*! \return 32 (always the same number of bytes) */
 uint32_t CGlomParameters::size() const
 {
     return 32;
@@ -190,17 +218,31 @@ void CGlomParameters::setEventTimestamp(uint64_t tstamp)
     m_evtTimestamp = tstamp;
 }
 
+/*!
+ * The data members are always stored in native byte order.
+ *
+ * \return false
+ */
 bool CGlomParameters::mustSwap() const
 {
     return false;
 }
 
-
+/*!
+ * The CGlomParateters class always represents a leaf type
+ *
+ * \return false
+ */
 bool CGlomParameters::isComposite() const
 {
     return false;
 }
 
+/*!
+ * \brief Serialize the data into a raw ring item
+ *
+ * \param raw   the ring item to be filled
+ */
 void CGlomParameters::toRawRingItem(CRawRingItem& raw) const
 {
     raw.setType(EVB_GLOM_INFO);
@@ -222,7 +264,7 @@ void CGlomParameters::toRawRingItem(CRawRingItem& raw) const
  * coincidenceTicks
  *
  * @return uint64_t - the number of ticks glom used in its coincidence window
- *                    this is meaningful, however only if isBuilding() returns
+ *                    this is only meaningful if isBuilding() returns
  *                    true.
  */
 uint64_t
@@ -255,9 +297,7 @@ CGlomParameters::timestampPolicy() const
  * Object methods
  *-------------------------------------------------------------------------*/
 
-/**
- * typeName
- *
+/*!
  * @return std::string - textual version of the ring type.
  */
 std::string
@@ -266,28 +306,26 @@ CGlomParameters::typeName() const
     return std::string("Glom Parameters");
 }
 /**
- * toSTring
+ * \brief Convert the data to a string representation
  *
  * @return std::string - a textual dump of the ring item contents.
  */
 std::string
 CGlomParameters::toString() const
 {
-    CGlomParameters* This = const_cast<CGlomParameters*>(this);
-    std::stringstream    out;
+    std::stringstream out;
     
-    out << headerToString(*this) << std::endl;
-    out << "Glom is " << (isBuilding() ? "" : " not ") << "building events\n";
+    out << headerToString(*this);
+    out << "Is Building? : " << (isBuilding() ? "Yes" : "No" ) << "\n";
     if (isBuilding()) {
-        out << "Event building coincidence window is: "
-            << coincidenceTicks() << " timestamp ticks\n";
+        out << "Coinc. Width : " << coincidenceTicks() << std::endl;
+
+        unsigned tsPolicy = static_cast<unsigned>(timestampPolicy());
+        if (tsPolicy >= sizeof(policyNames)/sizeof(char*)) {
+            tsPolicy = sizeof(policyNames)/sizeof(char*) - 1;
+        }
+        out << "Tstamp Policy: " << policyNames[tsPolicy] << "\n";
     }
-    unsigned tsPolicy = static_cast<unsigned>(timestampPolicy());
-    if (tsPolicy >= sizeof(policyNames)/sizeof(char*)) {
-        tsPolicy = sizeof(policyNames)/sizeof(char*) - 1;
-    }
-    out << "TimestampPolicy : policyNames[tsPolicy]\n";
-    
     return out.str();
 }
 

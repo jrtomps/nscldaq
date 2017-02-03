@@ -31,6 +31,8 @@ class GlomItemTests : public CppUnit::TestFixture
     CPPUNIT_TEST(constructFromRaw_0);
     CPPUNIT_TEST(constructFromRaw_1);
     CPPUNIT_TEST(constructFromRaw_2);
+    CPPUNIT_TEST(toString_0);
+    CPPUNIT_TEST(toString_1);
     CPPUNIT_TEST_SUITE_END();
 private:
 
@@ -53,6 +55,8 @@ protected:
     void constructFromRaw_0();
     void constructFromRaw_1();
     void constructFromRaw_2();
+    void toString_0();
+    void toString_1();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(GlomItemTests);
@@ -228,3 +232,30 @@ void GlomItemTests::constructFromRaw_2()
 
 }
 
+void GlomItemTests::toString_0() {
+    CGlomParameters item(12, 0, 200, false, CGlomParameters::first);
+
+    std::string msg;
+    msg += "Size (bytes) : 32\n";
+    msg += "Type         : Glom Parameters\n";
+    msg += "Timestamp    : 12\n";
+    msg += "Source Id    : 0\n";
+    msg += "Is Building? : No\n";
+
+    EQMSG("toString", msg, item.toString());
+}
+
+void GlomItemTests::toString_1() {
+    CGlomParameters item(12, 0, 200, true, CGlomParameters::first);
+
+    std::string msg;
+    msg += "Size (bytes) : 32\n";
+    msg += "Type         : Glom Parameters\n";
+    msg += "Timestamp    : 12\n";
+    msg += "Source Id    : 0\n";
+    msg += "Is Building? : Yes\n";
+    msg += "Coinc. Width : 200\n";
+    msg += "Tstamp Policy: first\n";
+
+    EQMSG("toString", msg, item.toString());
+}

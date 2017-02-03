@@ -13,8 +13,7 @@
 /**
  * @file CGlomParameters.h
  * @brief  Encapsulates a ring item that contains glom parametrs.
- * @author  Jeromy Tompkins
- */
+*/
 
 #include "V12/CRingItem.h"
 
@@ -28,12 +27,13 @@ namespace DAQ {
 /**
  * @class CGlomParameters
  *
- * Encapsulates a ring item of type EVB_GLOM_INFO.  The structure of this ring
- * item is given by the GlomParameters struct.  No body header is required for
- * this type..though the mbz field is present in case later we decide that
- * was a mistake (e.g. cascaded event building we may have gloms with different
- * parameters at different levels and knowing that by assigning each glom an
- * event source id may be needed).
+ * Encapsulates a ring item of type EVB_GLOM_INFO. The GlomParameters type is
+ * emitted by glom to indicate the policy used for building data. It provides
+ * the coincidence window width, whether the events are being correlated,
+ * and how to assign a timestamp for the built event.
+ *
+ * The CGlomParameters type is always a leaf type.
+ *
  */
 class CGlomParameters : public CRingItem
 {
