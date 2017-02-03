@@ -322,10 +322,10 @@ public:
 
       V12::CRawRingItem item(1, 23, 1234, {2,3});
       std::string msg;
-      msg += "Size (bytes): 22\n";
-      msg += "Type:         RawRingItem\n";
-      msg += "Timestamp:    23\n";
-      msg += "Source Id:    1234\n";
+      msg += "Size (bytes) : 22\n";
+      msg += "Type         : RawRingItem\n";
+      msg += "Timestamp    : 23\n";
+      msg += "Source Id    : 1234\n";
       msg += "0302 \n";
 
       EQMSG("toString (even byte count)", msg, item.toString());
@@ -334,10 +334,10 @@ public:
   void toString_1() {
       V12::CRawRingItem item(1, 23, 1234, {2});
       std::string msg;
-      msg += "Size (bytes): 21\n";
-      msg += "Type:         RawRingItem\n";
-      msg += "Timestamp:    23\n";
-      msg += "Source Id:    1234\n";
+      msg += "Size (bytes) : 21\n";
+      msg += "Type         : RawRingItem\n";
+      msg += "Timestamp    : 23\n";
+      msg += "Source Id    : 1234\n";
       msg += "02 \n";
 
       EQMSG("toString (odd byte count)", msg, item.toString());

@@ -14,19 +14,52 @@
 namespace DAQ {
 namespace V12 {
 
-CCompositeRingItem::CCompositeRingItem()
-: CCompositeRingItem(0, NULL_TIMESTAMP, 0, {}) {}
 
+
+/*!
+ * \brief Default constructor
+ *
+ * The default constructor sets the source ID to 0, type to VOID, and
+ * the timestamp to NULL_TIMESTAMP. There are no children.
+ */
+CCompositeRingItem::CCompositeRingItem()
+: CCompositeRingItem(VOID | 0x8000, NULL_TIMESTAMP, 0, {}) {}
+
+/*!
+ * \brief CCompositeRingItem::CCompositeRingItem
+ * \param type      the type of the item (this should have bit 16 set)
+ * \param timestamp event timestamp
+ * \param sourceId  source id
+ * \param children  vector of children
+ */
 CCompositeRingItem::CCompositeRingItem(uint32_t type,
                                      uint64_t timestamp,
                                      uint32_t sourceId,
                                      const std::vector<CRingItemPtr>& children)
     : m_type(type), m_evtTimestamp(timestamp), m_sourceId(sourceId), m_children()
-{}
+{
+    if ((type & 0x8000) != 0x8000) {
+        throw std::invalid_argument("CCompositeRingItem() must pass type argument with composite bit set");
+    }
+}
 
+/*!
+ * \brief Construct from a raw ring item
+ *
+ * \param rawItem the raw ring item to parse
+ *
+ * A complete parse of the raw ring item's body will be carried out (recursively
+ * parsing all children as well). This is therefore
+ * somewhat of an expensive operation at the moment. In the future we might want to
+ * be lazy about it and only parse when the user requests access to the children.
+ * This will properly handle the situation when the raw ring item has a different
+ * byte ordering than the local machine.
+ *
+ * \throws std::runtime_error if the buffer contains incomplete ring items
+ * \throws std::runtime_error if the type of the children (lowest 15 bits) do not match the type of the parent.
+ */
 CCompositeRingItem::CCompositeRingItem(const CRawRingItem& rawItem)
 {
-
     m_type = rawItem.type();
     m_evtTimestamp = rawItem.getEventTimestamp();
     m_sourceId = rawItem.getSourceId();
@@ -71,6 +104,15 @@ CCompositeRingItem::CCompositeRingItem(const CRawRingItem& rawItem)
 }
 
 
+/*!
+ * \brief Equality comparison operator
+ * \param rhs   the ring item to compare to
+ *
+ * \retval true if all data are identical (including children)
+ * \retval false otherwise
+ *
+ * \throws std::bad_cast if rhs is not a CCompositeRingItem
+ */
 bool CCompositeRingItem::operator==(const CRingItem& rhs) const
 {
     if (m_type != rhs.type()) return false;
@@ -90,12 +132,28 @@ bool CCompositeRingItem::operator==(const CRingItem& rhs) const
     return true;
 }
 
+/*!
+ * \brief Inequality comparison operator
+ *
+ * \param rhs the ring item to compare to
+ *
+ * \retval true if not equal
+ * \retval false otherwise
+ */
 bool CCompositeRingItem::operator!=(const CRingItem& rhs) const
 {
     return !(*this == rhs);
 }
 
 
+/*!
+ * \return the entire size of the ring item
+ *
+ * The size is computed everytime it is requested. It includes the size
+ * of all children. In the future we might consider caching the size
+ * and recomputing it as necessary. At the moment, it has a complexity that
+ * is linear to the number of all children.
+ */
 uint32_t CCompositeRingItem::size() const {
     uint32_t size = 20; // we have at least a header
     for (auto pChild : m_children) {
@@ -107,8 +165,19 @@ uint32_t CCompositeRingItem::size() const {
 uint32_t CCompositeRingItem::type() const {
     return m_type;
 }
+
+/*!
+ * \brief Set the type
+ * \param type  the new type
+ *
+ * \throws std::invalid_argument if the composite bit is not set in the type
+ */
 void CCompositeRingItem::setType(uint32_t type) {
+    if ((type & 0x8000) != 0x8000) {
+        throw std::invalid_argument("CCompositeRingItem::setType() must pass argument with composite bit set");
+    }
     m_type = type;
+
 }
 
 uint32_t CCompositeRingItem::getSourceId() const {
@@ -126,13 +195,22 @@ void CCompositeRingItem::setEventTimestamp(uint64_t stamp) {
     m_evtTimestamp = stamp;
 }
 
+/*! \retval true  always*/
 bool CCompositeRingItem::isComposite() const {
     return true;
 }
+
+/*! \retval false*/
 bool CCompositeRingItem::mustSwap() const {
     return false;
 }
 
+/*!
+ * \brief Serializes the ring item and its children into the body of a raw ring item
+ * \param rawBuffer the raw ring item to fill in
+ *
+ *
+ */
 void CCompositeRingItem::toRawRingItem(CRawRingItem& rawBuffer) const {
 
     rawBuffer.setType(type() | 0x8000); // set the Composite bit in case it was not set
@@ -142,7 +220,7 @@ void CCompositeRingItem::toRawRingItem(CRawRingItem& rawBuffer) const {
     auto& body = rawBuffer.getBody();
     body.clear();
 
-    body.reserve(size()); // reserves 20 bytes more than necessary, but that is not a big deal.
+    body.reserve(size()-20); // the minus 20 is to exclude for the header
 
     for (auto pChild : m_children) {
         CRawRingItem chunk(*pChild);
@@ -186,16 +264,24 @@ std::string CCompositeRingItem::typeName() const {
 
 }
 
+
+/*!
+ * \brief Outputs a string that contains the entire tree structure
+ *
+ * \return a string that represents the ring item contents
+ */
 std::string CCompositeRingItem::toString() const {
     std::stringstream result;
     result << "Composite Item" << std::endl;
     result << headerToString(*this);
-    result << "Number of subitems: " << m_children.size() << std::endl;
+    result << "# subitems   : " << m_children.size() << std::endl;
 
     int index = 0;
     for (auto pChild : m_children) {
-        result << "---- Subitem #" << index++ << std::endl;
-        result << pChild->toString();
+        result << "+-- Subitem #" << index++ << std::endl;
+
+        std::string text = insertIndent(pChild->toString(), 4);
+        result << text;
     }
     return result.str();
 }
@@ -214,6 +300,35 @@ void CCompositeRingItem::appendChild(CRingItemPtr item)
     m_children.push_back(item);
 }
 
+/*!
+ * \brief Insert spaces after all newlines except for the last one
+ *
+ * \param text      the source string
+ * \param nSpaces   the number of spaces to insert
+ *
+ * \return a new string with proper indenting
+ */
+std::string CCompositeRingItem::insertIndent(const std::string& text, int nSpaces) const
+{
+    std::string newText = text;
+    std::string spaces;
+    for (int i=0; i<nSpaces; i++) {
+        spaces += " ";
+    }
+
+    int index=0;
+
+    newText.insert(0, spaces);
+    index = newText.find('\n');
+    while (index != std::string::npos && (index != newText.length()-1)) {
+        newText.insert(index+1, spaces);
+        index = newText.find('\n', index+1);
+    }
+
+    return newText;
 }
-}
+
+
+} // end V12
+} // end DAQ
 

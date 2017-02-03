@@ -401,8 +401,8 @@ CRingStateChangeItem::toString() const
   out <<  timestamp << " : Run State Change : " << typeName();
   out << " at " << elapsed << " seconds into the run\n";
   out << headerToString(*this);
-  out << "Title     : " << title << std::endl;
-  out << "Run Number: " << run   << endl;
+  out << "Title        : " << title << std::endl;
+  out << "Run Number   : " << run   << endl;
 
 
   return out.str();

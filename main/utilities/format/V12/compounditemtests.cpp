@@ -24,6 +24,7 @@ using namespace DAQ::V12;
 class CCompositeRingItemTests : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE(CCompositeRingItemTests);
+    CPPUNIT_TEST(constructor_0);
     CPPUNIT_TEST(size_0);
     CPPUNIT_TEST(size_1);
     CPPUNIT_TEST(appendChild_0);
@@ -31,6 +32,7 @@ class CCompositeRingItemTests : public CppUnit::TestFixture
     CPPUNIT_TEST(toRawRingItem_1);
     CPPUNIT_TEST(toString_0);
     CPPUNIT_TEST(toString_1);
+    CPPUNIT_TEST(toString_2);
     CPPUNIT_TEST(typeName_0);
     CPPUNIT_TEST(comparison_0);
     CPPUNIT_TEST(comparison_1);
@@ -42,6 +44,7 @@ class CCompositeRingItemTests : public CppUnit::TestFixture
     CPPUNIT_TEST(fromRawRingItem_1);
     CPPUNIT_TEST(fromRawRingItem_2);
     CPPUNIT_TEST(consistency_0);
+    CPPUNIT_TEST(setType_0);
     CPPUNIT_TEST_SUITE_END();
 private:
 
@@ -51,6 +54,12 @@ public:
   void tearDown() {
   }
 protected:
+
+  void constructor_0() {
+      CPPUNIT_ASSERT_THROW_MESSAGE("type must have composite bit set",
+                                   CCompositeRingItem item(VOID, 0, 0, {}),
+                                   std::invalid_argument);
+  }
 
   void size_0() {
       CCompositeRingItem item;
@@ -73,7 +82,7 @@ protected:
   }
 
   void toRawRingItem_0() {
-      CCompositeRingItem item(BEGIN_RUN, 12,23);
+      CCompositeRingItem item(COMP_BEGIN_RUN, 12,23);
       CRawRingItem raw;
 
       item.toRawRingItem(raw);
@@ -86,7 +95,7 @@ protected:
   }
 
   void toRawRingItem_1() {
-      CCompositeRingItem item(BEGIN_RUN, 12,34);
+      CCompositeRingItem item(COMP_BEGIN_RUN, 12,34);
       CRingItemPtr pChild(new CRingStateChangeItem(BEGIN_RUN, 2, 3, 4, "testing"));
       item.appendChild(pChild);
       CRawRingItem raw;
@@ -101,102 +110,140 @@ protected:
   }
 
   void toString_0() {
-      CCompositeRingItem item(BEGIN_RUN, 12, 23);
+      CCompositeRingItem item(COMP_BEGIN_RUN, 12, 23);
       std::stringstream asString;
       asString << "Composite Item" << std::endl;
-      asString << "Size (bytes): 20" << std::endl;
-      asString << "Type:         Composite Begin Run" << std::endl;
-      asString << "Timestamp:    12" << std::endl;
-      asString << "Source Id:    23" << std::endl;
-      asString << "Number of subitems: 0" << std::endl;
+      asString << "Size (bytes) : 20" << std::endl;
+      asString << "Type         : Composite Begin Run" << std::endl;
+      asString << "Timestamp    : 12" << std::endl;
+      asString << "Source Id    : 23" << std::endl;
+      asString << "# subitems   : 0" << std::endl;
 
       EQMSG("empty compound item", asString.str(), item.toString());
 
   }
 
   void toString_1() {
-      CCompositeRingItem item(BEGIN_RUN, 12, 23);
+      CCompositeRingItem item(COMP_BEGIN_RUN, 12, 23);
       CRingItemPtr pChild(new CRingStateChangeItem(34, 12, BEGIN_RUN, 3452,
                                                      0, 1485797295, "Testing"));
       item.appendChild(pChild);
       std::stringstream asString;
       asString << "Composite Item" << std::endl;
-      asString << "Size (bytes): 67" << std::endl;
-      asString << "Type:         Composite Begin Run" << std::endl;
-      asString << "Timestamp:    12" << std::endl;
-      asString << "Source Id:    23" << std::endl;
-      asString << "Number of subitems: 1" << std::endl;
-      asString << "---- Subitem #0" << std::endl;
-      asString << "Mon Jan 30 12:28:15 2017 : Run State Change : Begin Run at 0 seconds into the run" << std::endl;
-      asString << "Size (bytes): 47" << std::endl;
-      asString << "Type:         Begin Run" << std::endl;
-      asString << "Timestamp:    34" << std::endl;
-      asString << "Source Id:    12" << std::endl;
-      asString << "Title     : Testing" << std::endl;
-      asString << "Run Number: 3452" << std::endl;
+      asString << "Size (bytes) : 67" << std::endl;
+      asString << "Type         : Composite Begin Run" << std::endl;
+      asString << "Timestamp    : 12" << std::endl;
+      asString << "Source Id    : 23" << std::endl;
+      asString << "# subitems   : 1" << std::endl;
+      asString << "+-- Subitem #0" << std::endl;
+      asString << "    Mon Jan 30 12:28:15 2017 : Run State Change : Begin Run at 0 seconds into the run" << std::endl;
+      asString << "    Size (bytes) : 47" << std::endl;
+      asString << "    Type         : Begin Run" << std::endl;
+      asString << "    Timestamp    : 34" << std::endl;
+      asString << "    Source Id    : 12" << std::endl;
+      asString << "    Title        : Testing" << std::endl;
+      asString << "    Run Number   : 3452" << std::endl;
 
       EQMSG("empty Composite item", asString.str(), item.toString());
   }
 
+  void toString_2() {
+      CCompositeRingItem item(COMP_PHYSICS_EVENT, 12, 23);
+      std::shared_ptr<CCompositeRingItem> pChild(new CCompositeRingItem(COMP_PHYSICS_EVENT, 12, 23));
+      pChild->appendChild(CRingItemPtr(new CPhysicsEventItem(12, 23, {1, 2})));
+      item.appendChild(pChild);
+      item.appendChild(CRingItemPtr(new CPhysicsEventItem(12, 23, {1, 2})));
+
+      std::stringstream asString;
+      asString << "Composite Item" << std::endl;
+      asString << "Size (bytes) : 84" << std::endl;
+      asString << "Type         : Composite Physics Event" << std::endl;
+      asString << "Timestamp    : 12" << std::endl;
+      asString << "Source Id    : 23" << std::endl;
+      asString << "# subitems   : 2" << std::endl;
+      asString << "+-- Subitem #0" << std::endl;
+      asString << "    Composite Item" << std::endl;
+      asString << "    Size (bytes) : 42" << std::endl;
+      asString << "    Type         : Composite Physics Event" << std::endl;
+      asString << "    Timestamp    : 12" << std::endl;
+      asString << "    Source Id    : 23" << std::endl;
+      asString << "    # subitems   : 1" << std::endl;
+      asString << "    +-- Subitem #0" << std::endl;
+      asString << "        Size (bytes) : 22" << std::endl;
+      asString << "        Type         : Physics Event" << std::endl;
+      asString << "        Timestamp    : 12" << std::endl;
+      asString << "        Source Id    : 23" << std::endl;
+      asString << "        0201 " << std::endl;
+      asString << "+-- Subitem #1" << std::endl;
+      asString << "    Size (bytes) : 22" << std::endl;
+      asString << "    Type         : Physics Event" << std::endl;
+      asString << "    Timestamp    : 12" << std::endl;
+      asString << "    Source Id    : 23" << std::endl;
+      asString << "    0201 " << std::endl;
+
+      EQMSG("empty Composite item", asString.str(), item.toString());
+  }
+
+
   void typeName_0() {
 
-      CCompositeRingItem item(PHYSICS_EVENT, 12, 34);
+      CCompositeRingItem item(COMP_PHYSICS_EVENT, 12, 34);
 
       EQMSG("typename", std::string("Composite Physics Event"), item.typeName());
   }
 
 
   void comparison_0() {
-    CCompositeRingItem item(PHYSICS_EVENT, 12, 34);
+    CCompositeRingItem item(COMP_PHYSICS_EVENT, 12, 34);
     item.appendChild(CRingItemPtr(new CPhysicsEventItem(22, 33)));
 
     CPPUNIT_ASSERT_MESSAGE("identity comparison",  item == item);
   }
 
   void comparison_1() {
-    CCompositeRingItem item1(PHYSICS_EVENT, 12, 34);
+    CCompositeRingItem item1(COMP_PHYSICS_EVENT, 12, 34);
     item1.appendChild(CRingItemPtr(new CPhysicsEventItem(22, 33)));
 
-    CCompositeRingItem item2(PHYSICS_EVENT_COUNT, 12, 34);
+    CCompositeRingItem item2(COMP_PHYSICS_EVENT_COUNT, 12, 34);
     item2.appendChild(CRingItemPtr(new CRingPhysicsEventCountItem(22, 33)));
 
     CPPUNIT_ASSERT_MESSAGE("different types",  item1 != item2);
   }
 
   void comparison_2() {
-    CCompositeRingItem item1(PHYSICS_EVENT, 12, 34);
+    CCompositeRingItem item1(COMP_PHYSICS_EVENT, 12, 34);
     item1.appendChild(CRingItemPtr(new CPhysicsEventItem(22, 33)));
 
-    CCompositeRingItem item2(PHYSICS_EVENT, 22, 34);
+    CCompositeRingItem item2(COMP_PHYSICS_EVENT, 22, 34);
     item2.appendChild(CRingItemPtr(new CPhysicsEventItem(22, 33)));
 
     CPPUNIT_ASSERT_MESSAGE("different evt timestamp",  item1 != item2);
   }
 
   void comparison_3() {
-    CCompositeRingItem item1(PHYSICS_EVENT, 12, 34);
+    CCompositeRingItem item1(COMP_PHYSICS_EVENT, 12, 34);
     item1.appendChild(CRingItemPtr(new CPhysicsEventItem(22, 33)));
 
-    CCompositeRingItem item2(PHYSICS_EVENT, 12, 44);
+    CCompositeRingItem item2(COMP_PHYSICS_EVENT, 12, 44);
     item2.appendChild(CRingItemPtr(new CPhysicsEventItem(22, 33)));
 
     CPPUNIT_ASSERT_MESSAGE("different source id",  item1 != item2);
   }
 
   void comparison_4() {
-    CCompositeRingItem item1(PHYSICS_EVENT, 12, 34);
+    CCompositeRingItem item1(COMP_PHYSICS_EVENT, 12, 34);
     item1.appendChild(CRingItemPtr(new CPhysicsEventItem(22, 33)));
 
-    CCompositeRingItem item2(PHYSICS_EVENT, 12, 34);
+    CCompositeRingItem item2(COMP_PHYSICS_EVENT, 12, 34);
 
     CPPUNIT_ASSERT_MESSAGE("different number of children",  item1 != item2);
   }
 
   void comparison_5() {
-    CCompositeRingItem item1(PHYSICS_EVENT, 12, 34);
+    CCompositeRingItem item1(COMP_PHYSICS_EVENT, 12, 34);
     item1.appendChild(CRingItemPtr(new CPhysicsEventItem(22, 33)));
 
-    CCompositeRingItem item2(PHYSICS_EVENT, 12, 34);
+    CCompositeRingItem item2(COMP_PHYSICS_EVENT, 12, 34);
     item2.appendChild(CRingItemPtr(new CPhysicsEventItem(23, 33)));
 
     CPPUNIT_ASSERT_MESSAGE("different children",  item1 != item2);
@@ -307,6 +354,13 @@ protected:
                                    std::runtime_error);
   }
 
+
+  void setType_0() {
+      CCompositeRingItem item;
+      CPPUNIT_ASSERT_THROW_MESSAGE("type must have composite bit set",
+                                   item.setType(VOID),
+                                   std::invalid_argument);
+  }
 
 };
 
