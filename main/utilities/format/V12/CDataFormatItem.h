@@ -1,5 +1,5 @@
-#ifndef CDATAFORMATITEM_H
-#define CDATAFORMATITEM_H
+#ifndef DAQ_V12_CDATAFORMATITEM_H
+#define DAQ_V12_CDATAFORMATITEM_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.

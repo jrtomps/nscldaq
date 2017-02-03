@@ -40,6 +40,7 @@ class CCompositeRingItemTests : public CppUnit::TestFixture
     CPPUNIT_TEST(comparison_5);
     CPPUNIT_TEST(fromRawRingItem_0);
     CPPUNIT_TEST(fromRawRingItem_1);
+    CPPUNIT_TEST(fromRawRingItem_2);
     CPPUNIT_TEST(consistency_0);
     CPPUNIT_TEST_SUITE_END();
 private:
@@ -251,6 +252,19 @@ protected:
 
       auto pItem = Composite.getChildren()[0];
       EQMSG("size of child", uint32_t(21), pItem->size());
+  }
+
+  void fromRawRingItem_2() {
+      CRawRingItem rawItem(COMP_PHYSICS_EVENT, 12, 23);
+      auto& body = rawItem.getBody();
+      body << uint32_t(20) << COMP_PHYSICS_EVENT << uint64_t(12) << uint32_t(23);
+
+      CPPUNIT_ASSERT_NO_THROW_MESSAGE("leaf items cannot be composite items",
+                                        CCompositeRingItem item(rawItem));
+
+      CCompositeRingItem item(rawItem);
+      auto& child = dynamic_cast<CCompositeRingItem&>(*item.getChildren().at(0));
+      EQMSG("empty composite", size_t(0), child.getChildren().size());
   }
 
   void fromSwappedRawRingItem_2() {
