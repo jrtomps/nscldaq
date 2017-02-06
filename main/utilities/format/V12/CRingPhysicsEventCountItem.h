@@ -30,14 +30,16 @@ namespace DAQ {
   namespace V12 {
 
 /*!
-   The physics event count item provides periodic informatino about how
-   many events have been produced by the DAQ system.  This is provided
+   The physics event count item provides periodic information about the number
+   of events that have been produced by the DAQ system.  This is provided
    so that applications that sample event data can determine what fraction
    of the data they've managed to keep up with.
    Applications can count the physics events they've seen,
    They can then divide this number by the number of events that
    have actually been generated to get an analysis fraction.
 
+   The CRingPhysicsEventCountItem is always a leaf type and will always state
+   that it is not a composite item.
 */
 class CRingPhysicsEventCountItem : public CRingItem
 {

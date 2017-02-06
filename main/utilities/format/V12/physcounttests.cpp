@@ -37,6 +37,9 @@ class physcounttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fractionalTime);
   CPPUNIT_TEST(toRawRingItem_0);
   CPPUNIT_TEST(toRawRingItem_1);
+  CPPUNIT_TEST(toString_0);
+  CPPUNIT_TEST(toString_1);
+  CPPUNIT_TEST(toString_2);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -68,6 +71,9 @@ protected:
   void fractionalTime();
   void toRawRingItem_0();
   void toRawRingItem_1();
+  void toString_0();
+  void toString_1();
+  void toString_2();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(physcounttests);
@@ -362,4 +368,54 @@ void physcounttests::toRawRingItem_1()
     Buffer::ContainerDeserializer<Buffer::ByteBuffer> stream(raw.getBody(), raw.mustSwap());
     stream >> offset;
     EQMSG("time offset", uint32_t(100), offset);
+}
+
+
+void physcounttests::toString_0() {
+    V12::CRingPhysicsEventCountItem item(12, 234, 2468, 42, 1485797295, 1);
+
+    std::string msg;
+    msg += "Size (bytes) : 40\n";
+    msg += "Type         : Trigger Count\n";
+    msg += "Timestamp    : 12\n";
+    msg += "Source Id    : 234\n";
+    msg += "Unix Tstamp  : Mon Jan 30 12:28:15 2017\n";
+    msg += "Event Count  : 2468\n";
+    msg += "Elapsed Time : 42.0 seconds\n";
+    msg += "Average Rate : 58.8 evts/sec\n";
+
+    EQMSG("string rep", msg, item.toString());
+}
+
+
+
+void physcounttests::toString_1() {
+    V12::CRingPhysicsEventCountItem item(12, 234, 2468, 42, 1485797295, 2);
+
+    std::string msg;
+    msg += "Size (bytes) : 40\n";
+    msg += "Type         : Trigger Count\n";
+    msg += "Timestamp    : 12\n";
+    msg += "Source Id    : 234\n";
+    msg += "Unix Tstamp  : Mon Jan 30 12:28:15 2017\n";
+    msg += "Event Count  : 2468\n";
+    msg += "Elapsed Time : 21.0 seconds\n";
+    msg += "Average Rate : 117.5 evts/sec\n";
+
+    EQMSG("string rep w/ fractional time", msg, item.toString());
+}
+
+void physcounttests::toString_2() {
+    V12::CRingPhysicsEventCountItem item(12, 234, 2468, 0, 1485797295, 2);
+
+    std::string msg;
+    msg += "Size (bytes) : 40\n";
+    msg += "Type         : Trigger Count\n";
+    msg += "Timestamp    : 12\n";
+    msg += "Source Id    : 234\n";
+    msg += "Unix Tstamp  : Mon Jan 30 12:28:15 2017\n";
+    msg += "Event Count  : 2468\n";
+    msg += "Elapsed Time : 0.0 seconds\n";
+
+    EQMSG("string rep w/ zero offset", msg, item.toString());
 }
