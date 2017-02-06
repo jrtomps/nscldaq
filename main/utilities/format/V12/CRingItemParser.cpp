@@ -20,14 +20,17 @@ bool isTypeConsistent(CRingItem& item, uint32_t type)
             }
         }
     } else {
-        // only compare the lower 15 bits for consistency
-        if ( (item.type() & 0x7fff) != (type & 0x7fff) ) {
+        if ( ! isTypeConsistent(item.type(), type) ) {
             return false;
         }
     }
     return true;
 }
 
+// only compare the lower 15 bits for consistency
+bool isTypeConsistent(uint32_t type1, uint32_t type2) {
+    return ( (type1 & 0x7fff) == (type2 & 0x7fff) );
+}
 
 } // end Parser namespace
 } // end V12 namespace
