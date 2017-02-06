@@ -24,7 +24,9 @@ class teststate : public CppUnit::TestFixture {
   CPPUNIT_TEST(basiccons);
   CPPUNIT_TEST(fullcons_0);
   CPPUNIT_TEST(fullcons_1);
+  CPPUNIT_TEST(fullcons_2);
   CPPUNIT_TEST(torawringitem_0);
+  CPPUNIT_TEST(torawringitem_1);
   CPPUNIT_TEST(comparison_0);
   CPPUNIT_TEST(comparison_1);
   CPPUNIT_TEST(comparison_2);
@@ -58,6 +60,8 @@ class teststate : public CppUnit::TestFixture {
   CPPUNIT_TEST(fractionalRunTime);
   CPPUNIT_TEST(fromRawBuffer_0);
   CPPUNIT_TEST(fromRawBuffer_1);
+  CPPUNIT_TEST(toString_0);
+  CPPUNIT_TEST(toString_1);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -73,6 +77,8 @@ protected:
   void basiccons();
   void fullcons_0();
   void fullcons_1();
+  void fullcons_2();
+
   void torawringitem_0();
   void torawringitem_1();
 
@@ -117,6 +123,9 @@ protected:
   void fromRawBuffer_0();
   void fromRawBuffer_1();
 
+  void toString_0();
+  void toString_1();
+
   std::tuple<V12::CRingStateChangeItem, V12::CRingStateChangeItem>
   createCopies();
   
@@ -157,8 +166,7 @@ void teststate::fullcons_0()
 
 void teststate::fullcons_1() {
 
-  // The title does not fit in this one:
-
+  // there is no limit to title length
   string title("supercalifragalisticexpialidocious");
   while (title.size() <= 8192) {
     title += title;
@@ -169,6 +177,19 @@ void teststate::fullcons_1() {
                                         1234, 5678, 314159,
                                         title)
               );
+}
+
+void teststate::fullcons_2() {
+
+  string title("supercalifragalisticexpialidocious");
+
+
+  CPPUNIT_ASSERT_THROW_MESSAGE(
+              "State change items must be passed valid state change types",
+              V12::CRingStateChangeItem(V12::PHYSICS_EVENT,
+                                        1234, 5678, 314159,
+                                        title),
+              std::invalid_argument);
 }
 
 // Test construction that effectively up-casts a CRingItem.
@@ -207,6 +228,23 @@ teststate::torawringitem_0()
   EQMSG("divisor", uint32_t(1), divisor);
   EQMSG("length", uint32_t(7), titleLength);
   EQMSG("title", std::string("Testing"), title);
+
+}
+
+// Test construction that effectively up-casts a CRingItem.
+//
+void
+teststate::torawringitem_1()
+{
+  // Check that preexisting body contents to the raw ring item do not
+  // mess up the result. They should be deleted.
+  V12::CRingStateChangeItem original(V12::BEGIN_RUN, 12, 34, 56, "Testing");
+  V12::CRawRingItem rawBuffer;
+  rawBuffer.getBody() << 1 << 2 << 3 << 4;
+
+  original.toRawRingItem(rawBuffer);
+
+  EQMSG("size", original.size(), rawBuffer.size());
 
 }
 
@@ -319,7 +357,7 @@ teststate::createCopies()
 void teststate::copycons_0()
 {
 
-  V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+  V12::CRingStateChangeItem original, copy;
   std::tie(original, copy) = createCopies();
   EQMSG("size", original.size(), copy.size());
 }
@@ -328,14 +366,14 @@ void teststate::copycons_0()
 void teststate::copycons_1()
 {
 
-    V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+    V12::CRingStateChangeItem original, copy;
     std::tie(original, copy) = createCopies();
   EQMSG("type", original.type(), copy.type());
 }
 
 void teststate::copycons_2()
 {
-    V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+    V12::CRingStateChangeItem original, copy;
     std::tie(original, copy) = createCopies();
     EQMSG("evt timestamp", original.getEventTimestamp(), copy.getEventTimestamp());
 
@@ -343,7 +381,7 @@ void teststate::copycons_2()
 
 void teststate::copycons_3()
 {
-    V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+    V12::CRingStateChangeItem original, copy;
     std::tie(original, copy) = createCopies();
     EQMSG("source id", original.getSourceId(), copy.getSourceId());
 }
@@ -351,35 +389,35 @@ void teststate::copycons_3()
 // Contents must match:
 void teststate::copycons_4()
 {
-    V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+    V12::CRingStateChangeItem original, copy;
     std::tie(original, copy) = createCopies();
     EQMSG("run", original.getRunNumber(), copy.getRunNumber());
 }
 
 void teststate::copycons_5()
 {
-    V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+    V12::CRingStateChangeItem original, copy;
     std::tie(original, copy) = createCopies();
     EQMSG("elapsed time", original.getElapsedTime(), copy.getElapsedTime());
 }
 
 void teststate::copycons_6()
 {
-    V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+    V12::CRingStateChangeItem original, copy;
     std::tie(original, copy) = createCopies();
     EQMSG("title", original.getTitle(), copy.getTitle());
 }
 
 void teststate::copycons_7()
 {
-    V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+    V12::CRingStateChangeItem original, copy;
     std::tie(original, copy) = createCopies();
     EQMSG("timestamp", original.getTimestamp(), copy.getTimestamp());
 }
 
 void teststate::copycons_8()
 {
-    V12::CRingStateChangeItem original(V12::VOID), copy(V12::VOID);
+    V12::CRingStateChangeItem original, copy;
     std::tie(original, copy) = createCopies();
     EQMSG("offset divisor", original.getOffsetDivisor(), copy.getOffsetDivisor());
 }
@@ -556,4 +594,41 @@ void teststate::fromRawBuffer_1()
                 "cannot construct from raw buffer with non state change type",
                 V12::CRingStateChangeItem item(rawItem),
                 std::bad_cast);
+}
+
+
+void teststate::toString_0() {
+
+    V12::CRingStateChangeItem item(12, 234, V12::BEGIN_RUN, 1, 2468, 1485797295, "hahah", 1);
+
+    std::string msg;
+    msg += "Size (bytes) : 45\n";
+    msg += "Type         : Begin Run\n";
+    msg += "Timestamp    : 12\n";
+    msg += "Source Id    : 234\n";
+    msg += "Run Number   : 1\n";
+    msg += "Unix Tstamp  : Mon Jan 30 12:28:15 2017\n";
+    msg += "Elapsed Time : 2468.0 seconds\n";
+    msg += "Title        : hahah\n";
+
+
+    EQMSG("toString divisor=1", msg, item.toString());
+}
+
+void teststate::toString_1() {
+
+    V12::CRingStateChangeItem item(12, 234, V12::BEGIN_RUN, 1, 2468, 1485797295, "hahah", 3);
+
+    std::string msg;
+    msg += "Size (bytes) : 45\n";
+    msg += "Type         : Begin Run\n";
+    msg += "Timestamp    : 12\n";
+    msg += "Source Id    : 234\n";
+    msg += "Run Number   : 1\n";
+    msg += "Unix Tstamp  : Mon Jan 30 12:28:15 2017\n";
+    msg += "Elapsed Time : 822.7 seconds\n";
+    msg += "Title        : hahah\n";
+
+
+    EQMSG("toString divisor=3", msg, item.toString());
 }

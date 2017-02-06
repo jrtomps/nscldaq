@@ -1,8 +1,8 @@
-#ifndef NSCLDAQ12_CRINGSTATECHANGEITEM_H
-#define NSCLDAQ12_CRINGSTATECHANGEITEM_H
+#ifndef DAQ_V12_CRINGSTATECHANGEITEM_H
+#define DAQ_V12_CRINGSTATECHANGEITEM_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -10,14 +10,15 @@
      http://www.gnu.org/licenses/gpl.txt
 
      Author:
-             Ron Fox
-	     NSCL
+         Jeromy Tompkins
+         NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
 
 
 #include <V12/CRingItem.h>
+#include <V12/DataFormat.h>
 
 #include <string>
 #include <typeinfo>
@@ -28,7 +29,7 @@ namespace DAQ {
 
 /*!
   This class represents a state change item.
-  State change items are items in the buffer that indicate a change in the state of
+  State change items are items that indicate a change in the state of
   data taking.  The set of state changes recognized by this class are:
 
   - BEGIN_RUN  - the run has become active after being stopped.
@@ -40,6 +41,8 @@ namespace DAQ {
   items), and consumers (who must inspect the contents of such items after getting
   them from a ring).
 
+  A CRingStateChangeItem is always a leaf type and stores its data in native
+  byte order.
 
 */
 class CRingStateChangeItem : public CRingItem
@@ -56,7 +59,7 @@ private:
 
   // construction and other canonicals
 public:
-  CRingStateChangeItem(uint16_t reason = 1);
+  CRingStateChangeItem(uint16_t reason = BEGIN_RUN);
   CRingStateChangeItem(uint16_t reason,
                        uint32_t runNumber,
                        uint32_t timeOffset,
@@ -75,14 +78,7 @@ public:
   CRingStateChangeItem(const CRingStateChangeItem& rhs) = default;
   virtual ~CRingStateChangeItem();
 
-  /*!
-      Assignment is base class assignment and then setting the item pointer:
-      \param rhs - The item being assigned to us.
-      \return CRingStateChangeItem&
-      \retval *this
-    */
   CRingStateChangeItem& operator=(const CRingStateChangeItem& rhs) = default;
-
 
   virtual uint32_t type() const;
   virtual void setType(uint32_t type);
@@ -95,9 +91,9 @@ public:
   virtual uint32_t getSourceId() const;
   virtual void setSourceId(uint32_t id);
 
-  virtual bool     isComposite() const;
+  virtual bool isComposite() const;
 
-  virtual bool     mustSwap() const;
+  virtual bool mustSwap() const;
 
   virtual void toRawRingItem(CRawRingItem& item) const;
 
@@ -127,7 +123,7 @@ public:
 
   // Utility functions..
 private:
-  bool isStateChange();
+  bool isStateChange(uint32_t type) const;
 };
 
   } // end of V11 namespace

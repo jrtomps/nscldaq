@@ -136,13 +136,14 @@ protected:
       asString << "Source Id    : 23" << std::endl;
       asString << "# subitems   : 1" << std::endl;
       asString << "+-- Subitem #0" << std::endl;
-      asString << "    Mon Jan 30 12:28:15 2017 : Run State Change : Begin Run at 0 seconds into the run" << std::endl;
       asString << "    Size (bytes) : 47" << std::endl;
       asString << "    Type         : Begin Run" << std::endl;
       asString << "    Timestamp    : 34" << std::endl;
       asString << "    Source Id    : 12" << std::endl;
-      asString << "    Title        : Testing" << std::endl;
       asString << "    Run Number   : 3452" << std::endl;
+      asString << "    Unix Tstamp  : Mon Jan 30 12:28:15 2017" << std::endl;
+      asString << "    Elapsed Time : 0.0 seconds" << std::endl;
+      asString << "    Title        : Testing" << std::endl;
 
       EQMSG("empty Composite item", asString.str(), item.toString());
   }

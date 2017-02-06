@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -8,7 +8,7 @@
      http://www.gnu.org/licenses/gpl.txt
 
      Author:
-             Ron Fox
+         Jeromy Tompkins
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -18,10 +18,8 @@
 #include <config.h>
 #include "V12/CRingStateChangeItem.h"
 #include <V12/CRawRingItem.h>
-#include <V12/DataFormat.h>
 #include <Deserializer.h>
 #include <sstream>
-#include <string.h>
 #include <ctime>
 
 using namespace std;
@@ -36,8 +34,11 @@ namespace DAQ {
 
 /*!
    Construct a bare bone state change buffer.  The run number, time offset
-   are both set to zero.  The timestamp is set to 'now'.
-   The title is set to an emtpy string.
+   are both set to zero.  The timestamp is set to 'now'. The event timestamp
+   is NULL_TIMESTAMP and the source id is 0.
+
+   The title is set to an empty string.
+
    \param reason - Reason for the state change.  This defaults to BEGIN_RUN.
 */
 CRingStateChangeItem::CRingStateChangeItem(uint16_t reason)
@@ -46,19 +47,20 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason)
                          0, 0, time(NULL), "",1)
 {
 }
+
 /*!
-   Fully specified construction the initial values of the various
-   fields are specified by the constructor parameters.
+   Construction with all state change specific values specified by
+   the constructor parameters. The event timestamp and source id are
+   NULL_TIMESTAMP and 0, respectively.
 
    \param reason     - Why the state change buffer is being emitted (the item type).
-   \param runNumber  - Number of the run that is undegoing transitino.
+   \param runNumber  - Number of the run that is undergoing transition.
    \param timeOffset - Number of seconds into the run at which this is being emitted.
-   \param timestamp  - Absolute time to be recorded in the buffer.. tyically
+   \param timestamp  - Absolute wall time to be recorded in the buffer.. tyically
                        this should be time(NULL).
-   \param title      - Title string.  The length of this string must be at most
-                       TITLE_MAXSIZE.
+   \param title      - Title string.
 
-   \throw CRangeError - If the title string can't fit in s_title.
+
 */
 CRingStateChangeItem::CRingStateChangeItem(uint16_t reason,
                        uint32_t runNumber,
@@ -71,18 +73,19 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason,
 {}
 
 /**
- * constructor - for timetamped item.
+ * Completely specified constructor
  *
  * @param eventTimestamp  - Event timestamp
  * @param sourceId   - Source id of the event.
    \param reason     - Why the state change buffer is being emitted (the item type).
-   \param runNumber  - Number of the run that is undegoing transitino.
+   \param runNumber  - Number of the run that is undegoing transition.
    \param timeOffset - Number of seconds into the run at which this is being emitted.
-   \param timestamp  - Absolute time to be recorded in the buffer.. typically
+   \param timestamp  - Absolute wall time to be recorded in the buffer.. typically
                        this should be time(NULL).
    \param title      - Title string.
    @param offsetDivisor - What timeOffset needs to be divided by to get seconds.
 
+   \throws std::invalid_argument if reason is not a valid state change type
  */
 CRingStateChangeItem::CRingStateChangeItem(
         uint64_t eventTimestamp, uint32_t sourceId, uint16_t reason,
@@ -96,14 +99,19 @@ CRingStateChangeItem::CRingStateChangeItem(
       m_timestamp(timestamp),
       m_offsetDivisor(offsetDivisor),
       m_title(title)
-{}
+{
+
+    if ( ! isStateChange(type()) ) {
+        throw std::invalid_argument("CRingStateChangeItem() constructed with non-state change type id.");
+    }
+}
 
 /*!
-   Constructor that copies/converts an existing ring item into a state change
-   item. This is often used to wrap a state change object around a ring item just
-   fetched from the ring, and determined by the caller to be a state change item.
+   Construct a state change item from a raw ring item. The byte order is handled appropriately
+   when parsing the raw ring item body.
 
-   \param item - The source item.
+   \param item - The raw ring item.
+
    \throw bad_cast - the item is not a state change item.
 */
 CRingStateChangeItem::CRingStateChangeItem(const CRawRingItem& rhs)
@@ -135,23 +143,19 @@ CRingStateChangeItem::CRingStateChangeItem(const CRawRingItem& rhs)
   delete [] pTitle;
 }
 
-/*!
-  Destruction just chains to the base class.
-
-*/
+/*! Destruction */
 CRingStateChangeItem::~CRingStateChangeItem()
 {
 }
 
 
-/*!
-  Comparison is just the base class compare as comparing the item pointers is a bad
-  idea since there could be two very different objects that have equal items.
- 
-  \param rhs - Right hand side object of the == operator.
-  \return int
-  \retval 0 not equal
-  \retval 1 equal.
+/*! \brief Equality comparison operator
+
+  \param rhs - item to comparse *this to
+
+  \return boolean
+  \retval false (either type, source id, event tstamp, run number, time offset, tstamp, divisor, or title is different)
+  \retval true otherwise
 */
 bool
 CRingStateChangeItem::operator==(const CRingItem& rhs) const
@@ -221,17 +225,27 @@ void CRingStateChangeItem::setSourceId(uint32_t id)
 }
 
 
+/*! \return false (always a leaf item) */
 bool CRingStateChangeItem::isComposite() const
 {
     return false;
 }
 
+/*! \return false (always stored in native byte order) */
 bool CRingStateChangeItem::mustSwap() const
 {
     return false;
 }
 
-
+/*!
+ * \brief Serialize data fields into the body of a raw ring item.
+ *
+ * \param item  the raw ring item to fill
+ *
+ * If the body of the raw ring item is nonempty prior to being passed
+ * as an argument, the existing contents are discarded.
+ *
+ */
 void CRingStateChangeItem::toRawRingItem(CRawRingItem& item) const
 {
     item.setType(type());
@@ -239,6 +253,7 @@ void CRingStateChangeItem::toRawRingItem(CRawRingItem& item) const
     item.setSourceId(getSourceId());
 
     Buffer::ByteBuffer& body = item.getBody();
+    body.clear();
 
     body << m_runNumber;
     body << m_timeOffset;
@@ -291,6 +306,8 @@ CRingStateChangeItem::getElapsedTime() const
 /**
  * getElapsedTime
  *
+ * The actual elapsedTime is computed as offset/divisor.
+ *
  * @return float - Elapsed time taking into account the divisor.
  */
 float
@@ -303,7 +320,6 @@ CRingStateChangeItem::computeElapsedTime() const
 /*!
   Set the title string.
   \param title - new title string.
-  \throw CRangeError - if the title string is too long to fit.
 */
 void
 CRingStateChangeItem::setTitle(string title)
@@ -331,7 +347,7 @@ CRingStateChangeItem::setTimestamp(time_t stamp)
 }
 /*!
     \return time_t
-    \retval timestamp giving absolute time of the item.
+    \retval timestamp giving absolute wall time of the item.
 */
 time_t
 CRingStateChangeItem::getTimestamp() const
@@ -382,7 +398,7 @@ CRingStateChangeItem::typeName() const
 /**
  * toString
  *
- * Returns a string that is the ascified body of the item.
+ * Returns a string that is a human-readable, string representation of the item
  *
  * @return std::string - ascified version of the item.
  */
@@ -390,6 +406,8 @@ std::string
 CRingStateChangeItem::toString() const
 {
   std::ostringstream out;		//  Build up via outputting to this psuedo stream.
+  out.precision(1);
+  out.setf(std::ios::fixed);
 
   uint32_t run       = getRunNumber();
   uint32_t elapsed   = getElapsedTime();
@@ -398,12 +416,11 @@ CRingStateChangeItem::toString() const
   string   timestamp = std::ctime(&wall_time);
   timestamp = std::string(timestamp.begin(), timestamp.end()-1);
 
-  out <<  timestamp << " : Run State Change : " << typeName();
-  out << " at " << elapsed << " seconds into the run\n";
   out << headerToString(*this);
+  out << "Run Number   : " << run << endl;
+  out << "Unix Tstamp  : " << timestamp << endl;
+  out << "Elapsed Time : " << computeElapsedTime() << " seconds" << std::endl;
   out << "Title        : " << title << std::endl;
-  out << "Run Number   : " << run   << endl;
-
 
   return out.str();
 }
@@ -415,11 +432,13 @@ CRingStateChangeItem::toString() const
 /*
  * Evaluate wheter or the type of the current ring item is 
  * a state change or not.
+ *
+ * \retval true (type is BEGIN_RUN, END_RUN, RESUME_RUN, or PAUSE_RUN)
+ * \retval false otherwise
  */
 bool
-CRingStateChangeItem::isStateChange()
+CRingStateChangeItem::isStateChange(uint32_t t) const
 {
-  int t = type();
   return (
       (t == V12::BEGIN_RUN )              ||
       (t == V12::END_RUN)                 ||
