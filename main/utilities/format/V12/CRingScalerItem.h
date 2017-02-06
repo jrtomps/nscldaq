@@ -1,8 +1,8 @@
-#ifndef NSCLDAQ12_CRINGSCALERITEM_H
-#define NSCLDAQ12_CRINGSCALERITEM_H
+#ifndef DAQ_V12_CRINGSCALERITEM_H
+#define DAQ_V12_CRINGSCALERITEM_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -10,8 +10,8 @@
      http://www.gnu.org/licenses/gpl.txt
 
      Author:
-             Ron Fox
-	     NSCL
+        Jeromy Tompkins
+         NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
@@ -29,12 +29,21 @@
 namespace DAQ {
   namespace V12 {
 
-  class CRawRingItem;
-
-/*!
-   This class derived from CRingItem and represents a set of scalers that have been 
-   formatted as a ring item.  
-*/
+  /*!
+ * \brief The CRingScalerItem class
+ *
+ * The CRingScalerItem is a leaf item. It stores data from a scaler
+ * event along with information about the creation time and interval
+ * it pertains. Scaler data can be both incremental (i.e. every read
+ * followed by a clear) or non-incremental (i.e. clear only occurs at
+ * the beginning of the run). The incremental nature of the ring item
+ * determines how you should interpret the actual scaler values when
+ * computing a rate. All scalers also have an associated width to them.
+ * For CAMAC systems, this might be 24 because of the 24-bit wide dataway.
+ * On VME systems, it is probably 32. By default, the width is 32.
+ *
+ * Data is always stored in native byte order.
+ */
 class CRingScalerItem : public CRingItem
 {
 public:
@@ -68,11 +77,11 @@ public:
                   uint32_t scalerWidth=32);
 
   CRingScalerItem(const CRawRingItem& rhs);
-  CRingScalerItem(const CRingScalerItem& rhs);
+  CRingScalerItem(const CRingScalerItem& rhs) = default;
   
   virtual ~CRingScalerItem();
 
-  CRingScalerItem& operator=(const CRingScalerItem& rhs);
+  CRingScalerItem& operator=(const CRingScalerItem& rhs) = default;
   virtual bool operator==(const CRingItem& rhs) const;
   virtual bool operator!=(const CRingItem& rhs) const;
 

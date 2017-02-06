@@ -43,6 +43,7 @@ class scltests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fractionalRunTime);
   CPPUNIT_TEST(setScalers_0);
   CPPUNIT_TEST(assign_0);
+  CPPUNIT_TEST(toString_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -75,6 +76,7 @@ protected:
   void fractionalRunTime();
   void setScalers_0();
   void assign_0();
+  void toString_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
@@ -88,6 +90,8 @@ void scltests::simplecons() {
   
   EQMSG("type", PERIODIC_SCALERS, s.type());
   uint32_t zero(0);
+  EQMSG("evt timestamp", NULL_TIMESTAMP, s.getEventTimestamp());
+  EQMSG("source id", uint32_t(0), s.getSourceId());
   EQMSG("start offset", zero, s.getStartTime());
   EQMSG("end offset", zero, s.getEndTime());
   EQMSG("unix timestamp", time(NULL), s.getTimestamp());
@@ -395,4 +399,29 @@ void scltests::assign_0()
   item = sclr;
 
   CPPUNIT_ASSERT_MESSAGE("assignment", item == sclr);
+}
+
+
+
+void scltests::toString_0()
+{
+    CRingScalerItem item(
+                123, 1,
+                10, 20,  1485797295, {1}
+                );
+
+    std::string msg;
+    msg += "Size (bytes) : 52\n";
+    msg += "Type         : Scalers\n";
+    msg += "Timestamp    : 123\n";
+    msg += "Source Id    : 1\n";
+    msg += "Unix Tstamp  : Mon Jan 30 12:28:15 2017\n";
+    msg += "Start Offset : 10.0 seconds\n";
+    msg += "End Offset   : 20.0 seconds\n";
+    msg += "Incremental? : Yes\n";
+    msg += "\n";
+    msg += "Index         Counts                 Rate (counts/sec)\n";
+    msg += "    0              1                 0.10\n";
+
+    EQMSG("tostring divisor=1", msg, item.toString());
 }
