@@ -41,6 +41,7 @@ class texttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fractionalRunTime);
   CPPUNIT_TEST(assign_0);
   CPPUNIT_TEST(toRawRingItem_0);
+  CPPUNIT_TEST(toString_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -73,6 +74,7 @@ protected:
   void fractionalRunTime();
   void assign_0();
   void toRawRingItem_0();
+  void toString_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(texttests);
@@ -461,4 +463,24 @@ void texttests::toRawRingItem_0()
     EQMSG("string 1", std::string("78"), std::string(str1, str1+2));
 
 
+}
+
+
+void texttests::toString_0() {
+
+    V12::CRingTextItem item(V12::MONITORED_VARIABLES, 12, 234, {"a", "b", "cd"}, 83, 1485797295, 1);
+
+    std::string msg;
+    msg += "Size (bytes) : 43\n";
+    msg += "Type         : Monitored Variables\n";
+    msg += "Timestamp    : 12\n";
+    msg += "Source Id    : 234\n";
+    msg += "Elapsed Time : 83.0 seconds\n";
+    msg += "Unix Tstamp  : Mon Jan 30 12:28:15 2017\n";
+    msg += "# of Strings : 3\n";
+    msg += "0: \"a\"\n";
+    msg += "1: \"b\"\n";
+    msg += "2: \"cd\"\n";
+
+    EQMSG("toString divisor=1", msg, item.toString());
 }

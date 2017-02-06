@@ -30,11 +30,10 @@
 namespace DAQ {
   namespace V12 {
 
-  class CRawRingItem;
-
 /*!
-  The text ring item provides a mechanism to put an item in/take an item out of 
-  a ring buffer that consists of null terminated text strings.  
+  The text ring item provides a mechanism to construct and manage
+  ring items whose body are a series of null-terminated strings. It is
+  another leaf type.
 */
 class CRingTextItem : public CRingItem
 {

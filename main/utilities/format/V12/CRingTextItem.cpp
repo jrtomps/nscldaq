@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -9,7 +9,7 @@
      http://www.gnu.org/licenses/gpl.txt
 
      Author:
-             Ron Fox
+         Jeromy Tompkins
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -35,10 +35,14 @@ namespace DAQ {
 /*!
    Construct a ring item that contains text strings.
    The item will have a timestamp of 'now' and an offset time of 0.
-   \param type       - the ring item type. This should be 
+
+   The event timestamp and source id are set to NULL_TIMESTAMP and 0, respectively.
+
+   \param type       - the ring item type. This must be
                         PACKET_TYPES or MONITORED_VARIABLES.
    \param theStrings - the set of strings in the ring buffer item.
 
+   \throws std::invalid_argument if type is not PACKET_TYPES or MONITORED_VARIABLES
 */
 CRingTextItem::CRingTextItem(uint16_t type, vector<string> theStrings)
  : CRingTextItem(type, V12::NULL_TIMESTAMP, 0, theStrings, 0, time(nullptr), 1)
@@ -46,12 +50,15 @@ CRingTextItem::CRingTextItem(uint16_t type, vector<string> theStrings)
 }
 /*!
   Construct a ring buffer, but this time provide actual values for the
-  time offset and time stamp.
+  time offset and time stamp. The source id and event timestamp are set to
+  0 and NULL_TIMESTAMP, respectively.
+
   \param type    - Type of ring item... see the previous constructor.
   \param strings - The strings to put in the buffer.
   \param offsetTime - The time in to the run at which this is being inserted.
   \param timestamp  - The absolute time when this is being created.
 
+  \throws std::invalid_argument if type is not PACKET_TYPES or MONITORED_VARIABLES
 */
 CRingTextItem::CRingTextItem(uint16_t       type,
                  vector<string> strings,
@@ -63,16 +70,15 @@ CRingTextItem::CRingTextItem(uint16_t       type,
 /**
  * constructor
  *
- * Construct a text item that has a body header as well as the strings and
- * timestamp.
+ * Construct a text item that has all data fields explicitly specified.
  *
- * @param type           - Type of ring item.
- * @param eventTimestamp - Event clock time at which this occured.
- * @param source         - Id of the data source.
+ * \param type           - Type of ring item.
+ * \param eventTimestamp - Event clock time at which this occured.
+ * \param source         - Id of the data source.
   \param strings - The strings to put in the buffer.
   \param offsetTime - The time in to the run at which this is being inserted.
   \param timestamp  - The absolute time when this is being created.
-  @param divisor    - offsetTime/divisor = seconds into the run (default: 1)
+  \param divisor    - offsetTime/divisor = seconds into the run (default: 1)
  */
 CRingTextItem::CRingTextItem(
     uint16_t type, uint64_t eventTimestamp, uint32_t source,
@@ -94,12 +100,14 @@ CRingTextItem::CRingTextItem(
 }
 
 /*!
-   Construct from an undifferentiated ring item.
-   If the ring item does not have a type that is consistent with
-   a text item type that is a strong error.
-   \param rhs  - The ring item from which this is constructed.
+   Construct from a raw ring item
+
+   \param rhs  - The raw ring item from which this is constructed.
    
    \throw bad_cast - if rhs is not a text ring item.
+
+   It will parse the body until all of the strings have been found or
+   until the body is fully parsed.
 */
 CRingTextItem::CRingTextItem(const CRawRingItem& rhs)
 {
@@ -132,35 +140,19 @@ CRingTextItem::CRingTextItem(const CRawRingItem& rhs)
   }
 }
 
-/*!
-  Destructor just chains to base class.
-*/
+/*! Destructor */
 CRingTextItem::~CRingTextItem()
 {}
 
-///*!
-//  Assignment
-//  \param rhs - the item being assigned to this.
-//  \return CRingTextItem&
-//  \retval *this
-//*/
-//CRingTextItem&
-//CRingTextItem::operator=(const CRingTextItem& rhs)
-//{
-//  if (this != &rhs) {
-//    CRingItem::operator=(rhs);
-//    init();
-//  }
-//  return *this;
-//}
-
 /*!
-  Comparison for equality.  No real point in comparing the item pointers.
-  unless this == &rhs they will always differ.
+  \brief Equality comparison operator
+
+  No real point in comparing the item pointers.
+
   \param rhs - the item being compared to *this
-  \return int
-  \retval 0        - Not equal
-  \retval nonzero  - equal.
+  \return bool
+  \retval false  either the evt tstamp, source id, type, time offset, divisor, timestamp, or the strings are different
+  \retval true   otherwise
 */
 bool
 CRingTextItem::operator==(const CRingItem& rhs) const
@@ -176,18 +168,15 @@ CRingTextItem::operator==(const CRingItem& rhs) const
     if (m_strings != pItem->getStrings()) return false;
     return true;
 }
-/*!
-  Comparison for inequality.
-  \param rhs      - the item being compared to *this.
-  \retval 0       - Items are not inequal
-  \retval nonzero - items are inequal
 
-  \note My stilted English is because C++ allows perverse cases where
-  a == b  does not necesarily imply !(a != b) and vica versa. In fact, these
-  operators can be defined in  such a way that they have nothing whatever to do
-  with comparison (just as ostream::operator<< has nothing to do with
-  shifting). however  my definition is sensible in that a == b is the logical converse of
-  a != b, and vicaversa, and these operators really do compare.
+/*!
+ Inequality comparison operator
+
+  \param rhs      - the item being compared to *this.
+
+  \retval false   - Items are equal
+  \retval true    - items are inequal
+
 */
 bool
 CRingTextItem::operator!=(const CRingItem& rhs) const
@@ -206,6 +195,13 @@ uint32_t CRingTextItem::type() const
     return m_type;
 }
 
+/*!
+ * \brief Set the type
+ *
+ * \param type  new type (must be either MONITORED_VARIABLES or PACKET_TYPES)
+ *
+ * \throws std::invalid_argument if type is not V12::MONITORED_VARIABLES or PACKET_TYPES
+ */
 void CRingTextItem::setType(uint32_t type)
 {
     if (type != MONITORED_VARIABLES && type != PACKET_TYPES) {
@@ -217,6 +213,13 @@ void CRingTextItem::setType(uint32_t type)
     m_type = type;
 }
 
+/*!
+ * \brief CRingTextItem::size
+ * \return computed ring item size
+ *
+ * The size is computed from all of the strings. There is a single \0 character counted
+ * for each of the strings.
+ */
 uint32_t CRingTextItem::size() const
 {
     size_t cumulativeLength = 0;
@@ -249,16 +252,30 @@ void CRingTextItem::setSourceId(uint32_t id)
     m_sourceId = id;
 }
 
+/*!
+ * \return false (CRingTextItems are always leafs)
+ */
 bool CRingTextItem::isComposite() const
 {
     return false;
 }
 
+/*!
+ * \return  false (data is always stored in native byte order)
+ */
 bool CRingTextItem::mustSwap() const
 {
     return false;
 }
 
+
+/*!
+ * \brief Serialize data into a raw ring item
+ *
+ * \param buffer    the ring item to fill with data
+ *
+ * The body of the raw ring item is cleared before being filled.
+ */
 void CRingTextItem::toRawRingItem(CRawRingItem& buffer) const
 {
     buffer.setType(m_type);
@@ -324,8 +341,9 @@ CRingTextItem::getTimeOffset() const
 /**
  * computeElapsedTime
  *
- * Determin the floating point seconds into the run using the
- * time offset and the divisor.
+ * Determine the floating point seconds into the run using the
+ * time offset and the divisor. The elapsed time is just computed
+ * by dividing the offset by the divisor (i.e. elapsed time = offset / divisor).
  *
  * @return float
  */
@@ -338,7 +356,7 @@ CRingTextItem::computeElapsedTime() const
     return time/divisor;
 }
 /**
- * @return the time offset divisor offset/divisor in float gives seconds.
+ * @return the time offset divisor
  */
 uint32_t
 CRingTextItem::getTimeDivisor() const
@@ -405,21 +423,21 @@ std::string
 CRingTextItem::toString() const
 {
   std::ostringstream out;
+  out.precision(1);
+  out.setf(std::ios::fixed);
 
   uint32_t elapsed  = getTimeOffset();
   time_t time = getTimestamp();
   string   timeString = std::ctime(&time);
   vector<string> strings = getStrings();
 
-  out << timeString << " : Documentation item ";
-  out << typeName();
   out << headerToString(*this);
-
-  out << elapsed << " seconds in to the run\n";
+  out << "Elapsed Time : " << computeElapsedTime() << " seconds" << std::endl;
+  out << "Unix Tstamp  : " << timeString;
+  out << "# of Strings : " << m_strings.size() << std::endl;
   for (int i = 0; i < strings.size(); i++) {
-    out << strings[i] << endl;
+    out << i << ": \"" << strings[i] << "\"" << endl;
   }
-
 
   return out.str();
 }
