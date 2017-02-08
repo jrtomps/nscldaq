@@ -4,10 +4,7 @@ SUBDIRS = 				common \
 					daqstart \
 					dvdburn \
 					sequencer \
-                                        Buffer \
-                                        format \
                                         IO \
-					FormattedIO \
 					filter \
 					conversion \
 					ringselector \
