@@ -1,0 +1,3 @@
+[submodule "main/daq/nscldaq-format"]
+	path = main/daq/nscldaq-format
+	url = https://git.nscl.msu.edu/daqdev/nscldaq-format.git

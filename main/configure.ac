@@ -505,6 +505,14 @@ AC_CONFIG_FILES([Makefile
 		 epics/Makefile
 		 daq/Makefile
 		 daq/format/Makefile
+     daq/nscldaq-format/Makefile
+     daq/nscldaq-format/format/Makefile
+     daq/nscldaq-format/format/Makefile/V8
+     daq/nscldaq-format/format/Makefile/V10
+     daq/nscldaq-format/format/Makefile/V11
+     daq/nscldaq-format/format/Makefile/V12
+     daq/nscldaq-format/FormattedIO/Makefile
+     daq/nscldaq-format/Buffer/Makefile
 		 daq/readoutgui/Makefile
 		 daq/readoutgui/InstallRoot.tcl
 		 daq/readoutgui/ReadoutShell.tcl
