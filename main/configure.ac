@@ -108,7 +108,6 @@ AX_CHECK_COMPILE_FLAG([-Wno-error=date-time], [NODATEWARN="-Wno-error=date-time"
 AC_SUBST(NODATEWARN)
 
 
-
 # check to find the size of address
 AC_CHECK_SIZEOF([void*])
 AS_IF([test "$ac_cv_sizeof_voidp" -eq 8],
@@ -357,6 +356,7 @@ then
    AC_DEFINE([ZMQ_HAVE_DISCONNECT], [], [ZMQ library has zmq_disconnect funtion])
 fi
 
+AM_CONDITIONAL([FORMAT_STANDALONE], [false])
 
 
 ##
@@ -383,6 +383,8 @@ AC_SUBST(TCLSH_CMD)
 
 
 AC_SUBST(CPPUNIT_LDFLAGS)
+AC_SUBST([AM_CPPFLAGS],[-DNSCLDAQ_BUILD])
+AC_SUBST([AM_CXXFLAGS],[-DNSCLDAQ_BUILD])
 
 #
 #  Threading is hard coded to -pthread now.
@@ -445,7 +447,6 @@ AC_CONFIG_FILES([Makefile
 		 diagnostics/status/Makefile
 		 utilities/Makefile
 		utilities/common/Makefile
-		 utilities/Buffer/Makefile
                  utilities/daqstart/Makefile
                  utilities/dvdburn/Makefile
 		 utilities/scalerdisplay/ScalerDisplay
@@ -465,13 +466,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/compatibility/bufdump
 		utilities/conversion/Makefile
     		utilities/fileanalyzer/Makefile
-    		utilities/format/Makefile
-    		utilities/format/V8/Makefile
-    		utilities/format/V10/Makefile
-    		utilities/format/V11/Makefile
-    		utilities/format/V12/Makefile
     		utilities/IO/Makefile
-    		utilities/FormattedIO/Makefile
 		 utilities/newscaler/Makefile
 		 utilities/newscaler/ScalerDisplay.tcl
 		 utilities/varmanager/Makefile
@@ -505,14 +500,15 @@ AC_CONFIG_FILES([Makefile
 		 epics/Makefile
 		 daq/Makefile
 		 daq/format/Makefile
-     daq/nscldaq-format/Makefile
-     daq/nscldaq-format/format/Makefile
-     daq/nscldaq-format/format/Makefile/V8
-     daq/nscldaq-format/format/Makefile/V10
-     daq/nscldaq-format/format/Makefile/V11
-     daq/nscldaq-format/format/Makefile/V12
-     daq/nscldaq-format/FormattedIO/Makefile
-     daq/nscldaq-format/Buffer/Makefile
+     utilities/nscldaq-format/Makefile
+     utilities/nscldaq-format/utils/Makefile
+     utilities/nscldaq-format/format/Makefile
+     utilities/nscldaq-format/format/V8/Makefile
+     utilities/nscldaq-format/format/V10/Makefile
+     utilities/nscldaq-format/format/V11/Makefile
+     utilities/nscldaq-format/format/V12/Makefile
+     utilities/nscldaq-format/FormattedIO/Makefile
+     utilities/nscldaq-format/Buffer/Makefile
 		 daq/readoutgui/Makefile
 		 daq/readoutgui/InstallRoot.tcl
 		 daq/readoutgui/ReadoutShell.tcl

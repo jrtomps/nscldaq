@@ -1,4 +1,6 @@
 ACLOCAL_AMFLAGS=-I m4
+AM_CPPFLAGS = -DNSCLDAQ_BUILD
+
 
 if BUILD_SBS_DRIVER
   SBSDIRS=sbs
@@ -24,6 +26,7 @@ SUBDIRS =	 base caenfw-common servers base/dataflow diagnostics \
 
 DIST_SUBDIRS = base caenfw-common servers  base/dataflow diagnostics daq utilities \
 		 docbuild docconfig simplesetups sbs epics usb
+
 
 INTROFIGURES = @srcdir@/figures/intro-data-flow-diagram.png \
 								@srcdir@/figures/intro-data-flow-diagram-diagnostics.png 

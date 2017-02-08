@@ -5,6 +5,7 @@ SUBDIRS = 				common \
 					dvdburn \
 					sequencer \
                                         IO \
+																				nscldaq-format \
 					filter \
 					conversion \
 					ringselector \
