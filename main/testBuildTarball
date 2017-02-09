@@ -18,7 +18,8 @@ tar xzf ${tarball}
 cd `basename ${tarball} .tar.gz`
 
 ./configure --prefix=${target} --enable-usb --enable-sbs=/lib/modules/`uname -r`/build --enable-epics-tools=yes --with-epics-rootdir=/usr/lib/epics
-make -j4 clean all
+make clean 
+make all
 make install
 chmod u+x nscldaq
 ./nscldaq start 
