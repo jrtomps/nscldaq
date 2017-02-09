@@ -18,7 +18,7 @@ dumper_CPPFLAGS =	-I@top_srcdir@/utilities/common 				\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/uri			\
 				@LIBTCLPLUS_CFLAGS@			\
-				-I@top_srcdir@/daq/format		\
+                                -I@top_srcdir@/utilities/nscldaq-format/format		\
 				-I@top_srcdir@/base/dataflow		\
                                 -I@top_srcdir@/utilities/IO		\
                                 -I@top_srcdir@/base/os
@@ -26,7 +26,7 @@ dumper_CPPFLAGS =	-I@top_srcdir@/utilities/common 				\
 dumper_LDADD		=	@top_builddir@/utilities/common/libUtilCommon.la	\
 				@top_builddir@/base/uri/liburl.la			\
                                 @top_builddir@/utilities/IO/libdaqio.la			\
-				@top_builddir@/daq/format/libdataformat.la	\
+                                @top_builddir@/utilities/nscldaq-format/V12/libdataformatv12.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/uri/liburl.la	\
 				@LIBEXCEPTION_LDFLAGS@				\

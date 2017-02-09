@@ -170,8 +170,8 @@ tclpkgtests_SOURCES = TestRunner.cpp Asserts.h pkgloads.cpp \
 
 tclpkgtests_CPPFLAGS=$(COMPILATION_FLAGS) @CPPUNIT_CFLAGS@ @LIBTCLPLUS_CFLAGS@ @TCL_FLAGS@ \
 					-DTCLLIBPATH="\"@prefix@/TclLibs\""
-tclpkgtests_LDFLAGS=$(COMMON_LIBS) libTclStatusMessages.la \
-		libStatusMessages.la	\
+tclpkgtests_LDFLAGS=$(COMMON_LIBS) @builddir@/libTclStatusMessages.la \
+                @builddir@/libStatusMessages.la	\
 		@LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@ @CPPUNIT_LDFLAGS@
 
 subtests_SOURCES=TestRunner.cpp subtest.cpp

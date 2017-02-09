@@ -1,9 +1,9 @@
-#ifndef __BUFDUMPMAIN_H
-#define __BUFDUMPMAIN_H
+#ifndef BUFDUMPMAIN_H
+#define BUFDUMPMAIN_H
 
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -12,47 +12,27 @@
 
      Author:
              Ron Fox
+             Jeromy Tompkins
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __STL_VECTOR
 #include <vector>
-#ifndef __STL_VECTOR
-#define __STL_VECTOR
-#endif
-#endif
-
-#ifndef __STL_STRING
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
-
-#ifndef __CPP_OSTREAM
 #include <ostream>
-#ifndef __CPP_STD_OSTREAM
-#endif
-#endif
-
-#ifndef __CRT_STDINT_H
-#include <stdint.h>
-#ifndef __CRT_STDINT_H
-#define __CRT_STDINT_H
-#endif
-#endif
+#include <cstdint>
 
 
 // Forward definitiosn:
 
 class URL;
-class CRingItem;
-class CRingStateChangeItem;
-class CRingTextItem;
-class CRingScalerItem;
-class CRingPhysicsEventCountItem;
+
+namespace DAQ {
+namespace V12 {
+class CRawRingItem;
+}
+}
 
 class CRingBuffer;
 
@@ -76,6 +56,7 @@ private:
   size_t                m_itemCount;   // Number of items to dump before exiting (0 means infinite).
   std::vector<uint16_t> m_sampleTypes; // Items that should be sampled only (ring buffers).
   std::vector<uint16_t> m_excludeTypes; // Items that should not be dumped at all.
+  int                   m_scalerWidth;
 
   // Canonicals... no need for copy construction etc.
   //
@@ -96,13 +77,10 @@ public:
   //Utilities:
 
 private:
-  CRingItem* getItem(CRingBuffer& ring);
-  void processItem(const CRingItem& item);
+  DAQ::V12::CRingItem* getItem(CRingBuffer& ring);
+  void processItem(const DAQ::V12::CRawRingItem& item);
 
-
-  std::string defaultSource() const; 
-  std::string timeString(time_t theTime) const;
-  
+  std::string defaultSource() const;   
 };
 
 #endif

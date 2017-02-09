@@ -4,7 +4,7 @@
 target=${WORKSPACE}/${GIT_BRANCH}-${BUILD_NUMBER}-fromdist
 rm -rf ${target}
 
-acversion=`grep AC_INIT configure.ac | cut -f2 -d"," | sed s/,// | sed s/")"// | sed s/\ //`
+#acversion=`grep AC_INIT configure.ac | cut -f2 -d"," | sed s/,// | sed s/")"// | sed s/\ //`
 
 rm -rf nscldaq-${acversion} nscldaq-${acversion}
 
@@ -18,7 +18,7 @@ tar xzf ${tarball}
 cd `basename ${tarball} .tar.gz`
 
 ./configure --prefix=${target} --enable-usb --enable-sbs=/lib/modules/`uname -r`/build --enable-epics-tools=yes --with-epics-rootdir=/usr/lib/epics
-make clean all
+make -j4 clean all
 make install
 chmod u+x nscldaq
 ./nscldaq start 

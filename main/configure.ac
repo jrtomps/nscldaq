@@ -502,6 +502,7 @@ AC_CONFIG_FILES([Makefile
 		 daq/format/Makefile
      utilities/nscldaq-format/Makefile
      utilities/nscldaq-format/utils/Makefile
+     utilities/nscldaq-format/testutils/Makefile
      utilities/nscldaq-format/format/Makefile
      utilities/nscldaq-format/format/V8/Makefile
      utilities/nscldaq-format/format/V10/Makefile

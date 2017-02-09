@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -9,6 +9,7 @@
 
      Author:
              Ron Fox
+             Jeromy Tompkins
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -18,13 +19,14 @@
 
 
 #include <URL.h>
-#include <CRingItemFactory.h>
-#include <CRingItem.h>
 #include <CRingBuffer.h>
-#include <StringsToIntegers.h>
 #include <CDataSource.h>
 #include <CDataSourceFactory.h>
-#include <CRingScalerItem.h>
+#include <V12/CRingItemFactory.h>
+#include <V12/CRawRingItem.h>
+#include <V12/CRingItem.h>
+#include <V12/StringsToIntegers.h>
+#include <V12/CRingScalerItem.h>
 
 #include "dumperargs.h"
 
@@ -38,7 +40,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-
+using namespace DAQ::V12;
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -52,8 +54,6 @@ using namespace std;
    determined by parsing the command line arguments.
 */
 BufdumpMain::BufdumpMain() :
-  //  m_ringSource(true),
-  //  m_pDataSource(0),
   m_skipCount(0),
   m_itemCount(0)
 {
@@ -64,8 +64,6 @@ BufdumpMain::BufdumpMain() :
 */
 BufdumpMain::~BufdumpMain()
 {
-  //  delete m_pDataSource;
-
 }
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -110,9 +108,9 @@ BufdumpMain::operator()(int argc, char** argv)
 	      << parse.scaler_width_arg << std::endl;
     return EXIT_FAILURE;
   } else if (parse.scaler_width_arg == 32) {
-    CRingScalerItem::m_ScalerFormatMask = 0xffffffff;
+    CRingScalerItem::m_scalerFormatMask = 0xffffffff;
   } else {
-    CRingScalerItem::m_ScalerFormatMask = (1 << parse.scaler_width_arg) - 1;
+    CRingScalerItem::m_scalerFormatMask = (1 << parse.scaler_width_arg) - 1;
   }
 
   // figure out the sample/exclusion vectors:
@@ -209,23 +207,23 @@ BufdumpMain::operator()(int argc, char** argv)
 
   // Skip any items that need to be skipped:
 
-  while (m_skipCount) {
-    CRingItem* pSkip = pSource->getItem();
-    delete pSkip;
-    m_skipCount--;
+  CRawRingItem item;
+  while (m_skipCount && !pSource->eof()) {
+      *pSource >> item;
+      m_skipCount--;
   }
 
   size_t numToDo = m_itemCount;
   bool done = false;
-  while (!done) {
-    CRingItem *pItem = pSource->getItem();
-    if (pItem) {
-      processItem(*pItem);
-      delete pItem;
+
+  while (!done && !pSource->eof()) {
+      *pSource >> item;
+      if (!pSource->eof()) {
+        processItem(*pItem);
+
+        numToDo--;
       
-      numToDo--;
-      
-      if ((m_itemCount != 0) && (numToDo == 0)) done = true;
+        if ((m_itemCount != 0) && (numToDo == 0)) done = true;
     } else {
       done = true;
     }
@@ -249,13 +247,12 @@ BufdumpMain::operator()(int argc, char** argv)
 **    item - Reference to the item to dump.
 */
 void
-BufdumpMain::processItem(const CRingItem& item)
+BufdumpMain::processItem(const CRawRingItem& item)
 {
 
   cout << "-----------------------------------------------------------\n";
-  CRingItem* pActualItem = CRingItemFactory::createRingItem(item);
+  auto pActualItem = CRingItemFactory::createRingItem(item);
   cout << pActualItem->toString();
-  delete pActualItem;
 
 }
 
@@ -269,21 +266,4 @@ BufdumpMain::defaultSource() const
 {
   return CRingBuffer::defaultRingUrl();
 			
-}
-
-/*
-** Returns the time string associated with some time_t
-*/
-string
-BufdumpMain::timeString(time_t theTime) const
-{
-
-  string result(ctime(&theTime));
-  
-  // For whatever reason, ctime appends a '\n' on the end.
-  // We need to remove that.
-
-  result.erase(result.size()-1);
-
-  return result;
 }
