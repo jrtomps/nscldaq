@@ -77,7 +77,6 @@ public:
   //Utilities:
 
 private:
-  DAQ::V12::CRingItem* getItem(CRingBuffer& ring);
   void processItem(const DAQ::V12::CRawRingItem& item);
 
   std::string defaultSource() const;   

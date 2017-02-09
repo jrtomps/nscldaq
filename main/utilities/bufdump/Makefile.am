@@ -21,16 +21,20 @@ dumper_CPPFLAGS =	-I@top_srcdir@/utilities/common 				\
                                 -I@top_srcdir@/utilities/nscldaq-format/format		\
 				-I@top_srcdir@/base/dataflow		\
                                 -I@top_srcdir@/utilities/IO		\
-                                -I@top_srcdir@/base/os
+                                -I@top_srcdir@/base/os \
+                                -I@top_srcdir@/utilities/nscldaq-format/Buffer \
+                                -I@top_srcdir@/utilities/nscldaq-format/FormattedIO
 
 dumper_LDADD		=	@top_builddir@/utilities/common/libUtilCommon.la	\
 				@top_builddir@/base/uri/liburl.la			\
                                 @top_builddir@/utilities/IO/libdaqio.la			\
-                                @top_builddir@/utilities/nscldaq-format/V12/libdataformatv12.la	\
+                                @top_builddir@/utilities/nscldaq-format/format/V12/libdataformatv12.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/uri/liburl.la	\
 				@LIBEXCEPTION_LDFLAGS@				\
 				@top_builddir@/base/os/libdaqshm.la            \
+                                @top_builddir@/utilities/nscldaq-format/Buffer/libbuffer.la \
+                                @top_builddir@/utilities/nscldaq-format/FormattedIO/libdaqformatio.la \
 				$(THREADLD_FLAGS)
 
 clean-local:

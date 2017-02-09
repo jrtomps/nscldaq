@@ -27,6 +27,8 @@
 #include <V12/CRingItem.h>
 #include <V12/StringsToIntegers.h>
 #include <V12/CRingScalerItem.h>
+#include <RingIOV12.h>
+#include <Exception.h>
 
 #include "dumperargs.h"
 
@@ -219,7 +221,7 @@ BufdumpMain::operator()(int argc, char** argv)
   while (!done && !pSource->eof()) {
       *pSource >> item;
       if (!pSource->eof()) {
-        processItem(*pItem);
+        processItem(item);
 
         numToDo--;
       
