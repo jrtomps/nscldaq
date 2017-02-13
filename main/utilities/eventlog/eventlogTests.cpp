@@ -9,10 +9,16 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include <CRingBuffer.h>
-#include <CRingStateChangeItem.h>
+#include <CDataSink.h>
+#include <CDataSinkFactory.h>
+#include <V12/CRingStateChangeItem.h>
+#include <V12/CRawRingItem.h>
+#include <RingIOV12.h>
 #include <string>
 #include <iostream>
+
+
+using namespace DAQ::V12;
 
 extern std::string uniqueName(std::string);
 
@@ -25,15 +31,16 @@ class EvlogTest : public CppUnit::TestFixture {
 
 
 private:
-  CRingBuffer* pRing;
+  CDataSink* pRing;
 public:
   void setUp() {
-    pRing = CRingBuffer::createAndProduce(uniqueName("evlog"));
 
+      std::string ringname = "tcp://localhost/";
+      ringname += uniqueName("evlog");
+      pRing = CDataSinkFactory().makeSink(ringname);
   }
   void tearDown() {
     delete pRing;
-    CRingBuffer::remove(uniqueName("evlog"));
   }
 private: 
   pid_t startEventLog(std::string switches);
@@ -88,8 +95,8 @@ void EvlogTest::autorun() {
   CRingStateChangeItem begin(BEGIN_RUN, 123, 0, time(NULL), "This is a title");
   CRingStateChangeItem end(END_RUN, 123, 1, time(NULL), "This is a title");
 
-  begin.commitToRing(*pRing);
-  end.commitToRing(*pRing);
+  *pRing << CRawRingItem(begin);
+  *pRing << CRawRingItem(end);
 
   // wait for eventlog to finish.
 
@@ -123,8 +130,8 @@ EvlogTest::overriderun()
   CRingStateChangeItem begin(BEGIN_RUN, 123, 0, time(NULL), "This is a title");
   CRingStateChangeItem end(END_RUN, 123, 1, time(NULL), "This is a title");
 
-  begin.commitToRing(*pRing);
-  end.commitToRing(*pRing);
+  *pRing << CRawRingItem(begin);
+  *pRing << CRawRingItem(end);
 
   // wait for eventlog to finish.
 
@@ -158,8 +165,8 @@ EvlogTest::prefix0()
   CRingStateChangeItem begin(BEGIN_RUN, 123, 0, time(NULL), "This is a title");
   CRingStateChangeItem end(END_RUN, 123, 1, time(NULL), "This is a title");
 
-  begin.commitToRing(*pRing);
-  end.commitToRing(*pRing);
+  *pRing << CRawRingItem(begin);
+  *pRing << CRawRingItem(end);
 
   // wait for eventlog to finish.
 

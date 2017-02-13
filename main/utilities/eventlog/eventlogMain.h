@@ -1,9 +1,9 @@
-#ifndef __EVENTLOGMAIN_H
-#define __EVENTLOGMAIN_H
+#ifndef EVENTLOGMAIN_H
+#define EVENTLOGMAIN_H
 
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -12,6 +12,7 @@
 
      Author:
              Ron Fox
+             Jeromy Tompkins
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -19,28 +20,19 @@
 
 // Headers:
 
-#ifndef __CRT_STDINT_H
 #include <stdint.h>
-#ifndef __CRT_STDINT_H
-#define __CRT_STDINT_H
-#endif
-#endif
-
-#ifndef __STL_STRING
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
-
-
 
 // Forward class definitions.
 
-class CRingBuffer;
-class CRingItem;
-class CRingStateChangeItem;
+class CDataSource;
 
+namespace DAQ {
+namespace V12 {
+    class CRawRingItem;
+    class CRingStateChangeItem;
+}
+}
 
 /*!
    Class that represents the event log application.
@@ -52,7 +44,7 @@ class EventLogMain
 {
   // Per object data:
 
-  CRingBuffer*      m_pRing;
+  CDataSource*      m_pRing;
   std::string       m_eventDirectory;
   uint64_t          m_segmentSize;
   bool              m_exitOnEndRun;
@@ -86,15 +78,15 @@ private:
   void parseArguments(int argc, char** argv);
   int  openEventSegment(uint32_t runNumber, unsigned int segment);
   void recordData();
-  void recordRun(const CRingStateChangeItem& item, CRingItem* pFormatItem);
-  void writeItem(int fd, CRingItem&    item);
+  void recordRun(const DAQ::V12::CRawRingItem& stateItem,
+                 const DAQ::V12::CRawRingItem& formatItem);
+  void writeItem(int fd, const DAQ::V12::CRawRingItem &item);
   std::string defaultRingUrl() const;
   uint64_t    segmentSize(const char* pValue) const;
   bool  dirOk(std::string dirname) const;
   bool  dataTimeout();
-  size_t itemSize(CRingItem& item) const;
   std::string shaFile(int runNumber) const;
-  bool isBadItem(CRingItem& item, int runNumber);
+  bool isBadItem(const DAQ::V12::CRawRingItem &item, int runNumber);
 };
 
 

@@ -19,17 +19,27 @@
 #include "eventlogargs.h"
 
 
+#include <CDataSourceFactory.h>
+#include <CDataSource.h>
+#include <CRingDataSource.h>
 
-#include <CRingBuffer.h>
+#include <V12/CRingItem.h>
+#include <V12/CRawRingItem.h>
+#include <V12/CRingStateChangeItem.h>
+#include <V12/DataFormat.h>
+#include <V12/CDataFormatItem.h>
+#include <V12/format_cast.h>
 
-#include <CRingItem.h>
-#include <CRingStateChangeItem.h>
-#include <CRemoteAccess.h>
-#include <DataFormat.h>
+#include <RingIOV12.h>
+#include <ByteBuffer.h>
+
+
 #include <CAllButPredicate.h>
 #include <io.h>
 
 #include <iostream>
+#include <array>
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,11 +51,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-
 using std::string;
 using std::cerr;
 using std::endl;
 using std::cout;
+
+using namespace DAQ::V12;
 
 // constant defintitions.
 
@@ -180,75 +191,65 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    // number override we just use that run number unconditionally.
 
    bool warned = false;
-   CRingItem* pItem;
-   CRingItem* pFormatItem(0);
-   CAllButPredicate all;
+   CRawRingItem rawItem;
+   CRawRingItem formatItem;
 
    // Loop over all runs.
 
    while(1) {
 
-     // If necessary, hunt for the begin run.
+       // If necessary, hunt for the begin run.
 
-     if (!m_fRunNumberOverride) {
-       while (1) {
-	 pItem = CRingItem::getFromRing(*m_pRing, all);
-	 
-	 /*
-	   As of NSCLDAQ-11 it is possible for the item just before a begin run
-	   to be one or more ring format items.
-	 */
-	 
-	 if (pItem->type() == RING_FORMAT) {
-	   pFormatItem = pItem;
-	 } else if (pItem->type() == BEGIN_RUN) {
-	   m_nBeginsSeen = 1;
-	   break;
-	 } else {
-	   // If not a begin or a ring_item we're tossing it out.
-	   delete pItem;
-	   pItem = 0;
-	 }
-	 
-	 if (!warned && !pFormatItem) {
-	   warned = true;
-	   cerr << "**Warning - first item received was not a begin run. Skipping until we get one\n";
-	 }
-       }
-       
-       // Now we have the begin run item; and potentially the ring format item
-       // too. Alternatively we have been told the run number on the command line.
-       
-       CRingStateChangeItem item(*pItem);
-       recordRun(item, pFormatItem);
-       delete pFormatItem;    // delete 0 is a no-op.
-       delete pItem;
-       pFormatItem = 0;
-       
-       
-     } else {
-      //
-      // Run number is overidden we don't need a state change item.  Could,
-      // for example, be a non NSCLDAQ system or a system without
-      // State change items.
-      //
-       recordRun(*(reinterpret_cast<const CRingStateChangeItem*>(0)), 0);
-     }
-     // Return/exit after making our .exited file if this is a one-shot.
+       if (!m_fRunNumberOverride) {
+           while (1) {
+               *m_pRing >> rawItem;
 
-     if (m_exitOnEndRun) {
-       string exitedFile = m_eventDirectory;
-       exitedFile       += "/.exited";
-       int fd = open(exitedFile.c_str(), O_WRONLY | O_CREAT,
-		     S_IRWXU);
-       if (fd == -1) {
-	 perror("Could not open .exited file");
-	 exit(EXIT_FAILURE);
-	 return;
+               /*
+                As of NSCLDAQ-11 it is possible for the item just before a begin run
+                to be one or more ring format items.
+               */
+
+               if (rawItem.type() == RING_FORMAT) {
+                   formatItem = rawItem;
+               } else if (rawItem.type() == BEGIN_RUN) {
+                   m_nBeginsSeen = 1;
+                   break;
+               }
+
+               if (!warned && formatItem.type() == UNDEFINED) {
+                   warned = true;
+                   cerr << "**Warning - first item received was not a begin run. Skipping until we get one\n";
+               }
+           }
+
+           // Now we have the begin run item; and potentially the ring format item
+           // too. Alternatively we have been told the run number on the command line.
+
+           recordRun(rawItem, formatItem);
+
+       } else {
+           //
+           // Run number is overidden we don't need a valid state change item.  Could,
+           // for example, be a non NSCLDAQ system or a system without
+           // State change items.
+           //
+           recordRun(rawItem, formatItem);
        }
-       close(fd);
-       return;
-     }
+       // Return/exit after making our .exited file if this is a one-shot.
+
+       if (m_exitOnEndRun) {
+           string exitedFile = m_eventDirectory;
+           exitedFile       += "/.exited";
+           int fd = open(exitedFile.c_str(), O_WRONLY | O_CREAT,
+                         S_IRWXU);
+           if (fd == -1) {
+               perror("Could not open .exited file");
+               exit(EXIT_FAILURE);
+               return;
+           }
+           close(fd);
+           return;
+       }
 
 
    }
@@ -261,137 +262,134 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  ** Record a run to disk.  This must
  ** - open the initial event file segment
  ** - Write items to the segment keeping track of the segment size,
- **   opening new segments as needed until: 
+ **   opening new segments as needed until:
  ** - The end run item is gotten at which point the run ends.
  **
  ** @param item - The state change item.
  ** @param pFormatitem - possibly null pointer, if not null this points to the
  **                      ring format item that just precedes the begin run.
- **                      
+ **
  */
  void
- EventLogMain::recordRun(const CRingStateChangeItem& item, CRingItem* pFormatItem)
+ EventLogMain::recordRun(const CRawRingItem& rawStateItem, const CRawRingItem& formatItem)
  {
-   unsigned int segment        = 0;
-   uint32_t     runNumber;
-   uint64_t     bytesInSegment = 0;
-   int          fd;
-   unsigned     endsRemaining  = m_nSourceCount;
-   CAllButPredicate p;
+     unsigned int segment        = 0;
+     uint32_t     runNumber;
+     uint64_t     bytesInSegment = 0;
+     int          fd;
+     unsigned     endsRemaining  = m_nSourceCount;
 
-   CRingItem*   pItem;
-   uint16_t     itemType;
+     CRawRingItem rawItem;
+     uint16_t     itemType;
 
+     // Figure out what file to open and how to set the pItem:
 
-   // Figure out what file to open and how to set the pItem:
+     if (m_fRunNumberOverride) {
+         runNumber  = m_nOverrideRunNumber;
+         fd         = openEventSegment(runNumber, segment);
+         *m_pRing >> rawItem;
+     } else {
+         auto stateItem = format_cast<CRingStateChangeItem>(rawStateItem);
 
-   if (m_fRunNumberOverride) {
-     runNumber  = m_nOverrideRunNumber;
-     fd         = openEventSegment(runNumber, segment);
-     pItem      = CRingItem::getFromRing(*m_pRing, p);
-   } else {
-     runNumber  = item.getRunNumber();
-     fd         = openEventSegment(runNumber, segment);
-     pItem      = new CRingStateChangeItem(item);
-   }
+         runNumber  = stateItem.getRunNumber();
+         fd         = openEventSegment(runNumber, segment);
 
-   // If there is a format item, write it out to file:
-   // Note there won't be if the run number has been overridden.
-   
-   if (pFormatItem) {
-     bytesInSegment += itemSize(*pFormatItem);
-     writeItem(fd, *pFormatItem);
-
-   }
-
- 
-
-   while(1) {
-
-     size_t size    = itemSize(*pItem);
-     itemType       = pItem->type();
-
-     // If necessary, close this segment and open a new one:
-
-     if ( (bytesInSegment + size) > m_segmentSize) {
-       close(fd);
-       segment++;
-       bytesInSegment = 0;
-
-       fd = openEventSegment(runNumber, segment);
+         rawItem = rawStateItem;
      }
 
-     writeItem(fd, *pItem);
 
-     bytesInSegment  += size;
+     // If there is a format item, write it out to file:
+     // Note there won't be if the run number has been overridden.
 
-     delete pItem;
-
-     if(itemType == END_RUN) {
-       endsRemaining--;
-       if (endsRemaining == 0) {
-	 break;
-       }
-     }
-     if (itemType == ABNORMAL_ENDRUN) {
-        endsRemaining = 0;             // In case we're not --one-shot
-        break;                         // unconditionally ends the run.
+     if (formatItem.type() == RING_FORMAT) {
+         bytesInSegment += formatItem.size();
+         writeItem(fd, formatItem);
      }
 
-     // If we've seen an end of run, need to support timing out
-     // if we dont see them all.
+     while(1) {
 
-     if ((endsRemaining != m_nSourceCount) && dataTimeout()) {
-       cerr << "Timed out waiting for end of runs. Need " << endsRemaining 
-	    << " out of " << m_nSourceCount << " sources still\n";
-       cerr << "Closing the run\n";
+         size_t size    = rawItem.size();
+         itemType       = rawItem.type();
 
-       break;
+         // If necessary, close this segment and open a new one:
+
+         if ( (bytesInSegment + size) > m_segmentSize) {
+             close(fd);
+             segment++;
+             bytesInSegment = 0;
+
+             fd = openEventSegment(runNumber, segment);
+         }
+
+         writeItem(fd, rawItem);
+
+         bytesInSegment  += size;
+
+         if(itemType == END_RUN) {
+             endsRemaining--;
+             if (endsRemaining == 0) {
+                 break;
+             }
+         }
+         if (itemType == ABNORMAL_ENDRUN) {
+             endsRemaining = 0;             // In case we're not --one-shot
+             break;                         // unconditionally ends the run.
+         }
+
+         // If we've seen an end of run, need to support timing out
+         // if we dont see them all.
+
+         if ((endsRemaining != m_nSourceCount) && dataTimeout()) {
+             cerr << "Timed out waiting for end of runs. Need " << endsRemaining
+                  << " out of " << m_nSourceCount << " sources still\n";
+             cerr << "Closing the run\n";
+
+             break;
+         }
+         *m_pRing >> rawItem;
+         if(isBadItem(rawItem, runNumber)) {
+             std::cerr << "Eventlog: Data indicates probably the run ended in error exiting\n";
+             exit(EXIT_FAILURE);
+         }
      }
-     pItem =  CRingItem::getFromRing(*m_pRing, p);
-     if(isBadItem(*pItem, runNumber)) {
-       std::cerr << "Eventlog: Data indicates probably the run ended in error exiting\n";
-       exit(EXIT_FAILURE);
-     }
-   } 
-   //
-   //  If checksumming, finalize the checksum and write out the checksum file as well.
-   //  by  now m_pChecksumContext is only set if m_fChecksum was true when the run
-   //  files were opened.
-   //
-   if (m_pChecksumContext) {
-     EVP_MD_CTX* pCtx = reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext);
-     unsigned char* pDigest = reinterpret_cast<unsigned char*>(OPENSSL_malloc(EVP_MD_size(EVP_sha512())));
-     unsigned int   len;
-       
-     // Not quite sure what to do if pDigest failed to malloc...for now
-     // silently ignore...
+     //
+     //  If checksumming, finalize the checksum and write out the checksum file as well.
+     //  by  now m_pChecksumContext is only set if m_fChecksum was true when the run
+     //  files were opened.
+     //
+     if (m_pChecksumContext) {
+         EVP_MD_CTX* pCtx = reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext);
+         unsigned char* pDigest = reinterpret_cast<unsigned char*>(OPENSSL_malloc(EVP_MD_size(EVP_sha512())));
+         unsigned int   len;
 
-     if (pDigest) {
-       EVP_DigestFinal_ex(pCtx, pDigest, &len);
-       std::string digestFilename = shaFile(runNumber);
-       FILE* shafp = fopen(digestFilename.c_str(), "w");
+         // Not quite sure what to do if pDigest failed to malloc...for now
+         // silently ignore...
 
-     
-       // Again not quite sure what to do if the open failed.
-       if (shafp) {
-	 unsigned char* p = pDigest;
-	 for (int i =0; i < len;i++) {
-	   fprintf(shafp, "%02x", *p++);
-	 }
-	 fprintf(shafp, "\n");
-	 fclose(shafp);
-       }
-       // Release the digest storage and the context.
-       OPENSSL_free(pDigest);
+         if (pDigest) {
+             EVP_DigestFinal_ex(pCtx, pDigest, &len);
+             std::string digestFilename = shaFile(runNumber);
+             FILE* shafp = fopen(digestFilename.c_str(), "w");
+
+
+             // Again not quite sure what to do if the open failed.
+             if (shafp) {
+                 unsigned char* p = pDigest;
+                 for (int i =0; i < len;i++) {
+                     fprintf(shafp, "%02x", *p++);
+                 }
+                 fprintf(shafp, "\n");
+                 fclose(shafp);
+             }
+             // Release the digest storage and the context.
+             OPENSSL_free(pDigest);
+
+         }
+         EVP_MD_CTX_destroy(pCtx);
+         m_pChecksumContext = 0;
 
      }
-     EVP_MD_CTX_destroy(pCtx);
-     m_pChecksumContext = 0;
-       
-   }
 
-   close(fd);
+     close(fd);
 
 
  }
@@ -410,66 +408,66 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  void
  EventLogMain::parseArguments(int argc, char** argv)
  {
-   gengetopt_args_info parsed;
-   cmdline_parser(argc, argv, &parsed);
+     gengetopt_args_info parsed;
+     cmdline_parser(argc, argv, &parsed);
 
-   // Figure out where we're getting data from:
+     // Figure out where we're getting data from:
 
-   string ringUrl = defaultRingUrl();
-   if(parsed.source_given) {
-     ringUrl = parsed.source_arg;
-   }
-   // Figure out the event directory:
+     string ringUrl = defaultRingUrl();
+     if(parsed.source_given) {
+         ringUrl = parsed.source_arg;
+     }
+     // Figure out the event directory:
 
-   if (parsed.path_given) {
-     m_eventDirectory = string(parsed.path_arg);
-   }
+     if (parsed.path_given) {
+         m_eventDirectory = string(parsed.path_arg);
+     }
 
-   if (parsed.oneshot_given) {
-     m_exitOnEndRun = true;
-   }
-   if (parsed.run_given && !parsed.oneshot_given) {
-     std::cerr << "--oneshot is required to specify --run\n";
-     exit(EXIT_FAILURE);
-   }
-   if (parsed.run_given) {
-     m_fRunNumberOverride = true;
-     m_nOverrideRunNumber = parsed.run_arg;
-   }
-   // And the segment size:
+     if (parsed.oneshot_given) {
+         m_exitOnEndRun = true;
+     }
+     if (parsed.run_given && !parsed.oneshot_given) {
+         std::cerr << "--oneshot is required to specify --run\n";
+         exit(EXIT_FAILURE);
+     }
+     if (parsed.run_given) {
+         m_fRunNumberOverride = true;
+         m_nOverrideRunNumber = parsed.run_arg;
+     }
+     // And the segment size:
 
-   if (parsed.segmentsize_given) {
-     m_segmentSize = segmentSize(parsed.segmentsize_arg);
-   }
+     if (parsed.segmentsize_given) {
+         m_segmentSize = segmentSize(parsed.segmentsize_arg);
+     }
 
-   m_nSourceCount = parsed.number_of_sources_arg;
+     m_nSourceCount = parsed.number_of_sources_arg;
 
-   // The directory must be writable:
+     // The directory must be writable:
 
-   if (!dirOk(m_eventDirectory)) {
-     cerr << m_eventDirectory 
-	  << " must be an existing directory and writable so event files can be created"
-	  << endl;
-     exit(EXIT_FAILURE);
-   }
+     if (!dirOk(m_eventDirectory)) {
+         cerr << m_eventDirectory
+              << " must be an existing directory and writable so event files can be created"
+              << endl;
+         exit(EXIT_FAILURE);
+     }
 
-   if (parsed.prefix_given) {
-    m_prefix = parsed.prefix_arg;
-   }
+     if (parsed.prefix_given) {
+         m_prefix = parsed.prefix_arg;
+     }
 
-   // And the ring must open:
+     // And the ring must open:
 
-   try {
-     m_pRing = CRingAccess::daqConsumeFrom(ringUrl);
-   }
-   catch (...) {
-     cerr << "Could not open the data source: " << ringUrl << endl;
-     exit(EXIT_FAILURE);
-   }
-   // Checksum flag:
+     try {
+         m_pRing = CDataSourceFactory().makeSource(ringUrl, {}, {});
+     }
+     catch (...) {
+         cerr << "Could not open the data source: " << ringUrl << endl;
+         exit(EXIT_FAILURE);
+     }
+     // Checksum flag:
 
-   m_fChecksum = (parsed.checksum_flag != 0);
-   m_fChangeRunOk = (parsed.combine_runs_flag != 0);
+     m_fChecksum = (parsed.checksum_flag != 0);
+     m_fChangeRunOk = (parsed.combine_runs_flag != 0);
 
  }
 
@@ -481,7 +479,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  string
  EventLogMain::defaultRingUrl() const
  {
-   return CRingBuffer::defaultRingUrl();
+     return CRingBuffer::defaultRingUrl();
 
  }
 
@@ -498,42 +496,42 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  uint64_t
  EventLogMain::segmentSize(const char* pValue) const
  {
-   char* end;
-   uint64_t size = strtoull(pValue, &end, 0);
+     char* end;
+     uint64_t size = strtoull(pValue, &end, 0);
 
-   // The remaning string must be 0 or 1 chars long:
+     // The remaning string must be 0 or 1 chars long:
 
-   if (strlen(end) < 2) {
+     if (strlen(end) < 2) {
 
-     // If there's a multiplier:
+         // If there's a multiplier:
 
-     if(strlen(end) == 1) {
-       if    (*end == 'g') {
-	 size *= G;
-       } 
-       else if (*end == 'm') {
-	 size *= M;
-       }
-       else if (*end == 'k') {
-	 size *= K;
-       }
-       else {
-	 cerr << "Segment size multipliers must be one of g, m, or k" << endl;
-	 exit(EXIT_FAILURE);
-       }
+         if(strlen(end) == 1) {
+             if    (*end == 'g') {
+                 size *= G;
+             }
+             else if (*end == 'm') {
+                 size *= M;
+             }
+             else if (*end == 'k') {
+                 size *= K;
+             }
+             else {
+                 cerr << "Segment size multipliers must be one of g, m, or k" << endl;
+                 exit(EXIT_FAILURE);
+             }
 
+         }
+         // Size must not be zero:
+
+         if (size == (uint64_t)0) {
+             cerr << "Segment size must not be zero!!" << endl;
+         }
+         return size;
      }
-     // Size must not be zero:
+     // Some conversion problem:
 
-     if (size == (uint64_t)0) {
-       cerr << "Segment size must not be zero!!" << endl;
-     }
-     return size;
-   }
-   // Some conversion problem:
-
-   cerr << "Segment sizes must be an integer, or an integer followed by g, m, or k\n";
-   exit(EXIT_FAILURE);
+     cerr << "Segment sizes must be an integer, or an integer followed by g, m, or k\n";
+     exit(EXIT_FAILURE);
  }
 
  /*
@@ -550,14 +548,14 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  bool
  EventLogMain::dirOk(string dirname) const
  {
-   struct stat statinfo;
-   int  s = stat(dirname.c_str(), &statinfo);
-   if (s) return false;		// If we can't even stat it that's bad.
+     struct stat statinfo;
+     int  s = stat(dirname.c_str(), &statinfo);
+     if (s) return false;		// If we can't even stat it that's bad.
 
-   mode_t mode = statinfo.st_mode;
-   if (!S_ISDIR(mode)) return false; // Must be a directory.
+     mode_t mode = statinfo.st_mode;
+     if (!S_ISDIR(mode)) return false; // Must be a directory.
 
-   return !access(dirname.c_str(), W_OK | X_OK);
+     return !access(dirname.c_str(), W_OK | X_OK);
  }
  /**
   * dataTimeout
@@ -569,12 +567,16 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  bool
  EventLogMain::dataTimeout()
  {
-   noData predicate;
+     noData predicate;
 
-   m_pRing->blockWhile(predicate, RING_TIMEOUT);
-   return (m_pRing->availableData() == 0);
+     auto pRing = dynamic_cast<CRingDataSource*>(m_pRing);
+     if (pRing == nullptr) {
+         throw std::runtime_error("Only ring data sources are supported in eventlog currently.");
+     }
+     pRing->getRing().blockWhile(predicate, RING_TIMEOUT);
+     return (pRing->getRing().availableData() == 0);
  }
-/**
+ /**
  * writeItem
  *   Write a ring item.
  *
@@ -584,81 +586,79 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  * @throw  uses io::writeData which throws errs.
  *         The errors are caught described and we exit :-(
  */
-void
-EventLogMain::writeItem(int fd, CRingItem& item)
-{
-    try {
-      void*    pItem = item.getItemPointer();
-      uint32_t nBytes= itemSize(item);
+ void
+ EventLogMain::writeItem(int fd, const CRawRingItem& item)
+ {
+     try {
+         uint32_t nBytes= item.size();
+         std::array<char,20> header;
 
-      // If necessary create the checksum context
-      // If checksumming add the ring item to the sum.
+         serializeHeader(item, header.begin());
+         auto& body = item.getBody();
 
-      if (m_fChecksum) {
-	if (!m_pChecksumContext) {
-	  m_pChecksumContext = EVP_MD_CTX_create();
-	  if (!m_pChecksumContext) throw errno;
-	  if(EVP_DigestInit_ex(
-	      reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext), EVP_sha512(), NULL) != 1) {
-	    EVP_MD_CTX_destroy(reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext));
-	    m_pChecksumContext = 0;
-	    throw std::string("Unable to initialize the checksum digest");
-	  }
+         // If necessary create the checksum context
+         // If checksumming add the ring item to the sum.
 
-	}
-	EVP_DigestUpdate(
-           reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext), pItem, nBytes);
-      }
+         if (m_fChecksum) {
+             if (!m_pChecksumContext) {
+                 m_pChecksumContext = EVP_MD_CTX_create();
+                 if (!m_pChecksumContext) throw errno;
+                 if(EVP_DigestInit_ex(
+                             reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext), EVP_sha512(), NULL) != 1) {
+                     EVP_MD_CTX_destroy(reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext));
+                     m_pChecksumContext = 0;
+                     throw std::string("Unable to initialize the checksum digest");
+                 }
 
-      io::writeData(fd, pItem, nBytes);
-    }
-    catch(int err) {
-      if(err) {
-        cerr << "Unable to output a ringbuffer item : "  << strerror(err) << endl;
-      }  else {
-        cerr << "Output file closed out from underneath us\n";
-      }
-      exit(EXIT_FAILURE);
-    }
-    catch (std::string e) {
-      std::cerr << e << std::endl;
-      exit(EXIT_FAILURE);
-    }
-}
-/**
-* itemSize
-*    Return the number of bytes in a ring item.
-* @param item - reference to a ring item.
-*
-* @return size_t -size of the item.
-*/
-size_t
-EventLogMain::itemSize(CRingItem& item) const
-{
-    return ::itemSize(reinterpret_cast<pRingItem>(item.getItemPointer()));
-}
-/**
+             }
+             // hash the header
+             EVP_DigestUpdate(
+                         reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext), header.data(), 20);
+
+             // hash the body
+             EVP_DigestUpdate(
+                         reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext), body.data(), body.size());
+         }
+
+         io::writeData(fd, header.data(), header.size());
+         io::writeData(fd, body.data(), body.size());
+     }
+     catch(int err) {
+         if(err) {
+             cerr << "Unable to output a ringbuffer item : "  << strerror(err) << endl;
+         }  else {
+             cerr << "Output file closed out from underneath us\n";
+         }
+         exit(EXIT_FAILURE);
+     }
+     catch (std::string e) {
+         std::cerr << e << std::endl;
+         exit(EXIT_FAILURE);
+     }
+ }
+
+ /**
  * shaFile
  *    Compute the filename for the checksum for a run.
  *
  * @param run - Run number
- * 
+ *
  * @return std::string - the filename.
  */
-std::string
-EventLogMain::shaFile(int run) const
-{
-  char runNumber[100];
-  sprintf(runNumber, "%04d", run);
+ std::string
+ EventLogMain::shaFile(int run) const
+ {
+     char runNumber[100];
+     sprintf(runNumber, "%04d", run);
 
-  std::string fileName = m_eventDirectory;
-  fileName+= ("/" + m_prefix + "-");
-  fileName+= runNumber;
-  fileName += ".sha512";
+     std::string fileName = m_eventDirectory;
+     fileName+= ("/" + m_prefix + "-");
+     fileName+= runNumber;
+     fileName += ".sha512";
 
-  return fileName;
-}
-/**
+     return fileName;
+ }
+ /**
  * isBadItem
  *     This method is called to determine if we've gotten a ring item that
  *      might indicate we need to exit in --one-shot mode:
@@ -675,27 +675,28 @@ EventLogMain::shaFile(int run) const
  * @retval true  - there's something fishy about this -- probably we should exit.
  * @retval false - as near as we can tell everything is ok.
  */
-bool
-EventLogMain::isBadItem(CRingItem& item, int runNumber)
-{
-  // For some states of program options we just don't care about the
-  // data
+ bool
+ EventLogMain::isBadItem(const CRawRingItem& item, int runNumber)
+ {
+     // For some states of program options we just don't care about the
+     // data
 
-  if (m_fChangeRunOk || (!m_exitOnEndRun)) {
-    return false;
-  }
-  // For the rest we only care about state changes -- begins in fact
+     if (m_fChangeRunOk || (!m_exitOnEndRun)) {
+         return false;
+     }
+     // For the rest we only care about state changes -- begins in fact
 
-  if (item.type() == BEGIN_RUN) {
-    m_nBeginsSeen++;
-    if (m_nBeginsSeen > m_nSourceCount) {
-      return true;
-    }
-    CRingStateChangeItem begin(item);
-    if (begin.getRunNumber() != runNumber) {
-      return true;
-    }
-  }
-  return false;
+     if (item.type() == BEGIN_RUN) {
+         m_nBeginsSeen++;
+         if (m_nBeginsSeen > m_nSourceCount) {
+             return true;
+         }
+         std::cout << "isBadItem.. " << item.type() << std::endl;
+         CRingStateChangeItem begin(item);
+         if (begin.getRunNumber() != runNumber) {
+             return true;
+         }
+     }
+     return false;
 
-}
+ }

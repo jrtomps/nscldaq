@@ -15,11 +15,18 @@
 */
 
 #include <string>
-#include <CRingBuffer.h>
-#include <CRingStateChangeItem.h>
-#include <CRingTextItem.h>
-#include <CRingScalerItem.h>
-#include <CRingPhysicsEventCountItem.h>
+#include <CDataSink.h>
+#include <CDataSinkFactory.h>
+
+#include <V12/CRingStateChangeItem.h>
+#include <V12/CRingTextItem.h>
+#include <V12/CRawRingItem.h>
+#include <V12/CRingScalerItem.h>
+#include <V12/CRingPhysicsEventCountItem.h>
+#include <V12/CPhysicsEventItem.h>
+#include <V12/DataFormat.h>
+#include <RingIOV12.h>
+#include <ByteBuffer.h>
 
 #include <pwd.h>
 #include <unistd.h>
@@ -35,6 +42,7 @@
 
 using namespace std;
 
+using namespace DAQ::V12;
 
 
 static void usage()
@@ -45,25 +53,26 @@ static void usage()
 }
 
 
-static void beginRun(unsigned runNumber, CRingBuffer& ring)
+static void beginRun(unsigned runNumber, CDataSink& ring)
 {
   char title[100];
   sprintf(title, "This is a test run %d", runNumber);
   CRingStateChangeItem item(BEGIN_RUN, runNumber, 0, time(NULL), title);
 
-  item.commitToRing(ring);
+  ring << CRawRingItem(item);
 }
 
-static void endRun(unsigned runNumber, CRingBuffer& ring)
+static void endRun(unsigned runNumber, CDataSink& ring)
 {
   char title[100];
   sprintf(title, "This is a test run %d", runNumber);
   CRingStateChangeItem item(END_RUN, runNumber,120, time(NULL), title);
 
-  item.commitToRing(ring);
+  ring << CRawRingItem(item);
+
 }
 
-static void stringItem(unsigned strings, CRingBuffer& ring)
+static void stringItem(unsigned strings, CDataSink& ring)
 {
   vector<string> items;
   for (int i=0; i < strings; i++) {
@@ -72,23 +81,27 @@ static void stringItem(unsigned strings, CRingBuffer& ring)
     items.push_back(string(item));
   }
   CRingTextItem thing(PACKET_TYPES, items);
-  thing.commitToRing(ring);
+
+  ring << CRawRingItem(thing);
+
 }
 
-static void event(CRingBuffer& ring)
+static void event(CDataSink& ring)
 {
   unsigned bodySize = (int)(100.0*drand48());
 
-  CRingItem item(PHYSICS_EVENT);
-  uint16_t* pBody = (uint16_t*)(item.getBodyCursor());
-  for (int i=0; i < bodySize; i++) {
-    *pBody++ = i;
+  CPhysicsEventItem item;
+
+  auto& body = item.getBody();
+  body.reserve(100*sizeof(uint16_t));
+  for (uint16_t i=0; i<100; ++i) {
+      body << i;
   }
-  item.setBodyCursor(pBody);
-  item.commitToRing(ring);
+
+  ring << item;
 }
 
-static void scaler(CRingBuffer& ring)
+static void scaler(CDataSink& ring)
 {
   static int offset = 0;
   vector<uint32_t> scalers;
@@ -97,11 +110,11 @@ static void scaler(CRingBuffer& ring)
   }
   CRingScalerItem i(offset, offset+10, time(NULL), scalers);
   offset += 10;
-  i.commitToRing(ring);
 
+  ring << CRawRingItem(i);
 }
 
-static void eventcount(CRingBuffer& ring, int count)
+static void eventcount(CDataSink& ring, int count)
 {
   static int offset = 10;
   CRingPhysicsEventCountItem item;
@@ -109,19 +122,19 @@ static void eventcount(CRingBuffer& ring, int count)
   item.setTimeOffset(offset);
   offset += 10;
 
-  item.commitToRing(ring);
+  ring << CRawRingItem(item);
 }
 
-static void userItem(CRingBuffer& ring)
+static void userItem(CDataSink& ring)
 {
-  CRingItem item(1234, 500);
-  uint8_t*  p = reinterpret_cast<uint8_t*>(item.getBodyCursor());
+  CRawRingItem item;
+  item.setType(1234);
 
   for (int i = 0; i < 256; i++) {
-    *p++ = i;
+    item.getBody() << char(i);
   }
-  item.setBodyCursor(p);
-  item.commitToRing(ring);
+
+  ring << CRawRingItem(item);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,38 +168,37 @@ int main(int argc, char**argv)
   unsigned period = atoi(argv[3]);
   unsigned strings= atoi(argv[4]);
 
-  string ringname = Os::whoami();
+  string ringname = "tcp://localhost/";
+  ringname += Os::whoami();
 
-  if(!CRingBuffer::isRing(ringname)) {
-    CRingBuffer::create(ringname);
-  }
-
-  CRingBuffer ring(ringname, CRingBuffer::producer);
+  auto pSink = CDataSinkFactory().makeSink(ringname);
 
   // Begin run:
 
-  beginRun(run, ring);
+  beginRun(run, *pSink);
 
-  userItem(ring);
+  userItem(*pSink);
 
   // The strings item:
 
-  stringItem(strings, ring);
+  stringItem(strings, *pSink);
 
   // Events and scalers:
 
   for (int i =1; i < events; i++) {
-    event(ring);
+    event(*pSink);
     if (i % period == 0) {
       sleep(2);
-      eventcount(ring,i);
-      scaler(ring);
+      eventcount(*pSink,i);
+      scaler(*pSink);
     }
   }
 
   // End run
 
-  endRun(run, ring);
+  endRun(run, *pSink);
+
+  delete pSink;
 
   exit(0);
 
