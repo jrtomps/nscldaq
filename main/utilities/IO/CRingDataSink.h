@@ -48,6 +48,9 @@ class CRingDataSink : public CDataSink
     void putItem(const CRingItem& item);
     void put(const void* pData, size_t nBytes);
 
+    CRingBuffer& getRing();
+    const CRingBuffer& getRing() const;
+
   private:
     void openRing();
 

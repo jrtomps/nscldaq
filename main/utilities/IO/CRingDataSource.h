@@ -49,7 +49,7 @@ private:
 
   // Canonical methods.
 public:
-  CRingDataSource(URL&                   url,
+  CRingDataSource(const URL&                url,
                   std::vector<uint16_t>  sample,
                   std::vector<uint16_t>  exclude);
   virtual ~CRingDataSource();
@@ -74,6 +74,9 @@ public:
   virtual CRingItem* getItem();
 
   void read(char* pBuffer, size_t nBytes);
+
+  CRingBuffer& getRing();
+  const CRingBuffer& getRing() const;
 
   // Utilities:
 

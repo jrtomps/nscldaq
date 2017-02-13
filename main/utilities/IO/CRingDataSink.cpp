@@ -65,6 +65,15 @@ void CRingDataSink::put(const void* pData, size_t nBytes)
         ;
 }
 
+CRingBuffer& CRingDataSink::getRing()
+{
+    return *m_pRing;
+}
+
+const CRingBuffer& CRingDataSink::getRing() const
+{
+    return *m_pRing;
+}
 
 void CRingDataSink::openRing()
 {

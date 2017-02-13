@@ -37,7 +37,7 @@ using std::string;
   \param sample  - List of item types that should be sampled.
   \param exclude - List of item types that should not be accepted from the ring.
 */
-CRingDataSource::CRingDataSource(URL& url, vector<uint16_t> sample, vector<uint16_t> exclude) :
+CRingDataSource::CRingDataSource(const URL &url, vector<uint16_t> sample, vector<uint16_t> exclude) :
   CDataSource(),
   m_pRing(0), 
   m_pPredicate(0),
@@ -78,6 +78,18 @@ void CRingDataSource::read(char* pBuffer, size_t nBytes)
 {
   m_pRing->get(pBuffer, nBytes);
 }
+
+
+CRingBuffer& CRingDataSource::getRing()
+{
+    return *m_pRing;
+}
+
+const CRingBuffer& CRingDataSource::getRing() const
+{
+    return *m_pRing;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
 // Utilities:
