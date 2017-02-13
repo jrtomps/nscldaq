@@ -21,7 +21,7 @@
 #include <V12/CRingScalerItem.h>
 #include <V12/format_cast.h>
 #include <RingIOV12.h>
-#include <Deserializer.h>
+#include <ContainerDeserializer.h>
 
 #include <RunState.h>
 #include <stdint.h>
