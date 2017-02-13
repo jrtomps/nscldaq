@@ -10,11 +10,19 @@
 #include "CScalerBank.h"
 #include <string>
 #include <string.h>
+
 #include <CRingBuffer.h>
-#include <CRingItem.h>
-#include <DataFormat.h>
-#include <CRingScalerItem.h>
-#include <CAllButPredicate.h>
+
+#include <CRingDataSource.h>
+#include <CDataSourceFactory.h>
+
+#include <V12/CRawRingItem.h>
+#include <V12/DataFormat.h>
+#include <V12/CRingScalerItem.h>
+#include <V12/format_cast.h>
+#include <RingIOV12.h>
+#include <Deserializer.h>
+
 #include <RunState.h>
 #include <stdint.h>
 #include <vector>
@@ -29,6 +37,7 @@
 
 
 using namespace std;
+using namespace DAQ::V12;
 
 extern std::string uniqueName(std::string);
 
@@ -136,22 +145,34 @@ void triggerResponse::eventsegs() {
 void triggerResponse::readout()
 {
   TestSegment myseg;
-  CRingBuffer Ring(ringName);
-  CAllButPredicate pred;
+  CDataSource *pRing = CDataSourceFactory::makeSource(string("tcp://localhost/") + ringName, {}, {});
 
   m_pExperiment->AddEventSegment(&myseg);
 
   m_pExperiment->ReadEvent();
 
-  CRingItem* item = CRingItem::getFromRing(Ring, pred);
-  ASSERT(item);
-  EQ(PHYSICS_EVENT, item->type());
-  uint16_t* p = reinterpret_cast<uint16_t*>(item->getBodyPointer());
+  CRawRingItem  rawItem;
+  *pRing >> rawItem;
+
+  ASSERT(!pRing->eof());
+  delete pRing;
+
+  EQ(PHYSICS_EVENT, rawItem.type());
+
+  auto& body = rawItem.getBody();
+  auto bodyStream = DAQ::Buffer::makeContainerDeserializer(body, false);
+
+  uint32_t size;
+  bodyStream >> size;
+
+  EQMSG("body size", uint32_t(12), size);
+
   for (uint16_t i=0; i < 10; i++) {
-    EQ(i, *p++);
+      uint16_t value;
+      bodyStream >> value;
+      EQ(i, value);
   }
 
-  delete item;
 }
 
 // Should be able to add a scaler bank.. that will result in 
@@ -181,14 +202,14 @@ void triggerResponse::scalerbank()
 void triggerResponse::readscalers()
 {  TestScaler scaler;
   m_pExperiment->AddScalerModule(&scaler);
-  CRingBuffer Ring(ringName);
-  CAllButPredicate pred;
+  CDataSource *pRing = CDataSourceFactory::makeSource(string("tcp://localhost/") + ringName, {}, {});
 
   m_pExperiment->AddScalerModule(&scaler);
 
-
   RunState* pState = RunState::getInstance();
   m_pExperiment->m_nLastScalerTime = 0;
+  m_pExperiment->m_nPausedmSeconds = 0;
+  m_pExperiment->m_nRunStartStamp = 0;
   pState->m_timeOffset = 10;
   pState->m_state      = RunState::active;
   pState->m_runNumber  = 1234;
@@ -197,17 +218,22 @@ void triggerResponse::readscalers()
   strcpy(pState->m_pTitle, "Test title");
   m_pExperiment->TriggerScalerReadout();
 
-  CRingItem* item = CRingItem::getFromRing(Ring, pred);
-  ASSERT(item);
-  EQ(PERIODIC_SCALERS, item->type());
-  
-  CRingScalerItem scalers(*item);
-  delete item;
+  CRawRingItem item;
+  *pRing >> item;
 
-  EQ(static_cast<uint32_t>(0), scalers.getStartTime());
-  EQ(static_cast<uint32_t>(10), scalers.getEndTime());
+  ASSERT(!pRing->eof());
+  delete pRing;
+
+  EQ(PERIODIC_SCALERS, item.type());
+  
+  CRingScalerItem scalers(item);
+
+  // testing the start and stop time is unreliable given how SBS Readout
+  // computes the start and stop time.
+//  EQMSG("start time", static_cast<uint32_t>(0), scalers.getStartTime());
+//  EQMSG("end time", static_cast<uint32_t>(10), scalers.getEndTime());
   for (uint32_t i = 0; i < 32; i++) {
-    EQ(i, scalers.getScaler(i));
+    EQMSG("scaler value", i, scalers.getScaler(i));
   }
   
 }

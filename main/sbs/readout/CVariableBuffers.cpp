@@ -17,22 +17,23 @@
 #include "CVariableBuffers.h"
 #include <CCondition.h>
 #include <CMutex.h>
-#include <CRingBuffer.h>
+#include <CDataSink.h>
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <CDuplicateSingleton.h>
-#include <CRingBuffer.h>
-#include <CRingTextItem.h>
 #include <RunState.h>
-#include <DataFormat.h>
-#include <fragment.h>
-
+#include <V12/DataFormat.h>
+#include <V12/CRawRingItem.h>
+#include <V12/CRingTextItem.h>
+#include <RingIOV12.h>
 
 #include <vector>
 #include <string>
 #include <time.h>
+#include <iostream>
 
 using namespace std;
+using namespace DAQ::V12;
 
 // Static class member data:
 
@@ -108,7 +109,7 @@ CVariableBuffers::getInstance()
      @param pRing - Pointer to the ring buffer into which the event is placed:
 */
 void
-CVariableBuffers::triggerRunVariableBuffer(CRingBuffer* pRing,
+CVariableBuffers::triggerRunVariableBuffer(CDataSink* pRing,
 					   uint64_t timeOffset) 
 {
   triggerBuffer(pRing, HandleRunVarTrigger, createRunVariableEvent,
@@ -124,7 +125,7 @@ CVariableBuffers::triggerRunVariableBuffer(CRingBuffer* pRing,
 
 */
 void
-CVariableBuffers::triggerStateVariableBuffer(CRingBuffer* pRing,
+CVariableBuffers::triggerStateVariableBuffer(CDataSink* pRing,
 					     uint64_t timeOffset)
 {
   triggerBuffer(pRing, HandleStateVarTrigger, createStateVariableEvent,
@@ -139,12 +140,12 @@ CVariableBuffers::triggerStateVariableBuffer(CRingBuffer* pRing,
  * Factor out the stuff needed to trigger a buffer of one type or another.
  *
  * Parameters:
- *   CRingBuffer* pRing      - Pointer to the ring into which the event is put.
+ *   CDataSink* pRing      - Pointer to the ring into which the event is put.
  *   Tcl_EventProc* handler  - Function to handle tcl events should they need scheduling.
  *   Creator*      creator   - Function to create an event directly.
  */
 void
-CVariableBuffers::triggerBuffer(CRingBuffer* pRing,
+CVariableBuffers::triggerBuffer(CDataSink* pRing,
 				Tcl_EventProc* handler,
 				CVariableBuffers::Creator* creator,
 				uint64_t timeOffset)
@@ -168,6 +169,7 @@ CVariableBuffers::triggerBuffer(CRingBuffer* pRing,
     pEvent->s_TimeOffset    = timeOffset;
     Tcl_ThreadQueueEvent(m_interpreterThread, 
 			 reinterpret_cast<Tcl_Event*>(pEvent), TCL_QUEUE_TAIL);
+    Tcl_ThreadAlert(m_interpreterThread);
     m_pTriggerSynchronize->wait(*m_pTriggerGuard);	// Wait until done... or tearing down.
   }
   m_pTriggerGuard->unlock();
@@ -180,10 +182,10 @@ CVariableBuffers::triggerBuffer(CRingBuffer* pRing,
  * this just involves getting the run variables and, if there are any,
  * calling createDocEvent.
  * Parameters:
- *    CRingBuffer*  pRing  - Destination ringbuffer.
+ *    CDataSink*  pRing  - Destination ringbuffer.
  */
 void
-CVariableBuffers::createRunVariableEvent(CRingBuffer* pRing, uint64_t tbase)
+CVariableBuffers::createRunVariableEvent(CDataSink* pRing, uint64_t tbase)
 {
   CDocumentedVars::NameValuePairs info = m_pInstance->m_pVars->getRunVars();
   if (info.size() > 0) {
@@ -194,7 +196,7 @@ CVariableBuffers::createRunVariableEvent(CRingBuffer* pRing, uint64_t tbase)
  * Similarly create a state variable event for the specified ring.
  */
 void
-CVariableBuffers::createStateVariableEvent(CRingBuffer* pRing, uint64_t tbase)
+CVariableBuffers::createStateVariableEvent(CDataSink* pRing, uint64_t tbase)
 {
   CDocumentedVars::NameValuePairs info = m_pInstance->m_pVars->getStateVars();
   if (info.size() > 0) {
@@ -212,12 +214,12 @@ CVariableBuffers::createStateVariableEvent(CRingBuffer* pRing, uint64_t tbase)
  * originated from after the event builder if it is missing.
  *
  * Parameters:
- *    CRingBuffer*   pRing     - Pointer to the ring buffer in which the event is made.
+ *    CDataSink*   pRing     - Pointer to the ring buffer in which the event is made.
  *    uint16_t       eventType - Type of event
  *    CDocumentedVars::NameValuePairs& variabls - The variables to write.
  */
 void
-CVariableBuffers::createDocEvent(CRingBuffer* pRing,
+CVariableBuffers::createDocEvent(CDataSink* pRing,
 				 uint16_t     eventType,
 				 CDocumentedVars::NameValuePairs& variables,
 				 uint64_t     tbase)
@@ -250,11 +252,11 @@ CVariableBuffers::createDocEvent(CRingBuffer* pRing,
   CRingTextItem item(eventType, 
       NULL_TIMESTAMP, 
       m_nSourceId, 
-      BARRIER_NOTBARRIER,
       elements,
       (msTime - tbase)/1000,
       timestamp);
-  item.commitToRing(*pRing);
+  CRawRingItem serialItem(item);
+  *pRing << serialItem;
 
 }
 
@@ -268,7 +270,7 @@ int
 CVariableBuffers::HandleRunVarTrigger(Tcl_Event* evPtr, int flags)
 {
   pTriggerEvent pEvent = reinterpret_cast<pTriggerEvent>(evPtr);
-  CRingBuffer*  pRing  = pEvent->s_pRing;
+  CDataSink*    pRing  = pEvent->s_pRing;
   uint64_t      tBase  = pEvent->s_TimeOffset;
 
   m_pInstance->m_pTriggerGuard->lock();
@@ -287,7 +289,7 @@ CVariableBuffers::HandleStateVarTrigger(Tcl_Event* evPtr,
 					int flags)
 {
   pTriggerEvent pEvent = reinterpret_cast<pTriggerEvent>(evPtr);
-  CRingBuffer*  pRing  = pEvent->s_pRing;
+  CDataSink*  pRing  = pEvent->s_pRing;
   uint64_t      tBase  = pEvent->s_TimeOffset;
 
   m_pInstance->m_pTriggerGuard->lock();

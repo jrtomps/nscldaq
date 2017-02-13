@@ -16,27 +16,13 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __TCL_H
 #include <tcl.h>
-#ifndef __TCL_H
-#define __TCL_H
-#endif
-#endif
-
-#ifndef __CRT_STDINT_H
 #include <stdint.h>
-#ifndef __CRT_STDINT_H
-#define __CRT_STDINT_H
-#endif
-#endif
-
-#ifndef __CDOCUMENTEDVARS_H
 #include "CDocumentedVars.h"
-#endif
 
 class CConditionVariable;
 class CMutex;
-class CRingBuffer;
+class CDataSink;
 class CTCLInterpreter;
 
 
@@ -75,12 +61,12 @@ class CVariableBuffers
 private:
   typedef struct _TriggerEvent {
     Tcl_Event    s_RawEvent;
-    CRingBuffer* s_pRing;
+    CDataSink*   s_pRing;
     uint64_t     s_TimeOffset;
     
   } TriggerEvent, *pTriggerEvent;
 
-  typedef void Creator(CRingBuffer* pRing, uint64_t toffset);
+  typedef void Creator(CDataSink* pRing, uint64_t toffset);
 
   // Member data.
 private:
@@ -112,9 +98,9 @@ private:
 
   // Trigger members:
 public:  
-  void triggerRunVariableBuffer(CRingBuffer* pRing,
+  void triggerRunVariableBuffer(CDataSink* pRing,
 				uint64_t timeoffset);
-  void triggerStateVariableBuffer(CRingBuffer* pRing,
+  void triggerStateVariableBuffer(CDataSink* pRing,
 				  uint64_t timeoffset);
 
   // manipulate and retrieve the source id value
@@ -123,17 +109,17 @@ public:
 
 
  private:
-  void triggerBuffer(CRingBuffer* pRing,
+  void triggerBuffer(CDataSink* pRing,
 		     Tcl_EventProc* handler,
 		     Creator* creator,
 		     uint64_t timeoffset);
   
   // Event relays.. the targets of the event:
  private:
-  static  void createRunVariableEvent(CRingBuffer* pRing, uint64_t timeBase);
-  static  void createStateVariableEvent(CRingBuffer* pRing, uint64_t timeBase);
+  static  void createRunVariableEvent(CDataSink* pRing, uint64_t timeBase);
+  static  void createStateVariableEvent(CDataSink* pRing, uint64_t timeBase);
   
-  static  void createDocEvent(CRingBuffer* pRing,
+  static  void createDocEvent(CDataSink* pRing,
 			      uint16_t     eventType,
 			      CDocumentedVars::NameValuePairs& variables,
 			      uint64_t    tbase);

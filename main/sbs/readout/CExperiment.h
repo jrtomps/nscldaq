@@ -16,39 +16,14 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __CRT_STDINT_H
-#include <stdint.h>
-#ifndef __CRT_STDINT_H
-#define __CRT_STDINT_H
-#endif
-#endif
-
-#ifndef __STL_STRING
+#include <cstdint>
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
-
-#ifndef __CRT_TIME_H
-#include  <time.h>
-#ifndef __CRT_TIME_H
-#define __CRT_TIME_H
-#endif
-#endif
-
-#ifndef __TCL_H
+//#include <time.h>
 #include <tcl.h>
-#ifndef __TCL_H
-#define __TCL_H
-#endif
-#endif
 
 class CTCLInterpreter;
 
-#ifndef _TCLOBJECT_H
 #include <TCLObject.h>
-#endif
 
 // Forwared definitions:
 
@@ -58,7 +33,7 @@ class CCompoundEventSegment;
 class CBusy;
 class CEventTrigger;
 class CTriggerLoop;
-class CRingBuffer;
+class CDataSink;
 class CEventSegment;
 class CScaler;
 
@@ -82,7 +57,7 @@ class CExperiment // (final).
   // local data:
 
 private:
-  CRingBuffer*           m_pRing;	//!< Where event data eventually goes.
+  CDataSink*             m_pRing;	//!< Where event data eventually goes.
   RunState*              m_pRunState;   //!< state information about the run.
   CScalerBank*           m_pScalers;    //!< The scalers to read.
   CCompoundEventSegment* m_pReadout;    //!< The event segment root.
@@ -144,7 +119,7 @@ public:
   void   DocumentPackets();
   void   ScheduleRunVariableDump();
   void   ScheduleEndRunBuffer(bool pause);
-  CRingBuffer* getRing() {
+  CDataSink* getRing() {
     return m_pRing;
   }
   void setRing(std::string name);

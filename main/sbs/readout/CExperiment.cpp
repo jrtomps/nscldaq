@@ -18,14 +18,18 @@
 
 
 #include "CExperiment.h"
-#include <CRingBuffer.h>
-#include <DataFormat.h>
-#include <CRingStateChangeItem.h>
-#include <CRingScalerItem.h>
-#include <CRingItem.h>
-#include <CRingTextItem.h>
-#include <CRingPhysicsEventCountItem.h>
-#include <CDataFormatItem.h>
+#include <CDataSink.h>
+#include <CDataSinkFactory.h>
+
+#include <V12/DataFormat.h>
+#include <V12/CRingStateChangeItem.h>
+#include <V12/CRingScalerItem.h>
+#include <V12/CRingItem.h>
+#include <V12/CRingTextItem.h>
+#include <V12/CRingPhysicsEventCountItem.h>
+#include <V12/CDataFormatItem.h>
+#include <V12/CRawRingItem.h>
+#include <RingIOV12.h>
 
 #include <RunState.h>
 #include <StateException.h>
@@ -50,7 +54,7 @@
 
 
 using namespace std;
-
+using namespace DAQ::V12;
 
 //
 // This struct is used to the event used to schedule an end run with the interpreter.
@@ -229,9 +233,12 @@ CExperiment::Start(bool resume)
     // user knows the structure of the ring:
     //
     
+    CRawRingItem serializedItem;
+
     CDataFormatItem format;
-    format.commitToRing(*m_pRing);
-    
+    format.toRawRingItem(serializedItem);
+    *m_pRing << serializedItem;
+
     // Begin run zeroes the previous scaler time, and ring buffer item sequence.
     // 
     //
@@ -252,11 +259,11 @@ CExperiment::Start(bool resume)
 
     uint32_t elapsedTime = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
 
-    CRingStateChangeItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_START,
+    CRingStateChangeItem item(NULL_TIMESTAMP, m_nSourceId,
         resume ? RESUME_RUN : BEGIN_RUN,  m_pRunState->m_runNumber,
-        elapsedTime, stamp,
-        std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
-    item.commitToRing(*m_pRing);
+        elapsedTime, stamp, m_pRunState->m_pTitle);
+    item.toRawRingItem(serializedItem);
+    *m_pRing << serializedItem;
 
     // Now invoke either onBegin or onResume in the event segment.
 
@@ -276,14 +283,14 @@ CExperiment::Start(bool resume)
     if (!resume) {
     CRingPhysicsEventCountItem count(NULL_TIMESTAMP, 
         getSourceId(), 
-        BARRIER_NOTBARRIER,
         0, // count
         0, // time offset
         static_cast<uint32_t>(time(NULL)), // time now
         1);
 
 
-    count.commitToRing(*m_pRing);
+        count.toRawRingItem(serializedItem);
+        *m_pRing << serializedItem;
     }
     
     // clear the hardware -- At the last possible momement.
@@ -400,13 +407,14 @@ CExperiment::syncEndRun(bool pause)
     finalState = RunState::inactive;
   }
 
-  CRingStateChangeItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_END,
+  CRingStateChangeItem item(NULL_TIMESTAMP, m_nSourceId,
                             itemType, 
 			    m_pRunState->m_runNumber,
 			    endOffset,
 			    now,
-			    std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
-  item.commitToRing(*m_pRing);
+                m_pRunState->m_pTitle);
+  CRawRingItem serializedItem(item);
+  *m_pRing << serializedItem;
 
 
   // The run is in the appropriate inactive state if looked at by the outside world
@@ -544,20 +552,28 @@ CExperiment::ReadEvent()
     m_needHeader = false;
     m_nEventTimestamp = 0;
     m_nSourceId  = m_nDefaultSourceId;
-    
-    CRingItem item(PHYSICS_EVENT, m_nDataBufferSize);
-    uint16_t* pBuffer = reinterpret_cast<uint16_t*>(item.getBodyPointer());
-    size_t nWords = m_pReadout->read(pBuffer +2 , m_nDataBufferSize);
+
+
+    // This business is contrary to what was done in V12 to avoid all the
+    // mess of reinterpret_casts, but I will keep it so that we keep the change
+    // transparent to users' code
+    CRawRingItem item;
+    item.setType(PHYSICS_EVENT);
+    item.getBody().resize(m_nDataBufferSize*sizeof(uint16_t));
+
+    uint16_t* pBuffer = reinterpret_cast<uint16_t*>(item.getBody().data());
+    size_t nWords = m_pReadout->read(pBuffer +2, m_nDataBufferSize);
+
     if (m_pReadout->getAcceptState() == CEventSegment::Keep) {
       *(reinterpret_cast<uint32_t*>(pBuffer)) = nWords +2;
-      item.setBodyCursor(pBuffer + nWords+2);
-      item.updateSize();
-      if (m_needHeader) {
-        item.setBodyHeader(m_nEventTimestamp, m_nSourceId, 0);
-      }
-      item.commitToRing(*m_pRing);
+      item.getBody().resize((nWords+2)*sizeof(uint16_t));
+      item.setEventTimestamp(m_nEventTimestamp);
+      item.setSourceId(m_nSourceId);
+
+      *m_pRing << item;
       m_nEventsEmitted++;
     }
+
     m_pReadout->clear();	// do any post event clears.
 
   }
@@ -594,24 +610,24 @@ CExperiment::readScalers()
     
     m_pScalers->clear();	// Clear scalers after read.
 
-    CRingScalerItem  item(timestamp, srcid, BARRIER_NOTBARRIER,
+    CRingScalerItem  item(timestamp, srcid,
                           startTime,
 			  endTime,
 			  now,
-			  scalers,
-                          1000);  // ms time.
-    item.commitToRing(*m_pRing);
+              scalers);
+    CRawRingItem serializedItem(item);
+    *m_pRing << serializedItem;
 			  
   }
   // Regardless, let's emit a physics event count stamp:
 
   CRingPhysicsEventCountItem item(NULL_TIMESTAMP, 
                                   getSourceId(), 
-                                  BARRIER_NOTBARRIER,
                                   m_nEventsEmitted,
                         				  endTime,
                         				  now);
-  item.commitToRing(*m_pRing);
+  CRawRingItem serializedItem(item);
+  *m_pRing << serializedItem;
 }
 
 /*!
@@ -654,11 +670,12 @@ CExperiment::DocumentPackets()
     time_t           now     = time(&now);
     uint64_t         msTime  = getTimeMs();
     uint32_t         offset = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
-    CRingTextItem item(PACKET_TYPES, NULL_TIMESTAMP, m_nSourceId, BARRIER_NOTBARRIER,
+    CRingTextItem item(PACKET_TYPES, NULL_TIMESTAMP, m_nSourceId,
                        packetDefs,
                        offset,
                        static_cast<uint32_t>(now));
-    item.commitToRing(*m_pRing);
+    CRawRingItem serializedItem(item);
+    *m_pRing << serializedItem;
   }
 }
 
@@ -783,7 +800,9 @@ CExperiment::setRing(std::string ringName)
 {
     delete m_pRing;                      // delete 0; is fine.
     m_pRing = 0;        
-    m_pRing = CRingBuffer::createAndProduce(ringName);
+    std::string ringUrl("tcp://localhost/");
+    ringUrl += ringName;
+    m_pRing = CDataSinkFactory().makeSink(ringUrl);
 }
 /**
  * setTimestamp

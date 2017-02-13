@@ -40,6 +40,10 @@ public:
   void setUp() {
     m_pInterp = new CTCLInterpreter();
     m_pVars   = new CDocumentedVars(*m_pInterp);
+
+    // things fail when the run is active, so let's make sure
+    // no other prior tests did not clean up after themselves.
+    RunState::getInstance()->m_state = RunState::inactive;
   }
   void tearDown() {
     delete m_pVars;
@@ -88,7 +92,7 @@ void DocVars::create1ofeach()
   command.push_back(word);
 
   int status = (*m_pVars)(*m_pInterp, command);
-  ASSERT(status == TCL_OK);
+  CPPUNIT_ASSERT_MESSAGE("add runvar OK", status == TCL_OK);
 
   // statevar harry
 
@@ -98,13 +102,13 @@ void DocVars::create1ofeach()
   word = "harry";
   command.push_back(word);
   status = (*m_pVars)(*m_pInterp, command);
-  ASSERT(status == TCL_OK);
+  CPPUNIT_ASSERT_MESSAGE("add state var OK", status == TCL_OK);
 
   // Now look into the state of the command object:
 
-  ASSERT(m_pVars->m_StateVariables.size() == 1);
-  ASSERT(m_pVars->m_RunVariables.size()   == 1);
-  ASSERT(m_pVars->m_PriorValues.size()    == 1);
+  CPPUNIT_ASSERT_MESSAGE("state vars", m_pVars->m_StateVariables.size() == 1);
+  CPPUNIT_ASSERT_MESSAGE("run vars", m_pVars->m_RunVariables.size()   == 1);
+  CPPUNIT_ASSERT_MESSAGE("prior values", m_pVars->m_PriorValues.size()    == 1);
 
   // The george entry of the prior values should be a null pointer.
 

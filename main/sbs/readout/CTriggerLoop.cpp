@@ -70,7 +70,7 @@ CTriggerLoop::start()
     m_running = false;
     m_stopping = false;
     m_failed   = false;
-    Thread::start();
+    CSynchronizedThread::start();
 
     // Now wait here until we know the thread is running
     
@@ -123,7 +123,7 @@ CTriggerLoop::stop(bool pausing)
 
 */
 void
-CTriggerLoop::run()
+CTriggerLoop::operator()()
 {
   m_running  = true;
   m_stopping = false;
