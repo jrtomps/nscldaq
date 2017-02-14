@@ -108,6 +108,11 @@ class CTestSourceSink : public CDataSource, public CDataSink
     virtual CRingItem* getItem() {return nullptr;}
 
 
+    size_t availableData() const;
+    void   ignore(size_t nBytes);
+    size_t peek(char *pBuffer, size_t nBytes);
+    size_t tell() const;
+
     /*!
      * \brief Access the underlying buffer
      * \return read-only reference to the data buffer

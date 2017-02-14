@@ -19,11 +19,16 @@
 #define CDATASOURCE_H
 
 #include <cstddef> // for size_T
+#include <memory>
 
 // forward definitions:
 
 class CRingItem;
 
+class CDataSource;
+
+typedef std::unique_ptr<CDataSource> CDataSourceUPtr;
+typedef std::shared_ptr<CDataSource> CDataSourcePtr;
 
 /*! 
    Abstract base class that defines an interface that all dumper data sources 
@@ -36,6 +41,12 @@ class CDataSource
   // constructors and canonicals.  In general most canonicals are not allowed.
   //
   bool m_eof;
+
+private:
+  CDataSource(const CDataSource& rhs);
+  CDataSource& operator=(const CDataSource& rhs);
+  int operator==(const CDataSource& rhs) const;
+  int operator!=(const CDataSource& rhs) const;
 
 public:
   CDataSource();
@@ -52,13 +63,10 @@ public:
    */
   void clear() { setEOF(false); }
 
-private:
-  CDataSource(const CDataSource& rhs);
-  CDataSource& operator=(const CDataSource& rhs);
-  int operator==(const CDataSource& rhs) const;
-  int operator!=(const CDataSource& rhs) const;
-
-public:
+  virtual size_t availableData() const = 0;
+  virtual void ignore(size_t nBytes) = 0;
+  virtual size_t peek(char* pBuffer, size_t nBytes) = 0;
+  virtual size_t tell() const = 0;
 
   /*!
    * \brief DEPRECATED - Extract complete CRingItem from source

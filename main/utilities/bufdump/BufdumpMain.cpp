@@ -211,7 +211,7 @@ BufdumpMain::operator()(int argc, char** argv)
 
   CRawRingItem item;
   while (m_skipCount && !pSource->eof()) {
-      *pSource >> item;
+      readIf(*pSource, item, m_predicate);
       m_skipCount--;
   }
 
@@ -219,7 +219,7 @@ BufdumpMain::operator()(int argc, char** argv)
   bool done = false;
 
   while (!done && !pSource->eof()) {
-      *pSource >> item;
+      readIf(*pSource, item, m_predicate);
       if (!pSource->eof()) {
         processItem(item);
 

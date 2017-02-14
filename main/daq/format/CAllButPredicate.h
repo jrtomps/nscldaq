@@ -1,5 +1,5 @@
-#ifndef __CALLBUTPREDICATE_H
-#define __CALLBUTPREDICATE_H
+#ifndef CALLBUTPREDICATE_H
+#define CALLBUTPREDICATE_H
 
 
 /*
@@ -19,9 +19,7 @@
 */
 
 
-#ifndef __CRINGSELECTIONPREDICATE_H
 #include "CRingSelectionPredicate.h"
-#endif
 
 
 /*!

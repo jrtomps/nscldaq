@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2015.
+    State University (c) Copyright 2017.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -9,6 +9,7 @@
 
      Author:
              Ron Fox
+             Jeromy Tompkins
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -17,17 +18,19 @@
 #ifndef CRINGDATASOURCEFACTORY_H
 #define CRINGDATASOURCEFACTORY_H
 
+
+#include <CDataSource.h>
+
 #include <string>
 #include <vector>
-#include <stdint.h>
+#include <cstdint>
+
 
 /**
  * @file CDataSourceFactory.h
  * @author Ron Fox
  * @brief Define a class that produces CRingDataSource objects.
  */
-
-class CDataSource;
 
 /**
  * @class CDataSourceFactory
@@ -42,6 +45,7 @@ class CDataSourceFactory {
 public:
   static CDataSource* makeSource(std::string uri, 
 				     std::vector<uint16_t> sample, std::vector<uint16_t>exclude);
+  static CDataSourceUPtr makeSource(std::string uri);
 };
 
 #endif

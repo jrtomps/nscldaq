@@ -91,3 +91,76 @@ CDataSourceFactory::makeSource(std::string uri,
 
   return pSource;
 }
+
+
+
+/**
+ * makeSource
+ *
+ *  Creates a dynamically allocated ring item data source and returns a pointer to it
+ *  to the caller.  The caller must at some point delete the data source.
+ *
+ * @param uri  - Uniform resource identifier of the source.
+ * @param sample - Vector of data types that are sampled.  Note that not all data sources
+ *                 support sampling (specifically file:/// URI's will ignore this).
+ * @param exclude - Vector of data types not to be returned from the source.
+ *
+ * @return CDataSource* - Pointer to the returned data  source.
+ *
+ * @throw std::string - error message that describes why the data source could not be
+ *                      created (normally due to a malformed URI or a URI protocol that
+ *                      isn't supported (e.g. grumpy://thing).
+ * @throw - whatever URI methods throw.
+ */
+CDataSourceUPtr CDataSourceFactory::makeSource(std::string uri)
+{
+  CDataSourceUPtr pSource;
+
+  // Deal with the special case of stdin
+  if (uri == std::string("-")) {
+    // stdin source
+    pSource.reset(new CFileDataSource(STDIN_FILENO));
+
+  } else {
+    // The source id must have been a uri... do what the protocol
+    // demands
+    URL parsedURI(uri);
+
+    if (parsedURI.getProto() == std::string("file")) {
+      // File data source:
+
+      pSource.reset(new CFileDataSource(parsedURI));
+
+    } else if (parsedURI.getProto() == std::string("tcp")) {
+      // ringbuffer (local or remote):
+
+      pSource.reset(new CRingDataSource(parsedURI));
+
+    } else if (parsedURI.getProto() == std::string("ring")) {
+
+      // create a tcp protocol from this
+      // ports have no meaning for ring data sources.
+
+      std::string url = "tcp://";
+      url += parsedURI.getHostName() + "/"; // host separates from ringname with /
+      url += parsedURI.getPath();
+
+
+
+      parsedURI = URL(url);
+      pSource.reset(new CRingDataSource(parsedURI));
+
+    } else {
+      std::string msg = "Invalid URL protocol ";
+      msg            += parsedURI.getProto();
+      msg            += " in Ring data source URI: ";
+      msg            + uri;
+      throw msg;
+    }
+  }
+
+  return std::move(pSource);
+}
+
+
+

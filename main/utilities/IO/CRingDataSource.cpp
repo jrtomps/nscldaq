@@ -60,6 +60,28 @@ CRingDataSource::~CRingDataSource()
 //
 //  Required interfaces:
 
+
+size_t CRingDataSource::availableData() const {
+    return m_pRing->availableData();
+}
+
+size_t CRingDataSource::peek(char *pBuffer, size_t nBytes)
+{
+    return m_pRing->peek(pBuffer, nBytes);
+}
+
+void CRingDataSource::ignore(size_t nBytes)
+{
+    m_pRing->skip(nBytes);
+}
+
+size_t CRingDataSource::tell() const
+{
+    return 0;
+}
+
+
+
 /*!
    Returns the next qualified item from the ring.  The predicate selects the
    appropriate item.
@@ -88,6 +110,25 @@ CRingBuffer& CRingDataSource::getRing()
 const CRingBuffer& CRingDataSource::getRing() const
 {
     return *m_pRing;
+}
+
+
+void CRingDataSource::setPredicate(std::vector<uint16_t> &sample,
+                                   std::vector<uint16_t> &exclude)
+{
+    auto pOldPredicate = m_pPredicate;
+    m_pPredicate = nullptr;
+
+    try {
+        makePredicate(sample, exclude);
+        delete pOldPredicate;
+    } catch (...) {
+        if (m_pPredicate) delete m_pPredicate;
+
+        m_pPredicate = pOldPredicate;
+    }
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

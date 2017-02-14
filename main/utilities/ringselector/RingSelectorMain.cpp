@@ -14,15 +14,22 @@
              East Lansing, MI 48824-1321
 */
 #include <config.h>
+
 #include "RingSelectorMain.h"
-#include <CRingBuffer.h>
+
+#include <CDataSource.h>
+#include <CDataSourceFactory.h>
+
 #include <CRingSelectionPredicate.h>
 #include <CAllButPredicate.h>
 #include <CDesiredTypesPredicate.h>
-#include <StringsToIntegers.h>
-#include <CRemoteAccess.h>
-#include <CRingItem.h>
-#include <DataFormat.h>
+
+#include <V12/StringsToIntegers.h>
+#include <V12/CRingItem.h>
+#include <V12/CRawRingItem.h>
+#include <V12/DataFormat.h>
+#include <V12/StringsToIntegers.h>
+
 #include <ErrnoException.h>
 #include <io.h>
 
@@ -39,6 +46,8 @@
 #include "parser.h"
 #include "COutputter.h"
 
+
+using namespace DAQ::V12;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -183,7 +192,7 @@ RingSelectorMain::createPredicate(struct gengetopt_args_info* parse)
 ** Side effects:
 **  Can throw an exception if the ring does not exist.
 */
-CRingBuffer*
+CDataSource*
 RingSelectorMain::selectRing(struct gengetopt_args_info* parse)
 {
   std::string url;
@@ -194,7 +203,7 @@ RingSelectorMain::selectRing(struct gengetopt_args_info* parse)
     url = CRingBuffer::defaultRingUrl();
   }
   
-  CRingBuffer* pRing = CRingAccess::daqConsumeFrom(url);
+  CDataSource* pRing = CDataSourceFactory::makeSource(url, {}, {});
 
   if (!pRing) {
     throw std::string("Could not access the --source ring buffer");

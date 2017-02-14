@@ -75,3 +75,37 @@ void CTestSourceSink::read(char* pBuffer, size_t nBytes)
   // erase the bytes sent out
   m_buffer.erase(itBegin, itEnd);
 }
+
+
+size_t CTestSourceSink::availableData() const
+{
+    return m_buffer.size();
+}
+
+size_t CTestSourceSink::peek(char *pBuffer, size_t nBytes)
+{
+
+    size_t length = std::min(m_buffer.size(), nBytes);
+
+    auto itBegin = m_buffer.begin();
+    auto itEnd   = itBegin + length;
+
+    auto itOut = reinterpret_cast<uint8_t*>(pBuffer);
+
+    // copy the bytes requested
+    copy(itBegin, itEnd, itOut);
+
+    return length;
+}
+
+
+void CTestSourceSink::ignore(size_t nBytes)
+{
+    // erase the bytes sent out
+    m_buffer.erase(m_buffer.begin(), m_buffer.begin()+nBytes);
+}
+
+size_t CTestSourceSink::tell() const
+{
+    return 0;
+}

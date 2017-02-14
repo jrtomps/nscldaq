@@ -60,6 +60,20 @@ CFileDataSource::CFileDataSource(URL& url, vector<uint16_t> exclusionList) :
   }
   openFile();			// May throw exceptions.
 }
+
+
+CFileDataSource::CFileDataSource(const std::string& path, vector<uint16_t> exclusionList) :
+  m_fd(-1),
+  m_url(*(new URL(string("file://") + path)))
+{
+  for (int i=0; i < exclusionList.size(); i++) {
+    m_exclude.insert(exclusionList[i]);
+  }
+  openFile(path);			// May throw exceptions.
+}
+
+
+
 /**
  * construtor from fd:
  */
@@ -84,6 +98,50 @@ CFileDataSource::~CFileDataSource()
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 //  Mandatory interface:
+
+
+size_t CFileDataSource::availableData() const
+{
+    // read current position and size of file
+    // return the difference
+    off_t currentPosition = lseek(m_fd, 0, SEEK_CUR);
+    off_t endPos = lseek(m_fd, 0, SEEK_END);
+    off_t status = lseek(m_fd, currentPosition, SEEK_SET);
+
+    return (endPos - currentPosition);
+}
+
+size_t CFileDataSource::peek(char* pBuffer, size_t nBytes)
+{
+    // read the data
+    int status = io::readData(m_fd, pBuffer, nBytes);
+
+    // put it back
+    if (status > 0) {
+        lseek(m_fd, -status, SEEK_CUR);
+    } else if (status < 0) {
+        std::string msg("CFileDataSource::peek() ");
+        msg += strerror(errno);
+        throw std::runtime_error(msg);
+    }
+
+    return status;
+}
+
+void CFileDataSource::ignore(size_t nBytes)
+{
+    int status = lseek(m_fd, nBytes, SEEK_CUR);
+    if (status < 0) {
+        std::string msg("CFileDataSource::ignore() ");
+        msg += strerror(errno);
+        throw std::runtime_error(msg);
+    }
+}
+
+size_t CFileDataSource::tell() const
+{
+    return lseek(m_fd, 0, SEEK_CUR);
+}
 
 /*!
   Provide the caller with the next item from the ring source.
@@ -123,6 +181,13 @@ void CFileDataSource::read(char* pBuffer, size_t nBytes)
     }
   }
 }
+
+void CFileDataSource::setExclusionList(const std::set<uint16_t>& list)
+{
+    m_exclude = list;
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //
 // Private utilties.
@@ -201,6 +266,14 @@ CFileDataSource::acceptable(CRingItem* item) const
 **  CInvalidArgumentException  - for protocols that are not file:
 **
 */
+void CFileDataSource::openFile(const string& fullPath)
+{
+    m_fd = open(fullPath.c_str(), O_RDONLY);
+    if (m_fd == -1) {
+      throw CErrnoException("Opening file data source");
+    }
+}
+
 void
 CFileDataSource::openFile()
 {
@@ -212,10 +285,7 @@ CFileDataSource::openFile()
   string fullPath= m_url.getPath();
 
 
-  m_fd = open(fullPath.c_str(), O_RDONLY);
-  if (m_fd == -1) {
-    throw CErrnoException("Opening file data source");
-  }
+  openFile(fullPath);
 }
 /*
 **  Return the size of an item.  This does the right thing in the presence

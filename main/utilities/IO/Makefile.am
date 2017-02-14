@@ -5,8 +5,7 @@ lib_LTLIBRARIES	=	libdaqio.la
 libdaqio_la_SOURCES = CDataSource.cpp \
 											 CFileDataSource.cpp \
 											 CRingDataSource.cpp \
-											 CFakeDataSource.cpp \
-											 CDataSourceFactory.cpp \
+                                                                                         CDataSourceFactory.cpp \
 											 CDataSink.cpp \
 											 CFileDataSink.cpp \
 											 CRingDataSink.cpp \
@@ -17,8 +16,7 @@ libdaqio_la_SOURCES = CDataSource.cpp \
 include_HEADERS	=  CDataSource.h \
 									 CFileDataSource.h \
 									 CRingDataSource.h \
-									 CFakeDataSource.h \
-									 CDataSourceFactory.h \
+                                                                         CDataSourceFactory.h \
 									 CDataSink.h \
 									 CFileDataSink.h \
 									 CRingDataSink.h \
@@ -61,7 +59,8 @@ unittests_SOURCES	= TestRunner.cpp  \
 						filedatasinktests.cpp \
 						datasourcefactorytests.cpp \
 						datasinkfactorytests.cpp \
-						ringdatasinktests.cpp
+                                                ringdatasinktests.cpp \
+                                                filedatasourcetest.cpp
 
 unittests_LDADD		= \
 			@builddir@/libdaqio.la \

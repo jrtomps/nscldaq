@@ -23,6 +23,7 @@
 #include <set>
 #include <vector>
 #include <stdint.h>
+#include <string>
 
 // Forward class definitions:
 
@@ -49,8 +50,9 @@ private:
   // Constructors and other canonicals:
 
 public:
-  CFileDataSource(URL& url,  std::vector<uint16_t> exclusionlist);
-  CFileDataSource(int fd, std::vector<uint16_t> exclusionlist);
+  CFileDataSource(URL& url,  std::vector<uint16_t> exclusionlist = std::vector<uint16_t>());
+  CFileDataSource(const std::string& path, std::vector<uint16_t> exclusionList = std::vector<uint16_t>());
+  CFileDataSource(int fd, std::vector<uint16_t> exclusionlist = std::vector<uint16_t>());
   virtual ~CFileDataSource();
 
 private:
@@ -62,13 +64,21 @@ public:
 
   // Mandatory interface:
 
+  size_t peek(char* pBuffer, size_t nBytes);
+  void ignore(size_t nBytes);
+  size_t availableData() const;
+  size_t tell() const;
+
   virtual CRingItem* getItem();
 
   void read(char* pBuffer, size_t nBytes);
 
+  void setExclusionList(const std::set<uint16_t>& list);
+
   // utilities:
 
 private:
+  void       openFile(const std::string& fullPath);
   CRingItem* getItemFromFile();
   bool       acceptable(CRingItem* item) const;
   void       openFile();
