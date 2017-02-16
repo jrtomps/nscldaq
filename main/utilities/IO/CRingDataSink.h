@@ -47,6 +47,7 @@ class CRingDataSink : public CDataSink
   public:
     void putItem(const CRingItem& item);
     void put(const void* pData, size_t nBytes);
+    void putv(const std::vector<std::pair<const void*, size_t> >& buffers);
 
     CRingBuffer& getRing();
     const CRingBuffer& getRing() const;

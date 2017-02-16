@@ -142,6 +142,13 @@ void CFileDataSink::put(const void* pData, size_t nBytes)
 }
 
 
+void CFileDataSink::putv(const std::vector<std::pair<const void *, size_t> > &buffers)
+{
+    for (auto& buffer : buffers) {
+        put(buffer.first, buffer.second);
+    }
+}
+
 /**! Check if write operates are allowed on file
 *
 * \throw CErrnoException if fcntl failed while checking

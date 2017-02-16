@@ -86,7 +86,7 @@ class CTestSourceSink : public CDataSource, public CDataSink
      *  \param nBytes number of bytes to write
      */
     virtual void put(const void* pData, size_t nBytes);
-
+    virtual void putv(const std::vector<std::pair<const void *, size_t> > &buffers);
     /*!
      * \brief Read dead from the source
      *

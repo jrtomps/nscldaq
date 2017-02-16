@@ -61,6 +61,7 @@ public:
     */
     virtual void putItem(const CRingItem& item);
     virtual void put(const void* pData, size_t nBytes);
+    virtual void putv(const std::vector<std::pair<const void*, size_t> >& buffers);
 
     /**! Flush file to syncronize
     */

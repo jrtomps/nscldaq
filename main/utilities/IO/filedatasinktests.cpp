@@ -55,6 +55,7 @@ class CFileDataSinkTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testConstructor4 );
     CPPUNIT_TEST ( testPutItem );
     CPPUNIT_TEST ( testPut);
+    CPPUNIT_TEST ( testPutv);
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -68,6 +69,7 @@ class CFileDataSinkTest : public CppUnit::TestFixture
 
     void testPutItem();
     void testPut();
+    void testPutv();
 
 };
 
@@ -219,4 +221,31 @@ void CFileDataSinkTest::testPut()
     close(fd);
     
     
+}
+
+void CFileDataSinkTest::testPutv()
+{
+    std::string fname="./testOutFile0.bin";
+    const char* pData = "This is a test";
+    const char* pData2 = "This is another test";
+    {
+        CFileDataSink sink(fname);
+
+        sink.putv({{pData, strlen(pData)+1}, {pData2, strlen(pData2)+1}});    /// string w null terminator.
+    }
+    int fd = open(fname.c_str(), O_RDONLY );
+    CPPUNIT_ASSERT(fd != -1);                // File must be made:
+
+    char buffer[1000];
+    size_t nBytes = read(fd, buffer, strlen(pData) +1);
+    CPPUNIT_ASSERT_EQUAL(strlen(pData)+1, nBytes);
+    CPPUNIT_ASSERT_EQUAL(0, strcmp(pData, buffer));
+
+    nBytes = read(fd, buffer, strlen(pData2) +1);
+    CPPUNIT_ASSERT_EQUAL(strlen(pData2)+1, nBytes);
+    CPPUNIT_ASSERT_EQUAL(0, strcmp(pData2, buffer));
+
+    close(fd);
+
+
 }

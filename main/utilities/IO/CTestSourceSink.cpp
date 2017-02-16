@@ -56,6 +56,12 @@ CTestSourceSink::put(const void* pData, size_t nBytes)
   copy(pBegin, pEnd, back_inserter(m_buffer));
 }
 
+void CTestSourceSink::putv(const std::vector<std::pair<const void *, size_t> > &buffers)
+{
+    for (auto& buffer : buffers) {
+        put(buffer.first, buffer.second);
+    }
+}
 
 //
 void CTestSourceSink::read(char* pBuffer, size_t nBytes)

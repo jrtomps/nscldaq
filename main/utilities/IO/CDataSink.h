@@ -18,6 +18,8 @@
 #define CDATASINK_H
 
 #include <stdlib.h>
+#include <vector>
+#include <utility>
 
 class CRingItem;
 
@@ -51,6 +53,7 @@ public:
      */
     virtual void put(const void* pData, size_t nBytes) = 0;
 
+    virtual void putv(const std::vector<std::pair<const void*, size_t>>& buffers) = 0;
 };
 
 #endif

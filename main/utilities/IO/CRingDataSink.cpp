@@ -65,6 +65,11 @@ void CRingDataSink::put(const void* pData, size_t nBytes)
         ;
 }
 
+void CRingDataSink::putv(const std::vector<std::pair<const void *, size_t> > &buffers)
+{
+    while(!m_pRing->putv(buffers));
+}
+
 CRingBuffer& CRingDataSink::getRing()
 {
     return *m_pRing;
