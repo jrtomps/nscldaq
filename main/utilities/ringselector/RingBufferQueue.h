@@ -22,23 +22,19 @@
  */
 
 
-#ifndef __RINGBUFFERQUEUE_H
-#define __RINGBUFFERQUEUE_H
+#ifndef RINGBUFFERQUEUE_H
+#define RINGBUFFERQUEUE_H
 
-#ifndef __CBUFFERQUEUE_H
 #include <CBufferQueue.h>
-#endif
 
-#ifndef __CRINGITEM_H
-#include <CRingItem.h>
-#endif
+#include <V12/CRingItem.h>
 
 /*
  *  A RingBuffer queue is a CBufferQueue whose elements are pointers
  *  to CRingItems.
  */
 
-typedef CBufferQueue<CRingItem*> RingBufferQueue, *pRingBufferQueue;
+typedef CBufferQueue<DAQ::V12::CRingItem*> RingBufferQueue, *pRingBufferQueue;
 
 /**
  *  @class Queues
@@ -62,14 +58,14 @@ public:
 
   // Sender functions:
 
-  CRingItem* getFree();
-  CRingItem* getFreeW();
-  void send(CRingItem* pItem);
+  DAQ::V12::CRingItem* getFree();
+  DAQ::V12::CRingItem* getFreeW();
+  void send(DAQ::V12::CRingItem* pItem);
 
   // Output thread functions:
 
-  CRingItem* receive();
-  void Free(CRingItem* pItem);
+  DAQ::V12::CRingItem* receive();
+  void Free(DAQ::V12::CRingItem* pItem);
 };
 
 #endif

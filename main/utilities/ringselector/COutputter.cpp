@@ -17,8 +17,9 @@
 #include "COutputter.h"
 #include "RingBufferQueue.h"
 #include <io.h>
-#include <CRingItem.h>
-#include <DataFormat.h>
+#include <V12/CRingItem.h>
+#include <V12/CRawRingItem.h>
+#include <V12/DataFormat.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -57,13 +58,22 @@ COutputter::~COutputter()
 void
 COutputter::run()
 {
+    using DAQ::V12::CRingItem;
+    using DAQ::V12::CRawRingItem;
+    using DAQ::V12::END_RUN;
+
   while(1) {
     CRingItem* pItem = m_RingQueues.receive(); // blocks.
-    RingItem*  pData = pItem->getItemPointer();
-    size_t     nBytes= pData->s_header.s_size;
     uint32_t   type  = pItem->type();
 
-    io::writeData(STDOUT_FILENO, pData, nBytes);  // Failures throw exiting.
+    auto& rawItem = dynamic_cast<CRawRingItem&>(*pItem);
+
+    std::array<char,20> header;
+    serializeHeader(rawItem, header.begin());
+    io::writeData(STDOUT_FILENO, header.data(), 20);  // Failures throw exiting.
+
+    auto& body = rawItem.getBody();
+    io::writeData(STDOUT_FILENO, body.data(), body.size() );  // Failures throw exiting.
 
     m_RingQueues.Free(pItem);		// Free's the item adds to free queue.
 

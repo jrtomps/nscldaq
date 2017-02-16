@@ -20,7 +20,7 @@
 
 #include "RingBufferQueue.h"
 #include <unistd.h>
-
+#include <memory>
 
 class CDataSource;
 class CRingSelectionPredicate;
@@ -34,7 +34,7 @@ class RingSelectorMain {
   // Object storage:
 private:
   CDataSource*              m_pRing;          // Data source.
-  CRingSelectionPredicate*  m_pPredicate;     // Predicate used to select data.
+  std::shared_ptr<CRingSelectionPredicate>  m_pPredicate;     // Predicate used to select data.
   bool                      m_formatted;      // Format output.
   bool                      m_exitOnEnd;      // If true exit when end run seen.
   bool                      m_nonBlocking;    // IF true use non-blocking mode.
@@ -59,7 +59,7 @@ public:
 
   // Sub-chunks of the program:
 
-  CRingSelectionPredicate*  createPredicate(struct gengetopt_args_info* parse);
+  std::shared_ptr<CRingSelectionPredicate>  createPredicate(struct gengetopt_args_info* parse);
   CDataSource*                selectRing(struct gengetopt_args_info* parse);
   void                      processData();
 

@@ -24,6 +24,9 @@
  */
 #include "RingBufferQueue.h"
 
+
+using namespace DAQ::V12;
+
 static  CRingItem* EMPTY(reinterpret_cast<CRingItem*>(0xffffffff));
 
 
