@@ -49,6 +49,8 @@
 #endif
 #endif
 
+#include <utility>
+
 // Forward class/struct definitions.
 
 typedef struct __RingBuffer        RingBuffer;
@@ -143,6 +145,9 @@ private:
 public:
 
   virtual size_t put(const void* pBuffer, size_t nBytes, unsigned long timeout=ULONG_MAX, size_t nItems = 1);
+
+  virtual size_t putv(const std::vector<std::pair<const void*, size_t>>& buffers,
+                      unsigned long timeout=ULONG_MAX, size_t nItems=1);
   virtual size_t get(void* pBuffer, size_t maxBytes, size_t minBytes = 1, 
 	     unsigned long timeout=ULONG_MAX);
   virtual size_t peek(void* pBuffer, size_t maxbytes);

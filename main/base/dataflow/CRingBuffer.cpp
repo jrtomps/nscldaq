@@ -22,6 +22,10 @@
 #include <RangeError.h>
 #include <StateException.h>
 
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -589,25 +593,39 @@ CRingBuffer::~CRingBuffer()
 size_t
 CRingBuffer::put(const void* pBuffer, size_t nBytes, unsigned long timeout, size_t nItems)
 {
+    std::vector<std::pair<const void*, size_t>> data = {{pBuffer, nBytes}};
+    return putv(data, timeout, nItems);
+}
+
+
+size_t
+CRingBuffer::putv(const std::vector<std::pair<const void *, size_t> > &buffers,
+                  unsigned long timeout, size_t nItems)
+{
   // Require that we are the producer:
 
   if (m_mode != producer) {
-    throw CStateException(modeString().c_str(), "producer", 
-			  "CRingBuffer::put");
+    throw CStateException(modeString().c_str(), "producer",
+              "CRingBuffer::put");
   }
   if(m_myPid != m_pClientInfo->s_pid) {
     throw CStateException("My PID", "Someone else's pid",
-			  "CRingBuffer::get");
+              "CRingBuffer::get");
+  }
+
+  // compute the total number of bytes to write
+  size_t nBytes = 0;
+  for (auto& ioInfo : buffers) {
+      nBytes += ioInfo.second;
   }
 
   // Ensure the ring is big enough for the data:
 
   if (nBytes > m_pRing->s_header.s_dataBytes) {
     throw CRangeError(0, m_pRing->s_header.s_dataBytes, nBytes,
-		      "CRingBuffer::put");
-
+              "CRingBuffer::put");
   }
-  // Block until we have space. 
+  // Block until we have space.
 
   CRingFreeSpacePredicate condition(nBytes);
   int status = blockWhile(condition, timeout);
@@ -623,28 +641,39 @@ CRingBuffer::put(const void* pBuffer, size_t nBytes, unsigned long timeout, size
   char* pDataBase= reinterpret_cast<char*>(m_pRing) + ringBase;
   char* pPut     = reinterpret_cast<char*>(m_pRing) + m_pClientInfo->s_offset;
 
-  if ((m_pClientInfo->s_offset + nBytes) <=  (ringTop+1)) {
+  // Can move all at once...
+  size_t nBytesWritten = 0;
+  off_t currentOffset = m_pClientInfo->s_offset + nBytesWritten;
 
-    // Can move all at once...
+  for (auto& ioInfo : buffers) {
 
-    memcpy(pPut, pBuffer, nBytes);
+      auto pBuffer      = reinterpret_cast<const char*>(ioInfo.first);
+      size_t bufferSize = ioInfo.second;
 
+//      std::cout << "new buffer" << std::endl;
+//      std::cout << "currentOffset = " << currentOffset << std::endl;
+//      std::cout << "bufferSize = " << bufferSize << std::endl;
+//      std::cout << "ringTop+1" << ringTop+1 << std::endl;
+      if ((currentOffset + bufferSize) <=  (ringTop+1)) {
+//          std::cout << "whole transfer" << std::endl;
+          pPut = std::copy(pBuffer, pBuffer+bufferSize, pPut);
+          currentOffset += bufferSize;
+      }
+      else {
+//          std::cout << "split transfer" << std::endl;
+          size_t firstSize = ringTop+1 - currentOffset;
+          size_t secondSize= bufferSize - firstSize;
+          pPut = std::copy(pBuffer, pBuffer+firstSize, pPut);                     // Move the first chunk.
 
+          auto pSecond = pBuffer + firstSize;
+          pPut = std::copy(pSecond, pSecond + secondSize, pDataBase);              // Move the second chunk.
+
+          currentOffset = std::distance(pDataBase, pPut);
+      }
+
+      nBytesWritten += bufferSize;
   }
-  else {
-    // Need to move in two chunks:
 
-    size_t firstSize = ringTop+1 - m_pClientInfo->s_offset;
-    size_t secondSize= nBytes - firstSize;
-
-    
-
-    memcpy(pPut, pBuffer, firstSize);                     // Move the first chunk.
-
-    const char* pSecond = reinterpret_cast<const char*>(pBuffer) + firstSize;
-    memcpy(pDataBase, pSecond, secondSize);              // Move the second chunk. 
-
-  }
   Skip(nBytes);
 
   // Count the items and bytes put:

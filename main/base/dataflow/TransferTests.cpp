@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "testcommon.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -43,8 +44,11 @@ static string getFullName()
 class XferTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(XferTests);
   CPPUNIT_TEST(simpleput);
+  CPPUNIT_TEST(simpleputv);
   CPPUNIT_TEST(wrapput);
+  CPPUNIT_TEST(wrapputv);
   CPPUNIT_TEST(edgewrap);
+  CPPUNIT_TEST(edgewrapv);
   CPPUNIT_TEST(simpleget);
   CPPUNIT_TEST(wrapget);
   CPPUNIT_TEST(edgewrapget);
@@ -69,8 +73,11 @@ public:
   }
 protected:
   void simpleput();
+  void simpleputv();
   void wrapput();
+  void wrapputv();
   void edgewrap();
+  void edgewrapv();
   void simpleget();
   void wrapget();
   void edgewrapget();
@@ -114,6 +121,54 @@ void XferTests::simpleput() {
 
   for (int i =0; i < sizeof(data); i++) {
     EQ(i, (int)p[index]);
+    index++;
+  }
+  
+
+  munmap(pBuffer, pBuffer->s_header.s_topOffset+1);
+
+}
+
+// Ensure that after a putv the offset has advanced the amount of the put
+// and the data is in the buffer.
+
+void XferTests::simpleputv() {
+  CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
+
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
+  pClientInformation pPut    = &(pBuffer->s_producer);
+
+  // Check the initial format of the put 'pointer'
+
+  pid_t mypid = getpid();
+  pid_t ppid = pPut->s_pid;
+  EQ(mypid, ppid); 
+  EQ(pBuffer->s_header.s_dataOffset, pPut->s_offset);
+
+  // Put 100 bytes of memory... counting pattern.
+
+  char data[100];
+  for (int i=0; i < 100; i++) { 
+    data[i] = i;
+  }
+
+  char data2[100];
+  for (int i=0; i < 100; i++) { 
+    data2[i] = i;
+  }
+
+  ring.putv({{data, sizeof(data)}, {data2, sizeof(data2)}});
+
+  // The put pointer should have advanced and the data should be in the ring:
+
+  off_t offset = pPut->s_offset;
+  EQ(pBuffer->s_header.s_dataOffset + 200, offset);
+  
+  int index = pBuffer->s_header.s_dataOffset;
+  char* p   = reinterpret_cast<char*>(pBuffer);
+
+  for (int i =0; i < 2*sizeof(data); i++) {
+    EQ(i%100, (int)p[index]);
     index++;
   }
   
@@ -175,6 +230,65 @@ void XferTests::wrapput()
   munmap(pBuffer, pBuffer->s_header.s_topOffset+1);
 
 }
+
+void XferTests::wrapputv()
+{
+  CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
+
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
+  pClientInformation pPut    = &(pBuffer->s_producer);
+
+
+  // Create the counting pattern message:
+
+  char msg[100];
+  for (int i=0; i < sizeof(msg); i++) {
+    msg[i] = i;
+  }
+
+  char msg2[100];
+  for (int i=0; i < sizeof(msg2); i++) {
+    msg2[i] = i;
+  }
+
+  // Set up the ring buffer so that the message will wrap at the 1/2 way point.
+  //
+
+  pRingHeader pHeader = &(pBuffer->s_header);
+  off_t startOffset = pHeader->s_topOffset - sizeof(msg)/2; 
+  pPut->s_offset = startOffset;
+
+  // there are no clients so we don't have to worry about having space
+  // or blocking.
+  ring.putv({{msg, sizeof(msg)}, {msg2, sizeof(msg2)}});
+
+  off_t shouldBe = pHeader->s_dataOffset +  (sizeof(msg) - sizeof(msg)/2) + sizeof(msg2) - 1;
+  off_t isOffset = pPut->s_offset;
+  EQMSG("offset after put", shouldBe, isOffset);
+
+  // Check the contents of the ring buffer.
+
+  char* p = reinterpret_cast<char*>(pBuffer);
+
+  // First 1/2:
+
+  for (int i =0; i < sizeof(msg)/2+1; i++) {
+    EQ(i, (int)p[startOffset]);
+    startOffset++;
+  }
+  startOffset = pHeader->s_dataOffset; 
+  for(int i = sizeof(msg)/2+1; i < sizeof(msg); i++) {
+    EQ(i, (int)p[startOffset]);
+    startOffset++;
+  }
+  for(int i = 0; i < sizeof(msg2); i++) {
+    EQ(i, (int)p[startOffset]);
+    startOffset++;
+  }
+
+  munmap(pBuffer, pBuffer->s_header.s_topOffset+1);
+
+}
 //
 // Test a couple of cases.
 //  - A put that exactly hits the end of the ring should wrap the pointer.
@@ -221,6 +335,66 @@ void XferTests::edgewrap()
   msgStart = pHeader->s_topOffset - sizeof(msg);
   pPut->s_offset = msgStart;
   ring.put(msg, sizeof(msg));
+  EQ(pHeader->s_topOffset, pPut->s_offset);
+
+  munmap(pBuffer, pBuffer->s_header.s_topOffset+1);
+
+}
+
+//
+// Test a couple of cases.
+//  - A put that exactly hits the end of the ring should wrap the pointer.
+//  - A put that leaves one byte free should not wrap.
+// The more simple wrap case has already been checked in wrapput
+
+void XferTests::edgewrapv()
+{
+  CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
+
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(fileName(SHM_TESTFILE).c_str()));
+  pClientInformation pPut    = &(pBuffer->s_producer);
+  pRingHeader pHeader = &(pBuffer->s_header);
+
+
+  // Create the counting pattern message:
+
+  char msg[100];
+  char msg2[100];
+
+  std::iota(msg, msg+sizeof(msg), 0);
+  std::iota(msg2, msg2+sizeof(msg2), 0);
+
+  // Set up the put offset so that putting msg will exactly fill the
+  // ring.
+
+  off_t msgStart = pHeader->s_topOffset - sizeof(msg) - sizeof(msg2) +1 ;
+  pPut->s_offset = msgStart;
+
+  ring.putv({{msg, sizeof(msg)}, {msg2, sizeof(msg2)}});
+
+  EQ(pHeader->s_dataOffset, pPut->s_offset);
+
+  // Check the message:
+
+  char* p = reinterpret_cast<char*>(pBuffer);
+
+
+  for (int i= 0; i < sizeof(msg); i++) {
+    EQ(i, (int)p[msgStart]);
+    msgStart++;
+  }
+
+  for (int i= 0; i < sizeof(msg2); i++) {
+    EQ(i, (int)p[msgStart]);
+    msgStart++;
+  }
+
+
+  // Put one less and the put pointer should be at the max offset:
+
+  msgStart = pHeader->s_topOffset - sizeof(msg)- sizeof(msg2);
+  pPut->s_offset = msgStart;
+  ring.putv({{msg, sizeof(msg)}, {msg2, sizeof(msg2)}});
   EQ(pHeader->s_topOffset, pPut->s_offset);
 
   munmap(pBuffer, pBuffer->s_header.s_topOffset+1);
