@@ -28,6 +28,10 @@
 #include <V12/StringsToIntegers.h>
 #include <V12/CRingScalerItem.h>
 #include <RingIOV12.h>
+
+#include <CAllButPredicate.h>
+#include <CRingSelectPredWrapper.h>
+
 #include <Exception.h>
 
 #include "dumperargs.h"
@@ -159,9 +163,9 @@ BufdumpMain::operator()(int argc, char** argv)
   }
 
   
-  CDataSource* pSource;
+  CDataSourceUPtr pSource;
   try {
-    pSource = CDataSourceFactory::makeSource(sourceName, sample, exclude);
+    pSource = CDataSourceFactory::makeSource(sourceName);
 
   }
   catch (CException& e) {
@@ -207,19 +211,26 @@ BufdumpMain::operator()(int argc, char** argv)
     m_itemCount = parse.count_arg;
   }
 
-  // Skip any items that need to be skipped:
+  auto pPredicate = std::shared_ptr<CAllButPredicate>(new CAllButPredicate);
 
-  CRawRingItem item;
-  while (m_skipCount && !pSource->eof()) {
-      readIf(*pSource, item, m_predicate);
-      m_skipCount--;
+  for (int i=0; i < exclude.size(); i++) {
+    pPredicate->addExceptionType(exclude[i]);
+  }
+  for (int i=0; i < sample.size(); i++) {
+    pPredicate->addExceptionType(sample[i], true);
   }
 
+  CRingSelectPredWrapper predicate(pPredicate);
+  CRawRingItem item;
+  while (m_skipCount && !pSource->eof()) {
+      readItemIf(*pSource, item, predicate);
+      m_skipCount--;
+  }
   size_t numToDo = m_itemCount;
   bool done = false;
 
   while (!done && !pSource->eof()) {
-      readIf(*pSource, item, m_predicate);
+      readItemIf(*pSource, item, predicate);
       if (!pSource->eof()) {
         processItem(item);
 
