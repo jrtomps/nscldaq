@@ -4,7 +4,7 @@
 target=${WORKSPACE}/${GIT_BRANCH}-${BUILD_NUMBER}-fromdist
 rm -rf ${target}
 
-#acversion=`grep AC_INIT configure.ac | cut -f2 -d"," | sed s/,// | sed s/")"// | sed s/\ //`
+acversion=`grep AC_INIT configure.ac | cut -f2 -d"," | sed s/,// | sed s/")"// | sed s/\ //`
 
 rm -rf nscldaq-${acversion} nscldaq-${acversion}
 
