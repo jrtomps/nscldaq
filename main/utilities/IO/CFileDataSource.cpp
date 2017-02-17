@@ -32,10 +32,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <stdexcept>
+
 using std::vector;
 using std::set;
 using std::string;
 
+namespace DAQ {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -319,3 +322,6 @@ CFileDataSource::getItemSize(RingItemHeader& header)
 
   return size;
 }
+
+
+} // end DAQ

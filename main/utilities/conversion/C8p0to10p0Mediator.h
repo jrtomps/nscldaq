@@ -23,11 +23,13 @@
 
 #include <memory>
 
+
+namespace DAQ {
+
 class CDataSource;
 class CDataSink;
 
-namespace DAQ {
-  namespace Transform {
+namespace Transform {
 
     ///////////////////////////////////////////////////////////////////////////
 

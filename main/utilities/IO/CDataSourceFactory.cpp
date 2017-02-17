@@ -22,6 +22,10 @@
 #include <URL.h>
 #include <unistd.h>
 
+
+namespace DAQ {
+
+
 /**
  * makeSource
  *
@@ -163,4 +167,4 @@ CDataSourceUPtr CDataSourceFactory::makeSource(std::string uri)
 }
 
 
-
+} // end DAQ

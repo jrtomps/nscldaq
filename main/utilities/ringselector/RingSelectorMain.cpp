@@ -49,6 +49,7 @@
 #include "COutputter.h"
 
 
+using namespace DAQ;
 using namespace DAQ::V12;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +194,7 @@ RingSelectorMain::createPredicate(struct gengetopt_args_info* parse)
 ** Side effects:
 **  Can throw an exception if the ring does not exist.
 */
-CDataSource*
+DAQ::CDataSource*
 RingSelectorMain::selectRing(struct gengetopt_args_info* parse)
 {
   std::string url;
@@ -204,7 +205,7 @@ RingSelectorMain::selectRing(struct gengetopt_args_info* parse)
     url = CRingBuffer::defaultRingUrl();
   }
   
-  CDataSource* pRing = CDataSourceFactory::makeSource(url, {}, {});
+  DAQ::CDataSource* pRing = CDataSourceFactory::makeSource(url, {}, {});
 
   if (!pRing) {
     throw std::string("Could not access the --source ring buffer");
@@ -226,7 +227,7 @@ RingSelectorMain::processData()
     while(1) {
         auto pItem = new CRawRingItem;
 
-        bool found = readItemIf(*m_pRing, *pItem, predicate);
+        bool found = DAQ::readItemIf(*m_pRing, *pItem, predicate);
         if (!found) {
             delete pItem;
             continue;

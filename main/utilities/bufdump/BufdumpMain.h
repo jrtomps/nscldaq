@@ -34,8 +34,6 @@ class CRawRingItem;
 }
 }
 
-class CRingBuffer;
-
 /*!
   This class is the actual dumper program.  It defines a function object type
   that can be created and invoked from main() to do the job of dumping
@@ -50,8 +48,6 @@ class BufdumpMain
   // private data:
   
 private:
-  //  bool                  m_ringSource;// True if the data source is a ring buffer.
-//  URL*                  m_pDataSource;  // URI that defines the data source.
   size_t                m_skipCount;   // Number  of items to skip before dumping.
   size_t                m_itemCount;   // Number of items to dump before exiting (0 means infinite).
   std::vector<uint16_t> m_sampleTypes; // Items that should be sampled only (ring buffers).

@@ -19,6 +19,8 @@
 
 #include <Exception.h>
 
+namespace DAQ {
+
 /*! An exception for data sink errors
 *
 * This class will be thrown by the CDataSinkHandler to recognize
@@ -38,5 +40,7 @@ class CDataSinkException : public CException
 
     virtual const char* ReasonText() const;
 };
+
+} // end DAQ
 
 #endif

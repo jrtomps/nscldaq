@@ -24,6 +24,10 @@
 #include <string.h>
 #include <iostream>
 
+
+namespace DAQ {
+
+
 /**! Construct from a file descriptor
 * Ownership of this file descriptor is transferred to the
 * this object. Write operations on the file descriptor must 
@@ -168,3 +172,6 @@ bool CFileDataSink::isWritable()
   return ( (status&O_WRONLY)!=0 || (status&O_RDWR)!=0 );
    
 }
+
+}
+ // end DAQ

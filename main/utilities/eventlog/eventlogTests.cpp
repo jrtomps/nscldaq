@@ -17,7 +17,7 @@
 #include <string>
 #include <iostream>
 
-
+using namespace DAQ;
 using namespace DAQ::V12;
 
 extern std::string uniqueName(std::string);

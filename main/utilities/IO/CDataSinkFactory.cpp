@@ -26,6 +26,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <errno.h>
 
 
+namespace DAQ {
+
 /**! Factory method
 * Parses the string as a URL and then call the appropriate 
 * private utility method based on the protocol provided.
@@ -136,3 +138,5 @@ CDataSink* CDataSinkFactory::makeRingSink(std::string fname)
 
   return sink;
 }
+
+} // end DAQ

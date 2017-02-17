@@ -25,6 +25,8 @@
 
 class CRingItem;
 
+namespace DAQ {
+
 class CDataSource;
 
 typedef std::unique_ptr<CDataSource> CDataSourceUPtr;
@@ -88,5 +90,7 @@ public:
 protected:
   void setEOF(bool state) { m_eof = state; }
 };
+
+} // end DAQ
 
 #endif

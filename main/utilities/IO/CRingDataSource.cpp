@@ -26,6 +26,10 @@
 using std::vector;
 using std::string;
 
+
+namespace DAQ {
+
+
 ///////////////////////////////////////////////////////////////////////////////////////
 //
 // Constructors and canonicals:
@@ -159,3 +163,6 @@ CRingDataSource::makePredicate(vector<uint16_t> sample, vector<uint16_t> exclude
     m_pPredicate->addExceptionType(sample[i], true);
   }
 }
+
+
+} // end DAQ

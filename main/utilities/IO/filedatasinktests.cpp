@@ -37,6 +37,8 @@
 
 #include "CFileDataSink.h"
 
+using namespace DAQ;
+
 
 // A test suite 
 class CFileDataSinkTest : public CppUnit::TestFixture

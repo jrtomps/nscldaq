@@ -21,6 +21,8 @@
 
 #include <string>
 
+namespace DAQ {
+
 class CDataSink;
 
 
@@ -56,5 +58,7 @@ private:
     */
     CDataSink* makeRingSink(std::string ringname); 
 };
+
+} // end DAQ
 
 #endif

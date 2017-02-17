@@ -25,10 +25,13 @@
 #include <CFatalException.h>
 
 class CMediator;
-class CDataSource;
 class CFilter;
-class CDataSink;
 struct gengetopt_args_info;
+
+namespace DAQ {
+class CDataSource;
+class CDataSink;
+}
 
 class CFilterMain
 {
@@ -79,8 +82,8 @@ class CFilterMain
 
   private:
     // Private utility functions 
-    CDataSource* constructDataSource();
-    CDataSink* constructDataSink();
+    DAQ::CDataSource* constructDataSource();
+    DAQ::CDataSink* constructDataSink();
 
     std::vector<uint16_t> constructExcludesList();
     std::vector<uint16_t> constructSampleList();

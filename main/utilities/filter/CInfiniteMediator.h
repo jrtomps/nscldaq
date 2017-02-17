@@ -21,12 +21,14 @@
 
 #include <CMediator.h>
 
-class CDataSource;
 class CFilter;
-class CDataSink;
 class CRingItem;
 class CRingStateChangeItem;
 
+namespace DAQ {
+class CDataSource;
+class CDataSink;
+}
 
 /**! \brief A mediator that never quits unless count is satisfied or stream ends.
  *
@@ -39,7 +41,7 @@ class CInfiniteMediator : public CMediator
 {
   public:
     // The constructor
-    CInfiniteMediator(CDataSource* source, CFilter* filter, CDataSink* sink);
+    CInfiniteMediator(DAQ::CDataSource* source, CFilter* filter, DAQ::CDataSink* sink);
 
     virtual ~CInfiniteMediator();
 

@@ -30,13 +30,12 @@
 using namespace std;
 using namespace DAQ::Transform;
 
+
 namespace DAQ {
   namespace V8 {
     std::size_t gBufferSize = 8192;
   }
 }
-
-
 
 //
 Main::Main(int argc, char **argv)
@@ -68,19 +67,19 @@ Main::Main(int argc, char **argv)
 
 
 //
-unique_ptr<CDataSource> Main::createSource() const
+unique_ptr<DAQ::CDataSource> Main::createSource() const
 {
-  CDataSourceFactory sourceFactory;
-  unique_ptr<CDataSource> pSource( sourceFactory.makeSource(m_argsInfo.source_arg, {}, {}) );
+  DAQ::CDataSourceFactory sourceFactory;
+  unique_ptr<DAQ::CDataSource> pSource( sourceFactory.makeSource(m_argsInfo.source_arg, {}, {}) );
 
   return move(pSource);
 }
 
 //
-unique_ptr<CDataSink> Main::createSink() const
+unique_ptr<DAQ::CDataSink> Main::createSink() const
 {
-  CDataSinkFactory factory;
-  unique_ptr<CDataSink> pSink( factory.makeSink(m_argsInfo.sink_arg) );
+  DAQ::CDataSinkFactory factory;
+  unique_ptr<DAQ::CDataSink> pSink( factory.makeSink(m_argsInfo.sink_arg) );
 
   return move(pSink);
 }

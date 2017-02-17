@@ -46,6 +46,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+using namespace DAQ;
 using namespace DAQ::V12;
 using namespace std;
 

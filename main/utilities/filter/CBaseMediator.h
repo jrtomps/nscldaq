@@ -26,13 +26,13 @@
 class CBaseMediator
 {
   protected:
-    std::unique_ptr<CDataSource> m_pSource; //!< the source
-    std::unique_ptr<CDataSink>   m_pSink; //!< the sink 
+    std::unique_ptr<DAQ::CDataSource> m_pSource; //!< the source
+    std::unique_ptr<DAQ::CDataSink>   m_pSink; //!< the sink
 
   public:
     // The constructor
-    CBaseMediator(std::unique_ptr<CDataSource> pSource = std::unique_ptr<CDataSource>(),
-                  std::unique_ptr<CDataSink> pSink     = std::unique_ptr<CDataSink>());
+    CBaseMediator(std::unique_ptr<DAQ::CDataSource> pSource = std::unique_ptr<DAQ::CDataSource>(),
+                  std::unique_ptr<DAQ::CDataSink> pSink     = std::unique_ptr<DAQ::CDataSink>());
 
     virtual ~CBaseMediator();
 
@@ -72,13 +72,13 @@ class CBaseMediator
       \param source the new source
       \return the old source 
     */
-    CDataSource* setDataSource( CDataSource* source) 
+    DAQ::CDataSource* setDataSource( DAQ::CDataSource* source)
     {
-        CDataSource* old_source = m_pSource.release();
+        DAQ::CDataSource* old_source = m_pSource.release();
         m_pSource.reset(source);
         return old_source;
     }  
-    virtual void setDataSource( std::unique_ptr<CDataSource>& pSource) {
+    virtual void setDataSource( std::unique_ptr<DAQ::CDataSource>& pSource) {
       m_pSource.swap(pSource);
     }
     /**! Set the sink
@@ -88,23 +88,23 @@ class CBaseMediator
       \param sink the new sink
       \return the old sink 
     */
-    CDataSink* setDataSink( CDataSink* sink) 
+    DAQ::CDataSink* setDataSink( DAQ::CDataSink* sink)
     {
-        CDataSink* old_sink = m_pSink.get();
+        DAQ::CDataSink* old_sink = m_pSink.get();
         m_pSink.reset(sink);
         return old_sink;
     }  
-    virtual void setDataSink( std::unique_ptr<CDataSink>& pSink) {
+    virtual void setDataSink( std::unique_ptr<DAQ::CDataSink>& pSink) {
       m_pSink.swap(pSink);
     }
 
     /**! Access to the source 
     */
-    virtual CDataSource* getDataSource() { return m_pSource.get();}
+    virtual DAQ::CDataSource* getDataSource() { return m_pSource.get();}
 
     /**! Access to the sink 
     */
-    virtual CDataSink* getDataSink() { return m_pSink.get();}
+    virtual DAQ::CDataSink* getDataSink() { return m_pSink.get();}
 
 };
 

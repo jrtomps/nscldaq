@@ -22,9 +22,12 @@
 #include <unistd.h>
 #include <memory>
 
-class CDataSource;
 class CRingSelectionPredicate;
 struct gengetopt_args_info;
+
+namespace DAQ {
+class CDataSource;
+}
 
 /*!
    This class is the ring selector application. Written as a separate class, we
@@ -33,7 +36,7 @@ struct gengetopt_args_info;
 class RingSelectorMain {
   // Object storage:
 private:
-  CDataSource*              m_pRing;          // Data source.
+  DAQ::CDataSource*              m_pRing;          // Data source.
   std::shared_ptr<CRingSelectionPredicate>  m_pPredicate;     // Predicate used to select data.
   bool                      m_formatted;      // Format output.
   bool                      m_exitOnEnd;      // If true exit when end run seen.
@@ -60,7 +63,7 @@ public:
   // Sub-chunks of the program:
 
   std::shared_ptr<CRingSelectionPredicate>  createPredicate(struct gengetopt_args_info* parse);
-  CDataSource*                selectRing(struct gengetopt_args_info* parse);
+  DAQ::CDataSource*                selectRing(struct gengetopt_args_info* parse);
   void                      processData();
 
 

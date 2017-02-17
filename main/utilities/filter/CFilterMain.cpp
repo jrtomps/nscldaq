@@ -34,6 +34,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include "CFatalException.h"
 #include <stdexcept>
 
+using namespace DAQ;
+
 /**! Constructor
   Constructs a mediator object with a CCompositeFilter
   as the default filter. We also set up the proper 

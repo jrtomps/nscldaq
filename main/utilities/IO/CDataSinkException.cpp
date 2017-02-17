@@ -16,6 +16,7 @@
 
 #include <CDataSinkException.h>
 
+namespace DAQ {
 
 CDataSinkException::CDataSinkException(std::string reason)
   : CException("DataSink operation"),
@@ -32,3 +33,5 @@ const char* CDataSinkException::ReasonText() const
 {
   return m_reason.c_str();
 }
+
+} // end DAQ

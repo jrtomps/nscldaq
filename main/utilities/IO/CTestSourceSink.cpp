@@ -22,6 +22,7 @@
 
 using namespace std;
 
+namespace DAQ {
 
 //
 CTestSourceSink::CTestSourceSink()
@@ -115,3 +116,6 @@ size_t CTestSourceSink::tell() const
 {
     return 0;
 }
+
+
+} // end DAQ

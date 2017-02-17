@@ -25,6 +25,8 @@
 #include <string>
 #include <string.h>
 
+using namespace DAQ;
+
 static std::string ringName("myring");
 
 class RingDataSinkTests : public CppUnit::TestFixture {

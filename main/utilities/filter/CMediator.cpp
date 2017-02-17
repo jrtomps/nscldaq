@@ -33,6 +33,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CRingFragmentItem.h>
 
 using namespace std;
+using namespace DAQ;
 
 /**! Constructor
 

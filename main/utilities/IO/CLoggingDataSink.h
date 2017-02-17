@@ -23,6 +23,9 @@
 
 class CRingItem;
 
+namespace DAQ {
+
+
 class CLoggingDataSink : public CDataSink
 {
   private:
@@ -34,5 +37,7 @@ class CLoggingDataSink : public CDataSink
 
     std::vector<CRingItem> getLog() { return m_log; }
 };
+
+} // end DAQ
 
 #endif

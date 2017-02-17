@@ -23,11 +23,14 @@
 
 #include <memory>
 
+
+namespace DAQ {
+
 class CDataSource;
 class CDataSink;
 
-namespace DAQ {
-  namespace Transform {
+
+namespace Transform {
 
 
 /**! \brief A mediator that never quits unless count is satisfied or stream ends.

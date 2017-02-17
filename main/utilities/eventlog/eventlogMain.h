@@ -25,9 +25,10 @@
 
 // Forward class definitions.
 
+namespace DAQ {
+
 class CDataSource;
 
-namespace DAQ {
 namespace V12 {
     class CRawRingItem;
     class CRingStateChangeItem;
@@ -44,7 +45,7 @@ class EventLogMain
 {
   // Per object data:
 
-  CDataSource*      m_pRing;
+  DAQ::CDataSource*      m_pRing;
   std::string       m_eventDirectory;
   uint64_t          m_segmentSize;
   bool              m_exitOnEndRun;

@@ -21,6 +21,10 @@
 #include <CRingItem.h>
 #include <DataFormat.h>
 
+
+namespace DAQ {
+
+
 void CLoggingDataSink::putItem(const CRingItem& item)
 {
   m_log.push_back(item); 
@@ -41,3 +45,5 @@ void CLoggingDataSink::put(const void* pData, size_t nBytes)
     iter += header->s_size;
   }
 }
+
+} // end DAQ

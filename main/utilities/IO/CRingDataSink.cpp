@@ -22,6 +22,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CRingItem.h>
 #include <CDataSinkException.h>
 
+namespace DAQ {
+
 
 CRingDataSink::CRingDataSink(std::string ringName)
   : m_pRing(0),
@@ -98,3 +100,6 @@ void CRingDataSink::openRing()
     throw CDataSinkException("CRingDataSink::openRing()","Failed to open specified ring");
   }
 }
+
+
+} // end DAQ

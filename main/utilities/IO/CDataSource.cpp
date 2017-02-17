@@ -16,6 +16,7 @@
 #include <config.h>
 #include "CDataSource.h"
 
+namespace DAQ {
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -24,3 +25,5 @@
 
 CDataSource::CDataSource() : m_eof(false) {}
 CDataSource::~CDataSource() {}
+
+} // end DAQ

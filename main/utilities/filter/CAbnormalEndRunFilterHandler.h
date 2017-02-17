@@ -5,7 +5,6 @@
 
 #include <CFilter.h>
 
-class CDataSink;
 class CRingItem;
 class CRingStateChangeItem;
 class CRingScalerItem;
@@ -14,6 +13,9 @@ class CRingPhysicsEventCountItem;
 class CRingFragmentItem;
 class CRingTextItem;
 
+namespace DAQ {
+class CDataSink;
+}
 
 /**! \brief Filter providing logic for handling ABNORMAL_ENDRUN items
  *
@@ -41,10 +43,10 @@ class CAbnormalEndRunFilterHandler : public CFilter
 {
 
   private:
-    CDataSink& m_sink;
+    DAQ::CDataSink& m_sink;
 
   public:
-    CAbnormalEndRunFilterHandler(CDataSink& sink ) 
+    CAbnormalEndRunFilterHandler(DAQ::CDataSink& sink )
        : m_sink(sink) {}
 
     CAbnormalEndRunFilterHandler(const CAbnormalEndRunFilterHandler& rhs);

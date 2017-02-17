@@ -56,6 +56,7 @@ using std::cerr;
 using std::endl;
 using std::cout;
 
+using namespace DAQ;
 using namespace DAQ::V12;
 
 // constant defintitions.

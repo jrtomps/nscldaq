@@ -37,6 +37,9 @@ class CException;
 #undef private
 #undef protected 
 
+
+using namespace DAQ;
+
 // A test suite 
 class CAbnormalEndRunFilterHandlerTest : public CppUnit::TestFixture
 {

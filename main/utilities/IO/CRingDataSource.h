@@ -28,6 +28,9 @@ class CAllButPredicate;
 class URL;
 class CRingItem;
 
+namespace DAQ {
+
+
 /*!
    Concrete subclass of CDataSource.  This provides the dumper application
    with a data source that comes from a ring buffer.  Since the ring buffer
@@ -97,4 +100,6 @@ private:
   
 
 };
+
+} // end DAQ
 #endif

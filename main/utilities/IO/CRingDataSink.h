@@ -27,6 +27,10 @@
 class CRingItem;
 class CRingBuffer;
 
+
+namespace DAQ {
+
+
 class CRingDataSink : public CDataSink
 {
   private:
@@ -56,4 +60,6 @@ class CRingDataSink : public CDataSink
     void openRing();
 
 };
+
+} // end DAQ
 #endif

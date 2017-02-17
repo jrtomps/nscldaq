@@ -31,6 +31,9 @@ class URL;
 class CRingItem;
 struct _RingItemHeader;
 
+namespace DAQ {
+
+
 /*!
   Provide a data source from an event file.  This allows users to directly dump
   an event file to stdout.  The data source returns sequential ring items
@@ -85,4 +88,6 @@ private:
   uint32_t   getItemSize(_RingItemHeader& header);
 };
 
+
+} // end DAQ
 #endif

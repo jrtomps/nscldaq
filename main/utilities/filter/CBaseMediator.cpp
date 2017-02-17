@@ -24,6 +24,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CDataSink.h>
 
 using namespace std;
+using namespace DAQ;
+
 /**! Constructor
 
   Constructs the mediator object. This object owns its referenced members.

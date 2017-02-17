@@ -22,12 +22,14 @@
 #include <COneShotHandler.h>
 #include <CMediator.h>
 
-class CDataSource;
 class CFilter;
-class CDataSink;
 class CRingItem;
 class CRingStateChangeItem;
 
+namespace DAQ {
+class CDataSource;
+class CDataSink;
+}
 
 /**! \brief A mediator that understands one-shot logic
  *
@@ -44,9 +46,9 @@ class COneShotMediator : public CMediator
 
   public:
     // The constructor
-    COneShotMediator(CDataSource* source, CFilter* filter, CDataSink* sink);
+    COneShotMediator(DAQ::CDataSource* source, CFilter* filter, DAQ::CDataSink* sink);
     // The constructor
-    COneShotMediator(CDataSource* source, CFilter* filter, CDataSink* sink, 
+    COneShotMediator(DAQ::CDataSource* source, CFilter* filter, DAQ::CDataSink* sink,
                       int nsources);
 
     virtual ~COneShotMediator();

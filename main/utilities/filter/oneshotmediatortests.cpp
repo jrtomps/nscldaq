@@ -53,6 +53,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #undef protected
 
 using namespace std;
+using namespace DAQ;
 
 // A test suite 
 class COneShotMediatorTest : public CppUnit::TestFixture

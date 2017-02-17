@@ -46,8 +46,8 @@ public:
     int run();
 
 private:
-    std::unique_ptr<CDataSource> createSource() const;
-    std::unique_ptr<CDataSink> createSink() const;
+    std::unique_ptr<DAQ::CDataSource> createSource() const;
+    std::unique_ptr<DAQ::CDataSink> createSink() const;
     void setUpTransformFactory();
     std::pair<int, int> parseInOutVersions() const;
     void setUpV8Transform() const;

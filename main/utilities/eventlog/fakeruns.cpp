@@ -42,6 +42,7 @@
 
 using namespace std;
 
+using namespace DAQ;
 using namespace DAQ::V12;
 
 

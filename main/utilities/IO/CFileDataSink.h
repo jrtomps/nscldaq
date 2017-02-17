@@ -25,6 +25,8 @@
 
 class CRingItem;
 
+namespace DAQ {
+
 ///! \brief A "file" data sink
 /**!
 *   Owns and manages a general file object. The user should
@@ -78,5 +80,8 @@ private:
     bool isWritable();
 
 };
+
+
+} // end DAQ
 
 #endif

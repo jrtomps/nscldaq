@@ -16,4 +16,8 @@
 
 #include <CDataSink.h>
 
+namespace DAQ {
+
 CDataSink::~CDataSink() {}
+
+}

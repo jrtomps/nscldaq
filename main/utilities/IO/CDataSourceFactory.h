@@ -25,6 +25,8 @@
 #include <vector>
 #include <cstdint>
 
+namespace DAQ {
+
 
 /**
  * @file CDataSourceFactory.h
@@ -47,5 +49,8 @@ public:
 				     std::vector<uint16_t> sample, std::vector<uint16_t>exclude);
   static CDataSourceUPtr makeSource(std::string uri);
 };
+
+
+} // end DAQ
 
 #endif

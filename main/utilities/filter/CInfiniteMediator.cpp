@@ -32,6 +32,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingFragmentItem.h>
 
+using namespace DAQ;
+
 /**! Constructor
 
   Constructs the mediator object. This object owns its referenced members.

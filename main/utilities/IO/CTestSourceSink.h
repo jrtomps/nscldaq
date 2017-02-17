@@ -23,6 +23,8 @@
 
 class CRingItem;
 
+namespace DAQ {
+
 /*!
  * \brief A source/sink that enables testing of IO operations
  *
@@ -120,5 +122,7 @@ class CTestSourceSink : public CDataSource, public CDataSink
     const std::vector<char>& getBuffer() const { return m_buffer; };
 };
 
+
+} // end DAQ
 #endif
 

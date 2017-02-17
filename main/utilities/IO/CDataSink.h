@@ -23,6 +23,8 @@
 
 class CRingItem;
 
+namespace DAQ {
+
 /*! \brief Interface for CDataSinks
 *
 * This is a pure virtual base class that establishes an
@@ -55,5 +57,8 @@ public:
 
     virtual void putv(const std::vector<std::pair<const void*, size_t>>& buffers) = 0;
 };
+
+
+} // end DAQ
 
 #endif

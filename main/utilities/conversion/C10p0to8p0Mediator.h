@@ -22,11 +22,12 @@
 #include <CTransform10p0to8p0.h>
 #include <memory>
 
+namespace DAQ {
+
 class CDataSource;
 class CDataSink;
 
-namespace DAQ {
-  namespace Transform {
+namespace Transform {
 
     // Fwd declaration for the creator
     class C10p0to8p0Mediator;

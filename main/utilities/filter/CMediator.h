@@ -23,11 +23,13 @@
 #include <CFilter.h>
 #include <memory>
 
-class CDataSource;
-class CDataSink;
 class CRingItem;
 class CRingStateChangeItem;
 
+namespace DAQ {
+    class CDataSource;
+    class CDataSink;
+}
 
 class CMediator : public CBaseMediator
 {
@@ -38,9 +40,9 @@ class CMediator : public CBaseMediator
 
   public:
     // The constructor
-    CMediator(CDataSource* source, CFilter* filter, CDataSink* sink);
-    CMediator(std::unique_ptr<CDataSource> source, std::unique_ptr<CFilter> filter, 
-              std::unique_ptr<CDataSink> sink);
+    CMediator(DAQ::CDataSource* source, CFilter* filter, DAQ::CDataSink* sink);
+    CMediator(std::unique_ptr<DAQ::CDataSource> source, std::unique_ptr<CFilter> filter,
+              std::unique_ptr<DAQ::CDataSink> sink);
 
     virtual ~CMediator();
 

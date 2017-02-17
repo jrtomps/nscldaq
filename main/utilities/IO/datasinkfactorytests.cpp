@@ -36,6 +36,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CRingBuffer.h>
 
 using namespace std;
+using namespace DAQ;
+
+
 
 // A test suite 
 class CDataSinkFactoryTest : public CppUnit::TestFixture
