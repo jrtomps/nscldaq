@@ -4,6 +4,7 @@ SUBDIRS = 				common \
 					daqstart \
 					dvdburn \
 					sequencer \
+					nscldaq-format/Buffer \
                                         IO \
 																				nscldaq-format \
 					filter \
