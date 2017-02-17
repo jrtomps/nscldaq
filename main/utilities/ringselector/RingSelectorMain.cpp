@@ -226,7 +226,7 @@ RingSelectorMain::processData()
     while(1) {
         auto pItem = new CRawRingItem;
 
-        bool found = readItemIf(*m_pRing, *pItem, predicate);
+        bool found = DAQ::readItemIf(*m_pRing, *pItem, predicate);
         if (!found) {
             delete pItem;
             continue;

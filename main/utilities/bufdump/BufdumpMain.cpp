@@ -223,14 +223,14 @@ BufdumpMain::operator()(int argc, char** argv)
   CRingSelectPredWrapper predicate(pPredicate);
   CRawRingItem item;
   while (m_skipCount && !pSource->eof()) {
-      readItemIf(*pSource, item, predicate);
+      DAQ::readItemIf(*pSource, item, predicate);
       m_skipCount--;
   }
   size_t numToDo = m_itemCount;
   bool done = false;
 
   while (!done && !pSource->eof()) {
-      readItemIf(*pSource, item, predicate);
+      DAQ::readItemIf(*pSource, item, predicate);
       if (!pSource->eof()) {
         processItem(item);
 
