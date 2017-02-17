@@ -5,7 +5,7 @@ lib_LTLIBRARIES	=	libdaqio.la
 libdaqio_la_SOURCES = CDataSource.cpp \
 											 CFileDataSource.cpp \
 											 CRingDataSource.cpp \
-                                                                                         CDataSourceFactory.cpp \
+                       CDataSourceFactory.cpp \
 											 CDataSink.cpp \
 											 CFileDataSink.cpp \
 											 CRingDataSink.cpp \
@@ -13,10 +13,11 @@ libdaqio_la_SOURCES = CDataSource.cpp \
 											 CLoggingDataSink.cpp \
 											 CDataSinkFactory.cpp \
 											 CDataSinkException.cpp
+
 include_HEADERS	=  CDataSource.h \
 									 CFileDataSource.h \
 									 CRingDataSource.h \
-                                                                         CDataSourceFactory.h \
+                   CDataSourceFactory.h \
 									 CDataSink.h \
 									 CFileDataSink.h \
 									 CRingDataSink.h \
@@ -25,8 +26,6 @@ include_HEADERS	=  CDataSource.h \
 									 CDataSinkFactory.h \
 									 CDataSinkException.h
 
-
-#                   COneShotMediator.h 
 
 libdaqio_la_CPPFLAGS	=  \
 		-I@top_srcdir@/daq/format \
@@ -67,6 +66,7 @@ unittests_LDADD		= \
 			@top_builddir@/base/uri/liburl.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
+			@top_builddir@/utilities/nscldaq-format/Buffer/libbuffer.la \
 			@top_builddir@/base/os/libdaqshm.la	\
 			$(CPPUNIT_LDFLAGS) 		\
 			@LIBEXCEPTION_LDFLAGS@
@@ -76,6 +76,7 @@ unittests_CPPFLAGS=  -I@top_srcdir@/utilities/filter \
 		-I@top_srcdir@/base/uri		\
 		-I@top_srcdir@/base/headers		\
     -I@top_srcdir@/daq/format \
+		-I@top_srcdir@/utilities/nscldaq-format/Buffer \
     -I@top_srcdir@/base/dataflow
 unittests_CXXFLAGS = $(AM_CXXFLAGS)
 
